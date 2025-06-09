@@ -34,7 +34,7 @@ export default function Navbar() {
             { href: "/jobs/apply", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
         ],
         "stay-in-touch": [
-            { href: "/stay-in-touch/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
+            { href: "/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
             { href: "/stay-in-touch/subscribe", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
         ]
     };
@@ -103,6 +103,7 @@ export default function Navbar() {
                                     width={90}
                                     height={64}
                                     priority
+                                    unoptimized
                                 />
                             </Link>
                         </div>

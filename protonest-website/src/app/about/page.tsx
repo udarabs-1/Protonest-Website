@@ -109,7 +109,7 @@ export default function About() {
               What Guides Us Every Day
             </span>
           </div>
-          <div className="my-20 flex gap-8 justify-center">
+          <div className="w-full my-20 flex justify-between">
             {[
               {
                 title: "Innovation",
