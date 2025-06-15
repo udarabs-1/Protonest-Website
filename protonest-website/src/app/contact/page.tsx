@@ -32,12 +32,14 @@ export default function Contact() {
 
       <div className="relative w-full min-h-screen">
         {/* Combined Background & Decorative Image */}
-        <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[280px]">
           <Image
-            src="/contact-2.svg" // Your exported combined image
+            src="/contact-2.svg"
             alt="Background with decorative elements"
-            fill
-            className="object-cover z-10 overflow-visible mt-[10px]"
+            layout="responsive"
+            width={1440}
+            height={1024}
+            className="object-cover"
             quality={100}
             priority
           />

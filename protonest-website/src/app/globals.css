@@ -61,3 +61,11 @@ body {
 .gradient-button:hover::before {
   background: linear-gradient(90deg, rgba(245, 29, 165, 1), rgba(85, 48, 250, 1)) border-box;
 }
+
+.group:hover .gradient-text {
+  background: linear-gradient(90deg, #f51da5 0%, #5530fa 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
