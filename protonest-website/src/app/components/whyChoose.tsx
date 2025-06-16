@@ -4,112 +4,184 @@ import Image from 'next/image';
 const WhyChooseProtonest = () => {
     const features = [
         {
-            topRow: [
-                { title: "Tailored IoT Solutions", position: "left-[270px] top-[371px]" },
-                { title: "Expertise in hardware and software design", position: "left-[582px] top-[371px]" },
-                { title: "Transparency and Collaboration", position: "left-[894px] top-[371px]" }
-            ],
-            bottomRow: [
-                { title: "Innovation and Quality", position: "left-[115px] top-[636px]" },
-                { title: "Post Development Support", position: "left-[416px] top-[636px]" },
-                { title: "Dedicated to Client Satisfaction", position: "left-[717px] top-[636px]" },
-                { title: "Proven Track Record", position: "left-[1025px] top-[636px]" }
-            ]
+            icon: "/choose1.svg",
+            title: "Tailored IoT Solutions",
+            isLeft: true
+        },
+        {
+            icon: "/choose2.svg",
+            title: "Expertise in hardware and software design",
+            isLeft: false
+        },
+        {
+            icon: "/choose3.svg",
+            title: "Transparency and Collaboration",
+            isLeft: true
+        },
+        {
+            icon: "/choose4.svg",
+            title: "Innovation and Quality",
+            isLeft: false
+        },
+        {
+            icon: "/choose5.svg",
+            title: "Post Development Support",
+            isLeft: true
+        },
+        {
+            icon: "/choose6.svg",
+            title: "Dedicated to Client Satisfaction",
+            isLeft: false
+        },
+        {
+            icon: "/choose7.svg",
+            title: "Proven Track Record",
+            isLeft: true
         }
     ];
 
-    const iconPositions = [
-        { position: "left-[344px] top-[209px]", img: "/choose1.svg" },
-        { position: "left-[656px] top-[209px]", img: "/choose2.svg" },
-        { position: "left-[968px] top-[209px]", img: "/choose3.svg" },
-        { position: "left-[189px] top-[474px]", img: "/choose4.svg" },
-        { position: "left-[490px] top-[474px]", img: "/choose5.svg" },
-        { position: "left-[791px] top-[474px]", img: "/choose6.svg" },
-        { position: "left-[1092px] top-[474px]", img: "/choose7.svg" }
-    ];
-
     return (
-        <div className="my-40 relative w-[1440px] h-[806px]">
-            {/* Background Image */}
-            <Image
-                src="/home-6.svg"
-                alt="Background"
-                width={1440}
-                height={664}
-                className="absolute left-0 top-[142px]"
-            />
+        <div className="my-16 md:my-20 lg:my-24 relative w-full">
+            {/* Background Images */}
+            {/* Mobile/SM/MD Background */}
+            <div className="lg:hidden absolute inset-0 flex items-center justify-center">
+                <Image
+                    src="/home-6-mobile.svg"
+                    alt="Background Mobile"
+                    width={768}
+                    height={500}
+                    className="max-w-full h-auto object-contain"
+                />
+            </div>
 
-            {/* Header */}
-            <div className="flex flex-col items-start justify-start h-full px-[133px]">
+            {/* LG+ Background */}
+            <div className="hidden lg:block absolute inset-0">
                 <div className="flex justify-center">
-                    <div className="text-center text-[30px] font-medium font-montserrat">
+                    <Image
+                        src="/home-6.svg"
+                        alt="Background Desktop"
+                        width={1440}
+                        height={664}
+                        className="max-w-full h-auto object-contain"
+                    />
+                </div>
+            </div>
+
+            {/* Content Container */}
+            <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[133px]">
+                {/* Header */}
+                <div className="text-center mb-8 md:mb-12">
+                    <h2 className="text-2xl md:text-[30px] font-medium font-montserrat mb-15">
                         <span className="text-[rgba(108,108,108,1)]">
                             Why Choose{' '}
                         </span>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                             Protonest?
                         </span>
-                    </div>
-                </div>
-                <div className="flex justify-between items-center w-full my-12">
-                    <div className="text-[18px] font-normal font-poppins">
-                        <span className="text-[rgba(108,108,108,1)]">
-                            Where bold ideas become connected products.
-                        </span>
-                    </div>
-                    <div className="text-[18px] font-normal font-poppins">
-                        <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">Get a Quote &gt;</span>
+                    </h2>
+
+                    <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
+                        <div className="text-base md:text-[18px] font-normal font-poppins text-center md:text-left">
+                            <span className="text-[rgba(108,108,108,1)]">
+                                Where bold ideas become connected products.
+                            </span>
+                        </div>
+                        <div className="text-base md:text-[18px] font-normal font-poppins">
+                            <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-300">
+                                Get a Quote &gt;
+                            </span>
+                        </div>
                     </div>
                 </div>
 
+                {/* Features - Mobile/SM/MD Layout (Alternating Left/Right) */}
+                <div className="block lg:hidden space-y-8 pt-8">
+                    {features.map((feature, index) => (
+                        <FeatureItemAlternating
+                            key={index}
+                            icon={feature.icon}
+                            title={feature.title}
+                            isLeft={feature.isLeft}
+                        />
+                    ))}
+                </div>
 
+                {/* Features - Large Screen Layout (LG/XL/2XL - 2 Rows Centered) */}
+                <div className="hidden lg:block pt-16">
+                    {/* First Row - 4 items centered */}
+                    <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24 mb-20">
+                        {features.slice(0, 4).map((feature, index) => (
+                            <FeatureItemGrid
+                                key={index}
+                                icon={feature.icon}
+                                title={feature.title}
+                            />
+                        ))}
+                    </div>
+                    {/* Second Row - 3 items centered */}
+                    <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24">
+                        {features.slice(4, 7).map((feature, index) => (
+                            <FeatureItemGrid
+                                key={index + 4}
+                                icon={feature.icon}
+                                title={feature.title}
+                            />
+                        ))}
+                    </div>
+                </div>
             </div>
-
-            {/* Feature Icons */}
-            {iconPositions.map((icon, index) => (
-                <FeatureIcon key={index} position={icon.position} img={icon.img} />
-            ))}
-
-            {/* Feature Titles */}
-            {features[0].topRow.map((feature, index) => (
-                <FeatureTitle
-                    key={index}
-                    title={feature.title}
-                    position={feature.position}
-                />
-            ))}
-
-            {features[0].bottomRow.map((feature, index) => (
-                <FeatureTitle
-                    key={index}
-                    title={feature.title}
-                    position={feature.position}
-                />
-            ))}
         </div>
     );
 };
 
-// Reusable Feature Icon Component
-const FeatureIcon = ({ position, img }: { position: string, img: string }) => {
+// Alternating Feature Item Component (Mobile/SM/MD)
+const FeatureItemAlternating = ({ icon, title, isLeft }: { icon: string, title: string, isLeft: boolean }) => {
     return (
-        <div className={`w-32 h-32 absolute ${position}`}>
+        <div className={`flex items-center ${isLeft ? 'justify-start' : 'justify-end'}`}>
+            <div className={`inline-flex items-center gap-6 sm:gap-8 ${isLeft ? '' : 'flex-row-reverse'}`}>
+                <FeatureCircle icon={icon} />
+                <div className={`max-w-[160px] sm:max-w-[200px] text-[#4d4d4d] text-base sm:text-lg font-normal font-poppins ${isLeft ? 'text-left' : 'text-right'}`}>
+                    {title.includes('and') || title.includes('Development') || title.includes('Quality') ? (
+                        <>
+                            {title.split(' ').slice(0, -1).join(' ')}<br />
+                            {title.split(' ').slice(-1)}
+                        </>
+                    ) : (
+                        title
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Grid Feature Item Component (LG+)
+const FeatureItemGrid = ({ icon, title }: { icon: string, title: string }) => {
+    return (
+        <div className="flex flex-col items-center text-center w-64 group">
+            <div className="mb-6 transition-transform duration-300 group-hover:scale-110">
+                <FeatureCircle icon={icon} />
+            </div>
+            <h3 className="text-[#4d4d4d] text-lg font-normal font-poppins leading-relaxed group-hover:text-[#333] transition-colors duration-300 min-h-[3rem] flex items-center justify-center">
+                {title}
+            </h3>
+        </div>
+    );
+};
+
+// Reusable Feature Circle Component
+const FeatureCircle = ({ icon }: { icon: string }) => {
+    return (
+        <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
             <Image
-                src={img}
+                src={icon}
                 alt="Feature icon"
                 width={128}
                 height={128}
-                className="w-full h-full"
+                className="w-full h-full object-contain"
             />
         </div>
     );
 };
-
-// Reusable Feature Title Component
-const FeatureTitle = ({ title, position }: { title: string, position: string }) => (
-    <div className={`w-[276px] absolute text-center text-[#4d4d4d] text-lg font-normal font-poppins ${position}`}>
-        {title}
-    </div>
-);
 
 export default WhyChooseProtonest;
