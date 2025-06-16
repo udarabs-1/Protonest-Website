@@ -49,6 +49,9 @@ export default function Footer() {
                         style={{ backgroundImage: "url('/footerWeb.gif')" }}
                     />
 
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
+
                     <div className='relative z-20 lg:px-[60px] xl:px-[80px] xxl:px-[98px]'>
                         <div className="w-full flex lg:pt-[120px] xl:pt-[150px] xxl:pt-[180px] justify-between">
                             <Image
