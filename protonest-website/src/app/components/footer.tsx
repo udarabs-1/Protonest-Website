@@ -215,7 +215,7 @@ export default function Footer() {
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/', false)}`}>Home</div>
                             </Link>
                             <Link href="/projects" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/projects', false)}`}>Projects</div>
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/project', false)}`}>Projects</div>
                             </Link>
                             <Link href="/research" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>
@@ -225,7 +225,7 @@ export default function Footer() {
                         {/* Right Menu Column */}
                         <div className="inline-flex flex-col justify-start items-start gap-5 md:gap-6">
                             <Link href="/blogs" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/blogs', false)}`}>Blogs</div>
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/blog', false)}`}>Blogs</div>
                             </Link>
                             <Link href="/about" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/about', false)}`}>About Us</div>

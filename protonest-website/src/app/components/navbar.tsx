@@ -29,8 +29,8 @@ export default function Navbar() {
 
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
-            { href: "/whats-new/blogs", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
-            { href: "/whats-new/research", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
+            { href: "/whats-new/blog", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
+            { href: "/whats-new/project", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
         ],
         "jobs": [
             { href: "/jobs/home", label: "Careers Home", description: "Join the Protonest freelance network." },
