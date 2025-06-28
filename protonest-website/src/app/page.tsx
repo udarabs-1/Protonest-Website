@@ -1,6 +1,8 @@
 // Main Homepage Component
 import Image from "next/image";
 import ClientMarquee from "./components/clientMarquee";
+import Footer from "./components/footer";
+import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/newsAndBlogs";
 import ProjectSlider from "./components/projectsSlider";
 import TestimonialSection from "./components/testimonials";
@@ -615,6 +617,7 @@ function SmallScreenHome() {
 export default function Home() {
   return (
     <div>
+      <Navbar />
       {/* Large Screen Layout */}
       <LargeScreenHome />
 
@@ -626,6 +629,7 @@ export default function Home() {
       <TestimonialSection />
       <WhyChooseProtonest />
       <NewsAndBlogs />
+      <Footer />
     </div>
   );
 }
