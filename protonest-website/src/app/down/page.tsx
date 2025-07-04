@@ -5,26 +5,24 @@ import Navbar from '../components/navbar';
 
 export default function NotFound() {
   return (
-    <div>
+    <div className="bg-white">
       <Navbar />
-      <div className="min-h-screen bg-white overflow-hidden">
+      <div className="min-h-screen overflow-hidden bg-white">
         {/* Main Content Area */}
-        <div className="relative w-full h-screen flex items-center justify-center">
+        <div className="relative w-full h-screen flex items-center justify-center bg-white">
           {/* Background image - moved up and increased opacity */}
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 z-0">
             <Image
               src="/404-1.svg"
               alt="Background"
               fill
-              className="object-cover" // Increased from opacity-10 to opacity-30
+              className="object-cover opacity-30"
               priority
             />
           </div>
 
-          {/* Simplified gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-white/40 z-0" />
-
-          <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10">
+          {/* Content Container */}
+          <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10 bg-transparent">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
 
               {/* Mobile Image - Shows only on smaller screens at the top */}
@@ -55,18 +53,16 @@ export default function NotFound() {
 
                 {/* Main heading */}
                 <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-[#6c6c6c] font-medium font-['Poppins'] leading-tight mb-6 lg:mb-8">
-                  We’ll be right back!
+                  We&apos;ll be right back!
                 </h1>
 
                 {/* Subheading */}
                 <p className="text-base md:text-lg lg:text-xl text-[#6c6c6c] font-medium font-['Poppins'] leading-relaxed mb-8 lg:mb-12 max-w-lg mx-auto lg:mx-0">
-                  We’re performing some upgrades to serve you better. Protonest will be back online shortly.
+                  We&apos;re performing some upgrades to serve you better. Protonest will be back online shortly.
                 </p>
                 <p className="text-base md:text-lg lg:text-xl text-[#6c6c6c] font-medium font-['Poppins'] leading-relaxed mb-8 lg:mb-12 max-w-lg mx-auto lg:mx-0">
                   Thanks for your patience! Innovation takes a little fine-tuning.
                 </p>
-
-
               </div>
 
               {/* Right Content - Desktop Image (Hidden on smaller screens) */}

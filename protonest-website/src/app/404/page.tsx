@@ -1,29 +1,18 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import Footer from '../components/footer';
-import Navbar from '../components/navbar';
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import Footer from "../components/footer";
+import Navbar from "../components/navbar";
 
-export default function NotFound() {
+export default function About() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-white overflow-hidden">
-        {/* Main Content Area */}
-        <div className="relative w-full h-screen flex items-center justify-center">
-          {/* Background image - moved up and increased opacity */}
-          <div className="absolute inset-0">
-            <Image
-              src="/404-1.svg"
-              alt="Background"
-              fill
-              className="object-cover" // Increased from opacity-10 to opacity-30
-              priority
-            />
-          </div>
-
-          {/* Simplified gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-white/40 z-0" />
-
+      <div>
+        <div
+          className="mt-[50px] h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
+          style={{ backgroundImage: "url('/404-1.svg')" }}
+        >
           <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
 
@@ -96,8 +85,10 @@ export default function NotFound() {
           </div>
 
         </div>
+
       </div>
       <Footer />
     </div>
+
   );
 }
