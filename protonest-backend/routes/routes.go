@@ -1,0 +1,49 @@
+package routes
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/shafeekms10/protonest-backend/controllers"
+	"github.com/shafeekms10/protonest-backend/middleware"
+)
+
+func SetupRoutes(router *gin.Engine) {
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "success",
+			"message": "Server is running",
+		})
+	})
+
+	// API v1 routes
+	v1 := router.Group("/api/v1")
+	{
+		setupAuthRoutes(v1)
+		setupPublicRoutes(v1)
+	}
+}
+
+func setupAuthRoutes(rg *gin.RouterGroup) {
+	auth := rg.Group("/auth")
+	{
+		auth.POST("/signup", controllers.SignUp)
+		auth.POST("/login", controllers.Login)
+		auth.POST("/admin/login", controllers.AdminLogin)
+
+		admin := auth.Group("/admin")
+		admin.Use(middleware.AdminAuthMiddleware())
+		{
+			admin.GET("/subscriptions", controllers.GetSubscriptions)
+			admin.GET("/subscriptions/count", controllers.GetSubscriptionCount)
+			admin.GET("/contacts", controllers.GetContacts)
+		}
+	}
+}
+
+func setupPublicRoutes(rg *gin.RouterGroup) {
+	public := rg.Group("/public")
+	{
+		public.POST("/subscribe", controllers.Subscribe)
+		public.POST("/contact", controllers.ContactUs)
+	}
+}
