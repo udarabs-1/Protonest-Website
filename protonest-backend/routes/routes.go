@@ -36,6 +36,12 @@ func setupAuthRoutes(rg *gin.RouterGroup) {
 			admin.GET("/subscriptions", controllers.GetSubscriptions)
 			admin.GET("/subscriptions/count", controllers.GetSubscriptionCount)
 			admin.GET("/contacts", controllers.GetContacts)
+			admin.POST("/blogs", controllers.CreateBlog)
+			admin.PUT("/blogs/:id", controllers.UpdateBlog)
+			admin.DELETE("/blogs/:id", controllers.DeleteBlog)
+			admin.POST("/research", controllers.CreateResearch)
+			admin.PUT("/research/:id", controllers.UpdateResearch)
+			admin.DELETE("/research/:id", controllers.DeleteResearch)
 		}
 	}
 }
@@ -45,5 +51,9 @@ func setupPublicRoutes(rg *gin.RouterGroup) {
 	{
 		public.POST("/subscribe", controllers.Subscribe)
 		public.POST("/contact", controllers.ContactUs)
+		public.GET("/blogs", controllers.ListBlogs)
+		public.GET("/blogs/:slug", controllers.GetBlog)
+		public.GET("/research", controllers.ListResearch)
+		public.GET("/research/:slug", controllers.GetResearch)
 	}
 }

@@ -17,6 +17,8 @@ var (
 	AdminCollection        *mongo.Collection
 	SubscriptionCollection *mongo.Collection
 	ContactCollection      *mongo.Collection
+	BlogCollection         *mongo.Collection
+	ResearchCollection     *mongo.Collection
 )
 
 const (
@@ -25,6 +27,8 @@ const (
 	AdminCollectionName        = "admins"
 	SubscriptionCollectionName = "subscriptions"
 	ContactCollectionName      = "contacts"
+	BlogCollectionName         = "blogs"
+	ResearchCollectionName     = "research"
 	ConnectionTimeout          = 10 * time.Second
 	PingTimeout                = 5 * time.Second
 )
@@ -66,6 +70,8 @@ func InitDatabase() {
 	AdminCollection = db.Collection(AdminCollectionName)
 	SubscriptionCollection = db.Collection(SubscriptionCollectionName)
 	ContactCollection = db.Collection(ContactCollectionName)
+	BlogCollection = db.Collection(BlogCollectionName)
+	ResearchCollection = db.Collection(ResearchCollectionName)
 
 	// Create indexes
 	createIndexes(ctx)
@@ -98,6 +104,24 @@ func createIndexes(ctx context.Context) {
 	})
 	if err != nil {
 		log.Fatalf("❌ Failed to create subscription email index: %v", err)
+	}
+
+	// Create index for blog slugs
+	_, err = BlogCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"slug": 1},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		log.Fatalf("❌ Failed to create blog slug index: %v", err)
+	}
+
+	// Create index for research slugs
+	_, err = ResearchCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"slug": 1},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		log.Fatalf("❌ Failed to create research slug index: %v", err)
 	}
 
 	log.Println("✅ Database indexes created successfully")
