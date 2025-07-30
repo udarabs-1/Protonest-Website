@@ -45,7 +45,7 @@ func AdminLogin(c *gin.Context) {
 	}
 
 	// Generate JWT token with admin role
-	token, err := utils.GenerateAdminJWT(admin.Email, admin.Role)
+	token, err := utils.GenerateAdminJWT(admin.Email, admin.ID.Hex(), admin.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse("Failed to generate authentication token"))
 		return

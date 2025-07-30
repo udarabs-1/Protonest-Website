@@ -19,6 +19,8 @@ var (
 	ContactCollection      *mongo.Collection
 	BlogCollection         *mongo.Collection
 	ResearchCollection     *mongo.Collection
+	JobCollection          *mongo.Collection
+	CVCollection           *mongo.Collection
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	ContactCollectionName      = "contacts"
 	BlogCollectionName         = "blogs"
 	ResearchCollectionName     = "research"
+	JobCollectionName          = "jobs"
+	CVCollectionName           = "cvs"
 	ConnectionTimeout          = 10 * time.Second
 	PingTimeout                = 5 * time.Second
 )
@@ -72,6 +76,8 @@ func InitDatabase() {
 	ContactCollection = db.Collection(ContactCollectionName)
 	BlogCollection = db.Collection(BlogCollectionName)
 	ResearchCollection = db.Collection(ResearchCollectionName)
+	JobCollection = db.Collection(JobCollectionName)
+	CVCollection = db.Collection(CVCollectionName)
 
 	// Create indexes
 	createIndexes(ctx)
@@ -122,6 +128,45 @@ func createIndexes(ctx context.Context) {
 	})
 	if err != nil {
 		log.Fatalf("❌ Failed to create research slug index: %v", err)
+	}
+
+	// Create indexes for jobs
+	jobIndexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "status", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "category", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "job_type", Value: 1}},
+		},
+		{
+			Keys: bson.D{
+				{Key: "location", Value: "text"},
+				{Key: "title", Value: "text"},
+				{Key: "description", Value: "text"},
+			},
+		},
+		{
+			Keys:    bson.D{{Key: "schedule_at", Value: 1}},
+			Options: options.Index().SetExpireAfterSeconds(0),
+		},
+	}
+
+	for _, index := range jobIndexes {
+		_, err := JobCollection.Indexes().CreateOne(ctx, index)
+		if err != nil {
+			log.Fatalf("❌ Failed to create job index: %v", err)
+		}
+	}
+
+	// Create index for CVs
+	_, err = CVCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"user_id": 1},
+	})
+	if err != nil {
+		log.Fatalf("❌ Failed to create CV index: %v", err)
 	}
 
 	log.Println("✅ Database indexes created successfully")

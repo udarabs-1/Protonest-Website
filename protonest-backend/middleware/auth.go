@@ -9,9 +9,14 @@ import (
 	"github.com/shafeekms10/protonest-backend/utils"
 )
 
-// AuthMiddleware validates JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Skip middleware for OPTIONS requests
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, models.FailResponse("Authorization header is required"))
@@ -19,26 +24,26 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the header starts with "Bearer "
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, models.FailResponse("Invalid authorization header format"))
 			c.Abort()
 			return
 		}
 
-		// Extract the token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		// Validate the token
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, models.FailResponse("Invalid or expired token"))
+			c.JSON(http.StatusUnauthorized, models.FailResponse("Invalid token: "+err.Error()))
 			c.Abort()
 			return
 		}
 
-		// Set user email in context for use in handlers
+		// Set all claims in context
 		c.Set("user_email", claims.Email)
+		c.Set("user_id", claims.UserID)
+		c.Set("user_role", claims.Role)
+		c.Set("jwt_claims", claims) // Store full claims object
+
 		c.Next()
 	}
 }

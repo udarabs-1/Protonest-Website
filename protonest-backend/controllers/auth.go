@@ -1,9 +1,9 @@
-// controllers/auth.go
 package controllers
 
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -99,7 +99,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Generate JWT token
-	token, err := utils.GenerateJWT(user.Email)
+	token, err := utils.GenerateJWT(user.Email, user.ID.Hex())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse("Failed to generate authentication token"))
 		return
@@ -112,4 +112,29 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse("Login successful", loginResponse))
+}
+
+// ValidateToken validates JWT tokens (used by Python service)
+func ValidateToken(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"valid": false, "error": "Missing token"})
+		return
+	}
+
+	// Remove "Bearer " prefix if present
+	token = strings.TrimPrefix(token, "Bearer ")
+
+	// Verify the token
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"valid": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid":   true,
+		"user_id": claims.UserID,
+		"email":   claims.Email,
+	})
 }

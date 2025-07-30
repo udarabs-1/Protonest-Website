@@ -20,6 +20,7 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		setupAuthRoutes(v1)
 		setupPublicRoutes(v1)
+		setupTokenValidationRoute(v1)
 	}
 }
 
@@ -29,6 +30,13 @@ func setupAuthRoutes(rg *gin.RouterGroup) {
 		auth.POST("/signup", controllers.SignUp)
 		auth.POST("/login", controllers.Login)
 		auth.POST("/admin/login", controllers.AdminLogin)
+
+		user := auth.Group("/user")
+		user.Use(middleware.AuthMiddleware())
+		{
+			// CV routes
+			user.POST("/uploadcv", controllers.UploadCV)
+		}
 
 		admin := auth.Group("/admin")
 		admin.Use(middleware.AdminAuthMiddleware())
@@ -42,6 +50,10 @@ func setupAuthRoutes(rg *gin.RouterGroup) {
 			admin.POST("/research", controllers.CreateResearch)
 			admin.PUT("/research/:id", controllers.UpdateResearch)
 			admin.DELETE("/research/:id", controllers.DeleteResearch)
+			admin.POST("/jobs", controllers.CreateJob)
+			admin.PUT("/jobs/:id", controllers.UpdateJob)
+			admin.DELETE("/jobs/:id", controllers.DeleteJob)
+			admin.POST("/jobs/:id/publish", controllers.PublishJob)
 		}
 	}
 }
@@ -55,5 +67,11 @@ func setupPublicRoutes(rg *gin.RouterGroup) {
 		public.GET("/blogs/:slug", controllers.GetBlog)
 		public.GET("/research", controllers.ListResearch)
 		public.GET("/research/:slug", controllers.GetResearch)
+		public.GET("/jobs", controllers.ListJobs)
+		public.GET("/jobs/:id", controllers.GetJob)
 	}
+}
+
+func setupTokenValidationRoute(rg *gin.RouterGroup) {
+	rg.GET("/auth/validate", controllers.ValidateToken)
 }

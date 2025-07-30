@@ -1,4 +1,3 @@
-// utils/jwt.go
 package utils
 
 import (
@@ -18,14 +17,14 @@ var (
 	ErrExpiredToken = errors.New("token has expired")
 )
 
-// Claims represents JWT claims
+// Claims represents JWT claims including UserID
 type Claims struct {
-	Email string `json:"email"`
-	Role  string `json:"role,omitempty"` // Added role for admin
+	Email  string `json:"email"`
+	UserID string `json:"user_id"`
+	Role   string `json:"role,omitempty"`
 	jwt.RegisteredClaims
 }
 
-// getJWTSecret returns the JWT secret from environment
 func getJWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
@@ -34,14 +33,13 @@ func getJWTSecret() []byte {
 	return []byte(secret)
 }
 
-// GenerateJWT generates a new JWT token for the given email (for regular users)
-func GenerateJWT(email string) (string, error) {
-	expirationTime := time.Now().Add(DefaultTokenExpiry)
-
+// GenerateJWT generates a token with email and userID
+func GenerateJWT(email, userID string) (string, error) {
 	claims := &Claims{
-		Email: email,
+		Email:  email,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(DefaultTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   email,
 		},
@@ -51,15 +49,14 @@ func GenerateJWT(email string) (string, error) {
 	return token.SignedString(getJWTSecret())
 }
 
-// GenerateAdminJWT generates a new JWT token for admin with role
-func GenerateAdminJWT(email, role string) (string, error) {
-	expirationTime := time.Now().Add(DefaultTokenExpiry)
-
+// GenerateAdminJWT generates a token with role
+func GenerateAdminJWT(email, userID, role string) (string, error) {
 	claims := &Claims{
-		Email: email,
-		Role:  role,
+		Email:  email,
+		UserID: userID,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(DefaultTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   email,
 		},
@@ -69,7 +66,7 @@ func GenerateAdminJWT(email, role string) (string, error) {
 	return token.SignedString(getJWTSecret())
 }
 
-// ValidateJWT validates and parses a JWT token
+// ValidateJWT validates and returns claims
 func ValidateJWT(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 
