@@ -30,16 +30,16 @@ export default function Navbar() {
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
             { href: "/whats-new/blog", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
-            { href: "/whats-new/project", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
+            { href: "/down", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
         ],
         "jobs": [
-            { href: "/jobs/home", label: "Careers Home", description: "Join the Protonest freelance network." },
-            { href: "/jobs/categories", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
-            { href: "/jobs/apply", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
+            { href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
+            { href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
+            { href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
         ],
         "stay-in-touch": [
             { href: "/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
-            { href: "/stay-in-touch/subscribe", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
+            { href: "/down", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
         ]
     };
 
@@ -220,10 +220,10 @@ export default function Navbar() {
                                 </div>
 
                                 <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                    <button className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-base xl:text-base 2xl:text-lg bg-none border border-[#b7b7b7] text-[#83848b] p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]">
-                                        Get a Quote
+                                    <button className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-base xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]">
+                                        Sign In
                                     </button>
-                                    <button className="relative group">
+                                    {/* <button className="relative group">
                                         <Image
                                             src="/bell-icon.svg"
                                             alt="bellIcon"
@@ -238,7 +238,7 @@ export default function Navbar() {
                                             height={40}
                                             className="lg:w-[32px] lg:h-[40px] xl:w-[36px] xl:h-[44px] 2xl:w-[40px] 2xl:h-[48px] absolute inset-0 opacity-0 group-hover:opacity-100 transition-none"
                                         />
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         </div>
@@ -338,10 +338,10 @@ export default function Navbar() {
 
                             <div className="flex items-center gap-3 md:gap-6">
                                 <button className="w-[131px] md:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] flex justify-center items-center gap-2.5 ">
-                                    <span className="text-[#83848b] text-sm md:text-base font-medium font-montserrat">Get a Quote</span>
+                                    <span className="text-[#83848b] text-sm md:text-base font-medium font-montserrat">Sign In</span>
                                 </button>
 
-                                <button className="relative group">
+                                {/* <button className="relative group">
                                     <Image
                                         src="/bell-icon.svg"
                                         alt="bellIcon"
@@ -356,7 +356,7 @@ export default function Navbar() {
                                         height={44}
                                         className="absolute inset-0 w-9 md:w-10 h-11 md:h-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     />
-                                </button>
+                                </button> */}
 
                                 <button
                                     className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] hover:scale-105 transition-transform"

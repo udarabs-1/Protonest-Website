@@ -5,6 +5,7 @@ import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/newsAndBlogs";
 import ProjectSlider from "./components/projectsSlider";
+import ServicesSection from "./components/services";
 import TestimonialSection from "./components/testimonials";
 import WhyChooseProtonest from "./components/whyChoose";
 
@@ -21,11 +22,11 @@ function LargeScreenHome() {
           <div className="flex justify-center">
             <div className="text-center text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Powering the Next Wave of
+                Bringing Your IoT Ideas to Life with
               </span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Connected Devices
+                Expert Prototyping
               </span>
             </div>
           </div>
@@ -39,7 +40,7 @@ function LargeScreenHome() {
               Get Your Free Quote Now
             </button>
             <button className="w-[266px] gradient-button font-medium">
-              Join as a Freelancer
+              Work With Us
             </button>
           </div>
         </div>
@@ -133,7 +134,7 @@ function LargeScreenHome() {
       </div>
 
       {/* Services Section */}
-      <div
+      {/* <div
         className="mt-[120px] mb-[80px] h-[649px] bg-no-repeat bg-cover bg-center"
         style={{ backgroundImage: "url('/home-3.svg')" }}
       >
@@ -160,7 +161,6 @@ function LargeScreenHome() {
           </div>
 
           <div className="w-full">
-            {/* First row */}
             <div className="flex justify-between mb-12 gap-3">
               <div className="relative group w-[510px] h-[186px]">
                 <div className="absolute inset-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300 rounded-[35px]">
@@ -225,8 +225,6 @@ function LargeScreenHome() {
                 </div>
               </div>
             </div>
-
-            {/* Second row */}
             <div className="flex justify-between gap-3">
               <div className="relative group w-[264px] h-[186px]">
                 <div className="absolute inset-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300 rounded-[35px]">
@@ -293,7 +291,9 @@ function LargeScreenHome() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
+
+      <ServicesSection />
 
       {/* Stats Section */}
       <div className="bg-[#FAFAFA] py-16 w-full h-[316px] flex items-center hover:bg-black transition-all duration-300 group">
@@ -455,7 +455,7 @@ function SmallScreenHome() {
       </div>
 
       {/* Services Section */}
-      <div
+      {/* <div
         className="mt-12 sm:mt-16 mb-12 min-h-[600px] bg-no-repeat bg-cover bg-center"
         style={{ backgroundImage: "url('/home-3.svg')" }}
       >
@@ -482,9 +482,7 @@ function SmallScreenHome() {
           </div>
 
           <div className="w-full max-w-sm sm:max-w-2xl">
-            {/* Services Grid - Updated with glassmorphism cards */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {/* Service 1 - Concept Development */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="w-[100px] sm:w-[113px] left-[15px] sm:left-[20px] top-[20px] sm:top-[27px] absolute text-[#4d4d4d] text-xs sm:text-sm font-normal font-poppins leading-tight">
                   Concept Development and Ideation
@@ -499,7 +497,6 @@ function SmallScreenHome() {
                 </div>
               </div>
 
-              {/* Service 2 - Hardware Design */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="absolute top-2 right-2 w-16 h-16 sm:w-20 sm:h-20 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
                   <Image
@@ -514,7 +511,6 @@ function SmallScreenHome() {
                 </div>
               </div>
 
-              {/* Service 3 - Software Development */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="absolute top-2 left-2 w-16 h-16 sm:w-20 sm:h-20 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
                   <Image
@@ -528,8 +524,6 @@ function SmallScreenHome() {
                   Software Development
                 </div>
               </div>
-
-              {/* Service 4 - Testing */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="absolute top-2 left-2 w-20 h-20 sm:w-24 sm:h-24 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
                   <Image
@@ -543,8 +537,6 @@ function SmallScreenHome() {
                   Testing and Validation
                 </div>
               </div>
-
-              {/* Service 5 - Consultation */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="w-[90px] sm:w-[100px] left-[15px] sm:left-[20px] top-[20px] sm:top-[27px] absolute text-[#4d4d4d] text-xs sm:text-sm font-normal font-poppins leading-tight">
                   Consultation
@@ -559,7 +551,6 @@ function SmallScreenHome() {
                 </div>
               </div>
 
-              {/* Service 6 - Post Development */}
               <div className="w-full h-[186px] relative bg-white/5 rounded-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden group hover:bg-white/10 transition-all duration-300">
                 <div className="absolute bottom-2 left-2 w-16 h-16 sm:w-20 sm:h-20 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
                   <Image
@@ -576,7 +567,9 @@ function SmallScreenHome() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
+
+      <ServicesSection />
 
       {/* Stats Section */}
       <div className="bg-[#FAFAFA] py-12 sm:py-16 w-full min-h-[200px] flex items-center hover:bg-black transition-all duration-300 group">

@@ -4,13 +4,32 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function BlogSection() {
-  const categories = ["UI/UX", "Photoshop", "Designing", "UI/UX", "Photoshop"];
-  const blogs = Array(6).fill({
-    title: "Selecting A Suitable Sensor For An IoT Project",
-    excerpt: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to..",
-    readTime: "3 min read",
-    imageUrl: "/blogsPage1.svg"
-  });
+  const blogs = [
+    {
+      id: "blog-1",
+      title: "Selecting A Suitable Sensor For An IoT Project",
+      excerpt: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to monitor temperature, detect motion, or measure air quality, choosing the right sensor is crucial.",
+      readTime: "3 min read",
+      imageUrl: "/blogs1.svg",
+      categoryTags: ["IoT", "Sensors", "Hardware"]
+    },
+    {
+      id: "blog-2",
+      title: "Selecting The Right Battery For Your IoT Project",
+      excerpt: "The rapid growth of the Internet of Things has enabled a wide range of innovations in smart home devices and industrial sensors. The key behind all these systems is one important component \"The battery\". The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
+      readTime: "5 min read",
+      imageUrl: "/blogs2.svg",
+      categoryTags: ["IoT", "Batteries", "Hardware"]
+    },
+    {
+      id: "blog-3",
+      title: "Selecting The Right Cloud Backend for Your IoT Project",
+      excerpt: "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind. The core of any IoT system is the backend platform, which stores, processes, and analyzes data while providing a secure and seamless communication backbone between devices.",
+      readTime: "4 min read",
+      imageUrl: "/blogs3.svg",
+      categoryTags: ["IoT", "Cloud Computing", "Backend"]
+    }
+  ];
 
   return (
     <div>
@@ -43,51 +62,12 @@ export default function BlogSection() {
         </div>
 
         <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[130px]">
-          {/* Search Bar */}
-          <div className="relative h-[38px] max-w-2xl mx-auto opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] border border-[#6c6c6c] overflow-hidden">
-            <input
-              type="text"
-              className="w-full h-full pl-9 pr-12 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
-              placeholder="Search for the blog categories you are looking for"
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
-              <Image
-                src="/search.svg"
-                alt="Search"
-                width={24}
-                height={24}
-                className="w-full h-full text-[#6c6c6c]"
-              />
-            </div>
-          </div>
-
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-start gap-3 mt-6 sm:mt-8">
-            {categories.map((category, index) => (
-              <button
-                key={index}
-                className="h-11 px-4 sm:px-6 py-4 rounded-[57px] inline-flex items-center gap-1 gradient-button"
-              >
-                <span className="text-[#6c6c6c] text-sm font-medium font-montserrat hover:text-white">
-                  {category}
-                </span>
-                <Image
-                  src="/close.svg"
-                  width={28}
-                  height={28}
-                  alt=""
-                  className="rotate-180"
-                />
-              </button>
-            ))}
-          </div>
-
-          {/* Blog Grid - FIXED VERSION */}
+          {/* Blog Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
-            {blogs.map((blog, index) => (
-              <Link key={index} href="/whats-new/blog-details" passHref>
+            {blogs.map((blog) => (
+              <Link key={blog.id} href={`/whats-new/${blog.id}`} passHref>
                 <article
-                  className="group bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden hover:shadow-[10px_10px_30px_0px_rgba(85,48,250,0.20)] transition-all duration-300 cursor-pointer"
+                  className="group bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden cursor-pointer"
                 >
                   {/* Image Container */}
                   <div className="p-4 sm:p-6 lg:p-8 pb-0">
@@ -104,23 +84,20 @@ export default function BlogSection() {
 
                   {/* Content Container */}
                   <div className="p-4 sm:p-6 lg:p-8 pt-4 space-y-3 sm:space-y-4">
-                    <h3 className="text-[#6c6c6c] text-sm sm:text-base lg:text-lg font-medium font-poppins leading-[1.4] group-hover:text-[#5530fa] transition-colors duration-300">
+                    <h3 className="text-[#6c6c6c] text-sm sm:text-base lg:text-lg font-medium font-poppins leading-[1.4] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[rgba(85,48,250,1)] group-hover:to-[rgba(245,29,165,1)]">
                       {blog.title}
                     </h3>
-                    <div className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-poppins">
+                    {/* <div className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-poppins">
                       {blog.readTime}
-                    </div>
+                    </div> */}
                     <div className="flex flex-wrap gap-2">
-                      <div className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
-                        <div className="text-[#83848b] text-[8px] sm:text-[10px] font-normal font-poppins leading-normal">
-                          Category Tag
+                      {blog.categoryTags.map((tag, index) => (
+                        <div key={index} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
+                          <div className="text-[#83848b] text-[8px] sm:text-[10px] font-normal font-poppins leading-normal">
+                            {tag}
+                          </div>
                         </div>
-                      </div>
-                      <div className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
-                        <div className="text-[#83848b] text-[8px] sm:text-[10px] font-normal font-poppins leading-normal">
-                          Category Tag
-                        </div>
-                      </div>
+                      ))}
                     </div>
                     <p className="text-[#6c6c6c] text-xs sm:text-sm font-medium font-poppins leading-[1.5] line-clamp-3">
                       {blog.excerpt}
@@ -132,11 +109,11 @@ export default function BlogSection() {
           </div>
 
           {/* Load More Button */}
-          <div className="flex justify-center mt-8 sm:mt-12">
+          {/* <div className="flex justify-center mt-8 sm:mt-12">
             <button className="h-[50px] w-[160px] sm:w-[180px] font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
               Load More
             </button>
-          </div>
+          </div> */}
 
           {/* Newsletter Section */}
           <div className="mt-20 sm:mt-40 lg:mt-60 relative">
@@ -207,6 +184,5 @@ export default function BlogSection() {
       </div>
       <Footer />
     </div>
-
   );
 }

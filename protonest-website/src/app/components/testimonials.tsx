@@ -2,6 +2,31 @@
 import Image from 'next/image';
 
 const TestimonialSection = () => {
+    // Testimonial data array
+    const testimonials = [
+        {
+            id: 1,
+            name: "Peter Hodgson",
+            company: "Purbrook Engineering Ltd",
+            text: "I collaborated with Udara from Protonest on a test equipment project for a large international company, requiring microcontroller coding. We selected Udara based on his outstanding customer feedback and project discussions. He delivered circuit diagrams, operator instructions, code, and component selection promptly and reliably. Udara's responsiveness and reliable communication were key to achieving our goals. I highly recommend Udara for coding and electronic circuit projects.",
+            avatar: "/client1.webp"
+        },
+        {
+            id: 2,
+            name: "Leon Hartman",
+            company: "Netherlands",
+            text: "Great working with Udara, he put a lot of dedication into the project i had given. I am super happy with the communication and off course thank to the help, a working machine. Thanks for all and see you next time",
+            avatar: "/client2.webp"
+        },
+        {
+            id: 3,
+            name: "Sajjad Akhtar. MD",
+            company: "SurgicalBooking.com",
+            text: "Udara is a very dedicated and passionate about his work. He developed an android based app for me and his work was flawless. He was readily available and addressed my concerns promptly. I highly recommend him without reservations.",
+            avatar: "/client3.webp"
+        }
+    ];
+
     return (
         <div className="relative w-full xl:w-[1440px] h-auto lg:h-[700px] xl:h-[674px] xl:mx-auto overflow-hidden">
             {/* Background Elements - XL screen keeps original absolute positioning */}
@@ -84,16 +109,21 @@ const TestimonialSection = () => {
             <div className="hidden xl:block absolute left-0 top-[100px] w-[159px] h-[542px] bg-gradient-to-l from-white/0 to-white z-5" />
             <div className="hidden xl:block absolute left-[1281px] top-0 w-[159px] h-[674px] bg-gradient-to-l from-white to-white/0 z-5" />
 
-            {/* XL Screen Testimonial Cards - Original absolute positioning with z-index */}
+            {/* XL Screen Testimonial Cards - Updated to use testimonial data */}
             <div className="hidden xl:absolute xl:left-[161px] xl:top-[248px] xl:flex xl:gap-[46px] z-15">
-                {[1, 2, 3].map((item) => (
-                    <TestimonialCardXL key={item} />
+                {testimonials.map((testimonial) => (
+                    <TestimonialCardXL
+                        key={testimonial.id}
+                        name={testimonial.name}
+                        company={testimonial.company}
+                        text={testimonial.text}
+                        avatar={testimonial.avatar}
+                    />
                 ))}
             </div>
 
             {/* Responsive Content for smaller screens */}
             <div className="xl:hidden relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-10 lg:py-12">
-
                 {/* Header Section for smaller screens */}
                 <div className="text-center mb-6 md:mb-8 lg:mb-12">
                     <h2 className="text-[#6c6c6c] text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight sm:leading-relaxed md:leading-[1.3] lg:leading-[1.2] mb-4 md:mb-6 lg:mb-8">
@@ -110,14 +140,19 @@ const TestimonialSection = () => {
 
                 {/* Testimonial Cards Grid for smaller screens */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-8 lg:gap-6 justify-items-center mb-8 sm:mb-10 lg:mb-16 z-25 relative">
-                    {/* Show 1 card on sm, 2 cards on md, 3 cards on lg+ */}
-                    <TestimonialCardResponsive />
-                    <div className="hidden md:block">
-                        <TestimonialCardResponsive />
-                    </div>
-                    <div className="hidden lg:block">
-                        <TestimonialCardResponsive />
-                    </div>
+                    {testimonials.map((testimonial, index) => (
+                        <div
+                            key={testimonial.id}
+                            className={index >= 1 ? "hidden md:block" : index >= 2 ? "hidden lg:block" : ""}
+                        >
+                            <TestimonialCardResponsive
+                                name={testimonial.name}
+                                company={testimonial.company}
+                                text={testimonial.text}
+                                avatar={testimonial.avatar}
+                            />
+                        </div>
+                    ))}
                 </div>
 
                 {/* Mobile/Tablet Contact Button - Hide on lg since it's in background */}
@@ -131,41 +166,46 @@ const TestimonialSection = () => {
     );
 };
 
-// Original XL Testimonial Card Component (unchanged)
-const TestimonialCardXL = () => {
+// Updated XL Testimonial Card Component with props
+interface TestimonialCardProps {
+    name: string;
+    company: string;
+    text: string;
+    avatar: string;
+}
+
+const TestimonialCardXL = ({ name, company, text, avatar }: TestimonialCardProps) => {
     return (
         <div className="w-[343px] h-[312px] px-8 py-[50px] bg-white/60 rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col items-center gap-2.5">
             <div className="w-[259px] flex flex-col items-start gap-[27px]">
-                <ClientAvatarXL />
-                <ClientInfoXL />
-                <TestimonialTextXL />
+                <ClientAvatarXL avatar={avatar} />
+                <ClientInfoXL name={name} company={company} />
+                <TestimonialTextXL text={text} />
             </div>
         </div>
     );
 };
 
-// Responsive Testimonial Card Component for smaller screens
-const TestimonialCardResponsive = () => {
+// Updated Responsive Testimonial Card Component with props
+const TestimonialCardResponsive = ({ name, company, text, avatar }: TestimonialCardProps) => {
     return (
         <div className="w-full max-w-[320px] sm:max-w-[280px] md:max-w-[300px] lg:max-w-[280px] h-auto min-h-[280px] sm:min-h-[300px] md:min-h-[320px] lg:min-h-[300px] px-6 sm:px-7 md:px-8 lg:px-6 py-8 sm:py-9 md:py-10 lg:py-8 bg-white/60 backdrop-blur-[10px] rounded-[20px] sm:rounded-[25px] md:rounded-[30px] lg:rounded-[25px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] hover:shadow-[0px_8px_30px_0px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-105 hover:bg-white/70 flex flex-col justify-between">
-
             {/* Card Content */}
             <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-4">
-                <ClientAvatarResponsive />
-                <ClientInfoResponsive />
+                <ClientAvatarResponsive avatar={avatar} />
+                <ClientInfoResponsive name={name} company={company} />
             </div>
-
-            <TestimonialTextResponsive />
+            <TestimonialTextResponsive text={text} />
         </div>
     );
 };
 
-// XL Screen Sub-components (original)
-const ClientAvatarXL = () => (
+// Updated XL Screen Sub-components with props
+const ClientAvatarXL = ({ avatar }: { avatar: string }) => (
     <div className="w-[45px] h-[45px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-[22.50px] flex items-center justify-center">
         <div className="w-[41px] h-[41px] bg-white rounded-full flex items-center justify-center">
             <Image
-                src="/clientAvatar.svg"
+                src={avatar}
                 alt="Client"
                 width={39}
                 height={39}
@@ -175,26 +215,25 @@ const ClientAvatarXL = () => (
     </div>
 );
 
-const ClientInfoXL = () => (
+const ClientInfoXL = ({ name, company }: { name: string, company: string }) => (
     <div className="flex flex-col items-start gap-[13px]">
-        <div className="text-black text-base font-normal font-poppins">Client Name</div>
-        <div className="text-[#989898] text-xs font-normal font-poppins">Company Name</div>
+        <div className="text-black text-base font-normal font-poppins">{name}</div>
+        <div className="text-[#989898] text-xs font-normal font-poppins">{company}</div>
     </div>
 );
 
-const TestimonialTextXL = () => (
+const TestimonialTextXL = ({ text }: { text: string }) => (
     <div className="text-[#6c6c6c] text-xs font-normal font-poppins">
-        Client review client review client review client review client review client review
-        client review client review client review client review client review client review
+        {text}
     </div>
 );
 
-// Responsive Sub-components for smaller screens
-const ClientAvatarResponsive = () => (
+// Updated Responsive Sub-components with props
+const ClientAvatarResponsive = ({ avatar }: { avatar: string }) => (
     <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] md:w-[50px] md:h-[50px] lg:w-[42px] lg:h-[42px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110">
         <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] md:w-[46px] md:h-[46px] lg:w-[38px] lg:h-[38px] bg-white rounded-full flex items-center justify-center">
             <Image
-                src="/clientAvatar.svg"
+                src={avatar}
                 alt="Client"
                 width={39}
                 height={39}
@@ -204,21 +243,20 @@ const ClientAvatarResponsive = () => (
     </div>
 );
 
-const ClientInfoResponsive = () => (
+const ClientInfoResponsive = ({ name, company }: { name: string, company: string }) => (
     <div className="flex flex-col gap-2 sm:gap-3 md:gap-4 lg:gap-2">
         <h3 className="text-black text-sm sm:text-base md:text-base lg:text-sm font-normal font-poppins">
-            Client Name
+            {name}
         </h3>
         <p className="text-[#989898] text-xs sm:text-sm md:text-sm lg:text-xs font-normal font-poppins">
-            Company Name
+            {company}
         </p>
     </div>
 );
 
-const TestimonialTextResponsive = () => (
+const TestimonialTextResponsive = ({ text }: { text: string }) => (
     <div className="text-[#6c6c6c] text-xs sm:text-sm md:text-sm lg:text-xs font-normal font-poppins leading-relaxed sm:leading-relaxed md:leading-[1.6] lg:leading-relaxed mt-auto">
-        Client review client review client review client review client review client review
-        client review client review client review client review client review client review
+        {text}
     </div>
 );
 

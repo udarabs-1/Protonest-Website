@@ -8,19 +8,11 @@ export default function NotFound() {
     <div className="bg-white">
       <Navbar />
       <div className="min-h-screen overflow-hidden bg-white">
-        {/* Main Content Area */}
-        <div className="relative w-full h-screen flex items-center justify-center bg-white">
-          {/* Background image - moved up and increased opacity */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/404-1.svg"
-              alt="Background"
-              fill
-              className="object-cover opacity-30"
-              priority
-            />
-          </div>
-
+        {/* Main Content Area with background image */}
+        <div
+          className="relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center"
+          style={{ backgroundImage: "url('/404-1.svg')" }}
+        >
           {/* Content Container */}
           <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10 bg-transparent">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
@@ -44,7 +36,7 @@ export default function NotFound() {
                 <div className="mb-8 lg:mb-12 hidden lg:block">
                   <Link
                     href="/"
-                    className="inline-flex items-center text-[#6c6c6c] hover:text-[#5530fa] transition-colors duration-200"
+                    className="inline-flex items-center text-[#6c6c6c] transition-colors duration-200"
                   >
                     <span className="text-xl font-normal font-['Potta_One'] leading-[30px]">&lt; </span>
                     <span className="text-lg font-normal font-['Poppins'] leading-[30px] ml-1">Back</span>
@@ -80,7 +72,6 @@ export default function NotFound() {
 
             </div>
           </div>
-
         </div>
       </div>
       <Footer />

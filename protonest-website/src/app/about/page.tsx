@@ -17,19 +17,19 @@ export default function About() {
           <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px]">
             <div className="flex justify-center">
               <div className="text-center text-[24px] sm:text-[30px] md:text-[35px] lg:text-[40px] xl:text-[45px] font-medium font-montserrat">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  Join the Protonest Freelance Network
-                </span>
-                <br />
                 <span className="text-[rgba(108,108,108,1)]">
-                  Build Innovative IoT Solutions
+                  Building the Future of
+                </span>
+
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
+                  IoT Innovation
                 </span>
               </div>
             </div>
-            <div className="text-center text-[14px] sm:text-[16px] md:text-[17px] lg:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[800px]">
+            <div className="text-center text-[14px] sm:text-[16px] md:text-[17px] lg:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[800px] xl:max-w-[1000px]">
               <span className="text-[rgba(108,108,108,1)]">
-                At Protonest, we transform visionary IoT concepts into tangible solutions. Join us as a freelance innovator—let&apos;s bring ideas to life together.
-              </span>
+                Protonest is a dynamic IoT engineering lab transforming visionary ideas into scalable, working products. Whether you&apos;re launching a new smart device or need rapid prototyping, we’re here to help.</span>
             </div>
           </div>
         </div>

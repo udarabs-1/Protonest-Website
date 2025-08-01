@@ -70,7 +70,7 @@ const WhyChooseProtonest = () => {
             {/* Content Container */}
             <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[133px]">
                 {/* Header */}
-                <div className="text-center mb-8 md:mb-12">
+                <div className="text-left mb-8 md:mb-12">
                     <h2 className="text-2xl md:text-[30px] font-medium font-montserrat mb-15">
                         <span className="text-[rgba(108,108,108,1)]">
                             Why Choose{' '}
@@ -110,7 +110,7 @@ const WhyChooseProtonest = () => {
                 <div className="hidden lg:block pt-16">
                     {/* First Row - 4 items centered */}
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24 mb-20">
-                        {features.slice(0, 4).map((feature, index) => (
+                        {features.slice(0, 3).map((feature, index) => (
                             <FeatureItemGrid
                                 key={index}
                                 icon={feature.icon}
@@ -120,7 +120,7 @@ const WhyChooseProtonest = () => {
                     </div>
                     {/* Second Row - 3 items centered */}
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24">
-                        {features.slice(4, 7).map((feature, index) => (
+                        {features.slice(3, 7).map((feature, index) => (
                             <FeatureItemGrid
                                 key={index + 4}
                                 icon={feature.icon}
