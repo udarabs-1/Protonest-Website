@@ -337,8 +337,8 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                <button className="w-[131px] md:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] flex justify-center items-center gap-2.5 ">
-                                    <span className="text-[#83848b] text-sm md:text-base font-medium font-montserrat">Sign In</span>
+                                <button className="w-[131px] md:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5 ">
+                                    <span className=" text-sm md:text-base font-medium font-montserrat">Sign In</span>
                                 </button>
 
                                 {/* <button className="relative group">

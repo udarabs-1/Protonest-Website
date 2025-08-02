@@ -3,8 +3,93 @@ import Image from "next/image";
 const ServicesSection = () => {
     return (
         <>
+            {/* 2xl Version - larger screens */}
+            <div className="hidden 2xl:block mt-[140px] mb-[100px] h-[749px] bg-no-repeat bg-cover bg-center">
+                <div
+                    className="h-full bg-no-repeat bg-cover bg-center"
+                    style={{ backgroundImage: "url('/home-3.svg')" }}
+                >
+                    <div className="flex flex-col items-start justify-start h-full px-[160px]">
+                        <div className="flex justify-center">
+                            <div className="text-left text-[36px] font-medium font-montserrat">
+                                <span className="text-[rgba(108,108,108,1)]">
+                                    What Do We{" "}
+                                </span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
+                                    Offer?
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center w-full my-14">
+                            <div className="text-[20px] font-normal font-poppins">
+                                <span className="text-[rgba(108,108,108,1)]">
+                                    From Idea to Execution, We&apos;ve Got You Covered.
+                                </span>
+                            </div>
+                            <div className="text-[20px] font-normal font-poppins">
+                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                    Get a Quote &gt;
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="w-full">
+                            {/* First row */}
+                            <div className="flex justify-between mb-14 gap-4">
+                                <div className="w-[580px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-1.svg"
+                                        hoverImage="/home/offers/2xl/service-1-hover.svg"
+                                        alt="Service 1"
+                                    />
+                                </div>
+                                <div className="w-[300px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-2.svg"
+                                        hoverImage="/home/offers/2xl/service-2-hover.svg"
+                                        alt="Service 2"
+                                    />
+                                </div>
+                                <div className="w-[300px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-3.svg"
+                                        hoverImage="/home/offers/2xl/service-3-hover.svg"
+                                        alt="Service 3"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Second row */}
+                            <div className="flex justify-between gap-4">
+                                <div className="w-[300px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-4.svg"
+                                        hoverImage="/home/offers/2xl/service-4-hover.svg"
+                                        alt="Service 4"
+                                    />
+                                </div>
+                                <div className="w-[580px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-5.svg"
+                                        hoverImage="/home/offers/2xl/service-5-hover.svg"
+                                        alt="Service 5"
+                                    />
+                                </div>
+                                <div className="w-[300px] h-[210px]">
+                                    <ServiceCard
+                                        normalImage="/home/offers/2xl/service-6.svg"
+                                        hoverImage="/home/offers/2xl/service-6-hover.svg"
+                                        alt="Service 6"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Desktop Version - xl and larger */}
-            <div className="hidden xl:block mt-[120px] mb-[80px] h-[649px] bg-no-repeat bg-cover bg-center">
+            <div className="hidden xl:block 2xl:hidden mt-[120px] mb-[80px] h-[649px] bg-no-repeat bg-cover bg-center">
                 <div
                     className="h-full bg-no-repeat bg-cover bg-center"
                     style={{ backgroundImage: "url('/home-3.svg')" }}
