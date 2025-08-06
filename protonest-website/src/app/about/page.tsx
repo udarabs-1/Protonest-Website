@@ -5,7 +5,6 @@ import ClientMarquee from "../components/clientMarquee";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import OurTeamSection from "../components/ourTeam";
-
 import { useOnScreen } from "../components/useOnScreen";
 
 // Value Card Component with mobile-friendly hover effects
@@ -77,31 +76,37 @@ export default function About() {
   ];
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <Navbar />
       <div>
-        <div
-          className="mt-[50px] h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
-          style={{ backgroundImage: "url('/about-1.svg')" }}
-        >
-          <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px]">
-            <div className="flex justify-center">
-              <div className="text-center text-[24px] sm:text-[32px] lg:text-[40px] xl:text-[45px] font-medium font-montserrat">
-                <span className="text-[rgba(108,108,108,1)]">
-                  Building the Future of
-                </span>
+        {/* Hero Section with Background and Gradient Overlay */}
+        <div className="relative">
+          <div
+            className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
+            style={{ backgroundImage: "url('/about-1.svg')" }}
+          >
+            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
+              <div className="flex justify-center">
+                <div className="text-center text-[24px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
+                  <span className="text-[rgba(108,108,108,1)]">
+                    Building the Future of
+                  </span>
 
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  IoT Innovation
-                </span>
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
+                    IoT Innovation
+                  </span>
+                </div>
+              </div>
+              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[750px] xl:max-w-[1000px]">
+                <span className="text-[rgba(108,108,108,1)]">
+                  Protonest is a dynamic IoT engineering lab transforming visionary ideas into scalable, working products. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.</span>
               </div>
             </div>
-            <div className="text-center text-[14px] md:text-[15px] lg:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[800px] xl:max-w-[1000px]">
-              <span className="text-[rgba(108,108,108,1)]">
-                Protonest is a dynamic IoT engineering lab transforming visionary ideas into scalable, working products. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.</span>
-            </div>
           </div>
+
+          {/* Gradient Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] bg-gradient-to-b from-transparent via-white/30 to-white pointer-events-none"></div>
         </div>
 
         <div className="relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
@@ -127,18 +132,18 @@ export default function About() {
 
           {/* Title */}
           <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] sm:top-[60px] md:top-[80px] lg:top-[96px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1127px] text-center">
-            <span className="text-[20px] sm:text-[24px] lg:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+            <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
               Our Journey
             </span>
           </div>
 
           {/* Subtitle */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 top-[90px] sm:top-[120px] md:top-[150px] lg:top-[178px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[779px] text-center text-[#6c6c6c] text-[14px] md:text-[16px] lg:text-[18px] font-normal font-poppins leading-[24px] sm:leading-[28px] lg:leading-[30px]">
+          <div className="absolute left-1/2 transform -translate-x-1/2 top-[90px] sm:top-[120px] md:top-[150px] lg:top-[178px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[779px] text-center text-[#6c6c6c] text-[14px] md:text-[16px] xl:text-[18px] font-normal font-poppins leading-[24px] sm:leading-[28px] lg:leading-[30px]">
             From Engineer&apos;s Vision to a Collective Force
           </div>
 
           {/* Description Text */}
-          <div className="absolute left-2 md:left-[5%] lg:left-[15%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
+          <div className="absolute left-2 md:left-[5%] lg:left-[15%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
             Founded in June 2023 by an electronics engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
             <br /><br />
             Today, we&apos;re a growing team of 8+ specialists—engineers, designers, and thinkers—united by a shared goal: turning groundbreaking concepts into tangible, connected products.
@@ -162,10 +167,10 @@ export default function About() {
           {/* Title */}
           <div className="flex justify-center text-center w-full pt-8 sm:pt-12 md:pt-16 lg:pt-20">
             <div className="w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1124px] px-4">
-              <span className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
+              <span className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
                 Trusted By Pioneers In{' '}
               </span>
-              <span className="font-medium font-montserrat text-[20px] sm:text-[24px] lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Innovation</span>
+              <span className="font-medium font-montserrat text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Innovation</span>
             </div>
           </div>
 
@@ -179,10 +184,10 @@ export default function About() {
           className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] bg-no-repeat bg-cover bg-center -mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16"
           style={{ backgroundImage: "url('/about-4.svg')" }}
         >
-          <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] py-8 sm:py-12 md:py-16">
+          <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 sm:py-12 md:py-16">
             {/* Left-aligned heading */}
             <div className="flex justify-start w-full">
-              <div className="text-left text-[20px] sm:text-[24px] lg:text-[30px] font-medium font-montserrat">
+              <div className="text-left text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                   Our Mission
                 </span>
@@ -190,7 +195,7 @@ export default function About() {
             </div>
 
             <div className="flex justify-start w-full my-6 sm:my-8 md:my-10 lg:my-12">
-              <div className="text-[14px] sm:text-[16px] lg:text-[18px] w-full max-w-[780px] font-normal font-poppins text-left">
+              <div className="text-[14px] sm:text-[16px] xl:text-[18px] w-full max-w-[780px] font-normal font-poppins text-left">
                 <span className="text-[rgba(108,108,108,1)]">
                   Empower innovators and thinkers by turning their IoT concepts into tangible, innovative, and advanced prototypes.
                 </span>
@@ -219,7 +224,7 @@ export default function About() {
         {/* Final CTA Section - Reduced top margin */}
         <div className="mt-32 md:mt-22 lg:mt-24 flex justify-center w-full px-4">
           <div className="w-full max-w-[1014px] text-center">
-            <h2 className="text-[24px] lg:text-[35px] xl:text-[40px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
+            <h2 className="text-[24px] lg:text-[30px] xl:text-[40px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
               <span className="text-[#6c6c6c]">
                 Whether you&apos;re a founder, engineer, or team lead,
                 <br className="hidden sm:block" />
@@ -236,7 +241,7 @@ export default function About() {
         </div>
 
         <div className="mt-8 sm:mt-10 md:mt-12 text-center pb-8 sm:pb-12 md:pb-16">
-          <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] lg:h-[50px] gradient-button font-poppins hover:font-semibold transition text-sm lg:text-base">
+          <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] xl:h-[50px] gradient-button font-poppins hover:font-medium transition text-sm lg:text-[15px] xl:text-base">
             Get a Quote
           </button>
         </div>

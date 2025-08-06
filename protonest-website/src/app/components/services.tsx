@@ -194,7 +194,7 @@ const ServicesSection = () => {
                 >
                     <div className="flex flex-col items-start justify-start h-full px-[80px]">
                         <div className="flex justify-start w-full">
-                            <div className="text-left text-[28px] font-medium font-montserrat">
+                            <div className="text-left text-[26px] font-medium font-montserrat">
                                 <span className="text-[rgba(108,108,108,1)]">
                                     What Do We{" "}
                                 </span>

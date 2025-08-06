@@ -9,6 +9,7 @@ import { useState } from 'react';
 type DropdownKey = 'whats-new' | 'jobs' | 'stay-in-touch';
 
 interface DropdownItem {
+    id: string; // Added unique ID field
     href: string;
     label: string;
     description: string;
@@ -25,26 +26,33 @@ export default function Navbar() {
     const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-    const pathname = usePathname(); // Get current route
+    const pathname = usePathname();
 
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
-            { href: "/whats-new/blog", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
-            { href: "/down", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
+            { id: "whats-new-blog", href: "/blog", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
+            { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
         ],
         "jobs": [
-            { href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
-            { href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
-            { href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
+            { id: "jobs-home", href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
+            { id: "jobs-categories", href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
+            { id: "jobs-cv", href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
         ],
         "stay-in-touch": [
-            { href: "/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
-            { href: "/down", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
+            { id: "contact-us", href: "/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
+            { id: "subscription", href: "/down", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
         ]
     };
 
     const toggleDropdown = (dropdown: DropdownKey) => {
-        setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
+        if (activeDropdown === dropdown) {
+            setActiveDropdown(null);
+        } else {
+            setActiveDropdown(null);
+            setTimeout(() => {
+                setActiveDropdown(dropdown);
+            }, 50);
+        }
     };
 
     const handleNavigation = () => {
@@ -60,24 +68,19 @@ export default function Navbar() {
         { href: "/stay-in-touch", label: "Stay in Touch", hasDropdown: true, key: "stay-in-touch" }
     ];
 
-    // Function to check if a nav item is active
     const isNavItemActive = (item: NavItem) => {
         if (item.hasDropdown) {
             return activeDropdown === item.key;
         }
-        // For regular nav items, check if current pathname matches
         return pathname === item.href;
     };
 
-    // Function to check if item should show gradient (active and not hovering other items)
     const shouldShowGradient = (item: NavItem) => {
         const isActive = isNavItemActive(item);
         if (!isActive) return false;
 
-        // If hovering on another item, don't show gradient for this item
         if (hoveredItem && hoveredItem !== item.href) return false;
 
-        // NEW: If any dropdown is open and this item doesn't have a dropdown, remove gradient
         if (activeDropdown && !item.hasDropdown) return false;
 
         return true;
@@ -138,7 +141,7 @@ export default function Navbar() {
                                     </Link>
                                 </div>
 
-                                <div className="font-montserrat text-sm lg:text-base xl:text-base 2xl:text-lg flex items-center space-x-3 lg:space-x-[25px] xl:space-x-[35px] 2xl:space-x-[45px]">
+                                <div className="font-montserrat text-sm lg:text-[15px] xl:text-base 2xl:text-lg flex items-center space-x-3 lg:space-x-[25px] xl:space-x-[35px] 2xl:space-x-[45px]">
                                     {navItems.map((item) => {
                                         const showGradient = shouldShowGradient(item);
                                         const hasDropdown = item.hasDropdown;
@@ -220,31 +223,18 @@ export default function Navbar() {
                                 </div>
 
                                 <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                    <button className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-base xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]">
+                                    <Link
+                                        href="/down"
+                                        className="flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                    >
                                         Sign In
-                                    </button>
-                                    {/* <button className="relative group">
-                                        <Image
-                                            src="/bell-icon.svg"
-                                            alt="bellIcon"
-                                            width={32}
-                                            height={40}
-                                            className="lg:w-[32px] lg:h-[40px] xl:w-[36px] xl:h-[44px] 2xl:w-[40px] 2xl:h-[48px] group-hover:opacity-0 transition-none"
-                                        />
-                                        <Image
-                                            src="/bell-icon-colour.svg"
-                                            alt="bellIcon"
-                                            width={32}
-                                            height={40}
-                                            className="lg:w-[32px] lg:h-[40px] xl:w-[36px] xl:h-[44px] 2xl:w-[40px] 2xl:h-[48px] absolute inset-0 opacity-0 group-hover:opacity-100 transition-none"
-                                        />
-                                    </button> */}
+                                    </Link>
                                 </div>
                             </div>
                         </div>
                     </nav>
 
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                         {activeDropdown && (
                             <>
                                 <motion.div
@@ -257,21 +247,21 @@ export default function Navbar() {
                                 />
 
                                 <motion.div
+                                    key={activeDropdown}
                                     className="font-montserrat fixed top-[130px] lg:top-[135px] xl:top-[150px] 2xl:top-[165px] left-0 w-full z-40 bg-white/80 backdrop-blur-[20px]"
                                     initial="closed"
                                     animate="open"
                                     exit="closed"
                                     variants={dropdownVariants}
                                 >
-                                    <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[70px] xl:px-[95px] 2xl:px-[140px]">
-                                        <div className="w-full border-t border-[#a3a3a3]"></div>
-                                    </div>
+                                    <div className="absolute top-2 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30"></div>
 
                                     <div className="container px-4 sm:px-8 md:px-16 lg:px-[100px] xl:px-[133px] 2xl:px-[180px] py-[35px] lg:py-[40px] xl:py-[43px] 2xl:py-[50px]">
                                         <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
                                             {dropdownItems[activeDropdown].map((dropdownItem, index) => (
                                                 <motion.div
-                                                    key={dropdownItem.href}
+                                                    key={dropdownItem.id}
+
                                                     custom={index}
                                                     initial="closed"
                                                     animate="open"
@@ -280,10 +270,10 @@ export default function Navbar() {
                                                 >
                                                     <Link
                                                         href={dropdownItem.href}
-                                                        className="w-full lg:w-[190px] xl:w-[214px] 2xl:w-[240px] block group"
+                                                        className="w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px] block group"
                                                         onClick={handleNavigation}
                                                     >
-                                                        <div className="text-sm lg:text-base xl:text-base 2xl:text-lg mb-2 text-[#83848b] group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text inline-block">
+                                                        <div className="text-sm lg:text-[15px] xl:text-base 2xl:text-lg mb-2 text-[#83848b] group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text inline-block">
                                                             {dropdownItem.label}
                                                         </div>
                                                         <div className="text-xs lg:text-xs xl:text-xs 2xl:text-sm text-[#83848b] group-hover:text-black leading-relaxed">
@@ -306,7 +296,6 @@ export default function Navbar() {
             {/* Mobile Navigation */}
             <div className="block lg:hidden">
                 <div className="relative">
-                    {/* Grayscale Overlay - covers entire screen when menu is open */}
                     <AnimatePresence>
                         {mobileMenuOpen && (
                             <motion.div
@@ -320,7 +309,6 @@ export default function Navbar() {
                         )}
                     </AnimatePresence>
 
-                    {/* Mobile/Tablet Header */}
                     <motion.nav
                         className={`fixed top-0 left-0 w-full px-4 md:px-8 py-6 md:py-8 z-50 backdrop-blur-[20px]`}
                         transition={{ duration: 0.2 }}
@@ -337,26 +325,12 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                <button className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5 ">
-                                    <span className=" text-sm font-medium font-montserrat">Sign In</span>
-                                </button>
-
-                                {/* <button className="relative group">
-                                    <Image
-                                        src="/bell-icon.svg"
-                                        alt="bellIcon"
-                                        width={36}
-                                        height={44}
-                                        className="w-9 md:w-10 h-11 md:h-12 group-hover:opacity-0 transition-opacity duration-200"
-                                    />
-                                    <Image
-                                        src="/bell-icon-colour.svg"
-                                        alt="bellIcon"
-                                        width={36}
-                                        height={44}
-                                        className="absolute inset-0 w-9 md:w-10 h-11 md:h-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    />
-                                </button> */}
+                                <Link
+                                    href="/down"
+                                    className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
+                                >
+                                    <span className="text-sm font-medium font-montserrat">Sign In</span>
+                                </Link>
 
                                 <button
                                     className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] hover:scale-105 transition-transform"
@@ -374,7 +348,6 @@ export default function Navbar() {
                         </div>
                     </motion.nav>
 
-                    {/* Mobile/Tablet Menu */}
                     <AnimatePresence>
                         {mobileMenuOpen && (
                             <motion.div
@@ -384,7 +357,6 @@ export default function Navbar() {
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
                             >
-                                {/* Menu Header */}
                                 <div className="w-[250px] md:w-[350px] h-16 md:h-20 left-[34px] md:left-[35px] top-[35px] md:top-[32px] absolute">
                                     <Image
                                         className="w-[90px] md:w-[100px] h-16 md:h-18 left-0 top-0 absolute"
@@ -407,7 +379,6 @@ export default function Navbar() {
                                     </button>
                                 </div>
 
-                                {/* Menu Items */}
                                 <div className="w-[250px] md:w-[350px] left-[34px] md:left-[35px] top-[157px] md:top-[180px] absolute inline-flex flex-col justify-center items-start gap-[35px] md:gap-[42px]">
                                     {navItems.map((item, index) => {
                                         const showGradient = shouldShowGradient(item);
@@ -415,9 +386,7 @@ export default function Navbar() {
 
                                         return (
                                             <div key={index} className="w-full">
-                                                {/* Main Navigation Item */}
                                                 {hasDropdown ? (
-                                                    // For dropdown items, use a button to toggle dropdown
                                                     <button
                                                         className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full text-left hover:scale-105 transition-transform origin-left"
                                                         onClick={() => {
@@ -459,7 +428,6 @@ export default function Navbar() {
                                                         </div>
                                                     </button>
                                                 ) : (
-                                                    // For regular items, use Link component
                                                     <Link
                                                         href={item.href}
                                                         className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full hover:scale-105 transition-transform origin-left"
@@ -474,39 +442,40 @@ export default function Navbar() {
                                                     </Link>
                                                 )}
 
-                                                {/* Dropdown Content */}
-                                                {hasDropdown && activeDropdown === item.key && (
-                                                    <motion.div
-                                                        className="pl-6 md:pl-8 mt-4 md:mt-5"
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: 'auto' }}
-                                                        exit={{ opacity: 0, height: 0 }}
-                                                        transition={{ duration: 0.2 }}
-                                                    >
-                                                        <div className="flex flex-col gap-[19px] md:gap-[24px]">
-                                                            {dropdownItems[item.key as DropdownKey].map((dropdownItem, subIndex) => (
-                                                                <Link
-                                                                    key={subIndex}
-                                                                    href={dropdownItem.href}
-                                                                    className="block group hover:scale-105 transition-transform origin-left"
-                                                                    onClick={handleNavigation}
-                                                                >
-                                                                    <div className="text-[#83848b] text-base md:text-lg font-montserrat group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] transition-all duration-200">
-                                                                        {dropdownItem.label}
-                                                                    </div>
-                                                                    <div className="text-[#83848b] text-xs md:text-sm font-montserrat mt-1 md:mt-1.5 group-hover:text-black transition-colors duration-200">
-                                                                        {dropdownItem.description}
-                                                                    </div>
-                                                                </Link>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
+                                                <AnimatePresence mode="wait">
+                                                    {hasDropdown && activeDropdown === item.key && (
+                                                        <motion.div
+                                                            key={item.key}
+                                                            className="pl-6 md:pl-8 mt-4 md:mt-5"
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: 'auto' }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                        >
+                                                            <div className="flex flex-col gap-[19px] md:gap-[24px]">
+                                                                {dropdownItems[item.key as DropdownKey].map((dropdownItem) => (
+                                                                    <Link
+                                                                        key={dropdownItem.id}
+                                                                        href={dropdownItem.href}
+                                                                        className="block group hover:scale-105 transition-transform origin-left"
+                                                                        onClick={handleNavigation}
+                                                                    >
+                                                                        <div className="text-[#83848b] text-base md:text-lg font-montserrat group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] transition-all duration-200">
+                                                                            {dropdownItem.label}
+                                                                        </div>
+                                                                        <div className="text-[#83848b] text-xs md:text-sm font-montserrat mt-1 md:mt-1.5 group-hover:text-black transition-colors duration-200">
+                                                                            {dropdownItem.description}
+                                                                        </div>
+                                                                    </Link>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         );
                                     })}
                                 </div>
-
                             </motion.div>
                         )}
                     </AnimatePresence>

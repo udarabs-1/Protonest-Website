@@ -10,15 +10,26 @@ export default function NotFound() {
       <div className="min-h-screen overflow-hidden bg-white">
         {/* Main Content Area with background image */}
         <div
-          className="relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center"
+          className="-mt-[50px] md:-mt-[20px] lg:-mt-[50px] relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center"
           style={{ backgroundImage: "url('/404-1.svg')" }}
         >
           {/* Content Container */}
           <div className="container mx-auto px-4 md:px-8 lg:px-16 relative z-10 bg-transparent">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
 
-              {/* Mobile Image - Shows only on smaller screens at the top */}
-              <div className="flex-shrink-0 relative lg:hidden order-first">
+              {/* Mobile Back Button - Shows only on smaller screens above the image */}
+              <div className="w-full lg:hidden order-first mb-4">
+                <Link
+                  href="/"
+                  className="inline-flex items-center text-[#6c6c6c] transition-colors duration-200"
+                >
+                  <span className="text-xl font-normal font-['Potta_One'] leading-[30px]">&lt; </span>
+                  <span className="text-lg font-normal font-['Poppins'] leading-[30px] ml-1">Back</span>
+                </Link>
+              </div>
+
+              {/* Mobile Image - Shows only on smaller screens */}
+              <div className="flex-shrink-0 relative lg:hidden">
                 <div className="relative w-48 h-48 md:w-64 md:h-64">
                   <Image
                     src="/down-1.png"
@@ -32,7 +43,7 @@ export default function NotFound() {
 
               {/* Left Content */}
               <div className="flex-1 text-center lg:text-left max-w-2xl">
-                {/* Back navigation - Hidden on smaller screens */}
+                {/* Back navigation - Shows only on desktop */}
                 <div className="mb-8 lg:mb-12 hidden lg:block">
                   <Link
                     href="/"

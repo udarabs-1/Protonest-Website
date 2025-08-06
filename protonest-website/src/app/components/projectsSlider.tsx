@@ -51,10 +51,10 @@ export default function ProjectSlider() {
                 </div>
 
                 <div className="relative z-10">
-                    <h2 className="text-center text-[24px] lg:text-[28px] xl:text-[30px] 2xl:text-[32px] font-medium font-montserrat text-[#6c6c6c] px-4">
+                    <h2 className="text-center text-[24px] lg:text-[26px] xl:text-[30px] 2xl:text-[32px] font-medium font-montserrat text-[#6c6c6c] px-4">
                         Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
                     </h2>
-                    <p className="text-[16px] lg:text-[17px] xl:text-[18px] 2xl:text-[19px] text-center mt-4 lg:mt-5 xl:mt-6 text-[#6c6c6c] font-poppins px-4">
+                    <p className="text-[16px] xl:text-[18px] 2xl:text-[19px] text-center mt-4 lg:mt-5 xl:mt-6 text-[#6c6c6c] font-poppins px-4">
                         Our Success Project&apos;s That Inspire
                     </p>
 
@@ -186,7 +186,7 @@ export default function ProjectSlider() {
                         Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
                     </h2>
                     <p className="text-[14px] text-center mt-3 sm:mt-4 md:mt-6 text-[#6c6c6c] font-poppins px-4">
-                        Our Success Project&apos;s That Inspire
+                        Words from those who’ve experienced our process, people, and product delivery first-hand.
                     </p>
 
                     <div className="max-w-full px-4 sm:px-6 md:px-8 relative mt-8 sm:mt-10 md:mt-12">

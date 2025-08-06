@@ -44,8 +44,8 @@ const TestimonialSection = () => {
     return (
         <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
             {/* Background Container - Now visible on all screens */}
-            <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-48 md:top-52 lg:top-47 left-0 right-0 z-10">
-                <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px] md:h-[550px] lg:h-[600px]">
+            <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 left-0 right-0 z-10">
+                <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px]">
                     <Image
                         src="/home-5.svg"
                         alt="Background"
@@ -62,19 +62,19 @@ const TestimonialSection = () => {
                 {/* Header Section */}
                 <div className="w-full mb-12 lg:mb-16">
                     <div className="text-center">
-                        <h2 className="text-[#6c6c6c] text-2xl sm:text-3xl md:text-4xl lg:text-[30px] font-medium font-montserrat leading-tight md:leading-[1.3]">
+                        <h2 className="text-[#6c6c6c] text-2xl lg:text-[26px] font-medium font-montserrat leading-tight md:leading-[1.3]">
                             Innovation Backed by{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
                                 Experience
                             </span>
                         </h2>
-                        <p className="text-[#6c6c6c] text-sm sm:text-base md:text-lg lg:text-[18px] font-normal font-poppins leading-relaxed mt-4 mx-auto">
+                        <p className="text-[#6c6c6c] text-sm sm:text-base xl:text-[18px] font-normal font-poppins leading-relaxed my-6 2xl:my-10 mx-auto">
                             Words from those who&apos;ve experienced our process, people, and product delivery first-hand.
                         </p>
                     </div>
                 </div>
 
-                <div className="lg:hidden mb-10 md:mb-12 px-2"> {/* Added padding here */}
+                <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2"> {/* Added padding here */}
                     <Slider {...carouselSettings}>
                         {testimonials.map((testimonial) => (
                             <div key={testimonial.id} className="px-6 pb-6"> {/* Added padding and shadow container */}
@@ -92,7 +92,7 @@ const TestimonialSection = () => {
                 </div>
 
                 {/* Desktop Grid (hidden on screens smaller than lg) */}
-                <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 xl:gap-[46px] mb-10 md:mb-12 lg:mb-16">
+                <div className="mt-10 hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 xl:gap-[46px] mb-10 md:mb-12 lg:mb-16">
                     {testimonials.map((testimonial) => (
                         <TestimonialCard
                             key={testimonial.id}
@@ -107,7 +107,7 @@ const TestimonialSection = () => {
                 {/* Contact Us Button */}
                 <div className="flex justify-center">
                     <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                        <span className="text-white text-sm md:text-base font-semibold">Contact Us</span>
+                        <span className="text-white text-sm md:text-base font-medium">Contact Us</span>
                     </button>
                 </div>
             </div>
@@ -116,33 +116,41 @@ const TestimonialSection = () => {
 };
 
 // Testimonial Card Component remains the same
-const TestimonialCard = ({ name, company, text, avatar }: { name: string; company: string; text: string; avatar: string }) => {
+const TestimonialCard = ({ name, company, text, avatar }: {
+    name: string;
+    company: string;
+    text: string;
+    avatar: string
+}) => {
     return (
-        <div className="w-full h-[350px] md:h-[380px] lg:h-[400px] bg-white/60 backdrop-blur-[10px] rounded-[20px] md:rounded-[25px] lg:shadow-lg p-6 md:p-8 flex flex-col overflow-hidden lg:hover:shadow-xl transition-all duration-300">
-            {/* Client Info with Avatar */}
-            <div className="flex items-center gap-4 mb-4 md:mb-6">
-                <div className="w-10 h-10 md:w-12 md:h-12 p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex-shrink-0">
-                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
-                        <Image
-                            src={avatar}
-                            alt={name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-cover"
-                        />
+        <div className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5">
+            {/* Scrollable Content Container */}
+            <div className="w-full max-w-[259px] h-full overflow-y-auto pr-2">
+                <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
+                    {/* Avatar with Gradient Border */}
+                    <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center">
+                        <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] bg-white rounded-full flex justify-center items-center overflow-hidden">
+                            <Image
+                                src={avatar}
+                                alt={name}
+                                width={39}
+                                height={39}
+                                className="rounded-full w-[34px] h-[34px] sm:w-[39px] sm:h-[39px] object-cover"
+                            />
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <h3 className="text-black text-base md:text-lg font-normal font-poppins">{name}</h3>
-                    <p className="text-[#989898] text-xs md:text-sm font-normal font-poppins">{company}</p>
-                </div>
-            </div>
 
-            {/* Scrollable Testimonial Text */}
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                <p className="text-[#6c6c6c] text-sm md:text-base font-normal font-poppins leading-relaxed">
-                    {text}
-                </p>
+                    {/* Client Info */}
+                    <div className="flex flex-col gap-2 sm:gap-[13px]">
+                        <div className="text-black text-sm sm:text-base font-normal font-poppins">{name}</div>
+                        <div className="text-[#989898] text-xs font-normal font-poppins">{company}</div>
+                    </div>
+
+                    {/* Testimonial Text */}
+                    <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed">
+                        {text}
+                    </p>
+                </div>
             </div>
         </div>
     );

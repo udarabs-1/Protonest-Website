@@ -41,7 +41,7 @@ const NewsAndBlogs = () => {
             <div className="relative z-10 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-                    <h2 className="text-[#6c6c6c] text-xl sm:text-2xl lg:text-3xl font-medium font-montserrat leading-tight sm:leading-[55px]">
+                    <h2 className="text-[#6c6c6c] text-xl sm:text-2xl lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-tight sm:leading-[55px]">
                         The Latest{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
                             News & Blogs
@@ -58,7 +58,7 @@ const NewsAndBlogs = () => {
             </div>
 
             <div className="my-20 text-center px-4">
-                <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-medium font-poppins text-[14px] lg:text-[16px]">
+                <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-medium font-poppins text-[14px] lg:text-[15px] xl:text-[16px]">
                     View All Article
                 </button>
             </div>

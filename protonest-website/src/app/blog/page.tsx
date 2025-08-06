@@ -2,9 +2,82 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
+import { useOnScreen } from "@/app/components/useOnScreen";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+
+// Define a Blog type for better type safety
+interface Blog {
+  id: string;
+  title: string;
+  excerpt: string;
+  readTime: string;
+  imageUrl: string;
+  categoryTags: string[];
+}
+
+// Blog Card Component with mobile-friendly hover effects
+const BlogCard = ({ blog }: { blog: Blog }) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useOnScreen(ref);
+
+  // For mobile and small screens, use intersection observer; for larger screens, use hover
+  const shouldShowEffects = isMobile ? isVisible : false;
+
+  return (
+    <Link href={`/whats-new/${blog.id}`} passHref>
+      <article
+        ref={ref}
+        className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
+          }`}
+      >
+        {/* Image Container with hover effects */}
+        <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
+          <Image
+            src={blog.imageUrl}
+            alt={blog.title}
+            width={472}
+            height={164}
+            className={`w-full h-full object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
+              }`}
+          />
+          {/* Read More Button with solid background and gradient text */}
+          <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
+              Read More
+            </span>
+          </button>
+        </div>
+
+        {/* Content Container */}
+        <div className="space-y-4">
+          <h3 className={`text-[16px] xl:text-[18px] font-medium font-poppins leading-[1.4] transition-all duration-300 md:text-[#6c6c6c] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#6c6c6c]'
+            }`}>
+            {blog.title}
+          </h3>
+
+          <div className="flex flex-wrap gap-2">
+            {blog.categoryTags.map((tag: string, index: number) => (
+              <div key={index} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
+                <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
+                  {tag}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
+            {blog.excerpt}
+          </p>
+        </div>
+      </article>
+    </Link>
+  );
+};
 
 export default function BlogSection() {
   const blogs = [
@@ -78,7 +151,7 @@ export default function BlogSection() {
   return (
     <div>
       <Navbar />
-      <div className="mb-30">
+      <div className="md:mt-[50px] mb-30">
         <div className="h-[400px] sm:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center relative"
           style={{ backgroundImage: "url('/blogs-1.svg')" }}>
           {/* Top Edge Gradient Overlay */}
@@ -87,14 +160,14 @@ export default function BlogSection() {
           {/* Bottom Edge Gradient Overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
 
-          <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[133px] xl:px-[133px]">
+          <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
             <div className="flex flex-col items-center">
-              <div className="text-center text-[28px] sm:text-[32px] lg:text-[45px] font-medium font-montserrat">
+              <div className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                   Blogs
                 </span>
               </div>
-              <div className="text-center text-[14px] md:text-[15px] lg:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto">
+              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto">
                 <span className="text-[rgba(108,108,108,1)]">
                   Insights, Innovation & IoT: Explore the Protonest Blog
                 </span>
@@ -109,7 +182,7 @@ export default function BlogSection() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
-                  placeholder="Search for the blog categories you are looking for"
+                  placeholder="Search for the blog categories"
                 />
                 <button type="submit" className="w-5 h-5 mr-3">
                   <Image
@@ -152,62 +225,18 @@ export default function BlogSection() {
               )}
             </div>
           </div>
-
-
         </div>
 
-        <section className="lg:-mt-[100px] px-4 sm:px-8 lg:px-[130px]">
+        <section className="lg:-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
           {/* Blog Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
             {(selectedCategories.length > 0 ? filteredBlogs : blogs).map((blog) => (
-              <Link key={blog.id} href={`/whats-new/${blog.id}`} passHref>
-                <article
-                  className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]"
-                >
-                  {/* Image Container with hover effects */}
-                  <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
-                    <Image
-                      src={blog.imageUrl}
-                      alt={blog.title}
-                      width={472}
-                      height={164}
-                      className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:grayscale"
-                    />
-                    {/* Read More Button with solid background and gradient text */}
-                    <button className="absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 rounded-md">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
-                        Read More
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Content Container */}
-                  <div className="space-y-4">
-                    <h3 className="text-[#6c6c6c] text-lg font-medium font-poppins leading-[1.4] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r from-[#5530FA] to-[#F51DA5] transition-all duration-300">
-                      {blog.title}
-                    </h3>
-
-                    <div className="flex flex-wrap gap-2">
-                      {blog.categoryTags.map((tag, index) => (
-                        <div key={index} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
-                          <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
-                            {tag}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
-                      {blog.excerpt}
-                    </p>
-                  </div>
-                </article>
-              </Link>
+              <BlogCard key={blog.id} blog={blog} />
             ))}
           </div>
 
           <div className="flex justify-center mt-8 sm:mt-12">
-            <button className="h-[50px] w-[160px] sm:w-[180px] font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+            <button className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
               Load More
             </button>
           </div>
@@ -215,34 +244,46 @@ export default function BlogSection() {
           {/* Newsletter Section */}
           <div className="mt-20 sm:mt-40 lg:mt-60 relative">
             <div className="flex flex-col items-start gap-12 sm:gap-16 lg:gap-24">
-              <div className="w-full lg:w-1/2">
-                <h2 className="text-[#6c6c6c] text-xl md:text-[22px] lg:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[45px] lg:leading-[55px]">
+              <div className="w-full lg:w-1/2 relative">
+                <h2 className="text-[#6c6c6c] text-xl md:text-[22px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[45px] lg:leading-[55px] max-w-[200px] md:max-w-none">
                   Stay Ahead in the IoT Space
                 </h2>
-                <p className="mt-4 text-[#6c6c6c] text-sm lg:text-base font-normal font-poppins leading-[24px] sm:leading-[30px]">
+
+                {/* Mobile/Tablet Image - shows only on md and smaller screens, positioned at right edge */}
+                <div className="block lg:hidden absolute -top-40 right-0 -mr-4 sm:-mr-8">
+                  <Image
+                    src="/blogs-2-mobile.svg"
+                    width={150}
+                    height={150}
+                    alt="IoT Newsletter Mobile"
+                    className="opacity-80"
+                  />
+                </div>
+
+                <p className="mt-4 text-[#6c6c6c] text-sm lg:text-[15px] xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px]">
                   Get the latest articles, insights, and stories delivered to your inbox.
                 </p>
 
                 <form className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
                   <div className="space-y-1">
-                    <label className="text-[#6c6c6c] text-base lg:text-lg font-semibold font-poppins leading-[30px]">
+                    <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Name
                     </label>
                     <input
                       type="text"
                       placeholder="Your Full Name"
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm lg:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[#6c6c6c] text-base lg:text-lg font-semibold font-poppins leading-[30px]">
+                    <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Email
                     </label>
                     <input
                       type="email"
                       placeholder="you@company.com"
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm lg:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
                     />
                   </div>
 
@@ -252,13 +293,13 @@ export default function BlogSection() {
                       id="career-updates"
                       className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2"
                     />
-                    <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm lg:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-pointer">
+                    <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-pointer">
                       I&apos;m interested in career updates too.
                     </label>
                   </div>
 
                   <div className="flex justify-start mt-8 sm:mt-12">
-                    <button className="h-[50px] w-[160px] lg:w-[180px] font-semibold text-[15px] lg:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                    <button className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
                       Subscribe
                     </button>
                   </div>
@@ -266,8 +307,8 @@ export default function BlogSection() {
               </div>
             </div>
 
-            {/* Position image to the rightmost side on larger screens */}
-            <div className="hidden lg:block absolute top-1/2 transform -translate-y-1/2 right-0 -mr-32">
+            {/* Desktop image - position image to the rightmost side on larger screens (lg and up) */}
+            <div className="hidden lg:block absolute top-1/2 transform -translate-y-1/2 right-0 -mr-15 xl:-mr-32 2xl:-mr-45">
               <Image
                 src="/blogs-2.svg"
                 width={600}

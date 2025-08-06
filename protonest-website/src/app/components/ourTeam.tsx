@@ -52,15 +52,15 @@ const OurTeamSection = () => {
 
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-                    <h2 className="text-2xl lg:text-4xl xl:text-5xl font-medium font-montserrat leading-tight mb-4 sm:mb-6 lg:mb-8">
+                    <h2 className="text-2xl lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-tight mb-4 sm:mb-6 lg:mb-8">
                         <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                             Our Team
                         </span>
                     </h2>
 
                     {/* Description */}
-                    <p className="text-[#6c6c6c] text-sm lg:text-lg font-normal font-poppins leading-relaxed max-w-4xl mx-auto px-4">
-                        Our strength lies in our people. Each member of our 8+ person team brings unique skills and a shared drive to build impactful technology. Together, we fuse creativity with engineering precision to deliver world-class IoT solutions.
+                    <p className="text-[#6c6c6c] text-sm lg:text-[16px] xl:text-lg font-normal font-poppins leading-relaxed max-w-4xl mx-auto px-4">
+                        Our strength is in our collective. Each member from hardware engineers to product designers brings a unique skill set and a shared drive to create meaningful IoT solutions. We combine creativity, strategy, and engineering to deliver world-class results.
                     </p>
                 </div>
 
@@ -87,7 +87,7 @@ const OurTeamSection = () => {
                                     quality={100}
                                 />
                             </div>
-                            <h4 className="text-[#4d4d4d] text-lg font-normal font-poppins max-w-[276px]">
+                            <h4 className="text-[#4d4d4d] text-[16px] xl:text-lg font-normal font-poppins max-w-[276px]">
                                 {member.title}
                             </h4>
                         </div>

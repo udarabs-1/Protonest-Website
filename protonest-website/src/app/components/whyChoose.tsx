@@ -41,7 +41,7 @@ const WhyChooseProtonest = () => {
     ];
 
     return (
-        <div className="my-16 md:my-20 lg:my-24 relative w-full">
+        <div className="my-20 lg:my-24 relative w-full">
             {/* Background Images */}
             {/* Mobile/SM/MD Background */}
             <div className="lg:hidden absolute inset-0 flex items-center justify-center">
@@ -68,10 +68,10 @@ const WhyChooseProtonest = () => {
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[133px]">
+            <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
                 {/* Header */}
                 <div className="text-left mb-8 md:mb-12">
-                    <h2 className="text-[24px] lg:text-[30px] font-medium font-montserrat mb-15">
+                    <h2 className="text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat mb-15">
                         <span className="text-[rgba(108,108,108,1)]">
                             Why Choose{' '}
                         </span>
@@ -81,12 +81,12 @@ const WhyChooseProtonest = () => {
                     </h2>
 
                     <div className="flex flex-col md:flex-row justify-between items-start w-full gap-6">
-                        <div className="text-[14px] lg:text-[18px] font-normal font-poppins text-left">
+                        <div className="text-[14px] lg:text-[18px] xl:text-[18px] font-normal font-poppins text-left">
                             <span className="text-[rgba(108,108,108,1)]">
                                 Where bold ideas become connected products.
                             </span>
                         </div>
-                        <div className="text-[14px] lg:text-[18px] font-normal font-poppins">
+                        <div className="text-[14px] lg:text-[18px] xl:text-[18px] font-normal font-poppins">
                             <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-300">
                                 Get a Quote &gt;
                             </span>
@@ -155,7 +155,7 @@ const FeatureItemGrid = ({ icon, title }: { icon: string, title: string }) => {
             <div className="mb-6">
                 <FeatureCircle icon={icon} />
             </div>
-            <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-lg font-normal font-poppins leading-relaxed min-h-[3rem] flex items-start justify-center">
+            <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-[16px] xl:text-lg font-normal font-poppins leading-relaxed min-h-[3rem] flex items-start justify-center">
                 {title}
             </h3>
         </div>

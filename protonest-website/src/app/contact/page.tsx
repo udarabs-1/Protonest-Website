@@ -11,61 +11,82 @@ export default function Contact() {
       <Navbar />
       <div>
         {/* Hero Section */}
-        <div
-          className="mt-[30px] sm:mt-[40px] md:mt-[45px] lg:mt-[50px] h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
-          style={{ backgroundImage: "url('/contact-1.svg')" }}
-        >
-          <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px]">
-            <div className="flex justify-center">
-              <div className="text-center text-[24px] sm:text-[30px] md:text-[32px] lg:text-[45px] font-medium font-montserrat">
+        <div className="relative">
+          <div
+            className="h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
+            style={{ backgroundImage: "url('/contact-1.svg')" }}
+          >
+            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px] 2xl:px-[180px]">
+              <div className="flex justify-center">
+                <div className="px-14 md:px-0 text-center text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
+                  <span className="text-[rgba(108,108,108,1)]">
+                    Let&apos;s Build the Future of IoT
+                  </span>
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
+                    Together!
+                  </span>
+                </div>
+              </div>
+              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[400px] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[900px]">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Let&apos;s Build the Future of IoT
-                </span>
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  Together!
+                  Got an idea in mind? We&apos;ll review it within 24 hours and help you turn it into a working prototype
+                  fast, focused, and tailored to your tech goals.
                 </span>
               </div>
             </div>
-            <div className="text-center text-[14px] md:text-[15px] lg:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[400px] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[900px]">
-              <span className="text-[rgba(108,108,108,1)]">
-                Got an idea in mind? We&apos;ll review it within 24 hours and help you turn it into a working prototype
-                fast, focused, and tailored to your tech goals.
-              </span>
-            </div>
           </div>
+
+          {/* Gradient Overlay */}
+          <div className="absolute bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
         </div>
 
         {/* Form Section */}
         <div className="relative w-full min-h-screen">
           {/* Combined Background & Decorative Image */}
-          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[150px] sm:-mt-[180px] md:-mt-[50px] lg:-mt-[280px]">
-            <Image
-              src="/contact-2.svg"
-              alt="Background with decorative elements"
-              layout="responsive"
-              width={1440}
-              height={900}
-              className="object-cover"
-              quality={100}
-              priority
-            />
+          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[550px] sm:-mt-[180px] md:mt-[80px] xl:-mt-[280px]">
+            {/* Mobile Image - shown on small screens */}
+            <div className="block md:hidden">
+              <Image
+                src="/contact-2-mobile.svg"
+                alt="Mobile background with decorative elements"
+                layout="responsive"
+                width={375}
+                height={667}
+                className="object-cover"
+                quality={100}
+                priority
+              />
+            </div>
+            {/* Desktop Image - shown on medium screens and up */}
+            <div className="hidden md:block max-w-[1440px] ml-auto">
+              <Image
+                src="/contact-2.svg"
+                alt="Background with decorative elements"
+                layout="responsive"
+                width={1440}
+                height={900}
+                className="object-cover"
+                quality={100}
+                priority
+              />
+            </div>
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 pt-[120px] sm:pt-[140px] md:pt-[170px] lg:pt-[200px] px-4 sm:px-8 md:px-12 lg:px-[157px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
+          <div className="relative z-10 pt-[120px] sm:pt-[140px] md:pt-[170px] lg:pt-[200px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
             {/* Title - Centered */}
             <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] sm:top-[50px] md:top-[65px] lg:top-[80px] w-full max-w-[1127px] text-center px-4">
-              <span className="text-[20px] sm:text-[24px] lg:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+              <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                 Get in Touch
               </span>
             </div>
 
             {/* Form Container - Left Aligned */}
-            <form className="max-w-[500px] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[770px] space-y-[30px] sm:space-y-[35px] md:space-y-[42px] lg:space-y-[50px]">
+            <form className="max-w-[500px] sm:max-w-[600px] md:max-w-[500px] lg:max-w-[550px] xl:max-w-[770px] space-y-[30px] sm:space-y-[35px] md:space-y-[42px] lg:space-y-[50px]">
               {/* Name Field */}
               <div>
-                <label htmlFor="name" className="block text-[#6c6c6c] text-base lg:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
+                <label htmlFor="name" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Name
                 </label>
                 <div className="border-b border-[#6c6c6c] pb-2">
@@ -73,14 +94,14 @@ export default function Contact() {
                     id="name"
                     type="text"
                     placeholder="Your Full Name"
-                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm lg:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
+                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
                   />
                 </div>
               </div>
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-[#6c6c6c] text-base lg:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
+                <label htmlFor="email" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Email
                 </label>
                 <div className="border-b border-[#6c6c6c] pb-2">
@@ -88,28 +109,28 @@ export default function Contact() {
                     id="email"
                     type="email"
                     placeholder="you@company.com"
-                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm lg:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
+                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
                   />
                 </div>
               </div>
 
               {/* Message Field */}
               <div>
-                <label htmlFor="message" className="block text-[#6c6c6c] text-base lg:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
+                <label htmlFor="message" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Message
                 </label>
                 <div className="border-b border-[#6c6c6c] pb-2">
                   <textarea
                     id="message"
                     placeholder="Tell us a bit about your project or question"
-                    className="w-full text-[#6c6c6c]/80 text-sm lg:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none resize-none min-h-[80px] sm:min-h-[90px] md:min-h-[95px] lg:min-h-[100px]"
+                    className="w-full text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none resize-none min-h-[80px] sm:min-h-[90px] md:min-h-[95px] lg:min-h-[100px]"
                   />
                 </div>
               </div>
 
               {/* Submit Button - Left Aligned */}
               <div className="inline-flex justify-start items-center mt-4 text-center w-full">
-                <button className="w-[150px] lg:w-[180px] h-[45px] sm:h-[47px] md:h-[48px] lg:h-[50px] gradient-button font-medium font-poppins hover:font-semibold text-sm sm:text-sm md:text-[15px] lg:text-base">
+                <button className="w-[150px] lg:w-[180px] h-[45px] sm:h-[47px] md:h-[48px] lg:h-[50px] gradient-button font-medium font-poppins hover:font-semibold text-sm  md:text-[15px] xl:text-base">
                   Submit
                 </button>
               </div>
@@ -118,21 +139,23 @@ export default function Contact() {
         </div>
 
         {/* Contact Cards Section */}
-        <div className="relative w-full max-w-[1440px] mx-auto h-auto mt-0 lg:mt-[-50px] xl:mt-[-70px] pb-[60px] lg:pb-0">
+        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-20 md:mt-0 lg:mt-[120px] 2xl:-mt-[150px] pb-[60px] lg:pb-0">
           {/* Background Image */}
           <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[520px] lg:h-[585px] overflow-hidden">
-            <Image
-              src="/contact-3.svg"
-              alt="Contact background"
-              width={1440}
-              height={585}
-              className="w-full h-full object-cover"
-            />
+            <div className="hidden md:block max-w-[1440px] mr-auto h-full">
+              <Image
+                src="/contact-3.svg"
+                alt="Contact background"
+                width={1440}
+                height={585}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
 
           {/* Title */}
           <div className="relative z-10 w-full text-center px-4 mb-[60px] sm:mb-[70px] md:mb-[80px] lg:mb-[90px]">
-            <h2 className="text-[20px] sm:text-[22px] md:text-[24px] lg:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[38px] md:leading-[48px] lg:leading-[55px]">
+            <h2 className="text-[20px] sm:text-[22px] md:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[38px] md:leading-[48px] lg:leading-[55px]">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Reach Us </span>
               <span className="text-[#6c6c6c]">Directly</span>
             </h2>

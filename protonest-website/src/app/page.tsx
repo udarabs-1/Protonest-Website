@@ -18,12 +18,15 @@ function LargeScreenHome() {
     <div className="hidden lg:block">
       {/* Hero Section */}
       <div
-        className="mt-[50px] h-[553px] bg-no-repeat bg-cover bg-center"
+        className="mt-[150px] h-full bg-no-repeat bg-cover bg-center relative"
         style={{ backgroundImage: "url('/home-1.svg')" }}
       >
-        <div className="flex flex-col items-center justify-center h-full px-auto xl:px-[133px]">
+        {/* Top Gradient Overlay */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
+
+        <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10">
           <div className="flex justify-center">
-            <div className="text-center text-[45px] font-medium font-montserrat">
+            <div className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Bringing Your IoT Ideas to Life with
               </span>
@@ -33,16 +36,16 @@ function LargeScreenHome() {
               </span>
             </div>
           </div>
-          <div className="text-center text-[18px] font-normal font-poppins mt-12 px-[320px]">
+          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-12 px-[200px] xl:px-[320px]">
             <span className="text-[rgba(108,108,108,1)]">
               At Protonest, we bring bold IoT visions to life—prototyping, engineering, and building the future of connectivity.
             </span>
           </div>
-          <div className="flex justify-center space-x-[33px] mt-12 h-[65px] font-poppins font-medium text-[16px]">
-            <button className="w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+          <div className="flex justify-center space-x-[33px] mt-12 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
+            <button className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
               Get Your Free Quote Now
             </button>
-            <button className="w-[266px] gradient-button font-medium">
+            <button className="w-[240px] gradient-button font-medium">
               Work With Us
             </button>
           </div>
@@ -54,9 +57,9 @@ function LargeScreenHome() {
         className="mt-[120px] h-[649px] bg-no-repeat bg-cover bg-center"
         style={{ backgroundImage: "url('/home-2.svg')" }}
       >
-        <div className="flex flex-col items-start justify-start h-full px-[133px]">
+        <div className="flex flex-col items-start justify-start h-full px-[60px] xl:px-[133px] 2xl:px-[180px]">
           <div className="flex justify-center">
-            <div className="text-center text-[30px] font-medium font-montserrat">
+            <div className="text-center text-[26px] xl:text-[30px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Explore Our{' '}
               </span>
@@ -66,12 +69,12 @@ function LargeScreenHome() {
             </div>
           </div>
           <div className="flex justify-between items-center w-full my-12">
-            <div className="text-[18px] font-normal font-poppins">
+            <div className="text-[16px] xl:text-[18px] font-normal font-poppins">
               <span className="text-[rgba(108,108,108,1)]">
                 Trusted by Pioneers in Innovation. When they build, they build with us.
               </span>
             </div>
-            <div className="text-[18px] font-normal font-poppins">
+            <div className="text-[16px] xl:text-[18px] font-normal font-poppins">
               <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">About Us &gt;</span>
             </div>
           </div>
@@ -102,12 +105,12 @@ function LargeScreenHome() {
           </div>
         </div>
 
-        <div className="text-center mb-8 font-poppins text-[18px] text-[#6C6C6C]">
+        <div className="text-center mb-8 font-poppins text-[16px] xl:text-[18px] text-[#6C6C6C]">
           Udara Kumarasena, Chief Executive Officer
         </div>
 
         <div className="relative w-full flex items-start">
-          <div className="absolute left-0 top-0 h-16 w-16 -ml-12 -mt-4 text-gray-300">
+          <div className="absolute left-4 xl:left-0 top-0 h-16 w-16 -ml-12 -mt-4 text-gray-300">
             <Image
               src="/quotation1.svg"
               alt="Opening quotation mark"
@@ -118,13 +121,13 @@ function LargeScreenHome() {
           </div>
 
           <div className="flex-grow py-8 text-center">
-            <p className="text-[35px] xl:text-[40px] font-montserrat leading-relaxed">
+            <p className="text-[30px] xl:text-[40px] font-montserrat leading-relaxed">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">At Protonest,</span>
-              <span className="text-[#6C6C6C]"> we prototype, engineer, and deliver IoT systems that push boundaries and help great ideas go further, faster.</span>
+              <span className="text-[#6C6C6C]"> we design and develop IoT systems that enhance reliability, security, and scalability, helping Innovative ideas go further, faster.</span>
             </p>
           </div>
 
-          <div className="absolute right-0 bottom-0 h-16 w-16 -mr-12 -mb-4 text-gray-300">
+          <div className="absolute right-4 xl:right-0 bottom-0 h-16 w-16 -mr-12 -mb-4 text-gray-300">
             <Image
               src="/quotation2.svg"
               alt="Closing quotation mark"
@@ -140,7 +143,7 @@ function LargeScreenHome() {
 
       {/* Stats Section */}
       <div className="bg-[#FAFAFA] py-16 w-full h-[316px] flex items-center hover:bg-black transition-all duration-300 group">
-        <div className="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 lg:gap-[211px] max-w-screen-xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 lg:gap-45 xl:gap-[211px] max-w-screen-xl mx-auto">
           <div className="text-center">
             <div className="text-[#6c6c6c] text-[60px] font-medium font-montserrat leading-[55px] mb-2">
               100+
@@ -183,18 +186,21 @@ function SmallScreenHome() {
     <div className="lg:hidden">
       {/* Hero Section */}
       <div
-        className="mt-8 h-[400px] sm:h-[500px] bg-no-repeat bg-cover bg-center"
+        className="mt-8 h-[400px] sm:h-[500px] bg-no-repeat bg-cover bg-center relative"
         style={{ backgroundImage: "url('/home-1.svg')" }}
       >
-        <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8">
+        {/* Top Gradient Overlay */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
+
+        <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
           <div className="flex justify-center">
             <div className="text-center text-[24px] sm:text-[32px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Powering the Next Wave of
+                Bringing Your IoT Ideas to Life with
               </span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Connected Devices
+                Expert Prototyping
               </span>
             </div>
           </div>
@@ -208,7 +214,7 @@ function SmallScreenHome() {
               Get Your Free Quote Now
             </button>
             <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
-              Join as a Freelancer
+              Work With Us
             </button>
           </div>
         </div>
@@ -287,7 +293,7 @@ function SmallScreenHome() {
           <div className="flex-grow py-4 sm:py-6 text-center px-6 sm:px-8">
             <p className="text-[18px] sm:text-[24px] font-montserrat leading-relaxed">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">At Protonest,</span>
-              <span className="text-[#6C6C6C]"> we prototype, engineer, and deliver IoT systems that push boundaries and help great ideas go further, faster.</span>
+              <span className="text-[#6C6C6C]"> we design and develop IoT systems that enhance reliability, security, and scalability, helping Innovative ideas go further, faster.</span>
             </p>
           </div>
 
