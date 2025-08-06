@@ -1,8 +1,10 @@
 'use client';
 import Image from 'next/image';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick-theme.css';
+import 'slick-carousel/slick/slick.css';
 
 const TestimonialSection = () => {
-    // Testimonial data array
     const testimonials = [
         {
             id: 1,
@@ -27,237 +29,123 @@ const TestimonialSection = () => {
         }
     ];
 
+    // Settings for the carousel
+    const carouselSettings = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        arrows: false,
+        autoplay: true,
+        autoplaySpeed: 5000,
+    };
+
     return (
-        <div className="relative w-full xl:w-[1440px] h-auto lg:h-[700px] xl:h-[674px] xl:mx-auto overflow-hidden">
-            {/* Background Elements - XL screen keeps original absolute positioning */}
-            <div className="xl:absolute xl:inset-0 hidden xl:block z-0">
-                <div className="absolute left-[344px] top-[211px] w-[753px] h-[447px] rounded-[37px] overflow-hidden">
+        <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
+            {/* Background Container - Now visible on all screens */}
+            <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-48 md:top-52 lg:top-47 left-0 right-0 z-10">
+                <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px] md:h-[550px] lg:h-[600px]">
                     <Image
                         src="/home-5.svg"
                         alt="Background"
-                        width={753}
-                        height={447}
-                        className="rounded-[37px]"
+                        fill
+                        className="object-cover"
+                        quality={100}
+                        priority
                     />
-                    <div className="absolute left-[22px] top-[241px] w-[235px] h-[235px] bg-[#5530fa]/75 rounded-full blur-[100px]" />
-                    <div className="absolute left-[491px] top-[-27px] w-[235px] h-[235px] bg-[#f51da5]/75 rounded-full blur-[100px]" />
-                    <button className="absolute left-[287px] top-[373px] w-[179px] h-[51px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat hover:font-poppins rounded-[57px] flex justify-center items-center gap-1 z-20">
-                        <span className="text-white text-base font-semibold">Contact Us</span>
-                    </button>
                 </div>
             </div>
 
-            {/* Background Elements for lg screens - Fixed sizing and positioning */}
-            <div className="hidden lg:block xl:hidden absolute inset-0 z-0 w-full h-[600px]">
-                <div className="absolute top-[200px] left-1/2 transform -translate-x-1/2 w-[800px] h-auto rounded-[35px] overflow-hidden">
-                    <Image
-                        src="/home-5.svg"
-                        alt="Background"
-                        width={900}
-                        height={480}
-                        className="object-cover rounded-[35px]"
-                    />
-                    {/* Blur Effects - Adjusted for larger container */}
-                    <div className="absolute left-[8%] bottom-[20%] w-[220px] h-[220px] bg-[#5530fa]/75 rounded-full blur-[90px]" />
-                    <div className="absolute right-[8%] top-[15%] w-[220px] h-[220px] bg-[#f51da5]/75 rounded-full blur-[90px]" />
-
-                    {/* Contact Button with higher z-index */}
-                    <div className="absolute bottom-[10%] left-1/2 transform -translate-x-1/2 z-30">
-                        <button className="w-[180px] h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat hover:font-poppins rounded-[40px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                            <span className="text-white text-base font-semibold">Contact Us</span>
-                        </button>
+            {/* Content Container - Independent with standard padding */}
+            <div className="relative z-10 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+                {/* Header Section */}
+                <div className="w-full mb-12 lg:mb-16">
+                    <div className="text-center">
+                        <h2 className="text-[#6c6c6c] text-2xl sm:text-3xl md:text-4xl lg:text-[30px] font-medium font-montserrat leading-tight md:leading-[1.3]">
+                            Innovation Backed by{' '}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
+                                Experience
+                            </span>
+                        </h2>
+                        <p className="text-[#6c6c6c] text-sm sm:text-base md:text-lg lg:text-[18px] font-normal font-poppins leading-relaxed mt-4 mx-auto">
+                            Words from those who&apos;ve experienced our process, people, and product delivery first-hand.
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            {/* Background Elements for md and smaller screens */}
-            <div className="lg:hidden absolute inset-0 flex items-center justify-center z-0 pt-60 md:pt-80">
-                <div className="hidden md:block relative md:w-[600px] md:h-[350px] rounded-[30px] overflow-hidden">
-                    <Image
-                        src="/home-5.svg"
-                        alt="Background"
-                        width={600}
-                        height={350}
-                        className="object-cover rounded-[30px]"
-                    />
-                    {/* Blur Effects */}
-                    <div className="absolute left-[5%] bottom-[15%] w-[180px] h-[180px] bg-[#5530fa]/75 rounded-full blur-[70px]" />
-                    <div className="absolute right-[5%] top-[15%] w-[180px] h-[180px] bg-[#f51da5]/75 rounded-full blur-[70px]" />
-
-                    {/* Contact Button with higher z-index */}
-                    <div className="absolute bottom-[8%] left-1/2 transform -translate-x-1/2 z-30">
-                        <button className="w-[160px] h-[46px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat hover:font-poppins rounded-[35px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                            <span className="text-white text-base font-semibold">Contact Us</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* XL Screen Header - Original absolute positioning */}
-            <div className="hidden xl:block absolute left-[161px] top-[18px] w-[1120px] text-center z-10">
-                <h2 className="text-[#6c6c6c] text-[30px] font-medium font-montserrat leading-[55px]">
-                    Innovation Backed by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Experience</span>
-                </h2>
-            </div>
-
-            {/* XL Screen Subheader - Original absolute positioning */}
-            <div className="hidden xl:block absolute left-[295px] top-[100px] w-[850px] text-center text-[#6c6c6c] text-[18px] font-normal font-poppins leading-[30px] z-10">
-                Words from those who&apos;ve experienced our process, people, and product delivery first-hand.
-            </div>
-
-            {/* XL Screen Gradient Overlays - Original positioning */}
-            <div className="hidden xl:block absolute left-0 top-[100px] w-[159px] h-[542px] bg-gradient-to-l from-white/0 to-white z-5" />
-            <div className="hidden xl:block absolute left-[1281px] top-0 w-[159px] h-[674px] bg-gradient-to-l from-white to-white/0 z-5" />
-
-            {/* XL Screen Testimonial Cards - Updated to use testimonial data */}
-            <div className="hidden xl:absolute xl:left-[161px] xl:top-[248px] xl:flex xl:gap-[46px] z-15">
-                {testimonials.map((testimonial) => (
-                    <TestimonialCardXL
-                        key={testimonial.id}
-                        name={testimonial.name}
-                        company={testimonial.company}
-                        text={testimonial.text}
-                        avatar={testimonial.avatar}
-                    />
-                ))}
-            </div>
-
-            {/* Responsive Content for smaller screens */}
-            <div className="xl:hidden relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-10 lg:py-12">
-                {/* Header Section for smaller screens */}
-                <div className="text-center mb-6 md:mb-8 lg:mb-12">
-                    <h2 className="text-[#6c6c6c] text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight sm:leading-relaxed md:leading-[1.3] lg:leading-[1.2] mb-4 md:mb-6 lg:mb-8">
-                        Innovation Backed by{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
-                            Experience
-                        </span>
-                    </h2>
-
-                    <p className="text-[#6c6c6c] text-sm sm:text-base md:text-lg lg:text-xl font-normal font-poppins leading-relaxed max-w-4xl mx-auto">
-                        Words from those who&apos;ve experienced our process, people, and product delivery first-hand.
-                    </p>
+                <div className="lg:hidden mb-10 md:mb-12 px-2"> {/* Added padding here */}
+                    <Slider {...carouselSettings}>
+                        {testimonials.map((testimonial) => (
+                            <div key={testimonial.id} className="px-6 pb-6"> {/* Added padding and shadow container */}
+                                <div className="shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] rounded-[20px] overflow-hidden">
+                                    <TestimonialCard
+                                        name={testimonial.name}
+                                        company={testimonial.company}
+                                        text={testimonial.text}
+                                        avatar={testimonial.avatar}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </Slider>
                 </div>
 
-                {/* Testimonial Cards Grid for smaller screens */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-8 lg:gap-6 justify-items-center mb-8 sm:mb-10 lg:mb-16 z-25 relative">
-                    {testimonials.map((testimonial, index) => (
-                        <div
+                {/* Desktop Grid (hidden on screens smaller than lg) */}
+                <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 xl:gap-[46px] mb-10 md:mb-12 lg:mb-16">
+                    {testimonials.map((testimonial) => (
+                        <TestimonialCard
                             key={testimonial.id}
-                            className={index >= 1 ? "hidden md:block" : index >= 2 ? "hidden lg:block" : ""}
-                        >
-                            <TestimonialCardResponsive
-                                name={testimonial.name}
-                                company={testimonial.company}
-                                text={testimonial.text}
-                                avatar={testimonial.avatar}
-                            />
-                        </div>
+                            name={testimonial.name}
+                            company={testimonial.company}
+                            text={testimonial.text}
+                            avatar={testimonial.avatar}
+                        />
                     ))}
                 </div>
 
-                {/* Mobile/Tablet Contact Button - Hide on lg since it's in background */}
-                <div className="lg:hidden flex justify-center z-30 relative">
-                    <button className="w-[160px] h-[45px] md:w-[170px] md:h-[48px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat hover:font-poppins rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                        <span className="text-white text-base font-semibold">Contact Us</span>
+                {/* Contact Us Button */}
+                <div className="flex justify-center">
+                    <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                        <span className="text-white text-sm md:text-base font-semibold">Contact Us</span>
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
-// Updated XL Testimonial Card Component with props
-interface TestimonialCardProps {
-    name: string;
-    company: string;
-    text: string;
-    avatar: string;
-}
-
-const TestimonialCardXL = ({ name, company, text, avatar }: TestimonialCardProps) => {
+// Testimonial Card Component remains the same
+const TestimonialCard = ({ name, company, text, avatar }: { name: string; company: string; text: string; avatar: string }) => {
     return (
-        <div className="w-[343px] h-[312px] px-8 py-[50px] bg-white/60 rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col items-center gap-2.5">
-            <div className="w-[259px] flex flex-col items-start gap-[27px]">
-                <ClientAvatarXL avatar={avatar} />
-                <ClientInfoXL name={name} company={company} />
-                <TestimonialTextXL text={text} />
+        <div className="w-full h-[350px] md:h-[380px] lg:h-[400px] bg-white/60 backdrop-blur-[10px] rounded-[20px] md:rounded-[25px] lg:shadow-lg p-6 md:p-8 flex flex-col overflow-hidden lg:hover:shadow-xl transition-all duration-300">
+            {/* Client Info with Avatar */}
+            <div className="flex items-center gap-4 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-12 md:h-12 p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex-shrink-0">
+                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
+                        <Image
+                            src={avatar}
+                            alt={name}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <h3 className="text-black text-base md:text-lg font-normal font-poppins">{name}</h3>
+                    <p className="text-[#989898] text-xs md:text-sm font-normal font-poppins">{company}</p>
+                </div>
+            </div>
+
+            {/* Scrollable Testimonial Text */}
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <p className="text-[#6c6c6c] text-sm md:text-base font-normal font-poppins leading-relaxed">
+                    {text}
+                </p>
             </div>
         </div>
     );
 };
-
-// Updated Responsive Testimonial Card Component with props
-const TestimonialCardResponsive = ({ name, company, text, avatar }: TestimonialCardProps) => {
-    return (
-        <div className="w-full max-w-[320px] sm:max-w-[280px] md:max-w-[300px] lg:max-w-[280px] h-auto min-h-[280px] sm:min-h-[300px] md:min-h-[320px] lg:min-h-[300px] px-6 sm:px-7 md:px-8 lg:px-6 py-8 sm:py-9 md:py-10 lg:py-8 bg-white/60 backdrop-blur-[10px] rounded-[20px] sm:rounded-[25px] md:rounded-[30px] lg:rounded-[25px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] hover:shadow-[0px_8px_30px_0px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-105 hover:bg-white/70 flex flex-col justify-between">
-            {/* Card Content */}
-            <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-4">
-                <ClientAvatarResponsive avatar={avatar} />
-                <ClientInfoResponsive name={name} company={company} />
-            </div>
-            <TestimonialTextResponsive text={text} />
-        </div>
-    );
-};
-
-// Updated XL Screen Sub-components with props
-const ClientAvatarXL = ({ avatar }: { avatar: string }) => (
-    <div className="w-[45px] h-[45px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-[22.50px] flex items-center justify-center">
-        <div className="w-[41px] h-[41px] bg-white rounded-full flex items-center justify-center">
-            <Image
-                src={avatar}
-                alt="Client"
-                width={39}
-                height={39}
-                className="rounded-full"
-            />
-        </div>
-    </div>
-);
-
-const ClientInfoXL = ({ name, company }: { name: string, company: string }) => (
-    <div className="flex flex-col items-start gap-[13px]">
-        <div className="text-black text-base font-normal font-poppins">{name}</div>
-        <div className="text-[#989898] text-xs font-normal font-poppins">{company}</div>
-    </div>
-);
-
-const TestimonialTextXL = ({ text }: { text: string }) => (
-    <div className="text-[#6c6c6c] text-xs font-normal font-poppins">
-        {text}
-    </div>
-);
-
-// Updated Responsive Sub-components with props
-const ClientAvatarResponsive = ({ avatar }: { avatar: string }) => (
-    <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] md:w-[50px] md:h-[50px] lg:w-[42px] lg:h-[42px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110">
-        <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] md:w-[46px] md:h-[46px] lg:w-[38px] lg:h-[38px] bg-white rounded-full flex items-center justify-center">
-            <Image
-                src={avatar}
-                alt="Client"
-                width={39}
-                height={39}
-                className="w-[32px] h-[32px] sm:w-[37px] sm:h-[37px] md:w-[42px] md:h-[42px] lg:w-[34px] lg:h-[34px] rounded-full"
-            />
-        </div>
-    </div>
-);
-
-const ClientInfoResponsive = ({ name, company }: { name: string, company: string }) => (
-    <div className="flex flex-col gap-2 sm:gap-3 md:gap-4 lg:gap-2">
-        <h3 className="text-black text-sm sm:text-base md:text-base lg:text-sm font-normal font-poppins">
-            {name}
-        </h3>
-        <p className="text-[#989898] text-xs sm:text-sm md:text-sm lg:text-xs font-normal font-poppins">
-            {company}
-        </p>
-    </div>
-);
-
-const TestimonialTextResponsive = ({ text }: { text: string }) => (
-    <div className="text-[#6c6c6c] text-xs sm:text-sm md:text-sm lg:text-xs font-normal font-poppins leading-relaxed sm:leading-relaxed md:leading-[1.6] lg:leading-relaxed mt-auto">
-        {text}
-    </div>
-);
 
 export default TestimonialSection;

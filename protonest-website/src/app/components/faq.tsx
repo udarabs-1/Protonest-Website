@@ -26,10 +26,10 @@ export default function FAQSection() {
         <section className="mt-20 md:mt-32 xl:mt-40 mb-20 md:mb-32 xl:mb-40 w-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] py-6 md:py-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-8 md:mb-12">
-                <h2 className="inline-block w-fit text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-2xl md:text-3xl font-normal font-poppins">
+                <h2 className="inline-block w-fit text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-2xl lg:text-3xl font-normal font-poppins">
                     FAQs
                 </h2>
-                <div className="text-base md:text-[18px] font-normal font-poppins">
+                <div className="text-base lg:text-[18px] font-normal font-poppins">
                     <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-200">
                         Still Have Questions? &gt;
                     </span>
@@ -39,19 +39,19 @@ export default function FAQSection() {
             {/* FAQ Items */}
             <div className="mt-12 md:mt-16 lg:mt-20 w-full max-w-[870px] space-y-6 md:space-y-8">
                 {faqs.map((faq, index) => (
-                    <div key={index} className="space-y-3 md:space-y-4">
+                    <div key={index} className="space-y-3 lg:space-y-4">
                         {/* Question */}
-                        <div className="flex items-start gap-3 md:gap-4">
+                        <div className="flex items-start gap-3 lg:gap-4">
                             <GradientIcon letter="Q" />
-                            <h4 className="text-[#3C3C3C] text-sm md:text-base font-normal font-poppins mt-1 flex-1">
+                            <h4 className="text-[#3C3C3C] text-sm lg:text-base font-normal font-poppins mt-1 flex-1">
                                 {faq.question}
                             </h4>
                         </div>
 
                         {/* Answer */}
-                        <div className="flex items-start gap-3 md:gap-4">
+                        <div className="flex items-start gap-3 lg:gap-4">
                             <GradientIcon letter="A" />
-                            <p className="text-[#6c6c6c]/93 text-sm md:text-base font-normal font-poppins italic flex-1">
+                            <p className="text-[#6c6c6c]/93 text-sm lg:text-base font-normal font-poppins mt-1  italic flex-1">
                                 {faq.answer}
                             </p>
                         </div>

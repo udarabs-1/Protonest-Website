@@ -1,5 +1,7 @@
 'use client';
 import Image from 'next/image';
+import { useRef } from 'react';
+import { useOnScreen } from './useOnScreen';
 
 const NewsAndBlogs = () => {
     const blogs = [
@@ -56,7 +58,7 @@ const NewsAndBlogs = () => {
             </div>
 
             <div className="my-20 text-center px-4">
-                <button className="w-[160px] sm:w-[180px] h-[45px] sm:h-[50px] gradient-button font-medium font-poppins hover:font-semibold transition text-[14px] sm:text-[16px]">
+                <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-medium font-poppins text-[14px] lg:text-[16px]">
                     View All Article
                 </button>
             </div>
@@ -64,25 +66,46 @@ const NewsAndBlogs = () => {
     );
 };
 
-// Blog Card Component
+// Updated Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: { id: number, title: string, image: string, description: string } }) => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const ref = useRef<HTMLDivElement>(null);
+    const isVisible = useOnScreen(ref);
+
+    // For mobile and small screens, use intersection observer; for larger screens, use hover
+    const shouldShowEffects = isMobile ? isVisible : false;
+
     return (
-        <div className="w-full max-w-[345px] h-auto min-h-[450px] sm:min-h-[502px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8">
-            {/* Blog Image */}
-            <div className="w-full max-w-[279px] h-[140px] sm:h-[164px] mx-auto relative rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6">
+        <div
+            ref={ref}
+            className={`group w-full max-w-[345px] h-auto min-h-[450px] sm:min-h-[502px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
+                }`}
+        >
+            {/* Blog Image with Read More button */}
+            <div className="relative w-full max-w-[279px] h-[140px] sm:h-[164px] mx-auto rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6">
                 <Image
                     src={blog.image}
                     alt={blog.title}
                     fill
-                    className="object-cover"
+                    className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
+                        }`}
                 />
+                {/* Read More Button */}
+                <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                    }`}>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
+                        Read More
+                    </span>
+                </button>
             </div>
 
             {/* Divider */}
-            <div className="w-8 h-px mx-auto bg-[#767676] rounded-full mb-4 sm:mb-6" />
+            <div className={`w-8 h-px mx-auto rounded-full mb-4 sm:mb-6 transition-all duration-300 md:bg-[#767676] md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'bg-[#767676]'
+                }`} />
 
             {/* Blog Title */}
-            <h3 className="w-full max-w-[240px] mx-auto text-center text-[#4d4d4d] text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2">
+            <h3 className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#4d4d4d]'
+                }`}>
                 {blog.title}
             </h3>
 

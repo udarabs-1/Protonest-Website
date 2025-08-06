@@ -22,6 +22,8 @@
     "react-dom": "^19.0.0",
     "react-fast-marquee": "^1.6.5",
     "react-gradient-text": "^0.1.0",
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1",
     "swiper": "^11.2.8"
   },
   "devDependencies": {
@@ -30,6 +32,7 @@
     "@types/node": "20.19.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-slick": "^0.23.13",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",

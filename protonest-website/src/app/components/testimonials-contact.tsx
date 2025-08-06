@@ -54,7 +54,7 @@ export default function Testimonials() {
 
             {/* Load More Button */}
             <div className="mt-8 sm:mt-12 lg:mt-15 text-center">
-                <button className="w-[160px] sm:w-[180px] h-[45px] sm:h-[50px] gradient-button font-medium font-poppins hover:font-semibold text-sm sm:text-base">
+                <button className="w-[160px] h-[45px] gradient-button font-medium font-poppins text-sm">
                     Load More
                 </button>
             </div>

@@ -72,15 +72,15 @@ export default function Footer() {
                                         Home
                                     </Link>
                                     <Link
-                                        href="/projects"
-                                        className={getNavLinkClass('/projects', true)}
-                                        onMouseEnter={() => handleMouseEnter('/projects')}
+                                        href="/404"
+                                        className={getNavLinkClass('/careers', true)}
+                                        onMouseEnter={() => handleMouseEnter('/careers')}
                                         onMouseLeave={handleMouseLeave}
                                     >
-                                        Projects
+                                        Careers
                                     </Link>
                                     <Link
-                                        href="/research"
+                                        href="/404"
                                         className={getNavLinkClass('/research', true)}
                                         onMouseEnter={() => handleMouseEnter('/research')}
                                         onMouseLeave={handleMouseLeave}
@@ -168,7 +168,7 @@ export default function Footer() {
                 {/* Content Container - Centered within the GIF area */}
                 <div className="relative z-20 h-full">
                     {/* Logo - Centered */}
-                    <div className="w-[149px] h-[106px] md:w-[180px] md:h-[128px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
+                    <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
                         <Image
                             src="/logo.png"
                             alt="Logo"
@@ -214,11 +214,11 @@ export default function Footer() {
                             <Link href="/" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/', false)}`}>Home</div>
                             </Link>
-                            <Link href="/projects" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/down', false)}`}>Projects</div>
+                            <Link href="/down" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/careers', false)}`}>Careers</div>
                             </Link>
-                            <Link href="/research" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/down', false)}`}>Research</div>
+                            <Link href="/down" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>
                             </Link>
                         </div>
 
@@ -237,7 +237,7 @@ export default function Footer() {
                     </div>
 
                     {/* Get a Quote Button - Centered */}
-                    <button className="w-[280px] md:w-[320px] p-2.5 md:p-3 left-1/2 -translate-x-1/2 top-[215px] md:top-[250px] absolute rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5">
+                    <button className="w-[280px] md:w-[300px] p-2.5 md:p-3 left-1/2 -translate-x-1/2 top-[215px] md:top-[250px] absolute rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5">
                         <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal">Get a Quote</div>
                     </button>
 

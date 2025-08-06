@@ -71,7 +71,7 @@ const WhyChooseProtonest = () => {
             <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[133px]">
                 {/* Header */}
                 <div className="text-left mb-8 md:mb-12">
-                    <h2 className="text-2xl md:text-[30px] font-medium font-montserrat mb-15">
+                    <h2 className="text-[24px] lg:text-[30px] font-medium font-montserrat mb-15">
                         <span className="text-[rgba(108,108,108,1)]">
                             Why Choose{' '}
                         </span>
@@ -80,13 +80,13 @@ const WhyChooseProtonest = () => {
                         </span>
                     </h2>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
-                        <div className="text-base md:text-[18px] font-normal font-poppins text-center md:text-left">
+                    <div className="flex flex-col md:flex-row justify-between items-start w-full gap-6">
+                        <div className="text-[14px] lg:text-[18px] font-normal font-poppins text-left">
                             <span className="text-[rgba(108,108,108,1)]">
                                 Where bold ideas become connected products.
                             </span>
                         </div>
-                        <div className="text-base md:text-[18px] font-normal font-poppins">
+                        <div className="text-[14px] lg:text-[18px] font-normal font-poppins">
                             <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-300">
                                 Get a Quote &gt;
                             </span>
@@ -140,15 +140,8 @@ const FeatureItemAlternating = ({ icon, title, isLeft }: { icon: string, title: 
         <div className={`flex items-center ${isLeft ? 'justify-start' : 'justify-end'}`}>
             <div className={`inline-flex items-center gap-6 sm:gap-8 ${isLeft ? '' : 'flex-row-reverse'}`}>
                 <FeatureCircle icon={icon} />
-                <div className={`max-w-[160px] sm:max-w-[200px] text-[#4d4d4d] text-base sm:text-lg font-normal font-poppins ${isLeft ? 'text-left' : 'text-right'}`}>
-                    {title.includes('and') || title.includes('Development') || title.includes('Quality') ? (
-                        <>
-                            {title.split(' ').slice(0, -1).join(' ')}<br />
-                            {title.split(' ').slice(-1)}
-                        </>
-                    ) : (
-                        title
-                    )}
+                <div className={`max-w-[150px] text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm font-normal font-poppins ${isLeft ? 'text-left' : 'text-right'}`}>
+                    {title}
                 </div>
             </div>
         </div>
@@ -159,10 +152,10 @@ const FeatureItemAlternating = ({ icon, title, isLeft }: { icon: string, title: 
 const FeatureItemGrid = ({ icon, title }: { icon: string, title: string }) => {
     return (
         <div className="flex flex-col items-center text-center w-64 group">
-            <div className="mb-6 transition-transform duration-300 group-hover:scale-110">
+            <div className="mb-6">
                 <FeatureCircle icon={icon} />
             </div>
-            <h3 className="text-[#4d4d4d] text-lg font-normal font-poppins leading-relaxed group-hover:text-[#333] transition-colors duration-300 min-h-[3rem] flex items-center justify-center">
+            <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-lg font-normal font-poppins leading-relaxed min-h-[3rem] flex items-start justify-center">
                 {title}
             </h3>
         </div>

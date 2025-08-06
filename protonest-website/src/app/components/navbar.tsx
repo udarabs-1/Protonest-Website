@@ -332,13 +332,13 @@ export default function Navbar() {
                                     alt="Logo"
                                     width={90}
                                     height={64}
-                                    className="w-[90px] md:w-[110px] h-16 md:h-20"
+                                    className="w-[90px] md:w-[100px] h-16 md:h-18"
                                 />
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                <button className="w-[131px] md:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5 ">
-                                    <span className=" text-sm md:text-base font-medium font-montserrat">Sign In</span>
+                                <button className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5 ">
+                                    <span className=" text-sm font-medium font-montserrat">Sign In</span>
                                 </button>
 
                                 {/* <button className="relative group">
@@ -387,7 +387,7 @@ export default function Navbar() {
                                 {/* Menu Header */}
                                 <div className="w-[250px] md:w-[350px] h-16 md:h-20 left-[34px] md:left-[35px] top-[35px] md:top-[32px] absolute">
                                     <Image
-                                        className="w-[90px] md:w-[110px] h-16 md:h-20 left-0 top-0 absolute"
+                                        className="w-[90px] md:w-[100px] h-16 md:h-18 left-0 top-0 absolute"
                                         src="/logo.png"
                                         alt="Logo"
                                         width={90}
