@@ -22,6 +22,34 @@ export default function FAQSection() {
         </div>
     );
 
+    const scrollToGetInTouch = () => {
+        // Find the "Get in Touch" section by looking for the form or title
+        const getInTouchSection = document.querySelector('form') ||
+            document.querySelector('[data-section="get-in-touch"]');
+
+        if (getInTouchSection) {
+            // Get the element's position
+            const elementRect = getInTouchSection.getBoundingClientRect();
+            const elementTop = elementRect.top + window.pageYOffset;
+
+            // Calculate navbar height (assuming standard navbar height, adjust as needed)
+            const navbarHeight = 80; // Adjust this value based on your navbar height
+
+            // Calculate the center position accounting for viewport height and navbar
+            const viewportHeight = window.innerHeight;
+            const elementHeight = elementRect.height;
+            const centerOffset = (viewportHeight - elementHeight) / 2;
+
+            // Scroll to center the form in the visible area below the navbar
+            const scrollToPosition = elementTop - navbarHeight - centerOffset;
+
+            window.scrollTo({
+                top: scrollToPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     return (
         <section className="mt-20 md:mt-32 xl:mt-60 mb-20 md:mb-32 xl:mb-40 w-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px] py-6 md:py-12">
             {/* Header */}
@@ -30,7 +58,10 @@ export default function FAQSection() {
                     FAQs
                 </h2>
                 <div className="text-base xl:text-[18px] font-normal font-poppins">
-                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-200">
+                    <span
+                        onClick={scrollToGetInTouch}
+                        className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-200"
+                    >
                         Still Have Questions? &gt;
                     </span>
                 </div>

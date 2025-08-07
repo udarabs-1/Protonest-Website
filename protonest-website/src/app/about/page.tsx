@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from 'react';
 import ClientMarquee from "../components/clientMarquee";
 import Footer from "../components/footer";
@@ -82,9 +83,15 @@ export default function About() {
         {/* Hero Section with Background and Gradient Overlay */}
         <div className="relative">
           <div
-            className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
+            className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: "url('/about-1.svg')" }}
           >
+            <div className="block sm:hidden">
+              {/* Top Left Card */}
+              <div className="absolute -top-8 right-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl  shadow-lg flex items-center justify-center">
+              </div>
+
+            </div>
             <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
               <div className="flex justify-center">
                 <div className="text-center text-[24px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
@@ -106,7 +113,7 @@ export default function About() {
           </div>
 
           {/* Gradient Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] bg-gradient-to-b from-transparent via-white/30 to-white pointer-events-none"></div>
+          <div className="absolute -bottom-6 sm:bottom-0 left-0 right-0 h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] bg-gradient-to-b from-transparent via-white/30 to-white pointer-events-none"></div>
         </div>
 
         <div className="relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
@@ -241,9 +248,11 @@ export default function About() {
         </div>
 
         <div className="mt-8 sm:mt-10 md:mt-12 text-center pb-8 sm:pb-12 md:pb-16">
-          <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] xl:h-[50px] gradient-button font-poppins hover:font-medium transition text-sm lg:text-[15px] xl:text-base">
-            Get a Quote
-          </button>
+          <Link href="https://iot-system-design-tool.protonest.co/" target="_blank" rel="noopener noreferrer">
+            <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] xl:h-[50px] gradient-button font-poppins hover:font-medium transition text-sm lg:text-[15px] xl:text-base">
+              Get a Quote
+            </button>
+          </Link>
         </div>
 
       </div>

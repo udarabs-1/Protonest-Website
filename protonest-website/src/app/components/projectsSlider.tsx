@@ -1,20 +1,20 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
 import 'swiper/css';
+import 'swiper/css/autoplay';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/navigation';
-import { EffectCoverflow, Navigation } from 'swiper/modules';
+import { Autoplay, EffectCoverflow, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 const images = [
-    { normal: '/project1.svg', hover: '/project1-hover.svg' },
-    { normal: '/project2.svg', hover: '/project2-hover.svg' },
-    { normal: '/project1.svg', hover: '/project1-hover.svg' },
-    { normal: '/project2.svg', hover: '/project2-hover.svg' },
-    { normal: '/project1.svg', hover: '/project1-hover.svg' },
-    { normal: '/project2.svg', hover: '/project2-hover.svg' },
+    '/project1.svg',
+    '/project2.svg',
+    '/project3.webp',
+    '/project4.webp',
 ];
 
 export default function ProjectSlider() {
@@ -22,6 +22,17 @@ export default function ProjectSlider() {
     const [prevHover, setPrevHover] = useState(false);
     const [nextHover, setNextHover] = useState(false);
     const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
+    const [swiperReady, setSwiperReady] = useState(false);
+    const swiperRef = useRef<SwiperType | null>(null);
+
+    useEffect(() => {
+        // Small delay to ensure Swiper is properly initialized
+        const timer = setTimeout(() => {
+            setSwiperReady(true);
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSlideChange = (swiper: SwiperType) => {
         const index = swiper.realIndex;
@@ -36,6 +47,18 @@ export default function ProjectSlider() {
                 return new Set(updated);
             });
         }, 500);
+    };
+
+    const handleMouseEnter = () => {
+        if (swiperRef.current && swiperRef.current.autoplay) {
+            swiperRef.current.autoplay.stop();
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (swiperRef.current && swiperRef.current.autoplay) {
+            swiperRef.current.autoplay.start();
+        }
     };
 
     return (
@@ -72,81 +95,98 @@ export default function ProjectSlider() {
                                 className="lg:w-[22px] lg:h-[22px] xl:w-[24px] xl:h-[24px]"
                             />
                         </div>
-                        <div className="relative overflow-hidden mx-auto">
-                            <Swiper
-                                modules={[Navigation, EffectCoverflow]}
-                                effect="coverflow"
-                                grabCursor={true}
-                                centeredSlides={true}
-                                loop={true}
-                                slidesPerView={2.2}
-                                spaceBetween={-20}
-                                breakpoints={{
-                                    1024: { // lg
-                                        slidesPerView: 2.5,
-                                        spaceBetween: -80,
-                                    },
-                                    1280: { // xl
-                                        slidesPerView: 2.8,
-                                        spaceBetween: -50,
-                                    },
-                                    1536: { // 2xl
-                                        slidesPerView: 3,
-                                        spaceBetween: -80,
-                                    }
-                                }}
-                                navigation={{
-                                    nextEl: '.swiper-button-next-unique',
-                                    prevEl: '.swiper-button-prev-unique',
-                                }}
-                                coverflowEffect={{
-                                    rotate: 0,
-                                    stretch: 0,
-                                    depth: 80,
-                                    modifier: 2.5,
-                                    slideShadows: false,
-                                }}
-                                onSlideChange={handleSlideChange}
-                            >
-                                {images.map((img, index) => {
-                                    const showBorder = borderedSlides.has(index % images.length);
-                                    return (
-                                        <SwiperSlide
-                                            key={index}
-                                            style={{
-                                                transform: 'scale(0.85)',
-                                                padding: '30px 0',
-                                            }}
-                                            className="lg:!scale-[0.88] xl:!scale-90 2xl:!scale-90 lg:!py-8 xl:!py-9 2xl:!py-10"
-                                        >
-                                            <div
-                                                className={`aspect-w-16 aspect-h-9 rounded-[25px] lg:rounded-[30px] xl:rounded-[35px] shadow-xl backdrop-blur-lg p-[20px] lg:p-[22px] xl:p-[25px] transition-all duration-300 overflow-hidden ${showBorder ? 'bg-black' : 'bg-[rgba(255,255,255,0.05)]'
-                                                    }`}
+                        <div
+                            className="relative overflow-visible mx-auto"
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                            <div className={`transition-opacity duration-300 ${swiperReady ? 'opacity-100' : 'opacity-0'}`}>
+                                <Swiper
+                                    modules={[Navigation, EffectCoverflow, Autoplay]}
+                                    effect="coverflow"
+                                    grabCursor={true}
+                                    centeredSlides={true}
+                                    loop={true}
+                                    slidesPerView="auto"
+                                    spaceBetween={20}
+                                    centeredSlidesBounds={true}
+                                    watchSlidesProgress={true}
+                                    autoplay={{
+                                        delay: 4000, // 4 seconds
+                                        disableOnInteraction: false,
+                                        pauseOnMouseEnter: false, // We handle this manually
+                                    }}
+                                    breakpoints={{
+                                        1024: { // lg
+                                            spaceBetween: 30,
+                                        },
+                                        1280: { // xl
+                                            spaceBetween: 40,
+                                        },
+                                        1536: { // 2xl
+                                            spaceBetween: 50,
+                                        }
+                                    }}
+                                    navigation={{
+                                        nextEl: '.swiper-button-next-unique',
+                                        prevEl: '.swiper-button-prev-unique',
+                                    }}
+                                    coverflowEffect={{
+                                        rotate: 0,
+                                        stretch: 0,
+                                        depth: 60,
+                                        modifier: 1.8,
+                                        slideShadows: false,
+                                    }}
+                                    onSlideChange={handleSlideChange}
+                                    onSwiper={(swiper) => {
+                                        setSwiperReady(true);
+                                        swiperRef.current = swiper;
+                                    }}
+                                >
+                                    {images.map((img, index) => {
+                                        const showBorder = borderedSlides.has(index % images.length);
+                                        return (
+                                            <SwiperSlide
+                                                key={index}
+                                                style={{
+                                                    width: '350px',
+                                                    flexShrink: 0,
+                                                }}
+                                                className="lg:!w-[400px] xl:!w-[450px] 2xl:!w-[480px]"
                                             >
                                                 <div
-                                                    className="relative rounded-[12px] lg:rounded-[14px] xl:rounded-[15px] overflow-hidden"
-                                                    onMouseEnter={() => setHoveredSlide(index)}
-                                                    onMouseLeave={() => setHoveredSlide(null)}
+                                                    className={`w-full aspect-w-16 aspect-h-9 rounded-[25px] lg:rounded-[30px] xl:rounded-[35px] shadow-xl backdrop-blur-lg p-[20px] lg:p-[22px] xl:p-[25px] transition-all duration-300 overflow-hidden my-8 lg:my-10 xl:my-12 ${showBorder ? 'bg-black' : 'bg-[rgba(255,255,255,0.05)]'
+                                                        }`}
                                                 >
-                                                    <Image
-                                                        src={hoveredSlide === index ? img.hover : img.normal}
-                                                        alt={`Slide ${index + 1}`}
-                                                        width={440}
-                                                        height={440}
-                                                        className="object-cover w-full h-full rounded-[12px] lg:rounded-[14px] xl:rounded-[15px]"
-                                                    />
-                                                    {/* Read More Button */}
-                                                    <div className={`absolute bottom-3 lg:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                                        <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[13px] lg:text-[14px] xl:text-[15px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
-                                                            Read More
-                                                        </button>
+                                                    <div
+                                                        className="relative rounded-[12px] lg:rounded-[14px] xl:rounded-[15px] overflow-hidden"
+                                                        onMouseEnter={() => setHoveredSlide(index)}
+                                                        onMouseLeave={() => setHoveredSlide(null)}
+                                                    >
+                                                        <Image
+                                                            src={img}
+                                                            alt={`Slide ${index + 1}`}
+                                                            width={440}
+                                                            height={440}
+                                                            className={`object-cover w-full h-full rounded-[12px] lg:rounded-[14px] xl:rounded-[15px] transition-all duration-300 ${hoveredSlide === index ? 'grayscale' : 'grayscale-0'
+                                                                }`}
+                                                        />
+                                                        {/* Read More Button */}
+                                                        <div className={`absolute bottom-3 lg:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                                                            <Link href="/down">
+                                                                <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[13px] lg:text-[14px] xl:text-[15px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
+                                                                    Read More
+                                                                </button>
+                                                            </Link>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </SwiperSlide>
-                                    );
-                                })}
-                            </Swiper>
+                                            </SwiperSlide>
+                                        );
+                                    })}
+                                </Swiper>
+                            </div>
                         </div>
 
                         <div
@@ -165,9 +205,11 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-6 lg:mt-8 xl:mt-10 2xl:mt-12 text-center">
-                        <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] gradient-button font-medium font-poppins text-[13px] lg:text-[14px] xl:text-[15px] hover:font-semibold transition">
-                            View All Projects
-                        </button>
+                        <Link href="/down">
+                            <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] gradient-button font-medium font-poppins text-[13px] lg:text-[14px] xl:text-[15px] hover:font-semibold transition">
+                                View All Projects
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -186,7 +228,7 @@ export default function ProjectSlider() {
                         Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
                     </h2>
                     <p className="text-[14px] text-center mt-3 sm:mt-4 md:mt-6 text-[#6c6c6c] font-poppins px-4">
-                        Words from those who’ve experienced our process, people, and product delivery first-hand.
+                        Words from those who&apos;ve experienced our process, people, and product delivery first-hand.
                     </p>
 
                     <div className="max-w-full px-4 sm:px-6 md:px-8 relative mt-8 sm:mt-10 md:mt-12">
@@ -203,67 +245,84 @@ export default function ProjectSlider() {
                                 className="sm:w-[20px] sm:h-[20px] md:w-[22px] md:h-[22px]"
                             />
                         </div>
-                        <div className="relative overflow-hidden mx-10 sm:mx-24 md:mx-24">
-                            <Swiper
-                                modules={[Navigation, EffectCoverflow]}
-                                effect="coverflow"
-                                grabCursor={true}
-                                centeredSlides={true}
-                                loop={true}
-                                slidesPerView={1}
-
-                                navigation={{
-                                    nextEl: '.swiper-button-next-unique',
-                                    prevEl: '.swiper-button-prev-unique',
-                                }}
-                                coverflowEffect={{
-                                    rotate: 0,
-                                    stretch: 0,
-                                    depth: 60,
-                                    modifier: 1.5,
-                                    slideShadows: false,
-                                }}
-                                onSlideChange={handleSlideChange}
-                            >
-                                {images.map((img, index) => {
-                                    const showBorder = borderedSlides.has(index % images.length);
-                                    return (
-                                        <SwiperSlide
-                                            key={index}
-                                            style={{
-                                                transform: 'scale(0.95)',
-                                                padding: '20px 0',
-                                            }}
-                                            className="sm:!scale-[0.92] md:!scale-90 sm:!py-6 md:!py-8"
-                                        >
-                                            <div
-                                                className={`aspect-w-16 aspect-h-9 rounded-[20px] sm:rounded-[25px] md:rounded-[30px] shadow-sm md:shadow-lg backdrop-blur-lg p-[15px] sm:p-[18px] md:p-[22px] transition-all duration-300 overflow-hidden ${showBorder ? 'bg-black' : 'bg-[rgba(255,255,255,0.05)]'
-                                                    }`}
+                        <div
+                            className="relative overflow-visible mx-10 sm:mx-24 md:mx-24"
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                            <div className={`transition-opacity duration-300 ${swiperReady ? 'opacity-100' : 'opacity-0'}`}>
+                                <Swiper
+                                    modules={[Navigation, EffectCoverflow, Autoplay]}
+                                    effect="coverflow"
+                                    grabCursor={true}
+                                    centeredSlides={true}
+                                    loop={true}
+                                    slidesPerView={1}
+                                    spaceBetween={20}
+                                    centeredSlidesBounds={true}
+                                    watchSlidesProgress={true}
+                                    autoplay={{
+                                        delay: 4000, // 4 seconds
+                                        disableOnInteraction: false,
+                                        pauseOnMouseEnter: false, // We handle this manually
+                                    }}
+                                    navigation={{
+                                        nextEl: '.swiper-button-next-unique',
+                                        prevEl: '.swiper-button-prev-unique',
+                                    }}
+                                    coverflowEffect={{
+                                        rotate: 0,
+                                        stretch: 0,
+                                        depth: 40,
+                                        modifier: 1.2,
+                                        slideShadows: false,
+                                    }}
+                                    onSlideChange={handleSlideChange}
+                                    onSwiper={(swiper) => {
+                                        setSwiperReady(true);
+                                        if (!swiperRef.current) {
+                                            swiperRef.current = swiper;
+                                        }
+                                    }}
+                                >
+                                    {images.map((img, index) => {
+                                        const showBorder = borderedSlides.has(index % images.length);
+                                        return (
+                                            <SwiperSlide
+                                                key={index}
                                             >
                                                 <div
-                                                    className="relative rounded-[10px] sm:rounded-[12px] md:rounded-[14px] overflow-hidden"
-                                                    onMouseEnter={() => setHoveredSlide(index)}
-                                                    onMouseLeave={() => setHoveredSlide(null)}
+                                                    className={`w-full aspect-w-16 aspect-h-9 rounded-[20px] sm:rounded-[25px] md:rounded-[30px] shadow-sm md:shadow-lg backdrop-blur-lg p-[15px] sm:p-[18px] md:p-[22px] transition-all duration-300 overflow-hidden my-6 sm:my-8 md:my-10 ${showBorder ? 'bg-black' : 'bg-[rgba(255,255,255,0.05)]'
+                                                        }`}
                                                 >
-                                                    <Image
-                                                        src={hoveredSlide === index ? img.hover : img.normal}
-                                                        alt={`Slide ${index + 1}`}
-                                                        width={440}
-                                                        height={440}
-                                                        className="object-cover w-full h-full rounded-[10px] sm:rounded-[12px] md:rounded-[14px]"
-                                                    />
-                                                    {/* Read More Button */}
-                                                    <div className={`absolute bottom-2 sm:bottom-3 md:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                                        <button className="w-[120px] sm:w-[140px] md:w-[160px] h-[35px] sm:h-[40px] md:h-[45px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[11px] sm:text-[12px] md:text-[14px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
-                                                            Read More
-                                                        </button>
+                                                    <div
+                                                        className="relative rounded-[10px] sm:rounded-[12px] md:rounded-[14px] overflow-hidden"
+                                                        onMouseEnter={() => setHoveredSlide(index)}
+                                                        onMouseLeave={() => setHoveredSlide(null)}
+                                                    >
+                                                        <Image
+                                                            src={img}
+                                                            alt={`Slide ${index + 1}`}
+                                                            width={440}
+                                                            height={440}
+                                                            className={`object-cover w-full h-full rounded-[10px] sm:rounded-[12px] md:rounded-[14px] transition-all duration-300 ${hoveredSlide === index ? 'grayscale' : 'grayscale-0'
+                                                                }`}
+                                                        />
+                                                        {/* Read More Button */}
+                                                        <div className={`absolute bottom-2 sm:bottom-3 md:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                                                            <Link href="/down">
+                                                                <button className="w-[120px] sm:w-[140px] md:w-[160px] h-[35px] sm:h-[40px] md:h-[45px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[11px] sm:text-[12px] md:text-[14px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
+                                                                    Read More
+                                                                </button>
+                                                            </Link>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </SwiperSlide>
-                                    );
-                                })}
-                            </Swiper>
+                                            </SwiperSlide>
+                                        );
+                                    })}
+                                </Swiper>
+                            </div>
                         </div>
 
                         <div
@@ -282,9 +341,11 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-6 sm:mt-8 md:mt-10 text-center">
-                        <button className="w-[140px] sm:w-[160px] md:w-[170px] h-[40px] sm:h-[45px] md:h-[48px] gradient-button font-medium font-poppins text-[12px] sm:text-[13px] md:text-[14px] hover:font-semibold transition">
-                            View All Projects
-                        </button>
+                        <Link href="/down">
+                            <button className="w-[140px] sm:w-[160px] md:w-[170px] h-[40px] sm:h-[45px] md:h-[48px] gradient-button font-medium font-poppins text-[12px] sm:text-[13px] md:text-[14px] hover:font-semibold transition">
+                                View All Projects
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>

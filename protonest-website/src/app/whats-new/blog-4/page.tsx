@@ -5,9 +5,9 @@ import Image from "next/image";
 
 export default function BlogDetailsPage() {
     return (
-        <div>
+        <div className="overflow-x-hidden">
             <Navbar />
-            <div className="px-4 sm:px-8 lg:px-[130px] py-10 sm:py-16">
+            <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10 sm:py-16">
                 {/* Featured Image */}
                 <div className="mb-8">
                     <Image
@@ -15,23 +15,23 @@ export default function BlogDetailsPage() {
                         alt="Blog Cover"
                         width={1125}
                         height={390}
-                        className="w-full h-auto rounded-[11px]"
+                        className="w-full h-[200px] md:h-[390px] xl:h-[430px] rounded-[11px]"
                     />
                 </div>
 
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                    <h1 className="text-[#6c6c6c] text-3xl font-medium font-montserrat leading-10">
+                    <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
                         Selecting the Right Display for Your IoT Device
                     </h1>
                 </div>
 
                 {/* Categories */}
-                <div className="flex flex-wrap gap-4 mb-8">
+                <div className="flex flex-wrap gap-2 md:gap-4 mb-8">
                     {["IoT", "Hardware", "Displays"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-11 px-4 py-2 w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>
@@ -120,19 +120,19 @@ export default function BlogDetailsPage() {
 
                         <div className="bg-gray-50 p-6 rounded-lg">
                             <h4 className="text-lg font-medium">PM LCD Display</h4>
-                            <p>Passive Matrix LCD displays are available in numerous sizes and configurations.</p>
-                            <p className="mt-2"><strong>Example:</strong> LCD1602 display module - A popular and low-cost display module that can be interfaced with an Arduino or Raspberry Pi. It has two or four rows of 16 characters each and comes in colors like blue, yellow, and green.</p>
-
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/lcd1602-display.webp"
+                                    src="/blog4/figure1.webp"
                                     alt="LCD1602 Display Module"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 2: LCD1602 Display Module</p>
                             </div>
+                            <p>Passive Matrix LCD displays are available in numerous sizes and configurations.</p>
+                            <p className="mt-2"><strong>Example:</strong> LCD1602 display module - A popular and low-cost display module that can be interfaced with an Arduino or Raspberry Pi. It has two or four rows of 16 characters each and comes in colors like blue, yellow, and green.</p>
+
+
 
                             <h5 className="font-medium mt-4">Working Principle:</h5>
                             <p>PM LCDs operate using a grid of conductive lines, where pixel activation occurs at intersections of rows and columns. Liquid crystals twist to control light passage when a current is applied.</p>
@@ -163,7 +163,7 @@ export default function BlogDetailsPage() {
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 p-6 rounded-lg mt-6">
+                        <div className="bg-gray-50 p-6 rounded-lg">
                             <h4 className="text-lg font-medium">AM LCD Display</h4>
                             <p>Out of the LCDs, the active-matrix system allows incorporation of &quot;active element&quot; in each pixel location (at the crossing points vertically arranged columns and horizontally arranged rows). These active elements could either be composed of diodes or transistors.</p>
                             <p>A transistor acts as a switch which is used to charge a capacitor, which is subsequently used as the pixel voltage supply. As a certain row is switched on, it happens in an orderly manner and all transistor switches in that specific row are switched off, whereby the correct voltage is provided for all pixel capacitors.</p>
@@ -183,15 +183,21 @@ export default function BlogDetailsPage() {
 
                             <p className="mt-2"><strong>Example:</strong> TFT LCD displays</p>
 
+                            {/* Added TFT LCD specific information */}
+                            <div className="mt-4">
+                                <h5 className="font-medium">Thin Film Transistor (TFT)</h5>
+                                <p>If a device has a permanent battery or a power outlet, these screens are best. They use more energy than other types of screens such as EPD, LED or LCD. But they show colors which look excellent. You cannot see the individual dots.</p>
+                                <p>The screen has a light behind it. So, you can see it even in a dark room.</p>
+                            </div>
+
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/tft-lcd.webp"
+                                    src="/blog4/figure2.webp"
                                     alt="TFT LCD Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 3: TFT LCD Display</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -221,6 +227,15 @@ export default function BlogDetailsPage() {
                         <p>These displays have high contrast ratios as they can modulate the brightness of each pixel independently. Compared to LCDs OLEDs use the very efficient organic LEDs, which means they consume less power. One of their big advantages is the mobile devices, as their fast reaction time makes them highly plant-friendly.</p>
 
                         <div className="bg-gray-50 p-6 rounded-lg">
+                            <div className="my-4">
+                                <Image
+                                    src="/blog4/figure3.webp"
+                                    alt="OLED Display"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg"
+                                />
+                            </div>
                             <h5 className="font-medium">Working Principle:</h5>
                             <p>OLEDs are self-emissive, using organic compounds to emit light directly when current flows through them, eliminating the need for a backlight.</p>
 
@@ -234,16 +249,7 @@ export default function BlogDetailsPage() {
                             <h5 className="font-medium mt-4">Characteristics:</h5>
                             <p>Provides excellent contrast, vibrant colors, and ultra-thin form factors but is limited by organic material degradation over time.</p>
 
-                            <div className="my-4">
-                                <Image
-                                    src="/blog3/oled-display.webp"
-                                    alt="OLED Display"
-                                    width={400}
-                                    height={300}
-                                    className="rounded-lg"
-                                />
-                                <p className="text-sm text-gray-500 mt-2">Figure 4: OLED Display Structure</p>
-                            </div>
+
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
@@ -266,7 +272,15 @@ export default function BlogDetailsPage() {
                         <div className="bg-gray-50 p-6 rounded-lg mt-6">
                             <h4 className="text-lg font-medium">Active-Matrix OLED (AM-OLED)</h4>
                             <p>It stands out as a type of OLED that has further been developed to have high refresh rates and low energy usage. They have a TFT layer that can change the brightness and color of each pixel independently enabling it to be used in real time scenarios.</p>
-
+                            <div className="my-4">
+                                <Image
+                                    src="/blog4/figure4.webp"
+                                    alt="AM-OLED Display"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg"
+                                />
+                            </div>
                             <h5 className="font-medium mt-4">Working Principle:</h5>
                             <p>AM OLEDs integrate a TFT layer to regulate individual OLED pixels, merging active matrix control with OLED technology.</p>
 
@@ -305,6 +319,15 @@ export default function BlogDetailsPage() {
                         <p>This growing display technology stands out as a top choice for IoT screens. E-paper displays have many advantages. It uses electrochromic tech to change color or opacity by applying voltage making it semi-bistable. It needs very little power and can grow due to its low cost. Companies are starting to use this tech in food cold chain, and green industries. It works great in consumer gadgets medical tools smart cards, and point-of-service systems.</p>
 
                         <div className="bg-gray-50 p-6 rounded-lg">
+                            <div className="my-4">
+                                <Image
+                                    src="/blog4/figure5.webp"
+                                    alt="E-Paper Display"
+                                    width={400}
+                                    height={300}
+                                    className="rounded-lg"
+                                />
+                            </div>
                             <h5 className="font-medium">Working Principle:</h5>
                             <p>E-paper displays rely on microcapsules containing charged white and black particles suspended in fluid. Voltage shifts move these particles to create images.</p>
 
@@ -314,17 +337,6 @@ export default function BlogDetailsPage() {
                                 <li>Images are stable without power due to bistability.</li>
                                 <li>Refreshing the display rearranges particles with a voltage change.</li>
                             </ul>
-
-                            <div className="my-4">
-                                <Image
-                                    src="/blog3/e-paper-display.webp"
-                                    alt="E-Paper Display"
-                                    width={400}
-                                    height={300}
-                                    className="rounded-lg"
-                                />
-                                <p className="text-sm text-gray-500 mt-2">Figure 5: E-Paper Display Technology</p>
-                            </div>
 
                             <h5 className="font-medium mt-4">Characteristics:</h5>
                             <p>Extremely power-efficient and sunlight-readable, but slower refresh rates make them unsuitable for dynamic content.</p>
@@ -377,13 +389,12 @@ export default function BlogDetailsPage() {
 
                                     <div className="my-4">
                                         <Image
-                                            src="/blog3/seven-segment-display.webp"
+                                            src="/blog4/figure6.webp"
                                             alt="Seven Segment LED Display"
-                                            width={300}
-                                            height={200}
+                                            width={400}
+                                            height={300}
                                             className="rounded-lg"
                                         />
-                                        <p className="text-sm text-gray-500 mt-2">Figure 6: Seven Segment LED Display</p>
                                     </div>
 
                                     <p className="font-medium">Applications:</p>
@@ -414,13 +425,12 @@ export default function BlogDetailsPage() {
 
                                     <div className="my-4">
                                         <Image
-                                            src="/blog3/dot-matrix-display.webp"
+                                            src="/blog4/figure7.webp"
                                             alt="Dot Matrix LED Display"
-                                            width={300}
-                                            height={200}
+                                            width={400}
+                                            height={300}
                                             className="rounded-lg"
                                         />
-                                        <p className="text-sm text-gray-500 mt-2">Figure 7: Dot Matrix LED Display</p>
                                     </div>
 
                                     <p className="font-medium">Applications:</p>
@@ -451,13 +461,12 @@ export default function BlogDetailsPage() {
 
                                     <div className="my-4">
                                         <Image
-                                            src="/blog3/rgb-led-display.webp"
+                                            src="/blog4/figure8.webp"
                                             alt="RGB LED Display"
-                                            width={300}
-                                            height={200}
+                                            width={400}
+                                            height={300}
                                             className="rounded-lg"
                                         />
-                                        <p className="text-sm text-gray-500 mt-2">Figure 8: RGB LED Display</p>
                                     </div>
 
                                     <p className="font-medium">Applications:</p>
@@ -487,13 +496,12 @@ export default function BlogDetailsPage() {
 
                                     <div className="my-4">
                                         <Image
-                                            src="/blog3/microled-display.webp"
+                                            src="/blog4/figure9.webp"
                                             alt="MicroLED Display"
-                                            width={300}
-                                            height={200}
+                                            width={400}
+                                            height={300}
                                             className="rounded-lg"
                                         />
-                                        <p className="text-sm text-gray-500 mt-2">Figure 9: MicroLED Display Technology</p>
                                     </div>
 
                                     <h5 className="font-medium mt-4">Working Principle:</h5>
@@ -527,17 +535,6 @@ export default function BlogDetailsPage() {
                                 <div className="bg-white p-4 rounded-lg border border-gray-200">
                                     <h5 className="font-medium">Touch-Enabled LED Displays</h5>
                                     <p>Touch-enabled LED displays represent one of the brightest and highly scalable families of LED technology, combined with the interactive capability of touch, that are becoming ideal for IoT designs requiring user interaction. A display of this nature is enabled by integrating touch-sensitive overlays onto standard LED panels or sensors that allow for the detection of touch capability.</p>
-
-                                    <div className="my-4">
-                                        <Image
-                                            src="/blog3/touch-led-display.webp"
-                                            alt="Touch-Enabled LED Display"
-                                            width={300}
-                                            height={200}
-                                            className="rounded-lg"
-                                        />
-                                        <p className="text-sm text-gray-500 mt-2">Figure 10: Touch-Enabled LED Display</p>
-                                    </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
@@ -576,13 +573,12 @@ export default function BlogDetailsPage() {
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/resistive-touch.webp"
+                                    src="/blog4/figure10.webp"
                                     alt="Resistive Touch Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 11: Resistive Touch Display</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -610,13 +606,12 @@ export default function BlogDetailsPage() {
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/capacitive-touch.webp"
+                                    src="/blog4/figure11.webp"
                                     alt="Capacitive Touch Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 12: Capacitive Touch Display</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -642,19 +637,19 @@ export default function BlogDetailsPage() {
                         <div className="bg-gray-50 p-6 rounded-lg">
                             <h3 className="text-xl font-medium font-montserrat">Infrared (IR) Touch Displays</h3>
                             <p>Use IR beams to detect touchpoints.</p>
-                            <p>As above, It uses a grid of infrared light beams to detect touch interruptions.</p>
-                            <p>Perfect for large-sized displays used in public IoT interfaces or industrial dashboards.</p>
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/ir-touch.webp"
+                                    src="/blog4/figure12.webp"
                                     alt="Infrared Touch Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 13: Infrared Touch Display</p>
                             </div>
+
+                            <p>As above, It uses a grid of infrared light beams to detect touch interruptions.</p>
+                            <p>Perfect for large-sized displays used in public IoT interfaces or industrial dashboards.</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
@@ -682,13 +677,12 @@ export default function BlogDetailsPage() {
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/pcap-touch.webp"
-                                    alt="Projected Capacitive Touch Display"
+                                    src="/blog4/figure13.webp"
+                                    alt="P-Cap Touch Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 14: Projected Capacitive Touch Display</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -718,13 +712,12 @@ export default function BlogDetailsPage() {
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/saw-touch.webp"
-                                    alt="SAW Touch Display"
+                                    src="/blog4/figure14.webp"
+                                    alt="Surface Acoustic Wave Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 15: SAW Touch Display</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -750,18 +743,18 @@ export default function BlogDetailsPage() {
                         <div className="bg-gray-50 p-6 rounded-lg">
                             <h3 className="text-xl font-medium font-montserrat">Optical Touch Display</h3>
                             <p>Using cameras and light sensors, track touch on screen.</p>
-                            <p>Optical imaging touch technologies use infrared cameras and light to detect touch. On optical imaging touch displays, the accuracy of touch can depend considerably on the quality and type of components used.</p>
 
                             <div className="my-4">
                                 <Image
-                                    src="/blog3/optical-touch.webp"
+                                    src="/blog4/figure15.webp"
                                     alt="Optical Touch Display"
                                     width={400}
                                     height={300}
                                     className="rounded-lg"
                                 />
-                                <p className="text-sm text-gray-500 mt-2">Figure 16: Optical Touch Display</p>
                             </div>
+
+                            <p>Optical imaging touch technologies use infrared cameras and light to detect touch. On optical imaging touch displays, the accuracy of touch can depend considerably on the quality and type of components used.</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>

@@ -1,6 +1,7 @@
 // Main Homepage Component
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from 'react';
 import ClientMarquee from "./components/clientMarquee";
 import Footer from "./components/footer";
@@ -42,12 +43,12 @@ function LargeScreenHome() {
             </span>
           </div>
           <div className="flex justify-center space-x-[33px] mt-12 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
-            <button className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+            <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer" className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center">
               Get Your Free Quote Now
-            </button>
-            <button className="w-[240px] gradient-button font-medium">
+            </Link>
+            <Link href="/down" className="w-[240px] gradient-button font-medium flex items-center justify-center">
               Work With Us
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -74,9 +75,11 @@ function LargeScreenHome() {
                 Trusted by Pioneers in Innovation. When they build, they build with us.
               </span>
             </div>
-            <div className="text-[16px] xl:text-[18px] font-normal font-poppins">
-              <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">About Us &gt;</span>
-            </div>
+            <Link href="/about" className="text-[16px] xl:text-[18px] font-normal font-poppins">
+              <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                About Us &gt;
+              </span>
+            </Link>
           </div>
           <ClientMarquee />
         </div>
@@ -95,11 +98,18 @@ function LargeScreenHome() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative h-[70px] w-[70px] rounded-full overflow-hidden">
               <Image
-                src="/profile.svg"
+                src="/profile.jpg"
                 alt="Udara Kumarasena"
                 fill
                 className="object-cover"
-                unoptimized
+                quality={100}
+                priority={true}
+                unoptimized={false}
+                sizes="70px"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center'
+                }}
               />
             </div>
           </div>
@@ -177,6 +187,7 @@ function LargeScreenHome() {
 }
 
 // Small/Medium Screen Component (sm, md)
+
 function SmallScreenHome() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const ref = useRef<HTMLDivElement>(null);
@@ -186,7 +197,7 @@ function SmallScreenHome() {
     <div className="lg:hidden">
       {/* Hero Section */}
       <div
-        className="mt-8 h-[400px] sm:h-[500px] bg-no-repeat bg-cover bg-center relative"
+        className="mt-18 sm:mt-8 h-[400px] sm:h-[500px] bg-no-repeat bg-cover bg-center relative"
         style={{ backgroundImage: "url('/home-1.svg')" }}
       >
         {/* Top Gradient Overlay */}
@@ -210,12 +221,16 @@ function SmallScreenHome() {
             </span>
           </div>
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-8 font-poppins font-medium text-[14px]">
-            <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-              Get Your Free Quote Now
-            </button>
-            <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
-              Work With Us
-            </button>
+            <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+              <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                Get Your Free Quote Now
+              </button>
+            </Link>
+            <Link href="/down">
+              <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
+                Work With Us
+              </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -242,11 +257,13 @@ function SmallScreenHome() {
                 Trusted by Pioneers in Innovation. When they build, they build with us.
               </span>
             </div>
-            <div className="ml-auto text-[14px] font-normal font-poppins"> {/* Added sm:ml-auto here */}
-              <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                About Us &gt;
-              </span>
-            </div>
+            <Link href="/about" className="ml-auto">
+              <div className="text-[14px] font-normal font-poppins cursor-pointer">
+                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
+                  About Us &gt;
+                </span>
+              </div>
+            </Link>
           </div>
           <ClientMarquee />
         </div>
@@ -265,11 +282,18 @@ function SmallScreenHome() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative h-[55px] w-[55px] sm:h-[65px] sm:w-[65px] rounded-full overflow-hidden">
               <Image
-                src="/profile.svg"
+                src="/profile.jpg"
                 alt="Udara Kumarasena"
                 fill
                 className="object-cover"
-                unoptimized
+                quality={100}
+                priority={true}
+                unoptimized={false}
+                sizes="(max-width: 640px) 55px, 65px"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center'
+                }}
               />
             </div>
           </div>

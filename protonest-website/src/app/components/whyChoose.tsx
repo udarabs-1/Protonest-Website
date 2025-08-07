@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const WhyChooseProtonest = () => {
     const features = [
@@ -87,9 +88,11 @@ const WhyChooseProtonest = () => {
                             </span>
                         </div>
                         <div className="text-[14px] lg:text-[18px] xl:text-[18px] font-normal font-poppins">
-                            <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-300">
-                                Get a Quote &gt;
-                            </span>
+                            <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-300">
+                                    Get a Quote &gt;
+                                </span>
+                            </Link>
                         </div>
                     </div>
                 </div>

@@ -13,9 +13,17 @@ export default function Contact() {
         {/* Hero Section */}
         <div className="relative">
           <div
-            className="h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
+            className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: "url('/contact-1.svg')" }}
           >
+            {/* Glassmorphic Cards - Only visible on screens smaller than sm */}
+            <div className="block sm:hidden">
+              {/* Top Left Card */}
+              <div className="absolute top-4 left-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl  shadow-lg flex items-center justify-center">
+              </div>
+
+            </div>
+
             <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px] 2xl:px-[180px]">
               <div className="flex justify-center">
                 <div className="px-14 md:px-0 text-center text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
@@ -38,7 +46,7 @@ export default function Contact() {
           </div>
 
           {/* Gradient Overlay */}
-          <div className="absolute bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
+          <div className="absolute -bottom-4 sm:bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
         </div>
 
         {/* Form Section */}
@@ -139,7 +147,7 @@ export default function Contact() {
         </div>
 
         {/* Contact Cards Section */}
-        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-20 md:mt-0 lg:mt-[120px] 2xl:-mt-[150px] pb-[60px] lg:pb-0">
+        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-25 md:-mt-20 lg:mt-[120px] 2xl:-mt-[150px] pb-[60px] lg:pb-0">
           {/* Background Image */}
           <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[520px] lg:h-[585px] overflow-hidden">
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">

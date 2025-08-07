@@ -5,7 +5,7 @@ import Navbar from "@/app/components/navbar";
 import { useOnScreen } from "@/app/components/useOnScreen";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 
 // Define a Blog type for better type safety
@@ -104,12 +104,51 @@ export default function BlogSection() {
       readTime: "4 min read",
       imageUrl: "/blogs3.svg",
       categoryTags: ["IoT", "Cloud Computing", "Backend"]
+    },
+    {
+      id: "blog-4",
+      title: "Selecting the Right Display for Your IoT Device",
+      excerpt: "Selecting the right display for an IoT device is crucial, as the display is one of the main parts connecting users with embedded systems, interaction, and user experience. Selecting the right interface matters in a project, and it is affected by many factors. Apart from mobile and web dashboards connected with IoT systems, touch/non-touch displays play a critical role in having a built-in user interface for the users.",
+      readTime: "4 min read",
+      imageUrl: "/blogs4.webp",
+      categoryTags: ["IoT", "Hardware", "Displays"]
+    },
+    {
+      id: "blog-5",
+      title: "Selecting a Suitable Communication Method for an IoT Project",
+      excerpt: "Selecting a suitable communication method for an IoT project is a crucial part of implementing an IoT system. In IoT, communication methods play a key role, which allows the devices to connect and exchange information. Due to the wide range of applications in IoT and the modern approach to the construction of IoT networks, it is challenging to decide which communication method is suitable for your IoT Project. So, many IoT applications exist and they range from controlling smart homes to industrial automation thus implying that there is no unique communication method that can be adopted.",
+      readTime: "4 min read",
+      imageUrl: "/blogs5.webp",
+      categoryTags: ["IoT", "Communication", "Networking"]
+    },
+    {
+      id: "blog-6",
+      title: "Selecting an Actuator for an IoT Project",
+      excerpt: "Selecting an actuator for an IoT Project has a direct bearing on the project&apos;s productivity, dependability, and effectiveness. This article is aimed at classifying the actuators, describing the criteria for their selection, and providing you with examples of using it.",
+      readTime: "4 min read",
+      imageUrl: "/blogs6.webp",
+      categoryTags: ["IoT", "Actuators", "Automation"]
     }
   ];
 
   // State for search functionality
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  // State for load more functionality
+  const [showAllBlogs, setShowAllBlogs] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint is 768px
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Get all unique categories from blogs
   const allCategories = Array.from(
@@ -120,6 +159,27 @@ export default function BlogSection() {
   const filteredBlogs = blogs.filter(blog => {
     return selectedCategories.every(cat => blog.categoryTags.includes(cat));
   });
+
+  // Get the blogs to display based on current state
+  const blogsToDisplay = selectedCategories.length > 0 ? filteredBlogs : blogs;
+
+  // Determine how many blogs to show based on screen size and showAllBlogs state
+  const getVisibleBlogsCount = () => {
+    if (showAllBlogs) return blogsToDisplay.length;
+    return isMobile ? 3 : 6;
+  };
+
+  const visibleBlogs = blogsToDisplay.slice(0, getVisibleBlogsCount());
+
+  // Determine if Load More button should be shown
+  const shouldShowLoadMoreButton = () => {
+    const limit = isMobile ? 3 : 6;
+    return blogsToDisplay.length > limit;
+  };
+
+  const handleLoadMore = () => {
+    setShowAllBlogs(!showAllBlogs);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,10 +202,14 @@ export default function BlogSection() {
     }
 
     setSearchTerm("");
+    // Reset load more state when searching
+    setShowAllBlogs(false);
   };
 
   const removeCategory = (category: string) => {
     setSelectedCategories(prev => prev.filter(c => c !== category));
+    // Reset load more state when removing categories
+    setShowAllBlogs(false);
   };
 
   return (
@@ -230,16 +294,22 @@ export default function BlogSection() {
         <section className="lg:-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
           {/* Blog Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
-            {(selectedCategories.length > 0 ? filteredBlogs : blogs).map((blog) => (
+            {visibleBlogs.map((blog) => (
               <BlogCard key={blog.id} blog={blog} />
             ))}
           </div>
 
-          <div className="flex justify-center mt-8 sm:mt-12">
-            <button className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-              Load More
-            </button>
-          </div>
+          {/* Load More / Show Less Button */}
+          {shouldShowLoadMoreButton() && (
+            <div className="flex justify-center mt-8 sm:mt-12">
+              <button
+                onClick={handleLoadMore}
+                className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300"
+              >
+                {showAllBlogs ? 'Show Less' : 'Load More'}
+              </button>
+            </div>
+          )}
 
           {/* Newsletter Section */}
           <div className="mt-20 sm:mt-40 lg:mt-60 relative">

@@ -1,10 +1,14 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
 
 const TestimonialSection = () => {
+    const sliderRef = useRef<Slider | null>(null);
+
     const testimonials = [
         {
             id: 1,
@@ -24,13 +28,20 @@ const TestimonialSection = () => {
             id: 3,
             name: "Sajjad Akhtar. MD",
             company: "SurgicalBooking.com",
-            text: "Udara is a very dedicated and passionate about his work. He developed an android based app for me and his work was flawless. He was readily available and addressed my concerns promptly. I highly recommend him without reservations.",
-            avatar: "/client3.webp"
+            text: "Very knowledgeable and efficient team. Always available to answer questions and get the job done on time.",
+            avatar: "/profile-1.svg"
+        },
+        {
+            id: 4,
+            name: "Karl Stoll",
+            company: "Stoll-Photobox, Germany",
+            text: "Great work. I am working now with Udara for almost a year at several projects. And we proceed. He does solid good work for a fair price. I can recommend!",
+            avatar: "/profile-1.svg"
         }
     ];
 
-    // Settings for the carousel
-    const carouselSettings = {
+    // Settings for mobile carousel
+    const mobileCarouselSettings = {
         dots: false,
         infinite: true,
         speed: 500,
@@ -39,6 +50,40 @@ const TestimonialSection = () => {
         arrows: false,
         autoplay: true,
         autoplaySpeed: 5000,
+    };
+
+    // Settings for desktop carousel
+    const desktopCarouselSettings = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 3,
+        slidesToScroll: 1,
+        arrows: false,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        pauseOnHover: true,
+        responsive: [
+            {
+                breakpoint: 1280,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1,
+                }
+            }
+        ]
+    };
+
+    const handleCardMouseEnter = () => {
+        if (sliderRef.current) {
+            sliderRef.current.slickPause();
+        }
+    };
+
+    const handleCardMouseLeave = () => {
+        if (sliderRef.current) {
+            sliderRef.current.slickPlay();
+        }
     };
 
     return (
@@ -74,11 +119,31 @@ const TestimonialSection = () => {
                     </div>
                 </div>
 
-                <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2"> {/* Added padding here */}
-                    <Slider {...carouselSettings}>
+                {/* Mobile Carousel (hidden on lg and above) */}
+                <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2">
+                    <Slider {...mobileCarouselSettings}>
                         {testimonials.map((testimonial) => (
-                            <div key={testimonial.id} className="px-6 pb-6"> {/* Added padding and shadow container */}
-                                <div className="shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] rounded-[20px] overflow-hidden">
+                            <div key={testimonial.id} className="px-6 pb-6">
+                                <TestimonialCard
+                                    name={testimonial.name}
+                                    company={testimonial.company}
+                                    text={testimonial.text}
+                                    avatar={testimonial.avatar}
+                                />
+                            </div>
+                        ))}
+                    </Slider>
+                </div>
+
+                {/* Desktop Carousel (visible on lg and above) */}
+                <div className="hidden lg:block mt-10 mb-10 md:mb-12 lg:mb-16">
+                    <Slider ref={sliderRef} {...desktopCarouselSettings}>
+                        {testimonials.map((testimonial) => (
+                            <div key={testimonial.id} className="px-3 xl:px-5">
+                                <div
+                                    onMouseEnter={handleCardMouseEnter}
+                                    onMouseLeave={handleCardMouseLeave}
+                                >
                                     <TestimonialCard
                                         name={testimonial.name}
                                         company={testimonial.company}
@@ -91,41 +156,74 @@ const TestimonialSection = () => {
                     </Slider>
                 </div>
 
-                {/* Desktop Grid (hidden on screens smaller than lg) */}
-                <div className="mt-10 hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 xl:gap-[46px] mb-10 md:mb-12 lg:mb-16">
-                    {testimonials.map((testimonial) => (
-                        <TestimonialCard
-                            key={testimonial.id}
-                            name={testimonial.name}
-                            company={testimonial.company}
-                            text={testimonial.text}
-                            avatar={testimonial.avatar}
-                        />
-                    ))}
-                </div>
-
                 {/* Contact Us Button */}
                 <div className="flex justify-center">
-                    <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                        <span className="text-white text-sm md:text-base font-medium">Contact Us</span>
-                    </button>
+                    <Link href="/contact">
+                        <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                            <span className="text-white text-sm md:text-base font-medium">Contact Us</span>
+                        </button>
+                    </Link>
                 </div>
             </div>
         </section>
     );
 };
 
-// Testimonial Card Component remains the same
+// Testimonial Card Component with clickable scroll indicator
 const TestimonialCard = ({ name, company, text, avatar }: {
     name: string;
     company: string;
     text: string;
     avatar: string
 }) => {
+    const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const checkScrollable = () => {
+            const hasVerticalScroll = container.scrollHeight > container.clientHeight;
+            const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+            setShowScrollIndicator(hasVerticalScroll && !isAtBottom);
+        };
+
+        // Check initially
+        checkScrollable();
+
+        // Add scroll listener
+        container.addEventListener('scroll', checkScrollable);
+
+        // Add resize observer to handle dynamic content changes
+        const resizeObserver = new ResizeObserver(checkScrollable);
+        resizeObserver.observe(container);
+
+        return () => {
+            container.removeEventListener('scroll', checkScrollable);
+            resizeObserver.disconnect();
+        };
+    }, [text]); // Re-run when text changes
+
+    // Function to handle scroll indicator click
+    const handleScrollIndicatorClick = () => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        // Scroll down by a reasonable amount (e.g., 50px)
+        container.scrollBy({
+            top: 50,
+            behavior: 'smooth'
+        });
+    };
+
     return (
-        <div className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5">
-            {/* Scrollable Content Container */}
-            <div className="w-full max-w-[259px] h-full overflow-y-auto pr-2">
+        <div className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative">
+            {/* Scrollable Content Container with normal Tailwind scrollbar */}
+            <div
+                ref={scrollContainerRef}
+                className="w-full max-w-[259px] h-full overflow-y-auto"
+            >
                 <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
                     {/* Avatar with Gradient Border */}
                     <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center">
@@ -152,6 +250,43 @@ const TestimonialCard = ({ name, company, text, avatar }: {
                     </p>
                 </div>
             </div>
+
+            {/* Clickable Double Arrow Scroll Indicator */}
+            {showScrollIndicator && (
+                <button
+                    onClick={handleScrollIndicatorClick}
+                    className="absolute bottom-2 left-1/2 transform -translate-x-1/2 cursor-pointer"
+                    aria-label="Scroll down to see more content"
+                >
+                    <div className="animate-bounce flex flex-col items-center -space-y-4">
+                        {/* First arrow - Blue */}
+                        <svg
+                            className="w-5 h-5 text-[#5530fa] animate-pulse"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                        {/* Second arrow - Pink */}
+                        <svg
+                            className="w-5 h-5 text-[#f51da5] animate-pulse"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            style={{ animationDelay: '0.2s' }}
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </div>
+                </button>
+            )}
         </div>
     );
 };

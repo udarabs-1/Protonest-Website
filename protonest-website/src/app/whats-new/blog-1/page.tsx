@@ -5,9 +5,9 @@ import Image from "next/image";
 
 export default function BlogDetailsPage() {
     return (
-        <div>
+        <div className="overflow-x-hidden">
             <Navbar />
-            <div className="px-4 sm:px-8 lg:px-[130px] py-10 sm:py-16">
+            <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10 sm:py-16">
                 {/* Featured Image */}
                 <div className="mb-8">
                     <Image
@@ -15,13 +15,13 @@ export default function BlogDetailsPage() {
                         alt="Blog Cover"
                         width={1125}
                         height={390}
-                        className="w-full h-auto rounded-[11px]"
+                        className="w-full h-[200px] md:h-[390px] xl:h-[430px] rounded-[11px]"
                     />
                 </div>
 
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                    <h1 className="text-[#6c6c6c] text-3xl font-medium font-montserrat leading-10">
+                    <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
                         Selecting The Right Sensor For Your IoT Project
                     </h1>
                     {/* <p className="text-[#6c6c6c] text-sm font-normal font-poppins mt-2 sm:mt-0">
@@ -35,11 +35,11 @@ export default function BlogDetailsPage() {
                 </div> */}
 
                 {/* Categories */}
-                <div className="flex flex-wrap gap-4 mb-8">
+                <div className="flex flex-wrap gap-2 md:gap-4 mb-8">
                     {["IoT", "Sensors", "Hardware"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-11 px-4 py-2 w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

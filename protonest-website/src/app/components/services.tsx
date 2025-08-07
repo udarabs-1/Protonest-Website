@@ -1,6 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from 'react';
 import { useOnScreen } from './useOnScreen';
+
 const ServicesSection = () => {
     return (
         <>
@@ -28,9 +30,11 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[20px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
@@ -119,9 +123,11 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[18px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
@@ -210,9 +216,11 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[16px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
@@ -305,9 +313,11 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[14px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
@@ -400,15 +410,17 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[14px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
-                        <div className="w-full max-w-md">
+                        <div className="w-full">
                             {/* Single column layout */}
-                            <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-4 items-center">
                                 <div className="w-[470px] h-[108px]">
                                     <ServiceCard
                                         normalImage="/home/offers/sm/service-1.svg"
@@ -487,9 +499,11 @@ const ServicesSection = () => {
                                 </span>
                             </div>
                             <div className="text-[13px] font-normal font-poppins">
-                                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                                    Get a Quote &gt;
-                                </span>
+                                <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
+                                    <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
+                                        Get a Quote &gt;
+                                    </span>
+                                </Link>
                             </div>
                         </div>
 
