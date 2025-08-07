@@ -30,7 +30,7 @@ const NewsAndBlogs = () => {
     ];
 
     return (
-        <div className="mt-10 sm:mt-20 lg:mt-32 xl:mt-40 relative w-full min-h-[500px] sm:min-h-[600px] lg:min-h-[642px] px-4 sm:px-6 lg:px-8">
+        <div className="mt-15 sm:mt-20 lg:mt-32 xl:mt-40 relative w-full min-h-[500px] sm:min-h-[600px] lg:min-h-[642px] px-4 sm:px-6 lg:px-8">
             {/* Background Image - Hidden on mobile for better readability */}
             <div className="absolute inset-0 hidden sm:block">
                 <Image
@@ -44,7 +44,7 @@ const NewsAndBlogs = () => {
             {/* Content Container */}
             <div className="relative z-10 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                <div className="text-center mb-12 lg:mb-16">
                     <h2 className="text-[#6c6c6c] text-xl sm:text-2xl lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-tight sm:leading-[55px]">
                         The Latest{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
@@ -106,9 +106,6 @@ const BlogCard = ({ blog }: { blog: { id: number, title: string, image: string, 
                     </div>
                 </div>
 
-                {/* Divider */}
-                <div className={`w-8 h-px mx-auto rounded-full mb-4 sm:mb-6 transition-all duration-300 md:bg-[#767676] md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'bg-[#767676]'
-                    }`} />
 
                 {/* Blog Title */}
                 <h3 className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#4d4d4d]'
