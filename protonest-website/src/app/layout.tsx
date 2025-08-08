@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from 'next/font/google';
-import Footer from "./components/footer";
-import Navbar from "./components/navbar";
+import LoadingScreen from './components/LoadingScreen';
 import "./globals.css";
+import { LoadingProvider } from './providers/LoadingProvider';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -29,9 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable} ${poppins.variable}`}>
       <body>
-        <Navbar />
-        {children}
-        <Footer />
+        <LoadingProvider>
+          <LoadingScreen logoSrc="/logo.png" />
+          <main>
+            {children}
+          </main>
+        </LoadingProvider>
       </body>
     </html>
   );

@@ -5,95 +5,120 @@ const OurTeamSection = () => {
     const teamMembers = [
         {
             id: 1,
-            position: { left: '332px', top: '371px' },
-            imageSize: 128,
             title: "Creative Thinkers",
-            titlePosition: { left: '258px', top: '533px' }
+            isLeft: true
         },
         {
             id: 2,
-            position: { left: '656px', top: '371px' },
-            imageSize: 128,
             title: "Expert Engineers",
-            titlePosition: { left: '582px', top: '533px' }
+            isLeft: false
         },
         {
             id: 3,
-            position: { left: '980px', top: '371px' },
-            imageSize: 128,
             title: "Designers",
-            titlePosition: { left: '906px', top: '533px' }
+            isLeft: true
         }
     ];
 
     return (
-        <div className="relative w-[1443px] h-[706px]">
-            {/* Background Image */}
-            <div className="absolute inset-0 w-full h-[585px] overflow-hidden -z-10">
+        <div className="relative w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] xl:min-h-[706px] overflow-hidden">
+            {/* Background Images - Different for mobile/desktop */}
+            <div className="absolute inset-0 w-full h-full -z-10">
+                {/* Mobile background (shown on md and below) */}
                 <Image
-                    src="/about-5.svg"
-                    alt="Team background"
+                    src="/about-5-mobile.svg"
+                    alt="Team background mobile"
                     fill
-                    className="mt-35 object-cover"
+                    className="object-cover object-center lg:hidden"
                     quality={100}
                     priority
                 />
+                {/* Desktop background (shown on lg and above) */}
+                <Image
+                    src="/about-5.svg"
+                    alt="Team background desktop"
+                    fill
+                    className="object-cover object-center hidden lg:block"
+                    quality={100}
+                />
             </div>
 
-            {/* Header with Fixed Gradient */}
-            <div className="absolute left-[161px] top-[18px] w-[1121px] text-center">
-                <h2 className="text-3xl font-medium font-montserrat leading-[55px]">
-                    <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
-                        Our Team
-                    </span>
-                </h2>
-            </div>
+            {/* Gradient Overlays for edge fade effect */}
+            <div className="absolute left-0 top-0 w-8 sm:w-16 lg:w-32 xl:w-40 h-full bg-gradient-to-r from-white to-white/0 pointer-events-none" />
+            <div className="absolute right-0 top-0 w-8 sm:w-16 lg:w-32 xl:w-40 h-full bg-gradient-to-l from-white to-white/0 pointer-events-none" />
 
-            {/* Description */}
-            <p className="absolute left-[317px] top-[100px] w-[809px] text-center text-[#6c6c6c] text-lg font-normal font-poppins leading-[30px]">
-                Our strength lies in our people. Each member of our 8+ person team brings unique skills and a shared drive to build impactful technology. Together, we fuse creativity with engineering precision to deliver world-class IoT solutions.
-            </p>
+            {/* Content Container */}
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 xl:px-16 py-6 sm:py-8 lg:py-12 xl:py-16">
 
-            {/* Subheader with Fixed Gradient */}
-            <div className="absolute left-[332px] top-[250px] w-[779px] text-center">
-                <h3 className="text-lg font-normal font-poppins leading-[30px]">
-                    <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
-                        Our Team Includes
-                    </span>
-                </h3>
-            </div>
+                {/* Header */}
+                <div className="text-center mb-6 sm:mb-8 lg:mb-12">
+                    <h2 className="text-2xl lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-tight mb-4 sm:mb-6 lg:mb-8">
+                        <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+                            Our Team
+                        </span>
+                    </h2>
 
-            {/* Gradient Overlays */}
-            <div className="absolute left-[3px] top-[100px] w-[159px] h-[542px] bg-gradient-to-l from-white/0 to-white" />
-            <div className="absolute left-[1284px] top-0 w-[159px] h-[542px] bg-gradient-to-l from-white to-white/0" />
-
-            {/* Team Members */}
-            {teamMembers.map(member => (
-                <div key={member.id} className="absolute" style={{ left: member.position.left, top: member.position.top }}>
-                    {/* Team Member Image */}
-                    <div className="w-32 h-32">
-                        <Image
-                            src={`/team${member.id}.svg`}
-                            alt={member.title}
-                            width={member.imageSize}
-                            height={member.imageSize}
-                            className="w-full h-full object-cover"
-                            quality={100}
-                        />
-                    </div>
-
-                    {/* Team Member Title */}
-                    <div
-                        className="absolute text-center text-[#4d4d4d] text-lg font-normal font-poppins w-[276px]"
-                        style={{
-                            left: `calc(${member.titlePosition.left} - ${member.position.left})`,
-                            top: '162px'
-                        }}
-                    >
-                        {member.title}
-                    </div>
+                    {/* Description */}
+                    <p className="text-[#6c6c6c] text-sm lg:text-[16px] xl:text-lg font-normal font-poppins leading-relaxed max-w-4xl mx-auto px-4">
+                        Our strength is in our collective. Each member from hardware engineers to product designers brings a unique skill set and a shared drive to create meaningful IoT solutions. We combine creativity, strategy, and engineering to deliver world-class results.
+                    </p>
                 </div>
-            ))}
+
+                {/* Subheader */}
+                <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                    <h3 className="text-base sm:text-lg lg:text-xl font-normal font-poppins leading-relaxed">
+                        <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+                            Our Team Includes
+                        </span>
+                    </h3>
+                </div>
+
+                {/* Team Members - Desktop Grid (shown on lg and above) */}
+                <div className="hidden lg:grid grid-cols-3 gap-16 xl:gap-20 max-w-6xl mx-auto">
+                    {teamMembers.map(member => (
+                        <div key={member.id} className="flex flex-col items-center text-center group">
+                            <div className="w-28 h-28 xl:w-32 xl:h-32 mb-6 transition-transform duration-300 group-hover:scale-105">
+                                <Image
+                                    src={`/team${member.id}.svg`}
+                                    alt={member.title}
+                                    width={128}
+                                    height={128}
+                                    className="w-full h-full object-cover rounded-lg"
+                                    quality={100}
+                                />
+                            </div>
+                            <h4 className="text-[#4d4d4d] text-[16px] xl:text-lg font-normal font-poppins max-w-[276px]">
+                                {member.title}
+                            </h4>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Team Members - Mobile List (shown on md and below) */}
+                <div className="lg:hidden space-y-8 sm:space-y-12">
+                    {teamMembers.map(member => (
+                        <div key={member.id} className={`flex ${member.isLeft ? 'justify-start' : 'justify-end'}`}>
+                            <div className={`inline-flex items-center gap-6 sm:gap-8 ${member.isLeft ? '' : 'flex-row-reverse'}`}>
+                                {/* Team Member Image */}
+                                <div className="w-20 h-20 sm:w-24 sm:h-24 mb-0 transition-transform duration-300 hover:scale-105">
+                                    <Image
+                                        src={`/team${member.id}.svg`}
+                                        alt={member.title}
+                                        width={96}
+                                        height={96}
+                                        className="w-full h-full object-cover rounded-lg"
+                                        quality={100}
+                                    />
+                                </div>
+                                {/* Team Member Title */}
+                                <h4 className={`text-[#4d4d4d] text-sm sm:text-[15px] font-normal font-poppins max-w-[150px] sm:max-w-[180px] ${member.isLeft ? 'text-left' : 'text-right'}`}>
+                                    {member.title}
+                                </h4>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

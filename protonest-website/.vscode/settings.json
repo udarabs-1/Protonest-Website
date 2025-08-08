@@ -1,1 +1,8 @@
-{}
+{
+    "files.associations": {
+        "__locale": "cpp",
+        "bitset": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp"
+    }
+}
