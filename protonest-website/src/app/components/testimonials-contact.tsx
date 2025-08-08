@@ -226,7 +226,7 @@ export default function Testimonials() {
                     alt="Background"
                     width={800}
                     height={800}  // Desktop height
-                    className="absolute md:-mt-40 xl:-mt-100 -z-10 top-0 left-0"
+                    className="absolute md:-mt-40 xl:-mt-50 -z-10 top-0 left-0"
                     priority
                 />
             </div>
@@ -237,7 +237,7 @@ export default function Testimonials() {
                     alt="Background"
                     width={800}
                     height={1000}
-                    className="w-full h-[1000px] absolute mt-20 -z-10 top-0 left-0 object-cover overflow-visible"
+                    className="w-full h-[1000px] absolute mt-30 -z-10 top-0 left-0 object-cover overflow-visible"
                     priority
                 />
             </div>

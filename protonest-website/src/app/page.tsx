@@ -37,9 +37,13 @@ function LargeScreenHome() {
               </span>
             </div>
           </div>
-          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-12 px-[200px] xl:px-[320px]">
-            <span className="text-[rgba(108,108,108,1)]">
-              At Protonest, we bring bold IoT visions to life—prototyping, engineering, and building the future of connectivity.
+          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-12 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
+            <span>
+              At Protonest, we design, build, and connect scalable IoT solutions.
+            </span>
+            <br />
+            <span className="mt-6 block">
+              Built fast. Built right.
             </span>
           </div>
           <div className="flex justify-center space-x-[33px] mt-12 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
@@ -215,9 +219,13 @@ function SmallScreenHome() {
               </span>
             </div>
           </div>
-          <div className="text-center text-[14px] font-normal font-poppins mt-6 sm:mt-8 px-4 sm:px-8">
-            <span className="text-[rgba(108,108,108,1)]">
-              At Protonest, we bring bold IoT visions to life—prototyping, engineering, and building the future of connectivity.
+          <div className="text-center text-[14px] font-normal font-poppins mt-6 sm:mt-8 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
+            <span>
+              At Protonest, we design, build, and connect scalable IoT solutions.
+            </span>
+            <br />
+            <span className="mt-4 block">
+              Built fast. Built right.
             </span>
           </div>
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-8 font-poppins font-medium text-[14px]">

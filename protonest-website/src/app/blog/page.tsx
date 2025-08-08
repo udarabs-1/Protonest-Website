@@ -334,7 +334,8 @@ export default function BlogSection() {
                   Get the latest articles, insights, and stories delivered to your inbox.
                 </p>
 
-                <form className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
+                {/* Disabled Newsletter Form */}
+                <div className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16 opacity-50 pointer-events-none select-none">
                   <div className="space-y-1">
                     <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Name
@@ -342,7 +343,8 @@ export default function BlogSection() {
                     <input
                       type="text"
                       placeholder="Your Full Name"
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
+                      disabled
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa] cursor-not-allowed"
                     />
                   </div>
 
@@ -353,7 +355,8 @@ export default function BlogSection() {
                     <input
                       type="email"
                       placeholder="you@company.com"
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
+                      disabled
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa] cursor-not-allowed"
                     />
                   </div>
 
@@ -361,19 +364,30 @@ export default function BlogSection() {
                     <input
                       type="checkbox"
                       id="career-updates"
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2"
+                      disabled
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2 cursor-not-allowed"
                     />
-                    <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-pointer">
+                    <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-not-allowed">
                       I&apos;m interested in career updates too.
                     </label>
                   </div>
 
                   <div className="flex justify-start mt-8 sm:mt-12">
-                    <button className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                    <button
+                      disabled
+                      className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-not-allowed text-white bg-gradient-to-r from-[rgba(85,48,250,0.5)] to-[rgba(245,29,165,0.5)] rounded-[57px]"
+                    >
                       Subscribe
                     </button>
                   </div>
-                </form>
+                </div>
+
+                {/* Coming Soon Notice */}
+                <div className="mt-4 text-left">
+                  <p className="text-[#6c6c6c]/70 text-sm font-poppins">
+                    Newsletter subscription coming soon.
+                  </p>
+                </div>
               </div>
             </div>
 
