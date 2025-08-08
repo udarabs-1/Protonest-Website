@@ -50,7 +50,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
                         </div>
                         <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px] space-y-2">
                             <div>Message Sent Successfully!</div>
-                            <div className="text-xs sm:text-sm text-[#6c6c6c]/80">We'll get back to you within 24 hours.</div>
+                            <div className="text-xs sm:text-sm text-[#6c6c6c]/80">We&apos;ll get back to you within 24 hours.</div>
                         </div>
                         <button
                             onClick={onClose}
