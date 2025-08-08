@@ -8,6 +8,7 @@ import 'slick-carousel/slick/slick.css';
 
 const TestimonialSection = () => {
     const sliderRef = useRef<Slider | null>(null);
+    const mobileSliderRef = useRef<Slider | null>(null);
 
     const testimonials = [
         {
@@ -49,7 +50,7 @@ const TestimonialSection = () => {
         slidesToScroll: 1,
         arrows: false,
         autoplay: true,
-        autoplaySpeed: 5000,
+        autoplaySpeed: 3000,
     };
 
     // Settings for desktop carousel
@@ -74,6 +75,7 @@ const TestimonialSection = () => {
         ]
     };
 
+    // Desktop carousel handlers
     const handleCardMouseEnter = () => {
         if (sliderRef.current) {
             sliderRef.current.slickPause();
@@ -83,6 +85,19 @@ const TestimonialSection = () => {
     const handleCardMouseLeave = () => {
         if (sliderRef.current) {
             sliderRef.current.slickPlay();
+        }
+    };
+
+    // Mobile carousel handlers
+    const handleMobileCardInteractionStart = () => {
+        if (mobileSliderRef.current) {
+            mobileSliderRef.current.slickPause();
+        }
+    };
+
+    const handleMobileCardInteractionEnd = () => {
+        if (mobileSliderRef.current) {
+            mobileSliderRef.current.slickPlay();
         }
     };
 
@@ -121,7 +136,7 @@ const TestimonialSection = () => {
 
                 {/* Mobile Carousel (hidden on lg and above) */}
                 <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2">
-                    <Slider {...mobileCarouselSettings}>
+                    <Slider ref={mobileSliderRef} {...mobileCarouselSettings}>
                         {testimonials.map((testimonial) => (
                             <div key={testimonial.id} className="px-6 pb-6">
                                 <TestimonialCard
@@ -129,6 +144,9 @@ const TestimonialSection = () => {
                                     company={testimonial.company}
                                     text={testimonial.text}
                                     avatar={testimonial.avatar}
+                                    onInteractionStart={handleMobileCardInteractionStart}
+                                    onInteractionEnd={handleMobileCardInteractionEnd}
+                                    isMobile={true}
                                 />
                             </div>
                         ))}
@@ -149,6 +167,7 @@ const TestimonialSection = () => {
                                         company={testimonial.company}
                                         text={testimonial.text}
                                         avatar={testimonial.avatar}
+                                        isMobile={false}
                                     />
                                 </div>
                             </div>
@@ -169,15 +188,28 @@ const TestimonialSection = () => {
     );
 };
 
-// Testimonial Card Component with clickable scroll indicator
-const TestimonialCard = ({ name, company, text, avatar }: {
+// Enhanced Testimonial Card Component with mobile interaction support
+const TestimonialCard = ({
+    name,
+    company,
+    text,
+    avatar,
+    onInteractionStart,
+    onInteractionEnd,
+    isMobile = false
+}: {
     name: string;
     company: string;
     text: string;
-    avatar: string
+    avatar: string;
+    onInteractionStart?: () => void;
+    onInteractionEnd?: () => void;
+    isMobile?: boolean;
 }) => {
     const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+    const [isUserInteracting, setIsUserInteracting] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         const container = scrollContainerRef.current;
@@ -205,10 +237,43 @@ const TestimonialCard = ({ name, company, text, avatar }: {
         };
     }, [text]); // Re-run when text changes
 
+    // Handle user interaction start (touch/scroll)
+    const handleInteractionStart = () => {
+        if (!isMobile || isUserInteracting) return;
+
+        setIsUserInteracting(true);
+        onInteractionStart?.();
+
+        // Clear any existing timeout
+        if (interactionTimeoutRef.current) {
+            clearTimeout(interactionTimeoutRef.current);
+        }
+    };
+
+    // Handle user interaction end with delay
+    const handleInteractionEnd = () => {
+        if (!isMobile) return;
+
+        // Clear any existing timeout
+        if (interactionTimeoutRef.current) {
+            clearTimeout(interactionTimeoutRef.current);
+        }
+
+        // Set a timeout to resume autoplay after user stops interacting
+        interactionTimeoutRef.current = setTimeout(() => {
+            setIsUserInteracting(false);
+            onInteractionEnd?.();
+        }, 2000); // Resume after 2 seconds of inactivity
+    };
+
     // Function to handle scroll indicator click
     const handleScrollIndicatorClick = () => {
         const container = scrollContainerRef.current;
         if (!container) return;
+
+        if (isMobile) {
+            handleInteractionStart();
+        }
 
         // Scroll down by a reasonable amount (e.g., 50px)
         container.scrollBy({
@@ -217,12 +282,39 @@ const TestimonialCard = ({ name, company, text, avatar }: {
         });
     };
 
+    // Handle scroll events
+    const handleScroll = () => {
+        if (isMobile) {
+            handleInteractionStart();
+            handleInteractionEnd();
+        }
+    };
+
+    // Clean up timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (interactionTimeoutRef.current) {
+                clearTimeout(interactionTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const cardProps = isMobile ? {
+        onTouchStart: handleInteractionStart,
+        onTouchEnd: handleInteractionEnd,
+        onTouchMove: handleInteractionStart,
+    } : {};
+
     return (
-        <div className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative">
+        <div
+            className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative"
+            {...cardProps}
+        >
             {/* Scrollable Content Container with normal Tailwind scrollbar */}
             <div
                 ref={scrollContainerRef}
                 className="w-full max-w-[259px] h-full overflow-y-auto"
+                onScroll={handleScroll}
             >
                 <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
                     {/* Avatar with Gradient Border */}
