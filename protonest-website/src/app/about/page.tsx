@@ -67,7 +67,7 @@ export default function About() {
     {
       title: "Excellence",
       emoji: "🎯",
-      description: "Every detail matters, from PCB to final delivery."
+      description: "Every detail matters, from concept to final delivery."
     },
     {
       title: "Integrity",
@@ -107,7 +107,7 @@ export default function About() {
               </div>
               <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[750px] xl:max-w-[1000px]">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Protonest is a dynamic IoT engineering lab transforming visionary ideas into scalable, working products. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.</span>
+                  Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.</span>
               </div>
             </div>
           </div>
@@ -151,9 +151,9 @@ export default function About() {
 
           {/* Description Text */}
           <div className="absolute left-2 md:left-[5%] lg:left-[15%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
-            Founded in June 2023 by an electronics engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
+            Founded in June 2023 by an electronic engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
             <br /><br />
-            Today, we&apos;re a growing team of 8+ specialists—engineers, designers, and thinkers—united by a shared goal: turning groundbreaking concepts into tangible, connected products.
+            Today, we&apos;re a growing team of 20+ members consisting of engineers, designers, and thinkers, united by a shared goal.
             <br /><br />
             What started as one idea has become a collaborative hub for future-focused problem solvers in the IoT space.
           </div>
@@ -175,7 +175,7 @@ export default function About() {
           <div className="flex justify-center text-center w-full pt-8 sm:pt-12 md:pt-16 lg:pt-20">
             <div className="w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1124px] px-4">
               <span className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
-                Trusted By Pioneers In{' '}
+                Trusted by Pioneers in{' '}
               </span>
               <span className="font-medium font-montserrat text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Innovation</span>
             </div>
@@ -204,7 +204,7 @@ export default function About() {
             <div className="flex justify-start w-full my-6 sm:my-8 md:my-10 lg:my-12">
               <div className="text-[14px] sm:text-[16px] xl:text-[18px] w-full max-w-[780px] font-normal font-poppins text-left">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Empower innovators and thinkers by turning their IoT concepts into tangible, innovative, and advanced prototypes.
+                  Accelerate the design & development of sustainable, cost-effective, and scalable IoT solutions, done right and delivered fast.
                 </span>
               </div>
             </div>
@@ -230,13 +230,13 @@ export default function About() {
 
         {/* Final CTA Section - Reduced top margin */}
         <div className="mt-32 md:mt-22 lg:mt-24 flex justify-center w-full px-4">
-          <div className="w-full max-w-[1014px] text-center">
+          <div className="w-full max-w-[1100px] text-center">
             <h2 className="text-[24px] lg:text-[30px] xl:text-[40px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
               <span className="text-[#6c6c6c]">
-                Whether you&apos;re a founder, engineer, or team lead,
+                Whether you&apos;re a founder, engineer, or a team lead,
                 <br className="hidden sm:block" />
               </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]"> Protonest</span>
               <span className="text-[#6c6c6c]">
                 {' '}
                 is ready to help you bring your

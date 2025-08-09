@@ -11,7 +11,7 @@ export default function NotFound() {
       {/* Main Content Area with background image */}
       <div className="min-h-screen overflow-hidden bg-white">
         <div
-          className="relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center -mt-[50px] sm:-mt-[40px] md:-mt-[30px] lg:-mt-[40px] xl:-mt-[50px]"
+          className="relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center -mt-[80px] sm:-mt-[40px] md:-mt-[30px] lg:-mt-[40px] xl:-mt-[50px]"
           style={{ backgroundImage: "url('/404-1.svg')" }}
         >
           {/* Content Container with responsive padding */}

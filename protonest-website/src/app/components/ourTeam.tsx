@@ -60,7 +60,7 @@ const OurTeamSection = () => {
 
                     {/* Description */}
                     <p className="text-[#6c6c6c] text-sm lg:text-[16px] xl:text-lg font-normal font-poppins leading-relaxed max-w-4xl mx-auto px-4">
-                        Our strength is in our collective. Each member from hardware engineers to product designers brings a unique skill set and a shared drive to create meaningful IoT solutions. We combine creativity, strategy, and engineering to deliver world-class results.
+                        Our strength lies in our collective expertise. Each member brings a unique skill set and a shared vision to create meaningful IoT solutions. We combine creativity, strategy, and technology to deliver world-class results.
                     </p>
                 </div>
 

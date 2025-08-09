@@ -19,7 +19,7 @@ function LargeScreenHome() {
     <div className="hidden lg:block">
       {/* Hero Section */}
       <div
-        className="mt-[150px] h-full bg-no-repeat bg-cover bg-center relative"
+        className="mt-[150px] h-full bg-cover bg-center relative"
         style={{ backgroundImage: "url('/home-1.svg')" }}
       >
         {/* Top Gradient Overlay */}

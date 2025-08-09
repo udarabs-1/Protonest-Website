@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-type DropdownKey = 'whats-new' | 'jobs' | 'stay-in-touch';
+type DropdownKey = 'whats-new' | 'jobs';
 
 interface DropdownItem {
     id: string; // Added unique ID field
@@ -30,18 +30,14 @@ export default function Navbar() {
 
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
-            { id: "whats-new-blog", href: "/blog", label: "Blogs", description: "Insights, trends & stories from the IoT frontier." },
-            { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore case studies, prototypes & real-world applications." },
+            { id: "whats-new-blog", href: "/blog", label: "Blog", description: "Insights, trends & stories from the IoT frontier." },
+            { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
         ],
         "jobs": [
             { id: "jobs-home", href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
             { id: "jobs-categories", href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
             { id: "jobs-cv", href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
         ],
-        "stay-in-touch": [
-            { id: "contact-us", href: "/contact", label: "Contact Us", description: "Reach out with questions, quotes, or partnerships." },
-            { id: "subscription", href: "/down", label: "Subscription & Alerts", description: "Get notified about new freelance roles." },
-        ]
     };
 
     const toggleDropdown = (dropdown: DropdownKey) => {
@@ -65,7 +61,7 @@ export default function Navbar() {
         { href: "/about", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
         { href: "/jobs", label: "Find Jobs", hasDropdown: true, key: "jobs" },
-        { href: "/stay-in-touch", label: "Stay in Touch", hasDropdown: true, key: "stay-in-touch" }
+        { href: "/contact", label: "Contact Us" }
     ];
 
     const isNavItemActive = (item: NavItem) => {

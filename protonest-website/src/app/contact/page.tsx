@@ -93,8 +93,7 @@ export default function Contact() {
               </div>
               <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[400px] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[900px]">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Got an idea in mind? We&apos;ll review it within 24 hours and help you turn it into a working prototype
-                  fast, focused, and tailored to your tech goals.
+                  Got an idea in mind? Let us know your idea, and we’ll review it within 48 hours and get back to you with a detailed proposal
                 </span>
               </div>
             </div>
