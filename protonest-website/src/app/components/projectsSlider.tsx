@@ -167,7 +167,7 @@ export default function ProjectSlider() {
                         Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
                     </h2>
                     <p className="text-[16px] xl:text-[18px] 2xl:text-[19px] text-center mt-4 lg:mt-5 xl:mt-6 text-[#6c6c6c] font-poppins px-4">
-                        Our Success Project&apos;s That Inspire
+                        Our Success Projects That Inspire
                     </p>
 
                     <div className="max-w-[1200px] lg:max-w-[1300px] xl:max-w-[1400px] 2xl:max-w-[1440px] mx-auto px-8 lg:px-16 xl:px-24 2xl:px-[133px]">
@@ -317,7 +317,7 @@ export default function ProjectSlider() {
                         Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
                     </h2>
                     <p className="text-[14px] text-center mt-3 sm:mt-4 md:mt-6 text-[#6c6c6c] font-poppins px-4">
-                        Our Success Project&apos;s That Inspire
+                        Our Success Projects That Inspire
                     </p>
 
                     <div className="max-w-full px-4 sm:px-6 md:px-8 relative mt-8 sm:mt-10 md:mt-12">

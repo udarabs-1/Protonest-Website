@@ -4,18 +4,6 @@ import { useState } from 'react';
 
 const faqs = [
     {
-        question: "What services does Protonest offer?",
-        answer: "We specialize in end-to-end IoT prototyping—including PCB design, firmware, app development, QA, and project management."
-    },
-    {
-        question: "Do you work with international clients?",
-        answer: "Yes! We collaborate with clients worldwide through a fully remote model."
-    },
-    {
-        question: "Is your work project-based or ongoing?",
-        answer: "Most of our work is freelance and project-based, but we also take on long-term partnerships."
-    },
-    {
         question: "What kind of IoT projects can you help with?",
         answer: "We can assist with a wide range of IoT projects, including smart home devices, wearable technology, industrial automation, and healthcare solutions. If you have a unique idea, feel free to reach out, and we can discuss how to bring it to life."
     },

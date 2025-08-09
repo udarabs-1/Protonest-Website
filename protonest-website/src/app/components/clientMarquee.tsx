@@ -16,7 +16,7 @@ const ClientMarquee = () => {
                 <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
 
                 <Marquee
-                    speed={60}
+                    speed={100}
                     gradient={false}
                     className="py-8" // Increased vertical padding
                     autoFill // Ensures continuous looping

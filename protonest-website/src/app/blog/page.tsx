@@ -228,12 +228,12 @@ export default function BlogSection() {
             <div className="flex flex-col items-center">
               <div className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  Blogs
+                  Blog
                 </span>
               </div>
               <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Insights, Innovation & IoT: Explore the Protonest Blog
+                  IoT Related Insights, and Innovations
                 </span>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function BlogSection() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
-                  placeholder="Search for the blog categories"
+                  placeholder="Search for blog categories"
                 />
                 <button type="submit" className="w-5 h-5 mr-3">
                   <Image

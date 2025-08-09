@@ -64,7 +64,7 @@ const NewsAndBlogs = () => {
             <div className="my-20 text-center px-4">
                 <Link href="/blog">
                     <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-poppins text-[14px] lg:text-[15px] xl:text-[16px]">
-                        View All Article
+                        View All Articles
                     </button>
                 </Link>
             </div>
