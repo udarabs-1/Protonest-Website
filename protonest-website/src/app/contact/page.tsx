@@ -1,4 +1,5 @@
 "use client";
+import Head from "next/head";
 import Image from "next/image";
 import { useState } from "react";
 import FAQSection from "../components/faq";
@@ -64,6 +65,49 @@ export default function Contact() {
 
   return (
     <div>
+      <Head>
+        {/* Primary Meta Tags */}
+        <title>Contact Us - Protonest</title>
+        <meta
+          name="description"
+          content="Contact Protonest's IoT prototyping team for project inquiries, consultations, or partnership opportunities. Get a free quote within 48 hours."
+        />
+        <meta name="keywords" content="IoT prototyping contact, Protonest email, IoT development quote, hardware prototyping consultation" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://protonest.co/contact" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://protonest.co/contact" />
+        <meta property="og:title" content="Contact Us - Protonest" />
+        <meta property="og:description" content="Get in touch with our IoT engineering team for prototyping services and project consultations." />
+
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            "name": "Contact Protonest",
+            "description": "IoT prototyping consultation and inquiry form",
+            "url": "https://protonest.co/contact",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+94 771 482 755",
+              "email": "info@protonest.co",
+              "contactType": "customer service",
+              "areaServed": "Global",
+              "availableLanguage": "English"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Kaduwela",
+              "addressLocality": "Colombo",
+              "addressCountry": "Sri Lanka"
+            }
+          })}
+        </script>
+      </Head>
       <Navbar />
       <div>
         {/* Hero Section */}

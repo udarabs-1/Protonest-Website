@@ -1,5 +1,6 @@
 // Main Homepage Component
 "use client";
+import Head from 'next/head';
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from 'react';
@@ -395,6 +396,41 @@ function SmallScreenHome() {
 export default function Home() {
   return (
     <div>
+      <Head>
+        {/* Primary Meta Tags */}
+        <title>IoT Prototyping Services by Protonest</title>
+        <meta
+          name="description"
+          content="IoT Prototyping Services by Protonest , We specialized in transforming IoT ideas into reality with expert prototyping and innovative engineering."
+        />
+        <meta name="keywords" content="IoT prototyping services, rapid IoT prototyping, IoT product development, hardware prototyping, IoT prototype company" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://protonest.co/" />
+
+        {/* Open Graph (Basic) */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://protonest.co/" />
+        <meta property="og:title" content="IoT Prototyping Services by Protonest" />
+        <meta property="og:description" content="Transform IoT ideas into reality with expert prototyping from Protonest. Built fast. Built right." />
+        <meta property="og:image" content="https://protonest.co/images/og-home.jpg" />
+
+        {/* Structured Data (Organization Only) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Protonest",
+            "url": "https://protonest.co/",
+            "description": "IoT prototyping services to transform ideas into reality.",
+            "foundingDate": "2023",
+            "founder": {
+              "@type": "Person",
+              "name": "Udara Kumarasena"
+            }
+          })}
+        </script>
+      </Head>
       <Navbar />
       {/* Large Screen Layout */}
       <LargeScreenHome />
