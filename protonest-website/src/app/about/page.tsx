@@ -150,7 +150,7 @@ export default function About() {
           </div>
 
           {/* Description Text */}
-          <div className="absolute left-2 md:left-[5%] lg:left-[15%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
+          <div className="absolute left-0 md:left-[5%] lg:left-[10%] 2xl:left-[11%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
             Founded in June 2023 by an electronic engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
             <br /><br />
             Today, we&apos;re a growing team of 20+ members consisting of engineers, designers, and thinkers, united by a shared goal.
