@@ -1,8 +1,9 @@
+
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from 'next/font/google';
 import LoadingScreen from './components/LoadingScreen';
-import PageViewTracker from './components/PageViewTracker'; // Add this import
+import PageViewTracker from './components/PageViewTrackerWrapper';
 import "./globals.css";
 import { LoadingProvider } from './providers/LoadingProvider';
 
