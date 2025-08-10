@@ -11,21 +11,21 @@ const NewsAndBlogs = () => {
             title: "Selecting a Suitable Sensor for an IoT Project",
             image: "/blogs1.svg",
             description: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to keep your house comfortable with a smart thermostat, monitor your pulse with a fitness tracker, or agricultural systems that guarantee optimal crop growth are in the middle of any application involving IoT.",
-            link: "whats-new/blog-1"
+            link: "blog/selecting-suitable-sensor-for-iot-project"
         },
         {
             id: 2,
             title: "Selecting a Suitable Battery for an IoT Project",
             image: "/blogs2.svg",
             description: "The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
-            link: "whats-new/blog-2"
+            link: "blog/selecting-right-battery-for-iot-project"
         },
         {
             id: 3,
             title: "Selecting the Right Cloud Backend for an IoT Project",
             image: "/blogs3.svg",
             description: "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind.",
-            link: "whats-new/blog-3"
+            link: "blog/selecting-cloud-backend-for-iot-project"
         }
     ];
 
@@ -46,9 +46,9 @@ const NewsAndBlogs = () => {
                 {/* Header */}
                 <div className="text-center mb-12 lg:mb-16">
                     <h2 className="text-[#6c6c6c] text-xl sm:text-2xl lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-tight sm:leading-[55px]">
-                        The Latest{' '}
+                        Latest{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
-                            News & Blogs
+                            News & Blog
                         </span>
                     </h2>
                 </div>
