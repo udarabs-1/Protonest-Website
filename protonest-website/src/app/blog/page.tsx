@@ -3,6 +3,7 @@
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
 import { useOnScreen } from "@/app/components/useOnScreen";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -214,6 +215,40 @@ export default function BlogSection() {
 
   return (
     <div>
+
+      <Head>
+        {/* Primary Meta Tags */}
+        <title>Blog - Protonest</title>
+        <meta
+          name="description"
+          content="Explore Protonest's IoT blog for expert insights on prototyping, hardware development, and cutting-edge IoT technology trends."
+        />
+        <meta name="keywords" content="IoT blog, prototyping insights, hardware development, IoT technology, sensor selection, IoT communication" />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://protonest.co/blog" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://protonest.co/blog" />
+        <meta property="og:title" content="Blog - Protonest" />
+        <meta property="og:description" content="Expert articles on IoT prototyping, hardware selection, and system design from Protonest engineers." />
+
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "Protonest IoT Blog",
+            "description": "Expert insights on IoT prototyping and hardware development",
+            "url": "https://protonest.co/blog",
+            "publisher": {
+              "@type": "Organization",
+              "name": "Protonest",
+            },
+          })}
+        </script>
+      </Head>
       <Navbar />
       <div className="md:mt-[50px] mb-30">
         <div className="h-[400px] sm:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center relative"
