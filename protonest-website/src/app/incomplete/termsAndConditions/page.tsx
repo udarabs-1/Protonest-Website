@@ -1,6 +1,6 @@
+import Footer from '@/app/components/footer';
+import Navbar from '@/app/components/navbar';
 import { ChevronLeft } from 'lucide-react';
-import Footer from '../components/footer';
-import Navbar from '../components/navbar';
 
 const TermsAndConditionsPage = () => {
   return (

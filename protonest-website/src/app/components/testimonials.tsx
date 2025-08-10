@@ -177,7 +177,7 @@ const TestimonialSection = () => {
 
                 {/* Contact Us Button */}
                 <div className="flex justify-center">
-                    <Link href="/contact">
+                    <Link href="/contact-us">
                         <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
                             <span className="text-white text-sm md:text-base font-medium">Contact Us</span>
                         </button>
