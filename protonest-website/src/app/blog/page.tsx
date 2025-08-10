@@ -29,7 +29,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
   const shouldShowEffects = isMobile ? isVisible : false;
 
   return (
-    <Link href={`/whats-new/${blog.id}`} passHref>
+    <Link href={`/blog/${blog.id}`} passHref>
       <article
         ref={ref}
         className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
@@ -83,7 +83,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 export default function BlogSection() {
   const blogs = [
     {
-      id: "blog-1",
+      id: "selecting-suitable-sensor-for-iot-project",
       title: "Selecting A Suitable Sensor For An IoT Project",
       excerpt: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to monitor temperature, detect motion, or measure air quality, choosing the right sensor is crucial.",
       readTime: "3 min read",
@@ -91,7 +91,7 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Sensors", "Hardware"]
     },
     {
-      id: "blog-2",
+      id: "selecting-right-battery-for-iot-project",
       title: "Selecting The Right Battery For Your IoT Project",
       excerpt: "The rapid growth of the Internet of Things has enabled a wide range of innovations in smart home devices and industrial sensors. The key behind all these systems is one important component \"The battery\". The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
       readTime: "5 min read",
@@ -99,7 +99,7 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Batteries", "Hardware"]
     },
     {
-      id: "blog-3",
+      id: "selecting-cloud-backend-for-iot-project",
       title: "Selecting The Right Cloud Backend for Your IoT Project",
       excerpt: "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind. The core of any IoT system is the backend platform, which stores, processes, and analyzes data while providing a secure and seamless communication backbone between devices.",
       readTime: "4 min read",
@@ -107,7 +107,7 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Cloud Computing", "Backend"]
     },
     {
-      id: "blog-4",
+      id: "selecting-display-for-iot-device",
       title: "Selecting the Right Display for Your IoT Device",
       excerpt: "Selecting the right display for an IoT device is crucial, as the display is one of the main parts connecting users with embedded systems, interaction, and user experience. Selecting the right interface matters in a project, and it is affected by many factors. Apart from mobile and web dashboards connected with IoT systems, touch/non-touch displays play a critical role in having a built-in user interface for the users.",
       readTime: "4 min read",
@@ -115,7 +115,7 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Hardware", "Displays"]
     },
     {
-      id: "blog-5",
+      id: "selecting-suitable-communication-method-for-iot-project",
       title: "Selecting a Suitable Communication Method for an IoT Project",
       excerpt: "Selecting a suitable communication method for an IoT project is a crucial part of implementing an IoT system. In IoT, communication methods play a key role, which allows the devices to connect and exchange information. Due to the wide range of applications in IoT and the modern approach to the construction of IoT networks, it is challenging to decide which communication method is suitable for your IoT Project. So, many IoT applications exist and they range from controlling smart homes to industrial automation thus implying that there is no unique communication method that can be adopted.",
       readTime: "4 min read",
@@ -123,7 +123,7 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Communication", "Networking"]
     },
     {
-      id: "blog-6",
+      id: "selecting-actuator-for-iot-project",
       title: "Selecting an Actuator for an IoT Project",
       excerpt: "Selecting an actuator for an IoT Project has a direct bearing on the project&apos;s productivity, dependability, and effectiveness. This article is aimed at classifying the actuators, describing the criteria for their selection, and providing you with examples of using it.",
       readTime: "4 min read",
