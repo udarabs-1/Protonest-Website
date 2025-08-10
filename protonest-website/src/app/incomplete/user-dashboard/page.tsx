@@ -1,5 +1,6 @@
 "use client";
 
+import Footer from '@/app/components/footer';
 import {
     Bell,
     ChevronRight,
@@ -12,7 +13,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import Footer from '../components/footer';
 
 type ApplicationStatus = 'pending' | 'shortlisted' | 'rejected';
 

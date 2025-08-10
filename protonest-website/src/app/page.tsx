@@ -80,7 +80,7 @@ function LargeScreenHome() {
                 Trusted by Pioneers in Innovation. When they build, they build with us.
               </span>
             </div>
-            <Link href="/about" className="text-[16px] xl:text-[18px] font-normal font-poppins">
+            <Link href="/about-us" className="text-[16px] xl:text-[18px] font-normal font-poppins">
               <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
                 About Us &gt;
               </span>
@@ -266,7 +266,7 @@ function SmallScreenHome() {
                 Trusted by Pioneers in Innovation. When they build, they build with us.
               </span>
             </div>
-            <Link href="/about" className="ml-auto">
+            <Link href="/about-us" className="ml-auto">
               <div className="text-[14px] font-normal font-poppins cursor-pointer">
                 <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
                   About Us &gt;

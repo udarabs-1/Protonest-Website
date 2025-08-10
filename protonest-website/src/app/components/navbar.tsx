@@ -58,10 +58,10 @@ export default function Navbar() {
 
     const navItems: NavItem[] = [
         { href: "/", label: "Home" },
-        { href: "/about", label: "About Us" },
+        { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
         { href: "/jobs", label: "Find Jobs", hasDropdown: true, key: "jobs" },
-        { href: "/contact", label: "Contact Us" }
+        { href: "/contact-us", label: "Contact Us" }
     ];
 
     const isNavItemActive = (item: NavItem) => {

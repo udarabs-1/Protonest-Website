@@ -1,0 +1,17 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /private/
+
+# *
+User-agent: *
+Disallow: /incomplete/*
+
+# Host
+Host: https://protonest.co
+
+# Sitemaps
+Sitemap: https://protonest.co/sitemap.xml
