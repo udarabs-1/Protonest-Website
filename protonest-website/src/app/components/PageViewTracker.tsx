@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function PageViewTracker() {
+function PageViewTrackerComponent() {
     const pathname = usePathname()
     const searchParams = useSearchParams()
 
@@ -28,4 +28,15 @@ export default function PageViewTracker() {
     }, [pathname, searchParams])
 
     return null
+}
+
+// Wrap the component with Suspense
+import { Suspense } from 'react'
+
+export default function PageViewTracker() {
+    return (
+        <Suspense fallback={null}>
+            <PageViewTrackerComponent />
+        </Suspense>
+    )
 }
