@@ -19,12 +19,19 @@ function LargeScreenHome() {
   return (
     <div className="hidden lg:block">
       {/* Hero Section */}
-      <div
-        className="mt-[150px] h-full bg-no-repeat bg-cover bg-center relative"
-        style={{ backgroundImage: "url('/home-1.svg')" }}
-      >
+      <div className="mt-[150px] h-full relative">
+        {/* Background Image */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/home-1.svg"
+            alt="Hero background"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        </div>
+
         {/* Top Gradient Overlay */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10">
           <div className="flex justify-center">
@@ -59,10 +66,17 @@ function LargeScreenHome() {
       </div>
 
       {/* Clients Section */}
-      <div
-        className="mt-[120px] h-[649px] bg-no-repeat bg-cover bg-center"
-        style={{ backgroundImage: "url('/home-2.svg')" }}
-      >
+      <div className="mt-[120px] h-[649px] relative">
+        {/* Background Image */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/home-2.svg"
+            alt="Clients background"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        </div>
+
         <div className="flex flex-col items-start justify-start h-full px-[60px] xl:px-[133px] 2xl:px-[180px]">
           <div className="flex justify-center">
             <div className="text-center text-[26px] xl:text-[30px] font-medium font-montserrat">
@@ -98,7 +112,6 @@ function LargeScreenHome() {
             alt="Profile Background"
             fill
             className="object-contain"
-            unoptimized
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative h-[70px] w-[70px] rounded-full overflow-hidden">
@@ -108,8 +121,6 @@ function LargeScreenHome() {
                 fill
                 className="object-cover"
                 quality={100}
-                priority={true}
-                unoptimized={false}
                 sizes="70px"
                 style={{
                   objectFit: 'cover',
@@ -201,12 +212,19 @@ function SmallScreenHome() {
   return (
     <div className="lg:hidden">
       {/* Hero Section */}
-      <div
-        className="mt-18 sm:mt-8 h-[400px] sm:h-[500px] bg-no-repeat bg-cover bg-center relative"
-        style={{ backgroundImage: "url('/home-1.svg')" }}
-      >
+      <div className="mt-18 sm:mt-8 h-[400px] sm:h-[500px] relative">
+        {/* Background Image */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/home-1.svg"
+            alt="Hero background"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        </div>
+
         {/* Top Gradient Overlay */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
           <div className="flex justify-center">
@@ -245,10 +263,17 @@ function SmallScreenHome() {
       </div>
 
       {/* Clients Section */}
-      <div
-        className="mt-12 sm:mt-16 min-h-[400px] bg-no-repeat bg-cover bg-center"
-        style={{ backgroundImage: "url('/home-2.svg')" }}
-      >
+      <div className="mt-12 sm:mt-16 min-h-[400px] relative">
+        {/* Background Image */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/home-2.svg"
+            alt="Clients background"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        </div>
+
         <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 py-8">
           <div className="flex justify-start mb-6">
             <div className="text-center text-[24px] sm:text-[26px] font-medium font-montserrat">
@@ -286,7 +311,6 @@ function SmallScreenHome() {
             alt="Profile Background"
             fill
             className="object-contain"
-            unoptimized
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative h-[55px] w-[55px] sm:h-[65px] sm:w-[65px] rounded-full overflow-hidden">
@@ -296,8 +320,6 @@ function SmallScreenHome() {
                 fill
                 className="object-cover"
                 quality={100}
-                priority={true}
-                unoptimized={false}
                 sizes="(max-width: 640px) 55px, 65px"
                 style={{
                   objectFit: 'cover',

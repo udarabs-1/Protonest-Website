@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting A Suitable Sensor For Your IoT Project | Protonest</title>
+                <title>Selecting a Suitable Sensor for an IoT Project</title>
                 <meta
                     name="description"
-                    content="Comprehensive guide to choosing the perfect sensors for your IoT project. Learn about sensor types, communication protocols, and key selection criteria from IoT experts."
+                    content="Learn how to choose the right sensor for an IoT project, considering accuracy, power, cost and compatibility to meet your specific needs."
                 />
                 <meta name="keywords" content="IoT sensors, choosing IoT sensors, sensor selection guide, IoT project sensors, sensor communication protocols, analog vs digital sensors" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-suitable-sensor-for-iot-project" />
+                <link rel="canonical" href="https://protonest.co/selecting-a-suitable-sensor-for-an-iot-project" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-suitable-sensor-for-iot-project" />
-                <meta property="og:title" content="Selecting A Suitable Sensor For Your IoT Project | Protonest" />
-                <meta property="og:description" content="Expert guide to choosing sensors for IoT projects. Learn about types, protocols, and selection criteria to build better IoT solutions." />
+                <meta property="og:url" content="https://protonest.co/selecting-a-suitable-sensor-for-an-iot-project" />
+                <meta property="og:title" content="Selecting a Suitable Sensor for an IoT Project" />
+                <meta property="og:description" content="Learn how to choose the right sensor for an IoT project, considering accuracy, power, cost and compatibility to meet your specific needs." />
                 <meta property="og:image" content="https://protonest.co/blogs1.webp" />
                 <meta property="og:image:alt" content="Guide to selecting IoT sensors" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting The Right Sensor For Your IoT Project",
-                        "description": "Comprehensive guide to choosing the perfect sensors for your IoT project. Learn about sensor types, communication protocols, and key selection criteria.",
+                        "headline": "Selecting a Suitable Sensor for an IoT Project",
+                        "description": "Learn how to choose the right sensor for an IoT project, considering accuracy, power, cost and compatibility to meet your specific needs.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-suitable-sensor-for-iot-project"
+                            "@id": "https://protonest.co/selecting-a-suitable-sensor-for-an-iot-project"
                         }
                     })}
                 </script>
@@ -71,7 +71,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting A Suitable Sensor For Your IoT Project
+                        Selecting a Suitable Sensor for an IoT Project
                     </h1>
                     {/* <p className="text-[#6c6c6c] text-sm font-normal font-poppins mt-2 sm:mt-0">
                         May 15, 2025 | 8 min read
@@ -88,7 +88,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Sensors", "Hardware"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

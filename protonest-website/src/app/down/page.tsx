@@ -3,38 +3,41 @@ import Link from 'next/link';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
 
-export default function NotFound() {
+export default function Down() {
   return (
     <div className="bg-white">
       <Navbar />
 
-      {/* Main Content Area with background image */}
+      {/* Back Button positioned right below navbar for all screens */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 pt-15 lg:pt-8">
+        <BackButton />
+      </div>
+
+      {/* Main Content Area */}
       <div className="min-h-screen overflow-hidden bg-white">
-        <div
-          className="relative w-full h-screen flex items-center justify-center bg-white bg-no-repeat bg-cover bg-center -mt-[80px] sm:-mt-[40px] md:-mt-[30px] lg:-mt-[40px] xl:-mt-[50px]"
-          style={{ backgroundImage: "url('/404-1.svg')" }}
-        >
-          {/* Content Container with responsive padding */}
+        {/* Background Image Container */}
+        <div className="relative w-full h-screen flex items-center justify-center -mt-[150px] sm:-mt-[120px] md:-mt-[100px] lg:-mt-[150px]">
+          {/* Background Image */}
+          <div className="absolute inset-0 z-10">
+            <Image
+              src="/404-1.svg"
+              alt="404 background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+            />
+          </div>
+
+          {/* Content Container */}
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16">
 
-              {/* Mobile Back Button */}
-              <div className="w-full lg:hidden order-first mb-2 sm:mb-3 md:mb-4">
-                <BackButton />
-              </div>
-
-              {/* Mobile Image */}
+              {/* Mobile Image - Shows only on smaller screens */}
               <div className="flex-shrink-0 relative lg:hidden">
                 <ResponsiveImage isMobile />
               </div>
 
               {/* Left Content */}
               <div className="flex-1 text-center lg:text-left max-w-2xl px-2 sm:px-4 md:px-6 lg:px-0">
-                {/* Desktop Back Button */}
-                <div className="mb-6 sm:mb-8 md:mb-10 lg:mb-12 xl:mb-16 hidden lg:block">
-                  <BackButton />
-                </div>
-
                 {/* Main heading */}
                 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl text-[#6c6c6c] font-medium font-['Poppins'] leading-tight mb-4 sm:mb-5 md:mb-6 lg:mb-8 xl:mb-10">
                   We&apos;ll be right back!
@@ -55,7 +58,6 @@ export default function NotFound() {
               <div className="flex-shrink-0 relative hidden lg:block">
                 <ResponsiveImage />
               </div>
-
             </div>
           </div>
         </div>
@@ -66,11 +68,11 @@ export default function NotFound() {
   );
 }
 
-// Extracted Back Button Component
+// Back Button Component
 const BackButton = () => (
   <Link
     href="/"
-    className="inline-flex items-center text-[#6c6c6c] hover:text-[#5a5a5a] transition-colors duration-200"
+    className="inline-flex items-center text-[#6c6c6c] hover:text-[#5a5a5a] transition-colors duration-200 mb-4 sm:mb-6"
   >
     <span className="text-lg sm:text-xl md:text-xl lg:text-xl xl:text-2xl font-normal font-['Potta_One'] leading-[30px]">
       &lt;
@@ -81,7 +83,7 @@ const BackButton = () => (
   </Link>
 );
 
-// Extracted Responsive Image Component
+// Responsive Image Component
 const ResponsiveImage = ({ isMobile = false }) => (
   <div className={`relative ${isMobile
     ? 'w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48'
@@ -89,10 +91,9 @@ const ResponsiveImage = ({ isMobile = false }) => (
     }`}>
     <Image
       src="/down-1.png"
-      alt="404 Page Not Found Illustration"
+      alt="Maintenance Page Illustration"
       fill
       className="object-contain"
-      priority
       sizes={isMobile ? "(max-width: 768px) 100vw" : "(min-width: 1024px) 50vw"}
     />
   </div>

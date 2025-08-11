@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting an Actuator for an IoT Project | Protonest</title>
+                <title>Actuator for an IoT Project : Selection Guide</title>
                 <meta
                     name="description"
-                    content="Complete guide to choosing the right actuators for IoT projects. Learn about actuator types, selection criteria, and real-world applications in automation."
+                    content="Guide on selecting an actuator for an IoT project. Learn about types, selection criteria, and examples to boost automation and efficiency."
                 />
                 <meta name="keywords" content="IoT actuators, actuator selection, electric actuators, pneumatic actuators, hydraulic actuators, IoT automation, smart actuators" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-actuator-for-iot-project" />
+                <link rel="canonical" href="https://protonest.co/actuator-for-an-iot-project" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-actuator-for-iot-project" />
-                <meta property="og:title" content="Selecting an Actuator for an IoT Project | Protonest" />
-                <meta property="og:description" content="Expert guide to choosing actuators for IoT automation. Learn about types, selection factors, and real-world applications of actuators in IoT systems." />
+                <meta property="og:url" content="https://protonest.co/actuator-for-an-iot-project" />
+                <meta property="og:title" content="Actuator for an IoT Project : Selection Guide" />
+                <meta property="og:description" content="Guide on selecting an actuator for an IoT project. Learn about types, selection criteria, and examples to boost automation and efficiency." />
                 <meta property="og:image" content="https://protonest.co/blogs6.webp" />
                 <meta property="og:image:alt" content="Guide to selecting IoT actuators" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting an Actuator for an IoT Project",
-                        "description": "Complete guide to choosing the right actuators for IoT projects. Learn about actuator types, selection criteria, and real-world applications in automation.",
+                        "headline": "Actuator for an IoT Project : Selection Guide",
+                        "description": "Guide on selecting an actuator for an IoT project. Learn about types, selection criteria, and examples to boost automation and efficiency.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-actuator-for-iot-project"
+                            "@id": "https://protonest.co/actuator-for-an-iot-project"
                         },
                     })}
                 </script>
@@ -71,7 +71,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting an Actuator for an IoT Project
+                        Actuator for an IoT Project : Selection Guide
                     </h1>
                 </div>
 
@@ -80,7 +80,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Actuators", "Automation"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

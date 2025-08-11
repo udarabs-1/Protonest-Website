@@ -1,9 +1,8 @@
-
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from 'next/font/google';
 import LoadingScreen from './components/LoadingScreen';
-import PageViewTracker from './components/PageViewTrackerWrapper';
+import PageViewTracker from './components/PageViewTracker';
 import "./globals.css";
 import { LoadingProvider } from './providers/LoadingProvider';
 
@@ -28,20 +27,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+
   return (
     <html lang="en" className={`${montserrat.variable} ${poppins.variable}`}>
-      <head>
-        {/* Move GoogleAnalytics to head for better performance */}
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!} />
-      </head>
       <body>
         <LoadingProvider>
           <LoadingScreen logoSrc="/logo.png" />
           <main>
-            {children}
             <PageViewTracker />
+            {children}
           </main>
         </LoadingProvider>
+        {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );

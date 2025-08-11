@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting the Right Display for Your IoT Device | Protonest</title>
+                <title>Selecting the Right Display for an IoT Device</title>
                 <meta
                     name="description"
-                    content="Complete guide to choosing the perfect display for your IoT project. Compare LCD, OLED, E-Paper and LED displays with expert insights from Protonest."
+                    content="This article aims at helping IoT developers to select the perfect display for their projects. It focuses on the key points in the decision process."
                 />
                 <meta name="keywords" content="IoT display selection, LCD vs OLED, E-Paper displays, LED displays for IoT, touchscreen displays, IoT hardware components" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-display-for-iot-device" />
+                <link rel="canonical" href="https://protonest.co/right-display-for-an-iot-device" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-display-for-iot-device" />
-                <meta property="og:title" content="Selecting the Right Display for Your IoT Device | Protonest" />
-                <meta property="og:description" content="Expert comparison of display technologies for IoT projects. Learn how to choose between LCD, OLED, E-Paper and LED displays for optimal performance." />
+                <meta property="og:url" content="https://protonest.co/right-display-for-an-iot-device" />
+                <meta property="og:title" content="Selecting the Right Display for an IoT Device" />
+                <meta property="og:description" content="This article aims at helping IoT developers to select the perfect display for their projects. It focuses on the key points in the decision process." />
                 <meta property="og:image" content="https://protonest.co/blogs4.webp" />
                 <meta property="og:image:alt" content="IoT display selection guide" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting the Right Display for Your IoT Device",
-                        "description": "Comprehensive guide to choosing the perfect display technology for IoT projects, comparing LCD, OLED, E-Paper and LED display options.",
+                        "headline": "Selecting the Right Display for an IoT Device",
+                        "description": "This article aims at helping IoT developers to select the perfect display for their projects. It focuses on the key points in the decision process.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-display-for-iot-device"
+                            "@id": "https://protonest.co/right-display-for-an-iot-device"
                         }
                     })}
                 </script>
@@ -71,7 +71,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting the Right Display for Your IoT Device
+                        Selecting the Right Display for an IoT Device
                     </h1>
                 </div>
 
@@ -80,7 +80,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Hardware", "Displays"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

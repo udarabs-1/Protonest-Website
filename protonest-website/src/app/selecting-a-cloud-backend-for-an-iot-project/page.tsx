@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting The Right Cloud Backend for Your IoT Project | Protonest</title>
+                <title>Selecting the Perfect Cloud Backend for an IoT Project</title>
                 <meta
                     name="description"
-                    content="Comprehensive guide to choosing the perfect cloud backend for your IoT project. Compare AWS IoT Core, Azure IoT Hub, Google Cloud IoT and other platforms with expert insights."
+                    content="Prioritize factors like scalability, cost, ease of use, and long-term flexibility to ensure a robust solution tailored to your needs."
                 />
                 <meta name="keywords" content="IoT cloud backend, AWS IoT Core, Azure IoT Hub, Google Cloud IoT, IoT platform comparison, IoT backend selection" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-cloud-backend-for-iot-project" />
+                <link rel="canonical" href="https://protonest.co/selecting-a-cloud-backend-for-an-iot-project" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-cloud-backend-for-iot-project" />
-                <meta property="og:title" content="Selecting The Right Cloud Backend for Your IoT Project | Protonest" />
-                <meta property="og:description" content="Expert comparison of cloud backend platforms for IoT projects. Learn how to choose between AWS, Azure, Google Cloud and other options for optimal performance." />
+                <meta property="og:url" content="https://protonest.co/selecting-a-cloud-backend-for-an-iot-project" />
+                <meta property="og:title" content="Selecting the Perfect Cloud Backend for an IoT Project" />
+                <meta property="og:description" content="Prioritize factors like scalability, cost, ease of use, and long-term flexibility to ensure a robust solution tailored to your needs." />
                 <meta property="og:image" content="https://protonest.co/blogs3.webp" />
                 <meta property="og:image:alt" content="IoT cloud backend selection guide" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting The Right Cloud Backend for Your IoT Project",
-                        "description": "Comprehensive guide to choosing the perfect cloud backend for IoT projects, comparing AWS IoT Core, Azure IoT Hub, Google Cloud IoT and other platform technologies.",
+                        "headline": "Selecting the Perfect Cloud Backend for an IoT Project",
+                        "description": "Prioritize factors like scalability, cost, ease of use, and long-term flexibility to ensure a robust solution tailored to your needs.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-cloud-backend-for-iot-project"
+                            "@id": "https://protonest.co/selecting-a-cloud-backend-for-an-iot-project"
                         }
                     })}
                 </script>
@@ -71,7 +71,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting The Right Cloud Backend for Your IoT Project
+                        Selecting the Perfect Cloud Backend for an IoT Project
                     </h1>
                 </div>
 
@@ -80,7 +80,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Cloud Computing", "Backend"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

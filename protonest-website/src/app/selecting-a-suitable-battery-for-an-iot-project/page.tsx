@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting The Right Battery For Your IoT Project | Protonest</title>
+                <title>Selecting a Perfect Battery for an IoT Project</title>
                 <meta
                     name="description"
-                    content="Complete guide to choosing the perfect battery for your IoT project. Compare Li-ion, Li-Po, coin cell, and other battery types with expert insights from Protonest."
+                    content="The best battery for an IoT project ensures reliable performance and energy efficiency. Key factors when selecting the best battery for an IoT project."
                 />
                 <meta name="keywords" content="IoT battery selection, best battery for IoT, Li-ion vs Li-Po, coin cell batteries, IoT power solutions, battery comparison guide" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-right-battery-for-iot-project" />
+                <link rel="canonical" href="https://protonest.co/selecting-a-suitable-battery-for-an-iot-project" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-right-battery-for-iot-project" />
-                <meta property="og:title" content="Selecting The Right Battery For Your IoT Project | Protonest" />
-                <meta property="og:description" content="Expert comparison of battery technologies for IoT projects. Learn how to choose between Li-ion, Li-Po, coin cell and other options for optimal performance." />
+                <meta property="og:url" content="https://protonest.co/selecting-a-suitable-battery-for-an-iot-project" />
+                <meta property="og:title" content="Selecting a Perfect Battery for an IoT Project" />
+                <meta property="og:description" content="The best battery for an IoT project ensures reliable performance and energy efficiency. Key factors when selecting the best battery for an IoT project." />
                 <meta property="og:image" content="https://protonest.co/blogs2.webp" />
                 <meta property="og:image:alt" content="IoT battery selection guide" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting The Right Battery For Your IoT Project",
-                        "description": "Comprehensive guide to choosing the perfect battery for IoT projects, comparing Li-ion, Li-Po, coin cell and other battery technologies.",
+                        "headline": "Selecting a Perfect Battery for an IoT Project",
+                        "description": "The best battery for an IoT project ensures reliable performance and energy efficiency. Key factors when selecting the best battery for an IoT project.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-right-battery-for-iot-project"
+                            "@id": "https://protonest.co/selecting-a-suitable-battery-for-an-iot-project"
                         }
                     })}
                 </script>
@@ -71,7 +71,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting The Right Battery For Your IoT Project
+                        Selecting a Perfect Battery for an IoT Project
                     </h1>
                     {/* <p className="text-[#6c6c6c] text-sm font-normal font-poppins mt-2 sm:mt-0">
                         June 20, 2025 | 12 min read
@@ -88,7 +88,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Batteries", "Hardware"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>

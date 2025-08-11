@@ -43,11 +43,21 @@ export default function Footer() {
             {/* Desktop Footer (lg screens and up) */}
             <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[450px] xl:h-[520px] 2xl:h-[578px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
                 <div className="rounded-b-[25px] relative h-full overflow-hidden">
-                    {/* Background GIF */}
-                    <div
-                        className="absolute inset-0 bg-no-repeat bg-cover bg-center z-0"
-                        style={{ backgroundImage: "url('/footerWeb.gif')" }}
-                    />
+                    {/* Background GIF - Replaced with Image component */}
+                    <div className="absolute inset-0 z-0">
+                        <Image
+                            src="/footerWeb.gif"
+                            alt="Footer background"
+                            fill
+                            style={{
+                                objectFit: 'cover',
+                                objectPosition: 'center'
+                            }}
+                            quality={100}
+                            priority={true}
+                            unoptimized={true}
+                        />
+                    </div>
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
@@ -158,11 +168,21 @@ export default function Footer() {
 
             {/* Mobile Footer (lg screens and down) */}
             <div className="block lg:hidden w-full h-[643px] md:h-[720px] relative">
-                {/* Background GIF with margins */}
-                <div
-                    className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden bg-no-repeat bg-cover bg-center z-0"
-                    style={{ backgroundImage: "url('/footerMobile.gif')" }}
-                />
+                {/* Background GIF with margins - Replaced with Image component */}
+                <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
+                    <Image
+                        src="/footerMobile.gif"
+                        alt="Footer background"
+                        fill
+                        style={{
+                            objectFit: 'cover',
+                            objectPosition: 'center'
+                        }}
+                        quality={100}
+                        priority={true}
+                        unoptimized={true}
+                    />
+                </div>
 
                 {/* Gradient Overlay with same margins */}
                 <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] bg-gradient-to-t from-transparent to-white z-10" />

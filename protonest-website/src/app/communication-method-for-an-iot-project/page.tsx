@@ -9,21 +9,21 @@ export default function BlogDetailsPage() {
         <div className="overflow-x-hidden">
             <Head>
                 {/* Primary Meta Tags */}
-                <title>Selecting a Suitable Communication Method for an IoT Project | Protonest</title>
+                <title>Communication Method For An IoT Project : Selection Guide</title>
                 <meta
                     name="description"
-                    content="Comprehensive guide to choosing the right communication protocols for your IoT project. Learn about wireless/wired protocols, range considerations, and key selection factors."
+                    content="In IoT, communication methods play a key role, which allows the devices to connect and exchange information."
                 />
                 <meta name="keywords" content="IoT communication protocols, wireless IoT, wired IoT, LoRa, Zigbee, BLE, MQTT, IoT networking, IoT connectivity" />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href="https://protonest.co/blog/selecting-suitable-communication-method-for-iot-project" />
+                <link rel="canonical" href="https://protonest.co/communication-method-for-an-iot-project" />
 
                 {/* Open Graph (Basic) */}
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content="https://protonest.co/blog/selecting-suitable-communication-method-for-iot-project" />
-                <meta property="og:title" content="Selecting a Suitable Communication Method for an IoT Project | Protonest" />
-                <meta property="og:description" content="Expert guide to choosing communication protocols for IoT projects. Learn about wireless/wired options, range considerations, and key selection factors." />
+                <meta property="og:url" content="https://protonest.co/communication-method-for-an-iot-project" />
+                <meta property="og:title" content="Communication Method For An IoT Project : Selection Guide" />
+                <meta property="og:description" content="In IoT, communication methods play a key role, which allows the devices to connect and exchange information." />
                 <meta property="og:image" content="https://protonest.co/blogs5.webp" />
                 <meta property="og:image:alt" content="Guide to IoT communication protocols" />
 
@@ -32,8 +32,8 @@ export default function BlogDetailsPage() {
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "BlogPosting",
-                        "headline": "Selecting a Suitable Communication Method for an IoT Project",
-                        "description": "Comprehensive guide to choosing the right communication protocols for your IoT project. Learn about wireless/wired options, range considerations, and key selection factors.",
+                        "headline": "Communication Method For An IoT Project : Selection Guide",
+                        "description": "In IoT, communication methods play a key role, which allows the devices to connect and exchange information.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Protonest",
@@ -50,7 +50,7 @@ export default function BlogDetailsPage() {
                         },
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": "https://protonest.co/blog/selecting-suitable-communication-method-for-iot-project"
+                            "@id": "https://protonest.co/communication-method-for-an-iot-project"
                         },
                     })}
                 </script>
@@ -70,7 +70,7 @@ export default function BlogDetailsPage() {
                 {/* Title and Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl font-medium font-montserrat leading-10">
-                        Selecting a Suitable Communication Method for an IoT Project
+                        Communication Method For An IoT Project : Selection Guide
                     </h1>
                 </div>
 
@@ -79,7 +79,7 @@ export default function BlogDetailsPage() {
                     {["IoT", "Communication", "Networking"].map((cat, idx) => (
                         <div
                             key={idx}
-                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
+                            className="h-9 md:h-11 px-4 py-2 w-auto md:w-[160px] text-center rounded-[57px] gradient-button-static-2 inline-flex items-center justify-center text-[#6c6c6c] text-sm font-medium font-montserrat"
                         >
                             {cat}
                         </div>
