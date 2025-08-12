@@ -89,11 +89,11 @@ export default function About() {
         <meta name="keywords" content="IoT prototyping company, about Protonest, IoT engineering team, hardware prototyping experts" />
 
         {/* Canonical URL */}
-        <link rel="canonical" href="https://protonest.co/about" />
+        <link rel="canonical" href="https://protonest.co/about-us" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/about" />
+        <meta property="og:url" content="https://protonest.co/about-us" />
         <meta property="og:title" content="About Us - Protonest" />
         <meta property="og:description" content="Discover our team's journey in IoT prototyping and how we turn visionary ideas into scalable systems since 2023." />
 
@@ -104,7 +104,7 @@ export default function About() {
             "@type": "AboutPage",
             "name": "About Protonest",
             "description": "Learn about our IoT prototyping services and engineering team",
-            "url": "https://protonest.co/about",
+            "url": "https://protonest.co/about-us",
             "about": {
               "@type": "Organization",
               "name": "Protonest",
@@ -124,23 +124,27 @@ export default function About() {
       <div>
         {/* Hero Section with Background and Gradient Overlay */}
         <div className="relative">
-          <div
-            className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
-            style={{ backgroundImage: "url('/about-1.svg')" }}
-          >
+          <div className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] relative">
+            <Image
+              src="/about-1.svg"
+              alt="About Protonest hero background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              className="absolute inset-0"
+            />
+
             <div className="block sm:hidden">
               {/* Top Left Card */}
-              <div className="absolute -top-8 right-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl  shadow-lg flex items-center justify-center">
+              <div className="absolute -top-8 right-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
               </div>
-
             </div>
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
+
+            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px] relative z-10">
               <div className="flex justify-center">
                 <div className="text-center text-[24px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                   <span className="text-[rgba(108,108,108,1)]">
                     Building the Future of
                   </span>
-
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                     IoT Innovation
@@ -149,7 +153,8 @@ export default function About() {
               </div>
               <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[750px] xl:max-w-[1000px]">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.</span>
+                  Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.
+                </span>
               </div>
             </div>
           </div>
@@ -167,15 +172,16 @@ export default function About() {
               alt="Our Journey background mobile"
               width={768}
               height={500}
-              className="absolute right-0 w-[350px] md:w-[500px] h-auto object-contain lg:hidden"
+              className="absolute w-[350px] md:w-[500px] right-0 h-auto lg:hidden"
+              style={{ objectPosition: 'right' }}
             />
             {/* Desktop image (hidden on md and below) */}
             <Image
-              src="/about-2.svg"
+              src="/about-2.webp"
               alt="Our Journey background desktop"
-              width={1440}
-              height={575}
-              className="absolute right-0 w-[90%] h-auto object-contain hidden lg:block"
+              fill
+              className="absolute w-[90%] h-auto right-0 hidden lg:block"
+              style={{ objectFit: 'contain', objectPosition: 'right' }}
             />
           </div>
 
@@ -207,14 +213,14 @@ export default function About() {
             <Image
               src="/about-3.svg"
               alt="Trusted by pioneers background"
-              width={1440}
-              height={649}
+              fill
               className="w-full max-w-[1440px] h-auto object-contain"
+              style={{ objectFit: 'cover' }}
             />
           </div>
 
           {/* Title */}
-          <div className="flex justify-center text-center w-full pt-8 sm:pt-12 md:pt-16 lg:pt-20">
+          <div className="flex justify-center text-center w-full pt-8 sm:pt-12 md:pt-16 lg:pt-20 relative z-10">
             <div className="w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1124px] px-4">
               <span className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
                 Trusted by Pioneers in{' '}
@@ -223,17 +229,23 @@ export default function About() {
             </div>
           </div>
 
-          <div className="mt-8 sm:mt-10 md:mt-12 lg:mt-15">
+          <div className="mt-8 sm:mt-10 md:mt-12 lg:mt-15 relative z-10">
             <ClientMarquee />
           </div>
         </div>
 
         {/* Our Mission Section - Reduced spacing */}
-        <div
-          className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] bg-no-repeat bg-cover bg-center -mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16"
-          style={{ backgroundImage: "url('/about-4.svg')" }}
-        >
-          <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 sm:py-12 md:py-16">
+        <div className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] relative -mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16">
+          <div className="absolute inset-0">
+            <Image
+              src="/about-4.svg"
+              alt="Our Mission background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+            />
+          </div>
+
+          <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 sm:py-12 md:py-16 relative z-10">
             {/* Left-aligned heading */}
             <div className="flex justify-start w-full">
               <div className="text-left text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat">
@@ -296,7 +308,6 @@ export default function About() {
             </button>
           </Link>
         </div>
-
       </div>
       <Footer />
     </div>

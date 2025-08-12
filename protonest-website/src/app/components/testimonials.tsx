@@ -110,9 +110,7 @@ const TestimonialSection = () => {
                         src="/home-5.svg"
                         alt="Background"
                         fill
-                        className="object-cover"
-                        quality={100}
-                        priority
+                        style={{ objectFit: 'cover' }}
                     />
                 </div>
             </div>

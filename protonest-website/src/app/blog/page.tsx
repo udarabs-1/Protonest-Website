@@ -8,7 +8,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-
 // Define a Blog type for better type safety
 interface Blog {
   id: string;
@@ -29,7 +28,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
   const shouldShowEffects = isMobile ? isVisible : false;
 
   return (
-    <Link href={`/blog/${blog.id}`} passHref>
+    <Link href={`/${blog.id}`} passHref>
       <article
         ref={ref}
         className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
@@ -83,7 +82,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 export default function BlogSection() {
   const blogs = [
     {
-      id: "selecting-suitable-sensor-for-iot-project",
+      id: "selecting-a-suitable-sensor-for-an-iot-project",
       title: "Selecting A Suitable Sensor For An IoT Project",
       excerpt: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to monitor temperature, detect motion, or measure air quality, choosing the right sensor is crucial.",
       readTime: "3 min read",
@@ -91,8 +90,8 @@ export default function BlogSection() {
       categoryTags: ["IoT", "Sensors", "Hardware"]
     },
     {
-      id: "selecting-right-battery-for-iot-project",
-      title: "Selecting The Right Battery For Your IoT Project",
+      id: "selecting-a-suitable-battery-for-an-iot-project",
+      title: "Selecting a Perfect Battery for an IoT Project",
       excerpt: "The rapid growth of the Internet of Things has enabled a wide range of innovations in smart home devices and industrial sensors. The key behind all these systems is one important component \"The battery\". The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
       readTime: "5 min read",
       imageUrl: "/blogs2.svg",
@@ -100,31 +99,31 @@ export default function BlogSection() {
     },
     {
       id: "selecting-cloud-backend-for-iot-project",
-      title: "Selecting The Right Cloud Backend for Your IoT Project",
+      title: "Selecting the Perfect Cloud Backend for an IoT Project",
       excerpt: "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind. The core of any IoT system is the backend platform, which stores, processes, and analyzes data while providing a secure and seamless communication backbone between devices.",
       readTime: "4 min read",
       imageUrl: "/blogs3.svg",
       categoryTags: ["IoT", "Cloud Computing", "Backend"]
     },
     {
-      id: "selecting-display-for-iot-device",
-      title: "Selecting the Right Display for Your IoT Device",
+      id: "right-display-for-an-iot-device",
+      title: "Selecting the Right Display for an IoT Device",
       excerpt: "Selecting the right display for an IoT device is crucial, as the display is one of the main parts connecting users with embedded systems, interaction, and user experience. Selecting the right interface matters in a project, and it is affected by many factors. Apart from mobile and web dashboards connected with IoT systems, touch/non-touch displays play a critical role in having a built-in user interface for the users.",
       readTime: "4 min read",
       imageUrl: "/blogs4.webp",
       categoryTags: ["IoT", "Hardware", "Displays"]
     },
     {
-      id: "selecting-suitable-communication-method-for-iot-project",
-      title: "Selecting a Suitable Communication Method for an IoT Project",
+      id: "communication-method-for-an-iot-project",
+      title: "Communication Method For An IoT Project : Selection Guide",
       excerpt: "Selecting a suitable communication method for an IoT project is a crucial part of implementing an IoT system. In IoT, communication methods play a key role, which allows the devices to connect and exchange information. Due to the wide range of applications in IoT and the modern approach to the construction of IoT networks, it is challenging to decide which communication method is suitable for your IoT Project. So, many IoT applications exist and they range from controlling smart homes to industrial automation thus implying that there is no unique communication method that can be adopted.",
       readTime: "4 min read",
       imageUrl: "/blogs5.webp",
       categoryTags: ["IoT", "Communication", "Networking"]
     },
     {
-      id: "selecting-actuator-for-iot-project",
-      title: "Selecting an Actuator for an IoT Project",
+      id: "actuator-for-an-iot-project",
+      title: "Actuator for an IoT Project : Selection Guide",
       excerpt: "Selecting an actuator for an IoT Project has a direct bearing on the project&apos;s productivity, dependability, and effectiveness. This article is aimed at classifying the actuators, describing the criteria for their selection, and providing you with examples of using it.",
       readTime: "4 min read",
       imageUrl: "/blogs6.webp",
@@ -215,7 +214,6 @@ export default function BlogSection() {
 
   return (
     <div>
-
       <Head>
         {/* Primary Meta Tags */}
         <title>Blog - Protonest</title>
@@ -251,8 +249,17 @@ export default function BlogSection() {
       </Head>
       <Navbar />
       <div className="md:mt-[50px] mb-30">
-        <div className="h-[400px] sm:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center relative"
-          style={{ backgroundImage: "url('/blogs-1.svg')" }}>
+        {/* Hero Section with Image */}
+        <div className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/blogs-1.svg"
+              alt="Blogs background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+            />
+          </div>
+
           {/* Top Edge Gradient Overlay */}
           <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
 

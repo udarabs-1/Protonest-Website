@@ -75,11 +75,11 @@ export default function Contact() {
         <meta name="keywords" content="IoT prototyping contact, Protonest email, IoT development quote, hardware prototyping consultation" />
 
         {/* Canonical URL */}
-        <link rel="canonical" href="https://protonest.co/contact" />
+        <link rel="canonical" href="https://protonest.co/contact-us" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/contact" />
+        <meta property="og:url" content="https://protonest.co/contact-us" />
         <meta property="og:title" content="Contact Us - Protonest" />
         <meta property="og:description" content="Get in touch with our IoT engineering team for prototyping services and project consultations." />
 
@@ -90,7 +90,7 @@ export default function Contact() {
             "@type": "ContactPage",
             "name": "Contact Protonest",
             "description": "IoT prototyping consultation and inquiry form",
-            "url": "https://protonest.co/contact",
+            "url": "https://protonest.co/contact-us",
             "contactPoint": {
               "@type": "ContactPoint",
               "telephone": "+94 771 482 755",
@@ -112,18 +112,23 @@ export default function Contact() {
       <div>
         {/* Hero Section */}
         <div className="relative">
-          <div
-            className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center"
-            style={{ backgroundImage: "url('/contact-1.svg')" }}
-          >
+          <div className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] relative">
+            <Image
+              src="/contact-1.svg"
+              alt="Contact page hero background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              className="absolute inset-0"
+            />
+
             {/* Glassmorphic Cards - Only visible on screens smaller than sm */}
             <div className="block sm:hidden">
               {/* Top Left Card */}
-              <div className="absolute top-4 left-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl  shadow-lg flex items-center justify-center">
+              <div className="absolute top-4 left-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px] 2xl:px-[180px]">
+            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px] 2xl:px-[180px] relative z-10">
               <div className="flex justify-center">
                 <div className="px-14 md:px-0 text-center text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                   <span className="text-[rgba(108,108,108,1)]">
@@ -137,7 +142,7 @@ export default function Contact() {
               </div>
               <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[400px] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[900px]">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Got an idea in mind? Let us know your idea, and we’ll review it within 48 hours and get back to you with a detailed proposal
+                  Got an idea in mind? Let us know your idea, and we&apos;ll review it within 48 hours and get back to you with a detailed proposal
                 </span>
               </div>
             </div>
@@ -148,33 +153,25 @@ export default function Contact() {
         </div>
 
         {/* Form Section */}
-        <div className="relative w-full min-h-screen">
+        <div className="relative w-full min-h-screen sm:min-h-[1100px] 2xl:min-h-[1300px]">
           {/* Combined Background & Decorative Image */}
-          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[550px] sm:-mt-[180px] md:mt-[80px] xl:-mt-[280px]">
+          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[500px] sm:-mt-[500px] md:-mt-[100px] lg:-mt-[110px] xl:-mt-[150px]">
             {/* Mobile Image - shown on small screens */}
             <div className="block md:hidden">
               <Image
                 src="/contact-2-mobile.svg"
                 alt="Mobile background with decorative elements"
-                layout="responsive"
-                width={375}
-                height={667}
-                className="object-cover"
-                quality={100}
-                priority
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
               />
             </div>
             {/* Desktop Image - shown on medium screens and up */}
-            <div className="hidden md:block max-w-[1440px] ml-auto">
+            <div className="hidden md:block max-w-[1440px] ml-auto h-full">
               <Image
-                src="/contact-2.svg"
+                src="/contact-2.webp"
                 alt="Background with decorative elements"
-                layout="responsive"
-                width={1440}
-                height={900}
-                className="object-cover"
-                quality={100}
-                priority
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'right' }}
               />
             </div>
           </div>
@@ -261,16 +258,16 @@ export default function Contact() {
         </div>
 
         {/* Contact Cards Section */}
-        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-25 md:-mt-20 lg:mt-[120px] 2xl:-mt-[100px] pb-[60px] lg:pb-0">
+        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-25 sm:-mt-80 md:-mt-60 lg:-mt-50 2xl:-mt-[250px] pb-[60px] lg:pb-0">
           {/* Background Image */}
           <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[520px] lg:h-[585px] overflow-hidden">
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
                 src="/contact-3.svg"
                 alt="Contact background"
-                width={1440}
-                height={585}
-                className="w-full h-full object-cover"
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+                className="w-full h-full"
               />
             </div>
           </div>

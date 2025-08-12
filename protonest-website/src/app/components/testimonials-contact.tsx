@@ -220,25 +220,24 @@ export default function Testimonials() {
 
             {/* Background Images - Added back from old code */}
             {/* Background Image - Hidden on mobile for better performance */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
                 <Image
                     src="/contact-4.svg"
                     alt="Background"
                     width={800}
-                    height={800}  // Desktop height
+                    height={800}
                     className="absolute md:-mt-40 xl:-mt-50 -z-10 top-0 left-0"
-                    priority
                 />
             </div>
 
-            <div className="md:hidden">
+            <div className="lg:hidden">
                 <Image
                     src="/contact-4-mobile.svg"
                     alt="Background"
                     width={800}
                     height={1000}
-                    className="w-full h-[1000px] absolute mt-30 -z-10 top-0 left-0 object-cover overflow-visible"
-                    priority
+                    style={{ objectFit: 'cover' }}
+                    className="w-full max-w-[350px] h-[1000px] absolute mt-30 -z-10 top-0 left-0 overflow-visible"
                 />
             </div>
         </div>
