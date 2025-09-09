@@ -32,6 +32,29 @@ interface CountryCode {
     name: string;
 }
 
+interface ExpertiseArea {
+    [category: string]: string[];
+}
+
+interface SuggestedJob {
+    job_id: string;
+    job_title: string;
+    category: string;
+    match_percentage: number;
+    matched_skills: string[];
+    missing_skills: string[];
+}
+
+interface AnalyzeResponse {
+    status: string;
+    results: {
+        expertise_areas: ExpertiseArea;
+        suggested_jobs: SuggestedJob[];
+        analysis_id: string;
+        user_id: string;
+    };
+}
+
 const cities: { [key: string]: string[] } = {
     'Sri Lanka': ['Colombo', 'Negombo', 'Kandy', 'Galle', 'Jaffna'],
     'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
@@ -71,10 +94,16 @@ export default function OnboardingPage() {
     const [errors, setErrors] = useState<FormErrors>({});
     const [uploadedCV, setUploadedCV] = useState<File | null>(null);
     const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
+    const [expertiseAreas, setExpertiseAreas] = useState<ExpertiseArea>({});
+    const [suggestedJobs, setSuggestedJobs] = useState<SuggestedJob[]>([]);
     const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedCountryCode, setSelectedCountryCode] = useState<CountryCode>(countryCodes[0]);
     const [workFunctionSearch, setWorkFunctionSearch] = useState('');
+    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+    const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+    const [showJobsModal, setShowJobsModal] = useState(false);
+    const [showNoMatchModal, setShowNoMatchModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropdownRefs = useMemo(() => ({
         countryCode: { current: null as HTMLDivElement | null },
@@ -159,6 +188,61 @@ export default function OnboardingPage() {
         }
     };
 
+    const analyzeCV = async (file: File): Promise<void> => {
+        setShowAnalysisModal(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Get user token from localStorage
+            const userToken = localStorage.getItem('jwtToken');
+
+            if (!userToken) {
+                throw new Error('User token not found. Please sign in first.');
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data: AnalyzeResponse = await response.json();
+
+            if (data.status === 'success') {
+                // Extract all skills from expertise areas
+                const allSkills: string[] = [];
+                Object.values(data.results.expertise_areas).forEach(skills => {
+                    allSkills.push(...skills);
+                });
+
+                setExtractedSkills(allSkills);
+                setExpertiseAreas(data.results.expertise_areas);
+                setSuggestedJobs(data.results.suggested_jobs);
+            } else {
+                throw new Error('CV analysis failed');
+            }
+        } catch (error) {
+            console.error('CV analysis error:', error);
+            setErrors({ cv: 'Failed to analyze CV. Please try again.' });
+
+            // Fallback to mock skills if analysis fails
+            const mockSkills = ['Designing', 'UI/UX', 'Photoshop', 'JavaScript', 'React', 'Node.js', 'Python', 'Java'];
+            const randomSkills = mockSkills.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 4) + 2);
+            setExtractedSkills(randomSkills);
+        } finally {
+            setTimeout(() => {
+                setShowAnalysisModal(false);
+            }, 2000);
+        }
+    };
+
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const file = event.target.files?.[0];
         if (file) {
@@ -169,13 +253,12 @@ export default function OnboardingPage() {
 
             setUploadedCV(file);
             setErrors(prev => ({ ...prev, cv: '' }));
+            setExtractedSkills([]);
+            setExpertiseAreas({});
+            setSuggestedJobs([]);
 
-            // Simulate CV parsing and skill extraction
-            setTimeout(() => {
-                const mockSkills = ['Designing', 'UI/UX', 'Photoshop', 'JavaScript', 'React', 'Node.js', 'Python', 'Java'];
-                const randomSkills = mockSkills.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 4) + 2);
-                setExtractedSkills(randomSkills);
-            }, 1000);
+            // Call the Python API to analyze the CV
+            analyzeCV(file);
         }
     };
 
@@ -187,6 +270,7 @@ export default function OnboardingPage() {
         if (!validateForm()) return;
 
         setIsSubmitting(true);
+        setShowSubmissionModal(true);
 
         try {
             // Create FormData for file upload
@@ -199,6 +283,8 @@ export default function OnboardingPage() {
             submitData.append('workFunction', formData.workFunction);
             submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
             submitData.append('skills', JSON.stringify(extractedSkills));
+            submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
+            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
 
             if (uploadedCV) {
                 submitData.append('cv', uploadedCV);
@@ -211,8 +297,15 @@ export default function OnboardingPage() {
             });
 
             if (response.ok) {
-                // Redirect to dashboard or next step
-                router.push('/dashboard');
+                // Simulate processing time
+                setTimeout(() => {
+                    setShowSubmissionModal(false);
+                    if (suggestedJobs.length > 0) {
+                        setShowJobsModal(true);
+                    } else {
+                        setShowNoMatchModal(true);
+                    }
+                }, 3000);
             } else {
                 throw new Error('Failed to submit application');
             }
@@ -220,6 +313,7 @@ export default function OnboardingPage() {
         } catch (error) {
             console.error('Submission error:', error);
             setErrors({ submit: 'Failed to submit application. Please try again.' });
+            setShowSubmissionModal(false);
         } finally {
             setIsSubmitting(false);
         }
@@ -237,6 +331,8 @@ export default function OnboardingPage() {
         });
         setUploadedCV(null);
         setExtractedSkills([]);
+        setExpertiseAreas({});
+        setSuggestedJobs([]);
         setErrors({});
         setSelectedCountryCode(countryCodes[0]);
         setWorkFunctionSearch('');
@@ -248,6 +344,164 @@ export default function OnboardingPage() {
             [field]: !prev[field]
         }));
     };
+
+    // Analysis Modal Component
+    const AnalysisModal = () => (
+        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
+            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
+                <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
+                        <div className="w-full h-full rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-pink-500 border-r-blue-500 animate-spin bg-gradient-to-r from-pink-500 to-blue-500 rounded-full" style={{
+                            background: 'conic-gradient(from 0deg, #F51DA5, #5530FA, #F51DA5)',
+                            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)',
+                            mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)'
+                        }}></div>
+                    </div>
+                </div>
+                <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
+                    Thanks for submitting your CV!<br />Parsing your CV to match your areas of expertise
+                </div>
+            </div>
+        </div>
+    );
+
+    // Submission Modal Component
+    const SubmissionModal = () => (
+        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
+            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
+                <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
+                        <div className="w-full h-full rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-pink-500 border-r-blue-500 animate-spin bg-gradient-to-r from-pink-500 to-blue-500 rounded-full" style={{
+                            background: 'conic-gradient(from 0deg, #F51DA5, #5530FA, #F51DA5)',
+                            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)',
+                            mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)'
+                        }}></div>
+                    </div>
+                </div>
+                <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
+                    Thanks for submitting your CV to our Talent Pool!<br />Parsing your CV to match you with available roles…
+                </div>
+            </div>
+        </div>
+    );
+
+    // Jobs Modal Component
+    const JobsModal = () => (
+        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
+            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[1117px] h-auto bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 md:p-8">
+                <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
+                    Based on your CV, we recommend the following roles
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
+                    {/* Job 1 */}
+                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
+                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                            {suggestedJobs[0]?.job_title || 'Firmware Engineer'}
+                        </div>
+                        <div className="text-center">
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
+                                {suggestedJobs[0]?.match_percentage || 85}% Match
+                            </span>
+                        </div>
+                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
+                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
+                        </div>
+                    </div>
+
+                    {/* Job 2 */}
+                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
+                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                            {suggestedJobs[1]?.job_title || 'Software Engineer'}
+                        </div>
+                        <div className="text-center">
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
+                                {suggestedJobs[1]?.match_percentage || 82}% Match
+                            </span>
+                        </div>
+                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
+                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
+                        </div>
+                    </div>
+
+                    {/* Job 3 */}
+                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
+                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                            {suggestedJobs[2]?.job_title || 'Hardware Engineer'}
+                        </div>
+                        <div className="text-center">
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
+                                {suggestedJobs[2]?.match_percentage || 78}% Match
+                            </span>
+                        </div>
+                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
+                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
+                        </div>
+                    </div>
+
+                    {/* Job 4 */}
+                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
+                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                            {suggestedJobs[3]?.job_title || 'Systems Engineer'}
+                        </div>
+                        <div className="text-center">
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
+                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
+                                {suggestedJobs[3]?.match_percentage || 75}% Match
+                            </span>
+                        </div>
+                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
+                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
+                    Check all available jobs for you!
+                </div>
+                <div className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 mx-auto rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530fa] inline-flex justify-center items-center gap-1 cursor-pointer mt-4"
+                    onClick={() => router.push('/dashboard')}>
+                    <div className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Suggested Jobs</div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // No Match Modal Component
+    const NoMatchModal = () => (
+        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
+            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
+                <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                    We couldn&apos;t find a perfect match just yet.
+                </div>
+                <div className="text-center text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
+                    Don&apos;t worry! your CV is now part of our talent pool.<br />
+                    We&apos;ll contact you when something opens up that fits your profile.
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                    <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer"
+                        onClick={() => router.push('/')}>
+                        <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Return to Homepage</div>
+                    </div>
+                    <div className="w-full max-w-[207px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530fa] inline-flex justify-center items-center gap-1 cursor-pointer"
+                        onClick={() => {
+                            setShowNoMatchModal(false);
+                            setUploadedCV(null);
+                            setExtractedSkills([]);
+                            if (fileInputRef.current) fileInputRef.current.click();
+                        }}>
+                        <div className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Re-Upload CV</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div>
@@ -603,7 +857,7 @@ export default function OnboardingPage() {
                             {errors.cv && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.cv}</p>}
                         </div>
 
-                        {/* Extracted Skills */}
+                        {/* Extracted Skills - Only show expertise areas */}
                         {extractedSkills.length > 0 && (
                             <div className="space-y-4">
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold font-['Poppins']">
@@ -685,6 +939,13 @@ export default function OnboardingPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            {showAnalysisModal && <AnalysisModal />}
+            {showSubmissionModal && <SubmissionModal />}
+            {showJobsModal && <JobsModal />}
+            {showNoMatchModal && <NoMatchModal />}
+
             <Footer />
         </div>
     );
