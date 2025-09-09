@@ -165,6 +165,53 @@ body {
   z-index: -1;
 }
 
+.gradient-button-static-3 {
+  position: relative;
+  border-radius: 57px;
+  background: transparent;
+  border: none;
+  overflow: hidden;
+  z-index: 1;
+  /* Solid text color instead of gradient */
+}
+
+.gradient-button-static-3::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  border-radius: 57px;
+  background: linear-gradient(90deg, rgba(85, 48, 250, 1), rgba(245, 29, 165, 1)) border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+.gradient-button-static-3:hover::before {
+  background: linear-gradient(90deg, rgba(245, 29, 165, 1), rgba(85, 48, 250, 1)) border-box;
+}
+
+.gradient-button-static-3:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(245, 29, 165, 1), rgba(85, 48, 250, 1));
+  border-radius: 57px;
+  z-index: -2;
+}
 
 /* Custom loading animations */
 @keyframes blink {

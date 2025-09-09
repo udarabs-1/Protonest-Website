@@ -228,7 +228,7 @@ function SmallScreenHome() {
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
           <div className="flex justify-center">
-            <div className="text-center text-[24px] sm:text-[32px] font-medium font-montserrat">
+            <div className="text-center text-[24px] sm:text-[30px] md:text-[32px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Bringing Your IoT Ideas to Life with
               </span>

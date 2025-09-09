@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-type DropdownKey = 'whats-new' | 'jobs';
+type DropdownKey = 'whats-new';
 
 interface DropdownItem {
     id: string; // Added unique ID field
@@ -33,11 +33,6 @@ export default function Navbar() {
             { id: "whats-new-blog", href: "/blog", label: "Blog", description: "Insights, trends & stories from the IoT frontier." },
             { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
         ],
-        "jobs": [
-            { id: "jobs-home", href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
-            { id: "jobs-categories", href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
-            { id: "jobs-cv", href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
-        ],
     };
 
     const toggleDropdown = (dropdown: DropdownKey) => {
@@ -60,7 +55,7 @@ export default function Navbar() {
         { href: "/", label: "Home" },
         { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
-        { href: "/jobs", label: "Find Jobs", hasDropdown: true, key: "jobs" },
+        { href: "/find-jobs", label: "Find Jobs" },
         { href: "/contact-us", label: "Contact Us" }
     ];
 
