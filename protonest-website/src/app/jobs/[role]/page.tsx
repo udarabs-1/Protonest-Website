@@ -9,17 +9,30 @@ import { useEffect, useState } from 'react';
 
 // Types
 type Job = {
-    id: number;
+    id: string;
     title: string;
     location: string;
     posted: string;
     type: string;
     deadline: string;
     experience: string;
+    category: string;
+    created_at: string;
 };
 
-type JobData = {
-    [key: string]: Job[];
+type JobResponse = {
+    id: string;
+    title: string;
+    location: string;
+    type: string;
+    deadline: string;
+    experience: string;
+    category: string;
+    created_at: string;
+    description: string;
+    responsibilities: string[];
+    requirements: string[];
+    overview: string;
 };
 
 type FilterType = 'experience' | 'location' | 'datePosted' | 'jobType';
@@ -30,69 +43,16 @@ type Filters = {
     jobType: string[];
 };
 
-// Mock job data for each role
-const jobData: JobData = {
-    'front-end': [
-        {
-            id: 1,
-            title: 'Senior Frontend Developer',
-            location: 'Remote',
-            posted: '1 day ago',
-            type: 'Full Time',
-            deadline: 'Oct 3, 2025',
-            experience: 'Intermediate',
-        },
-        {
-            id: 2,
-            title: 'Junior Frontend Developer',
-            location: 'On-Site',
-            posted: '3 days ago',
-            type: 'Full Time',
-            deadline: 'Oct 10, 2025',
-            experience: 'Beginner'
-        },
-        {
-            id: 3,
-            title: 'React Developer',
-            location: 'Hybrid',
-            posted: '5 days ago',
-            type: 'Project Based',
-            deadline: 'Oct 15, 2025',
-            experience: 'Moderate'
-        },
-        {
-            id: 4,
-            title: 'Frontend Architect',
-            location: 'Remote',
-            posted: '1 week ago',
-            type: 'Full Time',
-            deadline: 'Oct 20, 2025',
-            experience: 'Experienced'
-        },
-        {
-            id: 5,
-            title: 'UI Developer',
-            location: 'On-Site',
-            posted: '2 weeks ago',
-            type: 'Full Time',
-            deadline: 'Oct 25, 2025',
-            experience: 'Moderate'
-        },
-        // Add more jobs as needed
-    ],
-    'back-end': [
-        {
-            id: 1,
-            title: 'Backend Engineer',
-            location: 'Remote',
-            posted: '2 days ago',
-            type: 'Full Time',
-            deadline: 'Oct 5, 2025',
-            experience: 'Experienced',
-        },
-        // Add more jobs as needed
-    ],
-    // ... other roles with their respective jobs
+// Map role slugs to category names
+const roleToCategoryMap: { [key: string]: string } = {
+    'front-end': 'Front-End',
+    'back-end': 'Back-End',
+    'electronics': 'Electronics',
+    'ui-ux-designing': 'UI/UX Designing',
+    'mechanical': 'Mechanical Engineering',
+    'embedded-firmware': 'Embedded Systems',
+    'quality-assurance': 'Quality Assurance',
+    'other-roles': 'Other'
 };
 
 // Map role slugs to display names
@@ -105,6 +65,28 @@ const roleTitles: { [key: string]: string } = {
     'embedded-firmware': 'Embedded Firmware',
     'quality-assurance': 'Quality Assurance',
     'other-roles': 'Other Roles'
+};
+
+// Helper function to format time difference as "X days ago"
+const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
+};
+
+// Helper function to format date as "MMM D, YYYY"
+const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
 };
 
 export default function RolePage() {
@@ -122,6 +104,9 @@ export default function RolePage() {
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [visibleJobsCount, setVisibleJobsCount] = useState(3);
     const [isMobile, setIsMobile] = useState(false);
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Check if screen is mobile/small
     useEffect(() => {
@@ -135,9 +120,58 @@ export default function RolePage() {
         return () => window.removeEventListener('resize', checkIsMobile);
     }, []);
 
-    // Get jobs for this role
+    // Get role key and category
     const roleKey = Array.isArray(role) ? role[0] : role;
-    const jobs = roleKey ? jobData[roleKey] || [] : [];
+    const category = roleKey ? roleToCategoryMap[roleKey] : null;
+
+    // Fetch jobs from API
+    useEffect(() => {
+        const fetchJobs = async () => {
+            if (!category) return;
+
+            setLoading(true);
+            setError(null);
+
+            try {
+                // Build API URL with category filter
+                const apiUrl = `${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs?category=${encodeURIComponent(category)}`;
+
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch jobs: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success' && data.data) {
+                    // Transform API response to match our Job type
+                    const transformedJobs: Job[] = data.data.map((job: JobResponse) => ({
+                        id: job.id,
+                        title: job.title,
+                        location: job.location,
+                        posted: formatTimeAgo(job.created_at),
+                        type: job.type,
+                        deadline: formatDate(job.deadline),
+                        experience: job.experience,
+                        category: job.category,
+                        created_at: job.created_at
+                    }));
+
+                    setJobs(transformedJobs);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (err) {
+                console.error('Error fetching jobs:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load jobs');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJobs();
+    }, [category]);
 
     const handleFilterToggle = (filterType: FilterType, value: string) => {
         setFilters(prev => {
@@ -194,12 +228,13 @@ export default function RolePage() {
     // Sort by date posted if needed
     if (filters.datePosted.length > 0) {
         filteredJobs.sort((a, b) => {
-            // This is a simplified example - you might need to parse the posted date
-            // and implement proper date comparison based on your data structure
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+
             if (filters.datePosted.includes('Newest')) {
-                return a.posted.localeCompare(b.posted);
+                return dateB - dateA; // Newest first
             } else {
-                return b.posted.localeCompare(a.posted);
+                return dateA - dateB; // Oldest first
             }
         });
     }
@@ -224,6 +259,41 @@ export default function RolePage() {
     const loadMoreJobs = () => {
         setVisibleJobsCount(prev => prev + 3);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white">
+                <Navbar />
+                <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading jobs...</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-white">
+                <Navbar />
+                <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                        <p className="text-red-600 mb-4">Error: {error}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen  relative bg-white overflow-x-hidden">
@@ -289,7 +359,7 @@ export default function RolePage() {
                             {/* Experience Level Filter */}
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
-                                {['Beginner', 'Moderate', 'Experienced'].map(level => (
+                                {['junior', 'intermediate', 'senior', 'expert'].map(level => (
                                     <div key={level} className="flex items-center mb-2">
                                         <div
                                             className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.experience.includes(level)
@@ -302,7 +372,7 @@ export default function RolePage() {
                                                 <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
                                             )}
                                         </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c]">{level}</span>
+                                        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{level}</span>
                                     </div>
                                 ))}
                             </div>
@@ -310,7 +380,7 @@ export default function RolePage() {
                             {/* Location Filter */}
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
-                                {['Remote', 'On-Site', 'Hybrid'].map(location => (
+                                {Array.from(new Set(jobs.map(job => job.location))).map(location => (
                                     <div key={location} className="flex items-center mb-2">
                                         <div
                                             className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.location.includes(location)
@@ -352,7 +422,7 @@ export default function RolePage() {
                             {/* Job Type Filter */}
                             <div>
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
-                                {['Full Time', 'Project Based', 'Hourly'].map(type => (
+                                {Array.from(new Set(jobs.map(job => job.type))).map(type => (
                                     <div key={type} className="flex items-center mb-2">
                                         <div
                                             className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.jobType.includes(type)
@@ -365,7 +435,7 @@ export default function RolePage() {
                                                 <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
                                             )}
                                         </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c]">{type}</span>
+                                        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{type.replace('-', ' ')}</span>
                                     </div>
                                 ))}
                             </div>
@@ -449,7 +519,7 @@ export default function RolePage() {
                                     {/* Experience Level Filter */}
                                     <div className="mb-8">
                                         <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
-                                        {['Beginner', 'Moderate', 'Experienced'].map(level => (
+                                        {['junior', 'intermediate', 'senior', 'expert'].map(level => (
                                             <div key={level} className="flex items-center mb-2">
                                                 <div
                                                     className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.experience.includes(level)
@@ -462,7 +532,7 @@ export default function RolePage() {
                                                         <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
                                                     )}
                                                 </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c]">{level}</span>
+                                                <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{level}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -470,7 +540,7 @@ export default function RolePage() {
                                     {/* Location Filter */}
                                     <div className="mb-8">
                                         <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
-                                        {['Remote', 'On-Site', 'Hybrid'].map(location => (
+                                        {Array.from(new Set(jobs.map(job => job.location))).map(location => (
                                             <div key={location} className="flex items-center mb-2">
                                                 <div
                                                     className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.location.includes(location)
@@ -512,7 +582,7 @@ export default function RolePage() {
                                     {/* Job Type Filter */}
                                     <div className="mb-8">
                                         <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
-                                        {['Full Time', 'Project Based', 'Hourly'].map(type => (
+                                        {Array.from(new Set(jobs.map(job => job.type))).map(type => (
                                             <div key={type} className="flex items-center mb-2">
                                                 <div
                                                     className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.jobType.includes(type)
@@ -525,7 +595,7 @@ export default function RolePage() {
                                                         <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
                                                     )}
                                                 </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c]">{type}</span>
+                                                <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{type.replace('-', ' ')}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -573,7 +643,7 @@ export default function RolePage() {
 
                                             <div className="grid grid-cols-3 gap-4 mb-6">
                                                 <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.type}</p>
+                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
                                                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
                                                 </div>
                                                 <div>
@@ -581,7 +651,7 @@ export default function RolePage() {
                                                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.experience}</p>
+                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.experience}</p>
                                                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
                                                 </div>
                                             </div>

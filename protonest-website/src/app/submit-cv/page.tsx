@@ -290,13 +290,27 @@ export default function OnboardingPage() {
                 submitData.append('cv', uploadedCV);
             }
 
-            // TODO: Replace with your actual API endpoint
-            const response = await fetch('/api/onboarding', {
+            // Get JWT token from where you store it (localStorage, context, etc.)
+            const token = localStorage.getItem('jwtToken'); // or from your auth context
+            // Alternative: const token = await getAuthToken(); // if you have a function to get it
+
+            if (!token) {
+                throw new Error('Authentication token not found. Please log in again.');
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/uploadcv`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    // Don't set Content-Type for FormData - browser will set it automatically with boundary
+                },
                 body: submitData,
             });
 
             if (response.ok) {
+                const responseData = await response.json();
+                console.log('CV upload successful:', responseData);
+
                 // Simulate processing time
                 setTimeout(() => {
                     setShowSubmissionModal(false);
@@ -307,12 +321,17 @@ export default function OnboardingPage() {
                     }
                 }, 3000);
             } else {
-                throw new Error('Failed to submit application');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to submit application. Status: ${response.status}`);
             }
 
         } catch (error) {
             console.error('Submission error:', error);
-            setErrors({ submit: 'Failed to submit application. Please try again.' });
+            setErrors({
+                submit: error instanceof Error
+                    ? error.message
+                    : 'Failed to submit application. Please try again.'
+            });
             setShowSubmissionModal(false);
         } finally {
             setIsSubmitting(false);
@@ -388,120 +407,113 @@ export default function OnboardingPage() {
     );
 
     // Jobs Modal Component
-    const JobsModal = () => (
-        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
-            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[1117px] h-auto bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 md:p-8">
-                <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
-                    Based on your CV, we recommend the following roles
-                </div>
+    const JobsModal = () => {
+        const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+            if (e.target === e.currentTarget) {
+                setShowJobsModal(false);
+            }
+        };
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
-                    {/* Job 1 */}
-                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
-                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                            {suggestedJobs[0]?.job_title || 'Firmware Engineer'}
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
-                                {suggestedJobs[0]?.match_percentage || 85}% Match
-                            </span>
-                        </div>
-                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
-                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
-                        </div>
+        return (
+            <div
+                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
+                onClick={handleBackdropClick}
+            >
+                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] xl:max-w-[1117px] max-h-[90vh] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden overflow-y-auto p-4 sm:p-6 md:p-8">
+                    <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
+                        Based on your CV, we recommend the following roles
                     </div>
 
-                    {/* Job 2 */}
-                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
-                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                            {suggestedJobs[1]?.job_title || 'Software Engineer'}
+                    {suggestedJobs && suggestedJobs.length > 0 ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
+                            {suggestedJobs.map((job, index) => (
+                                <div key={index} className="flex flex-col justify-start items-center gap-4 sm:gap-6 p-4 rounded-lg">
+                                    <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] min-h-[60px] flex items-center">
+                                        {job.job_title}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
+                                        <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
+                                            {job.match_percentage}% Match
+                                        </span>
+                                    </div>
+                                    <div className="w-full max-w-[261px]">
+                                        <button className="w-full h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95">
+                                            <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <div className="text-center">
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
-                                {suggestedJobs[1]?.match_percentage || 82}% Match
-                            </span>
+                    ) : (
+                        <div className="text-center text-[#6c6c6c] text-lg font-normal font-poppins leading-[30px] py-8">
+                            No matching jobs found at the moment.
                         </div>
-                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
-                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
-                        </div>
-                    </div>
+                    )}
 
-                    {/* Job 3 */}
-                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
-                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                            {suggestedJobs[2]?.job_title || 'Hardware Engineer'}
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
-                                {suggestedJobs[2]?.match_percentage || 78}% Match
-                            </span>
-                        </div>
-                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
-                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
-                        </div>
+                    <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
+                        Check all available jobs for you!
                     </div>
-
-                    {/* Job 4 */}
-                    <div className="flex flex-col justify-start items-center gap-4 sm:gap-6">
-                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                            {suggestedJobs[3]?.job_title || 'Systems Engineer'}
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[30px]">Good Fit<br /></span>
-                            <span className="text-[#6c6c6c] text-base sm:text-lg font-medium font-poppins leading-[30px]">
-                                {suggestedJobs[3]?.match_percentage || 75}% Match
-                            </span>
-                        </div>
-                        <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer">
-                            <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</div>
-                        </div>
+                    <div className="flex justify-center mt-4">
+                        <button
+                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                            onClick={() => router.push('/dashboard')}
+                        >
+                            <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Suggested Jobs</span>
+                        </button>
                     </div>
-                </div>
-
-                <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
-                    Check all available jobs for you!
-                </div>
-                <div className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 mx-auto rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530fa] inline-flex justify-center items-center gap-1 cursor-pointer mt-4"
-                    onClick={() => router.push('/dashboard')}>
-                    <div className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Suggested Jobs</div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // No Match Modal Component
-    const NoMatchModal = () => (
-        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
-            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
-                <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                    We couldn&apos;t find a perfect match just yet.
-                </div>
-                <div className="text-center text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
-                    Don&apos;t worry! your CV is now part of our talent pool.<br />
-                    We&apos;ll contact you when something opens up that fits your profile.
-                </div>
+    const NoMatchModal = () => {
+        const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+            if (e.target === e.currentTarget) {
+                setShowNoMatchModal(false);
+            }
+        };
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <div className="w-full max-w-[261px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer"
-                        onClick={() => router.push('/')}>
-                        <div className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Return to Homepage</div>
-                    </div>
-                    <div className="w-full max-w-[207px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-4 rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530fa] inline-flex justify-center items-center gap-1 cursor-pointer"
-                        onClick={() => {
-                            setShowNoMatchModal(false);
-                            setUploadedCV(null);
-                            setExtractedSkills([]);
-                            if (fileInputRef.current) fileInputRef.current.click();
-                        }}>
-                        <div className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Re-Upload CV</div>
+        return (
+            <div
+                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
+                onClick={handleBackdropClick}
+            >
+                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-6 sm:p-8 md:p-10">
+                    <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
+                        <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
+                            We couldn&apos;t find a perfect match just yet.
+                        </div>
+                        <div className="text-center text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px] px-2">
+                            Don&apos;t worry! Your CV is now part of our talent pool.<br />
+                            We&apos;ll contact you when something opens up that fits your profile.
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
+                            <button
+                                className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
+                                onClick={() => router.push('/')}
+                            >
+                                <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Return to Homepage</span>
+                            </button>
+                            <button
+                                className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                                onClick={() => {
+                                    setShowNoMatchModal(false);
+                                    setUploadedCV(null);
+                                    setExtractedSkills([]);
+                                    if (fileInputRef.current) fileInputRef.current.click();
+                                }}
+                            >
+                                <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Re-Upload CV</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div>
@@ -552,7 +564,7 @@ export default function OnboardingPage() {
             </div>
 
             <div className="min-h-screen relative overflow-hidden">
-                <div className="container mx-auto px-4 py-8 lg:py-16 max-w-6xl">
+                <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
                     <div className="space-y-8">
                         {/* Personal Information */}
                         <div className="grid grid-cols-1 gap-6">
@@ -566,7 +578,7 @@ export default function OnboardingPage() {
                                     value={formData.fullName}
                                     onChange={(e) => handleInputChange('fullName', e.target.value)}
                                     placeholder="Your Full Name"
-                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-purple-600 outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                 />
                                 {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                             </div>
@@ -583,7 +595,7 @@ export default function OnboardingPage() {
                                         value={formData.email}
                                         onChange={(e) => handleInputChange('email', e.target.value)}
                                         placeholder="you@company.com"
-                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-purple-600 outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                     />
                                     {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
                                 </div>
@@ -602,7 +614,7 @@ export default function OnboardingPage() {
                                                     e.stopPropagation();
                                                     toggleDropdown('countryCode');
                                                 }}
-                                                className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent focus:border-purple-600 outline-none transition-colors font-['Poppins']"
+                                                className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
                                             >
                                                 <span className="mr-1">{selectedCountryCode.flag}</span>
                                                 <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">{selectedCountryCode.dialCode}</span>
@@ -635,7 +647,7 @@ export default function OnboardingPage() {
                                             value={formData.phoneNumber}
                                             onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                                             placeholder="For faster communication"
-                                            className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-purple-600 outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                            className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                         />
                                     </div>
                                     {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
@@ -656,7 +668,7 @@ export default function OnboardingPage() {
                                                 e.stopPropagation();
                                                 toggleDropdown('country');
                                             }}
-                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-purple-600 outline-none transition-colors font-['Poppins']"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
                                         >
                                             <span className={formData.country ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
                                                 {formData.country || 'Select country'}
@@ -698,7 +710,7 @@ export default function OnboardingPage() {
                                                 if (formData.country) toggleDropdown('city');
                                             }}
                                             disabled={!formData.country}
-                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-purple-600 outline-none transition-colors font-['Poppins'] disabled:opacity-50"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] disabled:opacity-50"
                                         >
                                             <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
                                                 {formData.city || 'Select city'}
@@ -747,7 +759,7 @@ export default function OnboardingPage() {
                                             }
                                         }}
                                         placeholder="Type and press Enter to add functions"
-                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-purple-600 outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                     />
 
                                     {/* Autocomplete suggestions */}
@@ -782,7 +794,7 @@ export default function OnboardingPage() {
                                         {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
                                             <div
                                                 key={index}
-                                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 border-purple-600 text-gray-600 font-medium text-sm font-['Poppins']"
+                                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
                                             >
                                                 <span>{func}</span>
                                                 <button
@@ -829,7 +841,7 @@ export default function OnboardingPage() {
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm sm:text-base font-['Poppins']"
+                                            className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins']"
                                         >
                                             Browse
                                         </button>
@@ -847,7 +859,7 @@ export default function OnboardingPage() {
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="px-4 py-1 lg:px-6 lg:py-2 border-2 border-purple-600 text-purple-600 rounded-full font-semibold hover:bg-purple-50 transition-all duration-300 text-sm sm:text-base font-['Poppins']"
+                                            className="px-4 py-1 lg:px-6 lg:py-2 border-2 gradient-border text-[#6c6c6c] hover:cursor-pointer rounded-full font-semibold hover:bg-purple-50 transition-all duration-300 text-sm sm:text-base font-['Poppins']"
                                         >
                                             Replace CV
                                         </button>
@@ -867,7 +879,7 @@ export default function OnboardingPage() {
                                     {extractedSkills.map((skill, index) => (
                                         <div
                                             key={index}
-                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 border-purple-600 text-gray-600 font-medium text-sm font-['Poppins']"
+                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
                                         >
                                             <span>{skill}</span>
                                             <button
@@ -889,7 +901,7 @@ export default function OnboardingPage() {
                                 type="button"
                                 onClick={() => handleInputChange('ndaAcknowledged', !formData.ndaAcknowledged)}
                                 className={`w-5 h-5 lg:w-6 lg:h-6 rounded-full border-2 flex-shrink-0 mt-1 transition-colors ${formData.ndaAcknowledged
-                                    ? 'bg-purple-600 border-purple-600'
+                                    ? 'bg-[rgba(85,48,250,1)] border-[rgba(85,48,250,1)]'
                                     : 'border-gray-400'
                                     }`}
                             >
@@ -923,15 +935,15 @@ export default function OnboardingPage() {
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base"
+                                className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base"
                             >
-                                {isSubmitting ? 'Submitting...' : 'Sign Up and Add to Talent Pool'}
+                                Sign Up and Add to Talent Pool
                             </button>
                             <button
                                 type="button"
                                 onClick={handleReset}
                                 disabled={isSubmitting}
-                                className="flex-1 sm:max-w-xs px-6 py-3 lg:px-8 lg:py-4 border-2 border-purple-600 text-gray-600 rounded-full font-semibold hover:bg-purple-50 transition-all duration-300 font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base"
+                                className="flex-1 sm:max-w-xs px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base"
                             >
                                 Reset
                             </button>

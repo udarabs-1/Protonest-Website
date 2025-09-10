@@ -6,7 +6,6 @@ import {
     ChevronRight,
     LogOut,
     Menu,
-    Settings,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -16,8 +15,89 @@ import { useEffect, useRef, useState } from 'react';
 
 type ApplicationStatus = 'pending' | 'shortlisted' | 'rejected';
 
+interface JobDetails {
+    _id: string;
+    title: string;
+    category: string;
+    type: string;
+    location: string;
+    description: string;
+    overview: string;
+    requirements: string[];
+    responsibilities: string[];
+    experience: string;
+    deadline: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    created_by: string;
+}
+
+interface Application {
+    _id: string;
+    user_id: string;
+    job_id: string;
+    job_details: JobDetails;
+    status: ApplicationStatus;
+    applied_at: string;
+    updated_at: string;
+}
+
+interface Job {
+    id: string;
+    title: string;
+    location: string;
+    type: string;
+    description: string;
+    requirements: string[];
+    postedDate?: string;
+    applicationDeadline?: string;
+    experience?: string;
+}
+
+interface User {
+    _id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    country: string;
+}
+
+interface SuggestedJob {
+    category: string;
+    job_id: string;
+    job_title: string;
+    match_percentage: number;
+    matched_skills: string[];
+    missing_skills: string[];
+}
+
+interface PublicJobResponse {
+    id: string;
+    title: string;
+    location: string;
+    posted: string;
+    type: string;
+    deadline: string;
+    experience: string;
+    category: string;
+    description: string;
+    responsibilities: string[] | null;
+    requirements: string[] | null;
+    overview: string;
+    status: string;
+    created_by: string;
+    created_at: string;
+}
+
 const Dashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [savedJobsCount, setSavedJobsCount] = useState(0);
+    const [appliedJobsCount, setAppliedJobsCount] = useState(0);
+    const [applications, setApplications] = useState<Application[]>([]);
+    const [suggestedJobs, setSuggestedJobs] = useState<Job[]>([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -26,11 +106,9 @@ const Dashboard = () => {
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '✍️', label: 'Ongoing Projects', path: '/dashboard/projects' },
         { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
-        { icon: '⚙️', label: 'Settings', path: '/dashboard/settings' },
     ];
 
     // Close sidebar when clicking outside
@@ -47,107 +125,124 @@ const Dashboard = () => {
         };
     }, [sidebarOpen]);
 
+    // Fetch dashboard data
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+
+                // Fetch user profile
+                const userResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/auth/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
+
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    setUser(userData);
+                }
+
+                // Fetch saved jobs count
+                const savedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/saved-jobs/count', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
+
+                if (savedResponse.ok) {
+                    const savedData = await savedResponse.json();
+                    setSavedJobsCount(savedData.data.count || 0);
+                }
+
+                // Fetch applied jobs count
+                const appliedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications/count', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
+
+                if (appliedResponse.ok) {
+                    const appliedData = await appliedResponse.json();
+                    setAppliedJobsCount(appliedData.data.count || 0);
+                }
+
+                // Fetch recent applications
+                const applicationsResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications?limit=5', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
+
+                if (applicationsResponse.ok) {
+                    const applicationsData = await applicationsResponse.json();
+                    setApplications(applicationsData.data || []);
+                }
+
+                // Fetch suggested jobs
+                const suggestedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/cv/suggested-jobs', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
+
+                if (suggestedResponse.ok) {
+                    const suggestedData = await suggestedResponse.json();
+                    const suggestedJobsList: SuggestedJob[] = suggestedData.data.suggested_jobs || [];
+
+                    // Fetch details for each suggested job
+                    const jobDetailsPromises = suggestedJobsList.map(async (suggestedJob: SuggestedJob) => {
+                        try {
+                            const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs/${suggestedJob.job_id}`);
+                            if (jobResponse.ok) {
+                                const jobData = await jobResponse.json();
+                                const publicJob: PublicJobResponse = jobData.data; // Changed from jobData.data[0] to jobData.data
+
+                                // Map the public API response to the Job interface expected by the UI
+                                return {
+                                    id: publicJob.id,
+                                    title: publicJob.title,
+                                    location: publicJob.location,
+                                    type: publicJob.type,
+                                    description: publicJob.description,
+                                    requirements: publicJob.requirements || [], // Added fallback for null requirements
+                                    postedDate: publicJob.created_at,
+                                    applicationDeadline: publicJob.deadline
+                                };
+                            }
+                        } catch (error) {
+                            console.error('Error fetching job details:', error);
+                        }
+                        return null;
+                    });
+
+                    const jobDetails = await Promise.all(jobDetailsPromises);
+                    setSuggestedJobs(jobDetails.filter(job => job !== null) as Job[]);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
     const statsCards = [
         {
-            title: 'Suggested Jobs',
-            value: 'Submit CV',
-            subtitle: 'Based on your skills & CV',
-            type: 'action',
-            path: '/dashboard/suggested-jobs'
-        },
-        {
             title: 'Saved Jobs',
-            value: '4',
+            value: savedJobsCount.toString(),
             subtitle: "You haven't applied yet",
             type: 'stat',
             path: '/dashboard/saved-jobs'
         },
         {
             title: 'Applied Jobs',
-            value: '5',
-            subtitle: '2 shortlisted · 1 rejected',
+            value: appliedJobsCount.toString(),
+            subtitle: 'Track your applications',
             type: 'stat',
             path: '/dashboard/applied-jobs'
-        },
-        {
-            title: 'Ongoing Projects',
-            value: '2',
-            subtitle: 'Freelancing in progress',
-            type: 'stat',
-            path: '/dashboard/projects'
-        }
-    ];
-
-    const quickActions = [
-        { icon: '📝', label: 'Edit Profile', path: '/dashboard/profile' },
-        { icon: '📨', label: 'Manage Job Alerts', path: '/dashboard/alerts' },
-        { icon: '📊', label: 'Completed Projects', path: '/dashboard/projects' },
-        { icon: '📣', label: 'Manage Subscriptions', path: '/dashboard/settings' }
-    ];
-
-    const applications = [
-        {
-            id: '1',
-            title: 'Embedded Firmware Developer',
-            status: 'pending' as ApplicationStatus,
-            date: 'May 22, 2025'
-        },
-        {
-            id: '2',
-            title: 'Junior PCB Layout Engineer',
-            status: 'shortlisted' as ApplicationStatus,
-            date: 'May 19, 2025'
-        },
-        {
-            id: '3',
-            title: 'IoT Field Tester – Smart Agri',
-            status: 'shortlisted' as ApplicationStatus,
-            date: 'May 19, 2025'
-        },
-        {
-            id: '4',
-            title: 'Senior iOT Engineer',
-            status: 'rejected' as ApplicationStatus,
-            date: 'May 15, 2025'
-        },
-        {
-            id: '5',
-            title: 'Embedded Firmware Developer',
-            status: 'pending' as ApplicationStatus,
-            date: 'May 10, 2025'
-        }
-    ];
-
-    const suggestedJobs = [
-        {
-            id: '1',
-            title: 'Job Title Here Job Title Here',
-            type: 'Hourly',
-            posted: '1 day ago',
-            hours: 'Less than 30 hrs/week',
-            level: 'Intermediate',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['Key Word', 'Key Word', 'Key Word', 'Key Word']
-        },
-        {
-            id: '2',
-            title: 'Job Title Here Job Title Here',
-            type: 'Hourly',
-            posted: '1 day ago',
-            hours: 'Less than 30 hrs/week',
-            level: 'Intermediate',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['Key Word', 'Key Word', 'Key Word', 'Key Word']
-        },
-        {
-            id: '3',
-            title: 'Job Title Here Job Title Here',
-            type: 'Hourly',
-            posted: '1 day ago',
-            hours: 'Less than 30 hrs/week',
-            level: 'Intermediate',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['Key Word', 'Key Word', 'Key Word', 'Key Word']
         }
     ];
 
@@ -176,6 +271,36 @@ const Dashboard = () => {
                 return '🟡';
         }
     };
+
+    // Helper function to format time difference as "X days ago"
+    const formatTimeAgo = (dateString: string): string => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        return `${diffDays} days ago`;
+    };
+
+    // Helper function to format date as "MMM D, YYYY"
+    const formatDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -207,10 +332,6 @@ const Dashboard = () => {
                                 <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                     <Bell className="w-5 h-5 text-gray-600" />
                                 </button>
-                                <Link href="/dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Settings className="w-5 h-5 text-gray-600" />
-                                </Link>
-
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -335,15 +456,8 @@ const Dashboard = () => {
                             {/* Welcome Section */}
                             <div className="font-montserrat mb-8">
                                 <h1 className="text-2xl font-semibold text-gray-700 mb-2">
-                                    Welcome back, [User Name]
+                                    Welcome back, {user?.first_name || 'User'}
                                 </h1>
-                                <p className="text-sm text-gray-600">
-                                    ⚠️ Reminder: You haven&apos;t updated your CV in 6 months.{' '}
-                                    <Link href="/dashboard/resubmit-cv" className="text-gray-800 underline hover:text-purple-600">
-                                        Click here
-                                    </Link>{' '}
-                                    to upload your updated CV
-                                </p>
                             </div>
 
                             {/* Stats Cards - 2 per row on mobile */}
@@ -351,7 +465,7 @@ const Dashboard = () => {
                                 <h2 className="text-lg font-medium text-gray-700 mb-4">
                                     Your Applications at a Glance
                                 </h2>
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                                     {statsCards.map((card, index) => (
                                         <Link
                                             key={index}
@@ -429,59 +543,48 @@ const Dashboard = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {applications.map((app, index) => (
-                                                    <tr key={index} className="hover:bg-gray-50">
-                                                        <td className="px-4 py-3 text-left">
-                                                            <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {app.title}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-left">
-                                                            <div className={`text-[11px] font-medium font-poppins leading-none ${getStatusColor(app.status)}`}>
-                                                                {getStatusIcon(app.status)} {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-left">
-                                                            <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {app.date}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-center">
-                                                            <Link
-                                                                href={`/dashboard/applied-jobs/${app.id}`}
-                                                                className="w-[198px] h-8 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
-                                                            >
-                                                                View
-                                                            </Link>
+                                                {applications.length > 0 ? (
+                                                    applications.map((app, index) => (
+                                                        <tr key={index} className="hover:bg-gray-50">
+                                                            <td className="px-4 py-3 text-left">
+                                                                <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
+                                                                    {app.job_details?.title || 'N/A'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-left">
+                                                                <div className={`text-[11px] font-medium font-poppins leading-none ${getStatusColor(app.status)}`}>
+                                                                    {getStatusIcon(app.status)} {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-left">
+                                                                <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
+                                                                    {new Date(app.applied_at).toLocaleDateString('en-US', {
+                                                                        year: 'numeric',
+                                                                        month: 'short',
+                                                                        day: 'numeric'
+                                                                    })}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <Link
+                                                                    href={`/dashboard/applied-jobs/${app._id}`}
+                                                                    className="w-[198px] h-8 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
+                                                                >
+                                                                    View
+                                                                </Link>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                                                            No applications found
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            </div>
-
-                            {/* Quick Actions - 2 per row on mobile */}
-                            <div className="mb-8">
-                                <h2 className="text-lg font-medium text-gray-700 mb-4">
-                                    Quick Actions
-                                </h2>
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {quickActions.map((action, index) => (
-                                        <Link
-                                            key={index}
-                                            href={action.path}
-                                            className="bg-white rounded-lg shadow-md p-2 flex flex-col justify-center items-center text-center hover:shadow-lg transition-shadow h-36"
-                                        >
-                                            <div className="mb-4 flex items-center justify-center">
-                                                <span className="w-12 h-12 text-4xl flex items-center justify-center">
-                                                    {action.icon}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-[15px] text-gray-600">{action.label}</h3>
-                                        </Link>
-                                    ))}
                                 </div>
                             </div>
 
@@ -503,89 +606,83 @@ const Dashboard = () => {
                                             className="inline-flex gap-6"
                                             style={{ minWidth: `${suggestedJobs.length * 452}px` }}
                                         >
-                                            {suggestedJobs.map((job) => (
-                                                <Link
-                                                    key={job.id}
-                                                    href={`/dashboard/suggested-jobs/${job.id}`}
-                                                    className="group w-[436px] h-[318px] flex-shrink-0 relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md backdrop-blur-[20px] overflow-hidden hover:shadow-lg transition-shadow"
-                                                >
-                                                    {/* Job Title */}
-                                                    <div className="w-[325px] h-[43px] left-[46px] top-[46px] absolute">
-                                                        <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
-                                                            {job.title}
-                                                        </div>
-                                                    </div>
 
-                                                    {/* Job Type and Posted Date */}
-                                                    <div className="w-[330px] h-[35px] left-[46px] top-[69px] absolute text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                        {job.type} - Posted {job.posted}
-                                                    </div>
-
-                                                    {/* Job Description */}
-                                                    <div className="w-[330px] h-[43px] left-[46px] top-[191px] absolute text-[#6c6c6c] text-[9px] font-medium font-['Poppins'] leading-[18px] line-clamp-2">
-                                                        {job.description}
-                                                    </div>
-
-                                                    {/* Hours and Experience */}
-                                                    <div className="left-[46px] top-[117px] absolute inline-flex justify-start items-start gap-[51px]">
-                                                        <div className="w-[136px] inline-flex flex-col justify-start items-start">
-                                                            <div className="self-stretch h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                                                                {job.hours}
-                                                            </div>
-                                                            <div className="self-stretch h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                                Hours needed
-                                                            </div>
-                                                        </div>
-                                                        <div className="w-[120px] inline-flex flex-col justify-start items-start">
-                                                            <div className="self-stretch h-[26px] text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                                                                {job.level}
-                                                            </div>
-                                                            <div className="self-stretch h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                                Experience level
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Arrow Image Swap on Hover */}
-                                                    <div className="absolute right-6 top-6 w-[70px] h-[70px] group-hover:w-[100px] group-hover:h-[100px] transition-all duration-300">
-                                                        {/* Default Arrow */}
-                                                        <div className="w-full h-full group-hover:hidden">
-                                                            <Image
-                                                                src="/upleft.svg"
-                                                                alt="Arrow"
-                                                                width={70}
-                                                                height={70}
-                                                                className="w-full h-full object-contain"
-                                                            />
-                                                        </div>
-
-                                                        {/* Hover Arrow */}
-                                                        <div className="hidden w-full h-full group-hover:block">
-                                                            <Image
-                                                                src="/upleft-hover.svg"
-                                                                alt="Hover Arrow"
-                                                                width={100}
-                                                                height={100}
-                                                                className="w-full h-full object-contain"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Keywords */}
-                                                    <div className="left-[46px] top-[245px] absolute inline-flex justify-start items-center gap-2">
-                                                        {job.keywords.slice(0, 4).map((keyword, keyIndex) => (
-                                                            <div
-                                                                key={keyIndex}
-                                                                className="min-w-[70px] h-[29px] px-2.5 rounded-[30px] outline outline-offset-[-1px] outline-[#d5d5d5] flex justify-center items-center"
-                                                            >
-                                                                <div className="text-[#83848b] text-[8px] font-normal font-['Poppins'] leading-normal truncate">
-                                                                    {keyword}
+                                            {suggestedJobs.length > 0 ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {suggestedJobs.map((job) => (
+                                                        <Link
+                                                            key={job.id}
+                                                            href={`/dashboard/suggested-jobs/${job.id}`}
+                                                            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
+                                                        >
+                                                            <div className="flex justify-between">
+                                                                <div className="w-3/4">
+                                                                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
+                                                                        {job.title}
+                                                                    </h3>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
+                                                                        {job.location} ‐ Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
+                                                                    </p>
                                                                 </div>
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </Link>
-                                            ))}
+
+                                                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
+                                                                        {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'N/A'}
+                                                                    </p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
+                                                                        {job.experience || 'Not specified'}
+                                                                    </p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Arrow Image Swap on Hover */}
+                                                            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
+                                                                {/* Default Arrow */}
+                                                                <div className="w-full h-full group-hover:hidden">
+                                                                    <Image
+                                                                        src="/upleft.svg"
+                                                                        alt="Arrow"
+                                                                        width={40}
+                                                                        height={40}
+                                                                        className="w-full h-full object-contain"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Hover Arrow */}
+                                                                <div className="hidden w-full h-full group-hover:block">
+                                                                    <Image
+                                                                        src="/upleft-hover.svg"
+                                                                        alt="Hover Arrow"
+                                                                        width={50}
+                                                                        height={50}
+                                                                        className="w-full h-full object-contain"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                                                                View Details
+                                                            </button>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-12">
+                                                    <p className="text-gray-600 text-lg font-poppins">
+                                                        No suggested jobs available. Upload your CV to get personalized job recommendations.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
