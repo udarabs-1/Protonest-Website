@@ -134,7 +134,7 @@ export default function RolePage() {
 
             try {
                 // Build API URL with category filter
-                const apiUrl = `${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs?category=${encodeURIComponent(category)}`;
+                const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(category)}`;
 
                 const response = await fetch(apiUrl);
 

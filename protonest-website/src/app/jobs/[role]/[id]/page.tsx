@@ -151,7 +151,7 @@ export default function JobDetailPage() {
 
         try {
             const token = getAuthToken();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/saved-jobs/check/${job.id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/check/${job.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export default function JobDetailPage() {
 
         try {
             const token = getAuthToken();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications/status/${job.id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/status/${job.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -208,8 +208,8 @@ export default function JobDetailPage() {
         try {
             const token = getAuthToken();
             const endpoint = isJobSaved
-                ? `${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/saved-jobs/${job.id}`
-                : '${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/saved-jobs';
+                ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/${job.id}`
+                : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs`;
 
             const method = isJobSaved ? 'DELETE' : 'POST';
             const body = isJobSaved ? undefined : JSON.stringify({ job_id: job.id });
@@ -252,7 +252,7 @@ export default function JobDetailPage() {
         setActionLoading(true);
         try {
             const token = getAuthToken();
-            const response = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -292,7 +292,7 @@ export default function JobDetailPage() {
                 const jobId = Array.isArray(id) ? id[0] : id;
 
                 // Fetch the specific job
-                const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs/${jobId}`);
+                const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${jobId}`);
 
                 if (!jobResponse.ok) {
                     throw new Error(`Failed to fetch job: ${jobResponse.status}`);
@@ -323,7 +323,7 @@ export default function JobDetailPage() {
                     setJob(transformedJob);
 
                     // Fetch similar jobs in the same category
-                    const similarResponse = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs?category=${encodeURIComponent(jobDetails.category)}&limit=3`);
+                    const similarResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(jobDetails.category)}&limit=3`);
 
                     if (similarResponse.ok) {
                         const similarData = await similarResponse.json();

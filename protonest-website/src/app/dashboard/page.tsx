@@ -132,7 +132,7 @@ const Dashboard = () => {
                 setLoading(true);
 
                 // Fetch user profile
-                const userResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/auth/user/profile', {
+                const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
                     }
@@ -144,7 +144,7 @@ const Dashboard = () => {
                 }
 
                 // Fetch saved jobs count
-                const savedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/saved-jobs/count', {
+                const savedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/count`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
                     }
@@ -156,7 +156,7 @@ const Dashboard = () => {
                 }
 
                 // Fetch applied jobs count
-                const appliedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications/count', {
+                const appliedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/count`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
                     }
@@ -168,7 +168,7 @@ const Dashboard = () => {
                 }
 
                 // Fetch recent applications
-                const applicationsResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/applications?limit=5', {
+                const applicationsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications?limit=5`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
                     }
@@ -180,7 +180,7 @@ const Dashboard = () => {
                 }
 
                 // Fetch suggested jobs
-                const suggestedResponse = await fetch('${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/cv/suggested-jobs', {
+                const suggestedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/suggested-jobs`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
                     }
@@ -193,7 +193,7 @@ const Dashboard = () => {
                     // Fetch details for each suggested job
                     const jobDetailsPromises = suggestedJobsList.map(async (suggestedJob: SuggestedJob) => {
                         try {
-                            const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/api/v1/public/jobs/${suggestedJob.job_id}`);
+                            const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${suggestedJob.job_id}`);
                             if (jobResponse.ok) {
                                 const jobData = await jobResponse.json();
                                 const publicJob: PublicJobResponse = jobData.data; // Changed from jobData.data[0] to jobData.data
