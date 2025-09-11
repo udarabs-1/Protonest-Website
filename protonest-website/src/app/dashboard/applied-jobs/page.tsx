@@ -4,6 +4,7 @@ import Footer from '@/app/components/footer';
 import {
     Bell,
     ChevronRight,
+    Eye,
     LogOut,
     Menu,
     Search,
@@ -15,17 +16,31 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-interface AppliedJob {
+interface Job {
+    id: string;
     title: string;
+    location: string;
     type: string;
-    posted: string;
-    hours?: string;
-    level: string;
-    price: string;
-    matchScore: string;
-    status: 'pending' | 'shortlisted' | 'rejected';
     description: string;
-    keywords: string[];
+    requirements: string[];
+    postedDate?: string;
+    applicationDeadline?: string;
+    experience?: string;
+    category?: string;
+    overview?: string;
+    matchPercentage?: number;
+    matchedSkills?: string[];
+    missingSkills?: string[];
+}
+
+interface AppliedJob {
+    _id: string;
+    user_id: string;
+    job_id: string;
+    status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired';
+    applied_at: string;
+    updated_at: string;
+    job_details: Job;
 }
 
 const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
@@ -33,27 +48,40 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
         switch (status) {
             case 'pending':
                 return { emoji: '🟡', text: 'Pending', color: 'text-yellow-600' };
+            case 'reviewed':
+                return { emoji: '👀', text: 'Reviewed', color: 'text-blue-600' };
             case 'shortlisted':
                 return { emoji: '✅', text: 'Shortlisted', color: 'text-green-600' };
             case 'rejected':
                 return { emoji: '❌', text: 'Rejected', color: 'text-red-600' };
+            case 'hired':
+                return { emoji: '🎉', text: 'Hired', color: 'text-purple-600' };
             default:
                 return { emoji: '🟡', text: 'Pending', color: 'text-yellow-600' };
         }
     };
 
+    // Helper function to format time difference as "X days ago"
+    const formatTimeAgo = (dateString: string): string => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        return `${diffDays} days ago`;
+    };
+
     const statusDisplay = getStatusDisplay(job.status);
 
     return (
-        <Link
-            href={`/dashboard/applied-jobs/${job.title.toLowerCase().replace(/ /g, '-')}`}
-            className="group relative w-full bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden hover:shadow-lg transition-shadow p-6 flex flex-col"
-        >
+        <div className="group relative w-full bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden hover:shadow-lg transition-shadow p-6 flex flex-col">
             {/* Header with Title */}
             <div className="flex justify-between items-start mb-2 pr-20">
                 <div className="flex-1">
                     <h3 className="text-base font-medium font-['Poppins'] leading-tight line-clamp-2 text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA]">
-                        {job.title}
+                        {job.job_details.title}
                     </h3>
                 </div>
             </div>
@@ -80,30 +108,30 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
                 </div>
             </div>
 
-            {/* Job Type and Posted Date */}
-            <div className="text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] mb-12">
-                {job.type} - {job.posted}
+            {/* Job Type and Applied Date */}
+            <div className="text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] mb-4">
+                {job.job_details.type} - Applied {formatTimeAgo(job.applied_at)}
             </div>
 
-            {/* Price/Hours, Match Score, and Status */}
+            {/* Experience Level, Location, and Status */}
             <div className="flex flex-wrap gap-4 mb-4">
-                {/* Price/Hours Section */}
+                {/* Experience Level Section */}
                 <div className="flex flex-col min-w-0 flex-1">
-                    <div className="text-[#6c6c6c] text-xs font-medium font-['Poppins']">
-                        {job.type === 'Hourly' ? (job.hours || 'Less than 30 hrs/week') : job.price}
+                    <div className="text-[#6c6c6c] text-xs font-medium font-['Poppins'] capitalize">
+                        {job.job_details.experience || 'Not specified'}
                     </div>
                     <div className="text-[#6c6c6c] text-[9px] font-normal font-['Poppins']">
-                        {job.type === 'Hourly' ? 'Hours needed' : 'Fixed-price'}
+                        Experience Level
                     </div>
                 </div>
 
-                {/* Match Score Section */}
+                {/* Location Section */}
                 <div className="flex flex-col min-w-0 flex-1">
                     <div className="text-[#6c6c6c] text-xs font-medium font-['Poppins']">
-                        {job.matchScore}
+                        {job.job_details.location}
                     </div>
                     <div className="text-[#6c6c6c] text-[9px] font-normal font-['Poppins']">
-                        Match Score
+                        Location
                     </div>
                 </div>
 
@@ -120,23 +148,20 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
 
             {/* Job Description */}
             <div className="text-[#6c6c6c] text-[9px] font-medium font-['Poppins'] leading-[18px] line-clamp-2 mb-4 flex-1">
-                {job.description}
+                {job.job_details.description || job.job_details.overview || 'No description available'}
             </div>
 
-            {/* Keywords */}
-            <div className="flex flex-wrap gap-2 mt-auto">
-                {job.keywords.slice(0, 4).map((keyword: string, keyIndex: number) => (
-                    <div
-                        key={keyIndex}
-                        className="px-3 py-1.5 min-w-[60px] h-[28px] rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] flex justify-center items-center"
-                    >
-                        <div className="text-[#83848b] text-[8px] font-normal font-['Poppins'] leading-normal truncate">
-                            {keyword}
-                        </div>
-                    </div>
-                ))}
+            {/* View Details Button */}
+            <div className="mt-4">
+                <Link
+                    href={`/dashboard/applied-jobs/${job.job_id}`}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity"
+                >
+                    <Eye className="w-4 h-4" />
+                    <span className="text-sm font-medium">View Details</span>
+                </Link>
             </div>
-        </Link>
+        </div>
     );
 };
 
@@ -150,8 +175,10 @@ const StatusFilter = ({
     const filters = [
         { key: 'all', label: '📎 All', emoji: '📎' },
         { key: 'pending', label: '🟡 Pending', emoji: '🟡' },
+        { key: 'reviewed', label: '👀 Reviewed', emoji: '👀' },
         { key: 'shortlisted', label: '✅ Shortlisted', emoji: '✅' },
-        { key: 'rejected', label: '❌ Rejected', emoji: '❌' }
+        { key: 'rejected', label: '❌ Rejected', emoji: '❌' },
+        { key: 'hired', label: '🎉 Hired', emoji: '🎉' }
     ];
 
     return (
@@ -174,8 +201,11 @@ const StatusFilter = ({
     );
 };
 
-const UserDashboard = () => {
+const AppliedJobs = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
+    const [filteredJobs, setFilteredJobs] = useState<AppliedJob[]>([]);
+    const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -186,11 +216,9 @@ const UserDashboard = () => {
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '✍️', label: 'Ongoing Projects', path: '/dashboard/projects' },
         { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
-        { icon: '⚙️', label: 'Settings', path: '/dashboard/settings' },
     ];
 
     // Close sidebar when clicking outside
@@ -207,63 +235,66 @@ const UserDashboard = () => {
         };
     }, [sidebarOpen]);
 
-    const appliedJobs: AppliedJob[] = [
-        {
-            title: 'Embedded Firmware Developer',
-            type: 'Fixed-price',
-            posted: 'Posted 1 day ago',
-            hours: 'Less than 30 hrs/week',
-            level: 'Intermediate',
-            price: '$15',
-            matchScore: '91% Match',
-            status: 'pending',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['Embedded', 'Firmware', 'C++', 'RTOS'],
-        },
-        {
-            title: 'IoT Field Tester – Smart Agri',
-            type: 'Hourly',
-            posted: 'Posted 1 day ago',
-            hours: 'Less than 30 hrs/week',
-            level: 'Intermediate',
-            price: '$25/hr',
-            matchScore: '91% Match',
-            status: 'shortlisted',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['IoT', 'Testing', 'Agriculture', 'Wireless'],
-        },
-        {
-            title: 'Junior PCB Layout Engineer',
-            type: 'Fixed-price',
-            posted: 'Posted 2 days ago',
-            hours: 'One-time project',
-            level: 'Entry',
-            price: '$500',
-            matchScore: '91% Match',
-            status: 'rejected',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['PCB', 'Altium', 'CAD', 'Electronics'],
-        },
-        {
-            title: 'Senior IoT Engineer',
-            type: 'Hourly',
-            posted: 'Posted 3 days ago',
-            hours: 'Full-time',
-            level: 'Senior',
-            price: '$45/hr',
-            matchScore: '91% Match',
-            status: 'pending',
-            description: 'Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project Description Here. Project...',
-            keywords: ['IoT', 'Cloud', 'Python', 'AWS'],
-        }
-    ];
+    // Fetch applied jobs data
+    useEffect(() => {
+        const fetchAppliedJobs = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                    }
+                });
 
-    const filteredJobs = appliedJobs.filter(job => {
-        const matchesFilter = activeFilter === 'all' || job.status === activeFilter;
-        const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            job.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()));
-        return matchesFilter && matchesSearch;
-    });
+                if (response.ok) {
+                    const data = await response.json();
+                    setAppliedJobs(data.data || []);
+                    setFilteredJobs(data.data || []);
+                } else {
+                    console.error('Failed to fetch applied jobs');
+                }
+            } catch (error) {
+                console.error('Error fetching applied jobs:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAppliedJobs();
+    }, []);
+
+    // Handle search and filter functionality
+    useEffect(() => {
+        let filtered = appliedJobs;
+
+        // Apply status filter
+        if (activeFilter !== 'all') {
+            filtered = filtered.filter(job => job.status === activeFilter);
+        }
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(job =>
+                job.job_details.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.job_details.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.job_details.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.job_details.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.job_details.matchedSkills?.some(skill =>
+                    skill.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        }
+
+        setFilteredJobs(filtered);
+    }, [searchQuery, activeFilter, appliedJobs]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -454,18 +485,30 @@ const UserDashboard = () => {
 
                                 {/* Applied Jobs Grid */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {filteredJobs.map((job, index) => (
-                                        <AppliedJobCard key={index} job={job} />
-                                    ))}
+                                    {filteredJobs.length > 0 ? (
+                                        filteredJobs.map((job) => (
+                                            <AppliedJobCard key={job._id} job={job} />
+                                        ))
+                                    ) : (
+                                        <div className="col-span-full text-center py-12">
+                                            <div className="text-gray-400 text-lg mb-2">📭</div>
+                                            <p className="text-gray-500">
+                                                {searchQuery || activeFilter !== 'all'
+                                                    ? 'No applied jobs found matching your criteria.'
+                                                    : 'You haven\'t applied to any jobs yet.'
+                                                }
+                                            </p>
+                                            {!searchQuery && activeFilter === 'all' && appliedJobs.length === 0 && (
+                                                <Link
+                                                    href="/dashboard/suggested-jobs"
+                                                    className="text-purple-600 hover:text-purple-700 mt-2 inline-block"
+                                                >
+                                                    Browse suggested jobs →
+                                                </Link>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-
-                                {/* No Results Message */}
-                                {filteredJobs.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <div className="text-gray-400 text-lg mb-2">📭</div>
-                                        <p className="text-gray-500">No applied jobs found matching your criteria.</p>
-                                    </div>
-                                )}
                             </div>
                         </main>
                     </div>
@@ -476,4 +519,4 @@ const UserDashboard = () => {
     );
 };
 
-export default UserDashboard;
+export default AppliedJobs;
