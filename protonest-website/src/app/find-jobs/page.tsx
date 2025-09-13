@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Blogs from '../components/blogs';
 import Footer from '../components/footer';
@@ -126,11 +127,15 @@ export default function CareersPage() {
                         Sign up and add your CV to our talent pool and we will get back to you if a relevant role is available
                     </p>
 
-                    <button className="w-auto min-w-[140px] lg:min-w-[160px] xl:w-[180px] h-[45px] px-6 rounded-full xl:rounded-[57px] gradient-button flex items-center justify-center mx-auto">
-                        <span className="text-sm sm:text-base font-medium font-['Poppins']">
-                            Sign up
-                        </span>
-                    </button>
+                    <Link
+                        href="/signup">
+                        <button className="w-auto min-w-[140px] lg:min-w-[160px] xl:w-[180px] h-[45px] px-6 rounded-full xl:rounded-[57px] gradient-button flex items-center justify-center mx-auto">
+                            <span className="text-sm sm:text-base font-medium font-['Poppins']">
+                                Sign up
+                            </span>
+                        </button>
+                    </Link>
+
                 </div>
             </div>
 

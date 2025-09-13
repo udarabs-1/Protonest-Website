@@ -28,6 +28,9 @@ export default function Navbar() {
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const pathname = usePathname();
 
+    // Replace this with your actual authentication logic
+    const isUserSignedIn = false; // Example - you'll need to implement proper auth state
+
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
             { id: "whats-new-blog", href: "/blog", label: "Blog", description: "Insights, trends & stories from the IoT frontier." },
@@ -111,6 +114,9 @@ export default function Navbar() {
         open: { opacity: 1, transition: { duration: 0.2 } },
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
+
+    // Only show the account button on the find-jobs page
+    const showAccountButton = pathname === "/find-jobs";
 
     return (
         <div>
@@ -213,14 +219,18 @@ export default function Navbar() {
                                     })}
                                 </div>
 
-                                <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                    <Link
-                                        href="/down"
-                                        className="flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
-                                    >
-                                        Sign In
-                                    </Link>
-                                </div>
+                                {showAccountButton ? (
+                                    <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
+                                        <Link
+                                            href={isUserSignedIn ? "/dashboard" : "/signin"}
+                                            className="flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                        >
+                                            My Account
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px]"></div>
+                                )}
                             </div>
                         </div>
                     </nav>
@@ -316,12 +326,16 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                <Link
-                                    href="/down"
-                                    className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
-                                >
-                                    <span className="text-sm font-medium font-montserrat">Sign In</span>
-                                </Link>
+                                {showAccountButton && (
+                                    <Link
+                                        href={isUserSignedIn ? "/dashboard" : "/signin"}
+                                        className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
+                                    >
+                                        <span className="text-sm font-medium font-montserrat">
+                                            My Account
+                                        </span>
+                                    </Link>
+                                )}
 
                                 <button
                                     className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] hover:scale-105 transition-transform"
