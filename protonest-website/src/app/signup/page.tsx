@@ -41,7 +41,8 @@ export default function SignUp() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/signup`, {
+            // Step 1: Sign up the user
+            const signupResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,14 +57,45 @@ export default function SignUp() {
                 }),
             });
 
-            const data = await response.json();
+            const signupData = await signupResponse.json();
 
-            if (response.ok) {
-                // Redirect to submit CV page
-                window.location.href = '/submit-cv';
-            } else {
-                setError(data.message || 'Signup failed. Please try again.');
+            if (!signupResponse.ok) {
+                setError(signupData.message || 'Signup failed. Please try again.');
+                setIsLoading(false);
+                return;
             }
+
+            // Step 2: If signup successful, create subscription
+            if (jobUpdates || newsletter) {
+                try {
+                    const subscriptionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/subscribe`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: `${firstName} ${lastName}`,
+                            email: email,
+                            career_updates: jobUpdates,
+                            newsletter: newsletter
+                        }),
+                    });
+
+                    const subscriptionData = await subscriptionResponse.json();
+
+                    if (!subscriptionResponse.ok) {
+                        console.warn('Subscription creation failed:', subscriptionData.message);
+                        // Continue with signup even if subscription fails
+                    }
+                } catch (subscriptionError) {
+                    console.warn('Subscription error:', subscriptionError);
+                    // Continue with signup even if subscription fails
+                }
+            }
+
+            // Step 3: Redirect to submit CV page
+            window.location.href = '/submit-cv';
+
         } catch (error) {
             console.error('Signup error:', error);
             setError('Network error. Please try again.');

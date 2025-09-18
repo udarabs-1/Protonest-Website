@@ -16,10 +16,9 @@ import { useEffect, useRef, useState } from 'react';
 
 const ManageAlertsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-    const [frequency, setFrequency] = useState('immediate');
-    const [emailNotifications, setEmailNotifications] = useState(true);
-    const [inAppNotifications, setInAppNotifications] = useState(false);
+    const [jobAlertsEnabled, setJobAlertsEnabled] = useState(true);
+    const [newsletterEnabled, setNewsletterEnabled] = useState(true);
+    const [loading, setLoading] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -28,12 +27,41 @@ const ManageAlertsPage = () => {
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '✍️', label: 'Ongoing Projects', path: '/dashboard/projects' },
         { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
-        { icon: '⚙️', label: 'Settings', path: '/dashboard/settings' },
     ];
+
+    // Fetch user data on component mount
+    useEffect(() => {
+        fetchUserData();
+    }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                console.error('No token found');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setJobAlertsEnabled(data.job_updates);
+                setNewsletterEnabled(data.newsletter);
+            } else {
+                console.error('Failed to fetch user data');
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        }
+    };
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -49,22 +77,57 @@ const ManageAlertsPage = () => {
         };
     }, [sidebarOpen]);
 
-    const handleSavePreferences = () => {
-        // Handle save preferences logic here
-        console.log('Saving preferences:', {
-            notificationsEnabled,
-            frequency,
-            emailNotifications,
-            inAppNotifications
-        });
-        alert('Preferences saved successfully!');
+    const updatePreferences = async (jobUpdates: boolean, newsletter: boolean) => {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('Authentication required. Please login again.');
+                return false;
+            }
+
+            setLoading(true);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    job_updates: jobUpdates,
+                    newsletter: newsletter
+                })
+            });
+
+            if (response.ok) {
+                return true;
+            } else {
+                const errorData = await response.json();
+                alert(errorData.error || 'Failed to update preferences');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error updating preferences:', error);
+            alert('Failed to update preferences. Please try again.');
+            return false;
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleReset = () => {
-        setNotificationsEnabled(true);
-        setFrequency('immediate');
-        setEmailNotifications(true);
-        setInAppNotifications(false);
+    const handleSavePreferences = async () => {
+        const success = await updatePreferences(jobAlertsEnabled, newsletterEnabled);
+        if (success) {
+            alert('Preferences saved successfully!');
+        }
+    };
+
+    const handleJobAlertsToggle = (enabled: boolean) => {
+        setJobAlertsEnabled(enabled);
+    };
+
+    const handleNewsletterToggle = (enabled: boolean) => {
+        setNewsletterEnabled(enabled);
     };
 
     const RadioButton = ({
@@ -75,30 +138,29 @@ const ManageAlertsPage = () => {
         value
     }: {
         checked: boolean;
-        onChange: (value: string) => void;
+        onChange: (value: boolean) => void;
         label: string;
         name: string;
-        value: string;
+        value: boolean;
     }) => (
         <div className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="relative flex items-center justify-center">
                 <input
                     type="radio"
                     name={name}
-                    value={value}
                     checked={checked}
                     onChange={() => onChange(value)}
                     className="sr-only"
                 />
                 <div
-                    className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors ${checked
+                    className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors flex items-center justify-center ${checked
                         ? 'border-[#5530fa] bg-white'
                         : 'border-[#6c6c6c] bg-white'
                         }`}
                     onClick={() => onChange(value)}
                 >
                     {checked && (
-                        <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full absolute top-0.5 left-0.5" />
+                        <div className="w-2 h-2 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full" />
                     )}
                 </div>
             </div>
@@ -268,106 +330,69 @@ const ManageAlertsPage = () => {
                             {/* Page Header */}
                             <div className="mb-8">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-[25px]">📣</span>
+                                    <span className="text-[25px]">📨</span>
                                     <h2 className="text-2xl font-medium text-gray-700">Manage Alerts</h2>
                                 </div>
-                                <p className="text-gray-600 text-sm">
+                                <p className="text-gray-600 text-xs">
                                     Customize how you receive updates about job matches and platform notifications.
                                 </p>
                             </div>
 
-                            {/* Notification Settings Card */}
+                            {/* Job Alerts Card */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
                                 <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
-                                    Manage Notification
+                                    Manage Job Alerts via Email
                                 </h3>
                                 <div className="space-y-4">
                                     <RadioButton
-                                        checked={notificationsEnabled}
-                                        onChange={() => setNotificationsEnabled(true)}
-                                        label="Turn notifications on"
-                                        name="notifications"
-                                        value="on"
+                                        checked={jobAlertsEnabled}
+                                        onChange={() => handleJobAlertsToggle(true)}
+                                        label="Turn on"
+                                        name="jobAlerts"
+                                        value={true}
                                     />
                                     <RadioButton
-                                        checked={!notificationsEnabled}
-                                        onChange={() => setNotificationsEnabled(false)}
-                                        label="Turn notifications off"
-                                        name="notifications"
-                                        value="off"
+                                        checked={!jobAlertsEnabled}
+                                        onChange={() => handleJobAlertsToggle(false)}
+                                        label="Turn off"
+                                        name="jobAlerts"
+                                        value={false}
                                     />
                                 </div>
                             </div>
 
-                            {/* Frequency and Delivery Method Card */}
+                            {/* Newsletter Card */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
-                                {/* Notification Frequency Section */}
-                                <div className="mb-8">
-                                    <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
-                                        Notification Frequency
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <RadioButton
-                                            checked={frequency === 'immediate'}
-                                            onChange={(value) => setFrequency(value)}
-                                            label="Immediately when new roles go live"
-                                            name="frequency"
-                                            value="immediate"
-                                        />
-                                        <RadioButton
-                                            checked={frequency === 'daily'}
-                                            onChange={(value) => setFrequency(value)}
-                                            label="Daily Digest"
-                                            name="frequency"
-                                            value="daily"
-                                        />
-                                        <RadioButton
-                                            checked={frequency === 'weekly'}
-                                            onChange={(value) => setFrequency(value)}
-                                            label="Weekly Digest"
-                                            name="frequency"
-                                            value="weekly"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Delivery Method Section */}
-                                <div>
-                                    <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
-                                        Delivery Method
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <RadioButton
-                                            checked={emailNotifications}
-                                            onChange={() => setEmailNotifications(true)}
-                                            label="Email Notifications"
-                                            name="email"
-                                            value="email"
-                                        />
-                                        <RadioButton
-                                            checked={inAppNotifications}
-                                            onChange={() => setInAppNotifications(!inAppNotifications)}
-                                            label="In-App Notifications"
-                                            name="inapp"
-                                            value="inapp"
-                                        />
-                                    </div>
+                                <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
+                                    Manage Email Notifications from the Newsletter
+                                </h3>
+                                <div className="space-y-4">
+                                    <RadioButton
+                                        checked={newsletterEnabled}
+                                        onChange={() => handleNewsletterToggle(true)}
+                                        label="Turn on"
+                                        name="newsletter"
+                                        value={true}
+                                    />
+                                    <RadioButton
+                                        checked={!newsletterEnabled}
+                                        onChange={() => handleNewsletterToggle(false)}
+                                        label="Turn off"
+                                        name="newsletter"
+                                        value={false}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end">
+                            {/* Action Button */}
+                            <div className="flex justify-center lg:justify-end">
                                 <button
                                     onClick={handleSavePreferences}
-                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow"
+                                    disabled={loading}
+                                    className={`w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                 >
-                                    Save My Preferences
-                                </button>
-                                <button
-                                    onClick={handleReset}
-                                    className="w-full sm:w-auto px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 transition-colors"
-                                >
-                                    Reset
+                                    {loading ? 'Saving...' : 'Save My Preferences'}
                                 </button>
                             </div>
                         </main>

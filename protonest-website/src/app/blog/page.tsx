@@ -18,6 +18,14 @@ interface Blog {
   categoryTags: string[];
 }
 
+// Subscription form interface
+interface SubscriptionForm {
+  name: string;
+  email: string;
+  career_updates: boolean;
+  newsletter: boolean;
+}
+
 // Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: Blog }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -139,6 +147,17 @@ export default function BlogSection() {
   const [showAllBlogs, setShowAllBlogs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // State for subscription form
+  const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
+    name: '',
+    email: '',
+    career_updates: false,
+    newsletter: true // Default to true since they're subscribing to newsletter
+  });
+
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
+
   // Check screen size on mount and resize
   useEffect(() => {
     const checkScreenSize = () => {
@@ -210,6 +229,58 @@ export default function BlogSection() {
     setSelectedCategories(prev => prev.filter(c => c !== category));
     // Reset load more state when removing categories
     setShowAllBlogs(false);
+  };
+
+  // Handle subscription form submission
+  const handleSubscriptionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubscriptionStatus('loading');
+    setSubscriptionMessage('');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: subscriptionForm.name,
+          email: subscriptionForm.email,
+          career_updates: subscriptionForm.career_updates,
+          newsletter: subscriptionForm.newsletter
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubscriptionStatus('success');
+        setSubscriptionMessage(data.message || 'Subscription successful! Thank you for subscribing.');
+        // Reset form
+        setSubscriptionForm({
+          name: '',
+          email: '',
+          career_updates: false,
+          newsletter: true
+        });
+      } else {
+        setSubscriptionStatus('error');
+        setSubscriptionMessage(data.message || 'Failed to subscribe. Please try again.');
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      setSubscriptionStatus('error');
+      setSubscriptionMessage('An error occurred. Please try again later.');
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setSubscriptionForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   return (
@@ -376,17 +447,20 @@ export default function BlogSection() {
                   Get the latest articles, insights, and stories delivered to your inbox.
                 </p>
 
-                {/* Disabled Newsletter Form */}
-                <div className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16 opacity-50 pointer-events-none select-none">
+                {/* Working Newsletter Form */}
+                <form onSubmit={handleSubscriptionSubmit} className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
                   <div className="space-y-1">
                     <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Name
                     </label>
                     <input
                       type="text"
+                      name="name"
+                      value={subscriptionForm.name}
+                      onChange={handleInputChange}
                       placeholder="Your Full Name"
-                      disabled
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa] cursor-not-allowed"
+                      required
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c] text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
                     />
                   </div>
 
@@ -396,9 +470,12 @@ export default function BlogSection() {
                     </label>
                     <input
                       type="email"
+                      name="email"
+                      value={subscriptionForm.email}
+                      onChange={handleInputChange}
                       placeholder="you@company.com"
-                      disabled
-                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa] cursor-not-allowed"
+                      required
+                      className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c] text-sm xl:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
                     />
                   </div>
 
@@ -406,30 +483,34 @@ export default function BlogSection() {
                     <input
                       type="checkbox"
                       id="career-updates"
-                      disabled
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2 cursor-not-allowed"
+                      name="career_updates"
+                      checked={subscriptionForm.career_updates}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2"
                     />
-                    <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-not-allowed">
+                    <label htmlFor="career-updates" className="text-[#6c6c6c] text-sm xl:text-base font-normal font-poppins leading-[24px] sm:leading-[30px]">
                       I&apos;m interested in career updates too.
                     </label>
                   </div>
 
+                  {/* Status Message */}
+                  {subscriptionMessage && (
+                    <div className={`text-sm font-poppins ${subscriptionStatus === 'success' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                      {subscriptionMessage}
+                    </div>
+                  )}
+
                   <div className="flex justify-start mt-8 sm:mt-12">
                     <button
-                      disabled
-                      className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-not-allowed text-white bg-gradient-to-r from-[rgba(85,48,250,0.5)] to-[rgba(245,29,165,0.5)] rounded-[57px]"
+                      type="submit"
+                      disabled={subscriptionStatus === 'loading'}
+                      className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Subscribe
+                      {subscriptionStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
                     </button>
                   </div>
-                </div>
-
-                {/* Coming Soon Notice */}
-                <div className="mt-4 text-left">
-                  <p className="text-[#6c6c6c]/70 text-sm font-poppins">
-                    Newsletter subscription coming soon.
-                  </p>
-                </div>
+                </form>
               </div>
             </div>
 

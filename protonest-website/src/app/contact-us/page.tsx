@@ -33,7 +33,7 @@ export default function Contact() {
     setSubmitStatus('');
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export default function Contact() {
         setFormData({ name: '', email: '', message: '' }); // Reset form
       } else {
         setSubmitStatus('error');
-        console.error('Error:', result.error);
+        console.error('Error:', result.message || result.error);
       }
     } catch (error) {
       setSubmitStatus('error');

@@ -20,7 +20,6 @@ type Job = {
     description: string;
     responsibilities: string[];
     requirements: string[];
-    overview: string;
     created_at: string;
 };
 
@@ -316,7 +315,6 @@ export default function JobDetailPage() {
                         description: jobDetails.description,
                         responsibilities: jobDetails.responsibilities || [],
                         requirements: jobDetails.requirements || [],
-                        overview: jobDetails.overview,
                         created_at: jobDetails.created_at
                     };
 
@@ -344,7 +342,6 @@ export default function JobDetailPage() {
                                     description: j.description,
                                     responsibilities: j.responsibilities || [],
                                     requirements: j.requirements || [],
-                                    overview: j.overview,
                                     created_at: j.created_at
                                 }));
 
@@ -481,7 +478,7 @@ export default function JobDetailPage() {
                 {/* Job Description */}
                 <div className="mb-8">
                     <p className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
-                        {job.description} {job.overview}
+                        {job.description}
                     </p>
                 </div>
 

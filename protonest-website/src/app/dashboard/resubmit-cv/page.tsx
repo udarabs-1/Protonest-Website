@@ -18,10 +18,31 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+// Update the CVInfo interface to match the API response structure
+interface CVInfoResponse {
+    status: string;
+    message?: string;
+    data: CVInfo;
+}
+
+interface CVInfo {
+    file_url: string;
+    original_name: string;
+    uploaded_at: string;
+    file_size: string;
+    file_type: string;
+}
+
 const ResubmitCVPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [cvInfo, setCvInfo] = useState<CVInfo | null>(null);
+    const [lastSubmitted, setLastSubmitted] = useState<string>('');
+    const [currentFileName, setCurrentFileName] = useState<string>('');
+    const [error, setError] = useState<string>('');
+    const [success, setSuccess] = useState<string>('');
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
@@ -31,12 +52,51 @@ const ResubmitCVPage = () => {
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '✍️', label: 'Ongoing Projects', path: '/dashboard/projects' },
         { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
-        { icon: '⚙️', label: 'Settings', path: '/dashboard/settings' },
     ];
+
+    // Fetch CV info on component mount
+    useEffect(() => {
+        fetchCVInfo();
+    }, []);
+
+    const fetchCVInfo = async () => {
+        try {
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                setError('Please log in to access this feature');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
+                headers: {
+                    'Authorization': `Bearer ${jwtToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data: CVInfoResponse = await response.json();
+                if (data.status === 'success' && data.data) {
+                    setCvInfo(data.data);
+                    setLastSubmitted(new Date(data.data.uploaded_at).toLocaleDateString());
+                    setCurrentFileName(data.data.original_name);
+                }
+            } else if (response.status === 404) {
+                // No CV found, which is okay
+                setCvInfo(null);
+                setLastSubmitted('Never');
+                setCurrentFileName('No file uploaded');
+            } else {
+                throw new Error('Failed to fetch CV info');
+            }
+        } catch (error) {
+            console.error('Error fetching CV info:', error);
+            setError('Failed to load CV information');
+        }
+    };
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -56,8 +116,9 @@ const ResubmitCVPage = () => {
     const handleFileSelect = (file: File) => {
         if (file.type === 'application/pdf') {
             setSelectedFile(file);
+            setError('');
         } else {
-            alert('Please select a PDF file only.');
+            setError('Please select a PDF file only.');
         }
     };
 
@@ -91,13 +152,70 @@ const ResubmitCVPage = () => {
         fileInputRef.current?.click();
     };
 
-    const handleSubmit = () => {
-        if (selectedFile) {
-            // Handle CV submission logic here
-            console.log('Submitting CV:', selectedFile.name);
-            alert('CV submitted successfully!');
+    const handleSubmit = async () => {
+        if (!selectedFile) {
+            setError('Please select a file first.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                throw new Error('Please log in to submit your CV');
+            }
+
+            const formData = new FormData();
+            formData.append('cv', selectedFile);
+
+            // Use the new updatecv endpoint that only updates the CV file
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/updatecv`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${jwtToken}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success') {
+                setSuccess('CV updated successfully!');
+                setSelectedFile(null);
+                // Refresh CV info
+                await fetchCVInfo();
+            } else {
+                throw new Error(data.message || 'Failed to update CV');
+            }
+        } catch (error) {
+            console.error('Error updating CV:', error);
+            setError(error instanceof Error ? error.message : 'Failed to update CV. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handlePreviewCV = () => {
+        if (cvInfo?.file_url) {
+            // Open the CV file URL directly in a new tab for preview
+            window.open(cvInfo.file_url, '_blank');
         } else {
-            alert('Please select a file first.');
+            setError('No CV available for preview');
+        }
+    };
+
+    const handleDownloadCV = () => {
+        if (cvInfo?.file_url) {
+            // Create a temporary anchor element to trigger download
+            const link = document.createElement('a');
+            link.href = cvInfo.file_url;
+            link.download = cvInfo.original_name || 'cv.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     };
 
@@ -266,6 +384,18 @@ const ResubmitCVPage = () => {
                                 </p>
                             </div>
 
+                            {/* Error/Success Messages */}
+                            {error && (
+                                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                                    {error}
+                                </div>
+                            )}
+                            {success && (
+                                <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    {success}
+                                </div>
+                            )}
+
                             {/* Current CV Status Card */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
                                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -273,19 +403,27 @@ const ResubmitCVPage = () => {
                                         <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">Current CV Status</h3>
                                         <div className="space-y-1 text-[#6c6c6c]">
                                             <p className="text-base">
-                                                <span className="font-medium">Last Submitted:</span> March 22, 2025
+                                                <span className="font-medium">Last Submitted:</span> {lastSubmitted}
                                             </p>
                                             <p className="text-base">
-                                                <span className="font-medium">Current File:</span> name_firmware_cv_2025.pdf
+                                                <span className="font-medium">Current File:</span> {currentFileName}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-3 justify-center max-w-[300px]">
-                                        <button className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow">
+                                        <button
+                                            onClick={handlePreviewCV}
+                                            disabled={!cvInfo}
+                                            className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
                                             <Eye className="w-4 h-4" />
                                             Preview CV
                                         </button>
-                                        <button className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 transition-colors">
+                                        <button
+                                            onClick={handleDownloadCV}
+                                            disabled={!cvInfo}
+                                            className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
                                             <Download className="w-4 h-4" />
                                             Download CV
                                         </button>
@@ -370,10 +508,10 @@ const ResubmitCVPage = () => {
                                 <div className="flex justify-center lg:justify-end">
                                     <button
                                         onClick={handleSubmit}
+                                        disabled={!selectedFile || isSubmitting}
                                         className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!selectedFile}
                                     >
-                                        Submit Updated CV
+                                        {isSubmitting ? 'Submitting...' : 'Submit Updated CV'}
                                     </button>
                                 </div>
                             </div>
