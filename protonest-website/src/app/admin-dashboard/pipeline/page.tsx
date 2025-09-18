@@ -29,6 +29,15 @@ interface Candidate {
     status: string;
     applied_at: string;
     updated_at: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
 }
 
 interface JobMatch {
@@ -74,14 +83,15 @@ const ApplicationPipeline = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch candidates and match scores
+    // Fetch candidates with NDA status and match scores
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`, {
+                // Fetch candidates with NDA status from the same endpoint as other pages
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -93,7 +103,7 @@ const ApplicationPipeline = () => {
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    const candidatesData = data.data?.applications || data.data || [];
+                    const candidatesData = data.data?.nda_logs || data.data || [];
                     const candidatesList = Array.isArray(candidatesData) ? candidatesData : [];
                     setCandidates(candidatesList);
 
@@ -179,19 +189,26 @@ const ApplicationPipeline = () => {
         return statusMap[status] || status;
     };
 
-    // Function to get NDA status based on application status
-    const getNDAStatus = (status: string) => {
-        switch (status) {
-            case 'shortlisted':
-                return 'NDA Required';
-            case 'hired':
-                return 'NDA Completed';
+    // Function to get NDA status based on nda_status from database
+    const getNDAStatus = (candidate: Candidate) => {
+        if (!candidate.nda_status) {
+            if (candidate.status === 'shortlisted' || candidate.status === 'hired') {
+                return { text: 'NDA Required', color: 'text-orange-600', icon: '⚠️' };
+            }
+            return { text: 'Not Required', color: 'text-gray-500', icon: '➖' };
+        }
+
+        switch (candidate.nda_status.status) {
+            case 'sent':
+                return { text: 'NDA Sent', color: 'text-orange-600', icon: '📤' };
+            case 'submitted':
+                return { text: 'NDA Completed', color: 'text-green-600', icon: '✅' };
             default:
-                return 'Not Required';
+                return { text: 'NDA Required', color: 'text-orange-600', icon: '⚠️' };
         }
     };
 
-    // Function to generate pipeline stages based on status
+    // Function to generate pipeline stages based on status and NDA status
     const generatePipelineStages = (candidate: Candidate): PipelineStage[] => {
         const stages: PipelineStage[] = [];
         const appliedDate = new Date(candidate.applied_at);
@@ -202,41 +219,55 @@ const ApplicationPipeline = () => {
             stage: 'CV Submitted',
             date: appliedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             status: 'completed',
-            icon: '🔵'
+            icon: '📄'
         });
 
         // Add stages based on status progression
         const statusProgression = ['pending', 'reviewed', 'interviewed', 'shortlisted', 'hired'];
         const currentStatusIndex = statusProgression.indexOf(candidate.status);
 
-        if (currentStatusIndex >= 1) { // reviewed or beyond
+        if (currentStatusIndex >= 1 || candidate.status === 'reviewed') { // reviewed or beyond
             stages.push({
-                stage: 'Shortlisted',
+                stage: 'Application Reviewed',
                 date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                 status: currentStatusIndex === 1 ? 'active' : 'completed',
-                icon: '🟡'
+                icon: '👀'
             });
         }
 
-        if (currentStatusIndex >= 2) { // interviewed or beyond
+        if (currentStatusIndex >= 2 || candidate.status === 'interviewed') { // interviewed or beyond
             stages.push({
-                stage: 'Interviewed',
+                stage: 'Interview Completed',
                 date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                 status: currentStatusIndex === 2 ? 'active' : 'completed',
-                icon: '🟠'
+                icon: '💬'
             });
         }
 
-        if (currentStatusIndex >= 3) { // shortlisted or beyond
-            stages.push({
-                stage: 'NDA Sent',
-                date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: currentStatusIndex === 3 ? 'active' : 'completed',
-                icon: '🔴'
-            });
+        if (currentStatusIndex >= 3 || candidate.status === 'shortlisted') { // shortlisted or beyond
+            // Add NDA stage based on actual NDA status
+            if (candidate.nda_status) {
+                const ndaDate = candidate.nda_status.sent_on
+                    ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                stages.push({
+                    stage: candidate.nda_status.status === 'submitted' ? 'NDA Completed' : 'NDA Sent',
+                    date: ndaDate,
+                    status: candidate.nda_status.status === 'submitted' ? 'completed' : 'active',
+                    icon: candidate.nda_status.status === 'submitted' ? '✅' : '📝'
+                });
+            } else {
+                stages.push({
+                    stage: 'NDA Required',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'pending',
+                    icon: '⚠️'
+                });
+            }
         }
 
-        if (currentStatusIndex >= 4) { // hired
+        if (currentStatusIndex >= 4 || candidate.status === 'hired') { // hired
             stages.push({
                 stage: 'Project Started',
                 date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -487,6 +518,7 @@ const ApplicationPipeline = () => {
                                         const jobMatch = jobMatches[candidate.user_id._id];
                                         const matchScore = jobMatch ? `${jobMatch.match_percentage.toFixed(0)}%` : 'N/A';
                                         const pipelineStages = generatePipelineStages(candidate);
+                                        const ndaStatus = getNDAStatus(candidate);
 
                                         return (
                                             <div key={candidate._id} className="bg-white">
@@ -502,6 +534,10 @@ const ApplicationPipeline = () => {
                                                                 <p className="text-[10px] text-gray-500 mb-1">{candidate.job_id?.title || 'N/A'}</p>
                                                                 <p className="text-[10px] text-gray-500">
                                                                     {getDisplayStatus(candidate.status)} • {matchScore}
+                                                                </p>
+                                                                <p className={`text-[10px] ${ndaStatus.color} flex items-center gap-1`}>
+                                                                    <span>{ndaStatus.icon}</span>
+                                                                    {ndaStatus.text}
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -532,8 +568,9 @@ const ApplicationPipeline = () => {
                                                         </span>
                                                     </div>
                                                     <div className="col-span-2 hidden md:block">
-                                                        <span className="text-[11px] font-medium font-poppins text-[#676767]">
-                                                            {getNDAStatus(candidate.status)}
+                                                        <span className={`text-[11px] font-medium font-poppins ${ndaStatus.color} flex items-center gap-1`}>
+                                                            <span>{ndaStatus.icon}</span>
+                                                            {ndaStatus.text}
                                                         </span>
                                                     </div>
                                                     <div className="col-span-2 hidden md:block">
@@ -573,6 +610,54 @@ const ApplicationPipeline = () => {
                                                                 </div>
                                                             ))}
                                                         </div>
+
+                                                        {/* NDA Status Details */}
+                                                        {candidate.nda_status && (
+                                                            <div className="mt-6 pt-4 border-t border-gray-200">
+                                                                <h5 className="text-sm font-medium text-gray-900 mb-3">NDA Progress Details</h5>
+                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                    <div>
+                                                                        <span className="text-xs text-gray-600">Status:</span>
+                                                                        <div className={`text-sm font-medium ${ndaStatus.color} flex items-center gap-1`}>
+                                                                            <span>{ndaStatus.icon}</span>
+                                                                            {ndaStatus.text}
+                                                                        </div>
+                                                                    </div>
+                                                                    {candidate.nda_status.sent_on && (
+                                                                        <div>
+                                                                            <span className="text-xs text-gray-600">Sent On:</span>
+                                                                            <div className="text-sm font-medium text-gray-900">
+                                                                                {new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', {
+                                                                                    month: 'short',
+                                                                                    day: 'numeric',
+                                                                                    year: 'numeric'
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                    {candidate.nda_status.submitted_on && (
+                                                                        <div>
+                                                                            <span className="text-xs text-gray-600">Submitted On:</span>
+                                                                            <div className="text-sm font-medium text-gray-900">
+                                                                                {new Date(candidate.nda_status.submitted_on).toLocaleDateString('en-US', {
+                                                                                    month: 'short',
+                                                                                    day: 'numeric',
+                                                                                    year: 'numeric'
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                {candidate.nda_status.compliance_notes && (
+                                                                    <div className="mt-3">
+                                                                        <span className="text-xs text-gray-600">Compliance Notes:</span>
+                                                                        <div className="text-sm text-gray-900 bg-gray-100 p-2 rounded mt-1">
+                                                                            {candidate.nda_status.compliance_notes}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
 
                                                         {/* Match Details */}
                                                         {jobMatch && (

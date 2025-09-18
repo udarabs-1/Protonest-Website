@@ -38,6 +38,15 @@ interface Candidate {
     status: string;
     applied_at: string;
     updated_at: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
 }
 
 interface ExpertiseArea {
@@ -110,14 +119,17 @@ const CandidateManagement = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch candidates data
+    // Fetch candidates data with NDA status
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`, {
+                const adminToken = localStorage.getItem('adminToken');
+
+                // Fetch candidates with NDA status from the NDA endpoint
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                        'Authorization': `Bearer ${adminToken}`
                     }
                 });
 
@@ -127,7 +139,7 @@ const CandidateManagement = () => {
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    const candidatesData = data.data?.applications || data.data || [];
+                    const candidatesData = data.data?.nda_logs || data.data || [];
                     setCandidates(Array.isArray(candidatesData) ? candidatesData : []);
                 } else {
                     throw new Error(data.message || 'Failed to fetch candidates');
@@ -308,6 +320,22 @@ const CandidateManagement = () => {
         }
     };
 
+    // Function to get NDA status display
+    const getNDAStatusDisplay = (candidate: Candidate) => {
+        if (!candidate.nda_status) {
+            return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
+        }
+
+        switch (candidate.nda_status.status) {
+            case 'sent':
+                return { icon: '🟠', text: 'Sent', color: 'text-orange-600' };
+            case 'submitted':
+                return { icon: '✅', text: 'Submitted', color: 'text-green-600' };
+            default:
+                return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
+        }
+    };
+
     // Function to get display status text
     const getDisplayStatus = (status: string) => {
         const statusMap: { [key: string]: string } = {
@@ -337,15 +365,23 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to get action text based on status
-    const getActionText = (status: string) => {
-        switch (status) {
+    // Function to get action text based on status and NDA status
+    const getActionText = (candidate: Candidate) => {
+        switch (candidate.status) {
             case 'pending': return 'Proceed';
             case 'rejected': return null;
             case 'reviewed': return 'Call For Interview';
             case 'rejected-interview': return null;
             case 'interviewed': return 'Proceed';
-            case 'shortlisted': return 'Send NDA';
+            case 'shortlisted':
+                // Check NDA status for shortlisted candidates
+                if (!candidate.nda_status || candidate.nda_status.status === 'not_sent') {
+                    return 'Send NDA';
+                } else if (candidate.nda_status.status === 'sent') {
+                    return 'Resend NDA';
+                } else {
+                    return 'View NDA Log';
+                }
             case 'hired': return 'View NDA Log';
             default: return null;
         }
@@ -433,8 +469,97 @@ const CandidateManagement = () => {
         }
     };
 
+    // Function to send NDA
+    const sendNDA = async (candidateId: string, notes?: string) => {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${candidateId}/nda/send`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ compliance_notes: notes || '' })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to send NDA');
+            }
+
+            // Update local state
+            setCandidates(prev => prev.map(candidate =>
+                candidate._id === candidateId
+                    ? {
+                        ...candidate,
+                        nda_status: {
+                            status: 'sent',
+                            sent_on: new Date().toISOString(),
+                            compliance_notes: notes || '',
+                            resend_count: candidate.nda_status?.resend_count || 0,
+                            created_at: candidate.nda_status?.created_at || new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    }
+                    : candidate
+            ));
+
+            alert('NDA sent successfully!');
+        } catch (error) {
+            console.error('Error sending NDA:', error);
+            alert('Failed to send NDA');
+        }
+    };
+
+    // Function to resend NDA
+    const resendNDA = async (candidateId: string, notes?: string) => {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${candidateId}/nda/resend`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ compliance_notes: notes || '' })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to resend NDA');
+            }
+
+            // Update local state
+            setCandidates(prev => prev.map(candidate =>
+                candidate._id === candidateId && candidate.nda_status
+                    ? {
+                        ...candidate,
+                        nda_status: {
+                            ...candidate.nda_status,
+                            sent_on: new Date().toISOString(),
+                            compliance_notes: notes || candidate.nda_status.compliance_notes || '',
+                            resend_count: (candidate.nda_status.resend_count || 0) + 1,
+                            updated_at: new Date().toISOString()
+                        }
+                    }
+                    : candidate
+            ));
+
+            alert('NDA resent successfully!');
+        } catch (error) {
+            console.error('Error resending NDA:', error);
+            alert('Failed to resend NDA');
+        }
+    };
+
     // Function to handle action button clicks
     const handleActionClick = (candidate: Candidate) => {
+        const actionText = getActionText(candidate);
+
         switch (candidate.status) {
             case 'pending':
             case 'interviewed':
@@ -444,10 +569,20 @@ const CandidateManagement = () => {
                 setInterviewDialogContent(candidate);
                 break;
             case 'shortlisted':
-                setNdaDialogContent(candidate);
+                if (actionText === 'Send NDA') {
+                    setNdaDialogContent(candidate);
+                } else if (actionText === 'Resend NDA') {
+                    if (confirm(`Resend NDA to ${candidate.user_id?.name}?`)) {
+                        resendNDA(candidate._id);
+                    }
+                } else {
+                    // View NDA Log - redirect to NDA page
+                    window.location.href = '/admin-dashboard/nda';
+                }
                 break;
             case 'hired':
-                console.log('View NDA Log for', candidate._id);
+                // View NDA Log - redirect to NDA page
+                window.location.href = '/admin-dashboard/nda';
                 break;
             default:
                 console.log('No action available for status:', candidate.status);
@@ -503,6 +638,9 @@ const CandidateManagement = () => {
             ndaSubject,
             ndaBody
         );
+
+        // Send NDA via API
+        sendNDA(ndaDialog._id, ndaBody);
 
         // Update status to hired
         updateStatus(ndaDialog._id, 'hired');
@@ -835,6 +973,9 @@ const CandidateManagement = () => {
                                             Status
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                            NDA Status
+                                        </th>
+                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Applied On
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
@@ -844,59 +985,66 @@ const CandidateManagement = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredCandidates.length > 0 ? (
-                                        filteredCandidates.map((candidate) => (
-                                            <tr key={candidate._id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {candidate.user_id?.name || 'N/A'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                    <Link href={`/admin-dashboard/jobs/${candidate.job_id?._id}`}>
-                                                        {candidate.job_id?.title || 'N/A'}
-                                                    </Link>
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {candidate.user_id?.email || 'N/A'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap">
-                                                    <span className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1`}>
-                                                        {getDisplayStatus(candidate.status)}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {formatDate(candidate.applied_at)}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        {getActionText(candidate.status) && (
+                                        filteredCandidates.map((candidate) => {
+                                            const ndaStatusDisplay = getNDAStatusDisplay(candidate);
+
+                                            return (
+                                                <tr key={candidate._id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {candidate.user_id?.name || 'N/A'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
+                                                        <Link href={`/admin-dashboard/jobs/${candidate.job_id?._id}`}>
+                                                            {candidate.job_id?.title || 'N/A'}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {candidate.user_id?.email || 'N/A'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1`}>
+                                                            {getDisplayStatus(candidate.status)}
+                                                        </span>
+                                                    </td>
+                                                    <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${ndaStatusDisplay.color}`}>
+                                                        {ndaStatusDisplay.icon} {ndaStatusDisplay.text}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {formatDate(candidate.applied_at)}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            {getActionText(candidate) && (
+                                                                <button
+                                                                    className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
+                                                                    onClick={() => handleActionClick(candidate)}
+                                                                >
+                                                                    {getActionText(candidate)}
+                                                                </button>
+                                                            )}
+
                                                             <button
-                                                                className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
-                                                                onClick={() => handleActionClick(candidate)}
+                                                                className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
+                                                                onClick={() => handleViewDetails(candidate)}
                                                             >
-                                                                {getActionText(candidate.status)}
+                                                                Details
                                                             </button>
-                                                        )}
 
-                                                        <button
-                                                            className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
-                                                            onClick={() => handleViewDetails(candidate)}
-                                                        >
-                                                            Details
-                                                        </button>
-
-                                                        <button
-                                                            className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                            onClick={() => setDeleteCandidate({ id: candidate._id, name: candidate.user_id?.name || 'Unknown' })}
-                                                            title="Delete application"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
+                                                            <button
+                                                                className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                                                onClick={() => setDeleteCandidate({ id: candidate._id, name: candidate.user_id?.name || 'Unknown' })}
+                                                                title="Delete application"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr>
-                                            <td colSpan={6} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                            <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                 No candidates found for &quot;{activeFilter}&quot; status.
                                             </td>
                                         </tr>
@@ -904,6 +1052,8 @@ const CandidateManagement = () => {
                                 </tbody>
                             </table>
                         </div>
+
+
                     </main>
                 </div>
             </div>
@@ -1312,6 +1462,19 @@ const CandidateManagement = () => {
                                                             </span>
                                                         </div>
                                                     </div>
+                                                    <div>
+                                                        <span className="text-sm text-gray-600">NDA Status:</span>
+                                                        <div className="mt-1">
+                                                            {(() => {
+                                                                const ndaStatus = getNDAStatusDisplay(detailsDialog);
+                                                                return (
+                                                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${ndaStatus.color}`}>
+                                                                        {ndaStatus.icon} {ndaStatus.text}
+                                                                    </span>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    </div>
                                                     <div className="flex items-center text-sm">
                                                         <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                                                         <span className="text-gray-600">Applied: {formatDate(detailsDialog.applied_at)}</span>
@@ -1458,7 +1621,7 @@ const CandidateManagement = () => {
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
                                                 <div className="space-y-2">
-                                                    {getActionText(detailsDialog.status) && (
+                                                    {getActionText(detailsDialog) && (
                                                         <button
                                                             onClick={() => {
                                                                 setDetailsDialog(null);
@@ -1466,7 +1629,7 @@ const CandidateManagement = () => {
                                                             }}
                                                             className="w-full px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
                                                         >
-                                                            {getActionText(detailsDialog.status)}
+                                                            {getActionText(detailsDialog)}
                                                         </button>
                                                     )}
                                                     <button

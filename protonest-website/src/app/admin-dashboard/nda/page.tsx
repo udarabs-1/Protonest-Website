@@ -10,7 +10,6 @@ import {
     Search,
     Settings,
     SlidersHorizontal,
-    Trash2,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -18,11 +17,47 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+interface NDARecord {
+    _id: string;
+    user_id: {
+        _id: string;
+        name: string;
+        email: string;
+    };
+    job_id: {
+        _id: string;
+        title: string;
+    };
+    status: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
+    applied_at: string;
+    updated_at: string;
+}
+
+interface NDAStatusUpdate {
+    status: 'not_sent' | 'sent' | 'submitted';
+    compliance_notes?: string;
+}
+
 const NDAComplianceLog = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [jobFilterOpen, setJobFilterOpen] = useState(false);
+    const [ndaRecords, setNdaRecords] = useState<NDARecord[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [editingNote, setEditingNote] = useState<{ id: string; note: string } | null>(null);
+    const [sendingNDA, setSendingNDA] = useState<string | null>(null);
+    const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
     const sidebarRef = useRef<HTMLDivElement>(null);
-    const jobFilterRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const sidebarItems = [
@@ -41,44 +76,44 @@ const NDAComplianceLog = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
+    // Fetch NDA records
+    useEffect(() => {
+        const fetchNDARecords = async () => {
+            try {
+                setLoading(true);
+                const adminToken = localStorage.getItem('adminToken');
 
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
 
-    // NDA compliance data
-    const ndaRecords = [
-        {
-            id: 1,
-            freelancerName: 'John Smith',
-            appliedFor: 'Firmware Dev – Embedded IoT',
-            ndaStatus: 'Submitted',
-            statusIcon: '✅',
-            sentOn: 'May 22, 2025',
-            submittedOn: 'May 22, 2025',
-            daysPending: '-',
-            complianceNotes: '-'
-        },
-        {
-            id: 2,
-            freelancerName: 'Sarah Johnson',
-            appliedFor: 'Firmware Dev – Embedded IoT',
-            ndaStatus: 'Sent',
-            statusIcon: '🟠',
-            sentOn: 'May 19, 2025',
-            submittedOn: '-',
-            daysPending: '3',
-            complianceNotes: 'NDA resent once'
-        },
-        {
-            id: 3,
-            freelancerName: 'Michael Brown',
-            appliedFor: 'Firmware Dev – Embedded IoT',
-            ndaStatus: 'Not Sent',
-            statusIcon: '❌',
-            sentOn: '-',
-            submittedOn: '-',
-            daysPending: '-',
-            complianceNotes: '-'
-        }
-    ];
+                if (!response.ok) {
+                    throw new Error('Failed to fetch NDA records');
+                }
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    setNdaRecords(data.data?.nda_logs || []);
+                } else {
+                    throw new Error(data.message || 'Failed to fetch NDA records');
+                }
+            } catch (err) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('An error occurred while fetching NDA records');
+                }
+                console.error('Error fetching NDA records:', err);
+                setNdaRecords([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchNDARecords();
+    }, []);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -86,29 +121,229 @@ const NDAComplianceLog = () => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
                 setSidebarOpen(false);
             }
-            if (jobFilterOpen && jobFilterRef.current && !jobFilterRef.current.contains(event.target as Node)) {
-                setJobFilterOpen(false);
-            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, jobFilterOpen]);
+    }, [sidebarOpen]);
 
-    const getActionButton = (status: string) => {
-        switch (status) {
-            case 'Submitted':
-                return 'Add Note';
-            case 'Sent':
-                return 'Resend NDA';
-            case 'Not Sent':
-                return 'Send NDA';
-            default:
-                return 'Send NDA';
+    // Helper functions
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch {
+            return '-';
         }
     };
+
+    const getNDAStatusDisplay = (record: NDARecord) => {
+        if (!record.nda_status) {
+            return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
+        }
+
+        switch (record.nda_status.status) {
+            case 'sent':
+                return { icon: '🟠', text: 'Sent', color: 'text-orange-600' };
+            case 'submitted':
+                return { icon: '✅', text: 'Submitted', color: 'text-green-600' };
+            default:
+                return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
+        }
+    };
+
+    const getDaysPending = (record: NDARecord) => {
+        if (!record.nda_status?.sent_on || record.nda_status.status === 'submitted') {
+            return '-';
+        }
+
+        const sentDate = new Date(record.nda_status.sent_on);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - sentDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays.toString();
+    };
+
+    const getActionButton = (record: NDARecord) => {
+        if (!record.nda_status || record.nda_status.status === 'not_sent') {
+            return { text: 'Send NDA', action: 'send', variant: 'primary' };
+        } else if (record.nda_status.status === 'sent') {
+            return { text: 'Resend NDA', action: 'resend', variant: 'secondary' };
+        } else {
+            return { text: 'Add Note', action: 'note', variant: 'tertiary' };
+        }
+    };
+
+    // API functions
+    const sendNDA = async (recordId: string, notes?: string) => {
+        try {
+            setSendingNDA(recordId);
+            const adminToken = localStorage.getItem('adminToken');
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda/send`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ compliance_notes: notes || '' })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to send NDA');
+            }
+
+            // Refresh the data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error sending NDA:', error);
+            alert('Failed to send NDA');
+        } finally {
+            setSendingNDA(null);
+        }
+    };
+
+    const resendNDA = async (recordId: string, notes?: string) => {
+        try {
+            setSendingNDA(recordId);
+            const adminToken = localStorage.getItem('adminToken');
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda/resend`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ compliance_notes: notes || '' })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to resend NDA');
+            }
+
+            // Refresh the data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error resending NDA:', error);
+            alert('Failed to resend NDA');
+        } finally {
+            setSendingNDA(null);
+        }
+    };
+
+    const updateNDAStatus = async (recordId: string, statusUpdate: NDAStatusUpdate) => {
+        try {
+            setUpdatingStatus(recordId);
+            const adminToken = localStorage.getItem('adminToken');
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(statusUpdate)
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to update NDA status');
+            }
+
+            // Refresh the data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error updating NDA status:', error);
+            alert('Failed to update NDA status');
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
+    const handleActionClick = (record: NDARecord) => {
+        const action = getActionButton(record);
+
+        switch (action.action) {
+            case 'send':
+                if (confirm(`Send NDA to ${record.user_id.name}?`)) {
+                    sendNDA(record._id);
+                }
+                break;
+            case 'resend':
+                if (confirm(`Resend NDA to ${record.user_id.name}?`)) {
+                    resendNDA(record._id);
+                }
+                break;
+            case 'note':
+                const currentNote = record.nda_status?.compliance_notes || '';
+                setEditingNote({ id: record._id, note: currentNote });
+                break;
+        }
+    };
+
+    const handleSaveNote = () => {
+        if (editingNote) {
+            updateNDAStatus(editingNote.id, {
+                status: 'submitted',
+                compliance_notes: editingNote.note
+            });
+            setEditingNote(null);
+        }
+    };
+
+    const handleStatusChange = (record: NDARecord, newStatus: 'not_sent' | 'sent' | 'submitted') => {
+        if (confirm(`Change NDA status to ${newStatus.replace('_', ' ')} for ${record.user_id.name}?`)) {
+            updateNDAStatus(record._id, { status: newStatus });
+        }
+    };
+
+    // Filter records based on search term
+    const filteredRecords = ndaRecords.filter(record =>
+        record.user_id?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.job_id?.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (loading) {
+        return (
+            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading NDA records...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-500">Error: {error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 px-4 py-2 bg-[#5530FA] text-white rounded-md"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="font-poppins min-h-screen bg-white relative">
@@ -121,7 +356,6 @@ const NDAComplianceLog = () => {
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -134,7 +368,6 @@ const NDAComplianceLog = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions */}
                         <div className="flex items-center space-x-4">
                             <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Bell className="w-5 h-5 text-gray-600" />
@@ -142,7 +375,6 @@ const NDAComplianceLog = () => {
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
                             </Link>
-
                             <Link href="/admin-dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                 <Image
                                     src="/profile-1.svg"
@@ -164,7 +396,6 @@ const NDAComplianceLog = () => {
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -183,7 +414,6 @@ const NDAComplianceLog = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -202,7 +432,6 @@ const NDAComplianceLog = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="pt-8">
                                 <Link
                                     href="/logout"
@@ -234,7 +463,6 @@ const NDAComplianceLog = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="p-4 pt-8">
                                 <Link
                                     href="/logout"
@@ -249,7 +477,6 @@ const NDAComplianceLog = () => {
 
                     {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -264,7 +491,6 @@ const NDAComplianceLog = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="mb-6">
                             <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] mb-1 font-montserrat">
                                 ✍️ NDA & Compliance Log
@@ -274,24 +500,23 @@ const NDAComplianceLog = () => {
                             </p>
                         </div>
 
-
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] opacity-50"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                     placeholder="Search by candidate name or role applied for"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
-
                             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                                 <SlidersHorizontal className="w-5 h-5 text-gray-600" />
                             </button>
                         </div>
-
 
                         {/* NDA Records Table */}
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
@@ -325,58 +550,132 @@ const NDAComplianceLog = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {ndaRecords.map((record) => (
-                                        <tr key={record.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.freelancerName}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                <Link href="#" className="hover:text-[#5530FA]">
-                                                    {record.appliedFor}
-                                                </Link>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.statusIcon} {record.ndaStatus}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.sentOn}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.submittedOn}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.daysPending}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                {record.complianceNotes}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                <div className="flex items-center justify-center gap-1">
-                                                    <button className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity">
-                                                        {getActionButton(record.ndaStatus)}
-                                                    </button>
-                                                    <div className="flex items-center gap-1 ml-2">
-                                                        <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                                                            <Eye className="w-4 h-4 text-gray-600" />
-                                                        </button>
-                                                        <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                                                            <Edit className="w-4 h-4 text-gray-600" />
-                                                        </button>
-                                                        <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                                                            <Trash2 className="w-4 h-4 text-gray-600" />
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                    {filteredRecords.length > 0 ? (
+                                        filteredRecords.map((record) => {
+                                            const statusDisplay = getNDAStatusDisplay(record);
+                                            const actionButton = getActionButton(record);
+
+                                            return (
+                                                <tr key={record._id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {record.user_id?.name || 'N/A'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
+                                                        <Link href={`/admin-dashboard/jobs/${record.job_id?._id}`} className="hover:text-[#5530FA]">
+                                                            {record.job_id?.title || 'N/A'}
+                                                        </Link>
+                                                    </td>
+                                                    <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${statusDisplay.color}`}>
+                                                        {statusDisplay.icon} {statusDisplay.text}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {formatDate(record.nda_status?.sent_on)}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {formatDate(record.nda_status?.submitted_on)}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {getDaysPending(record)}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] max-w-xs truncate">
+                                                        {record.nda_status?.compliance_notes || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <button
+                                                                onClick={() => handleActionClick(record)}
+                                                                disabled={sendingNDA === record._id || updatingStatus === record._id}
+                                                                className={`px-3 py-1 rounded-[15px] text-[10px] font-medium font-poppins transition-opacity ${actionButton.variant === 'primary'
+                                                                    ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
+                                                                    : actionButton.variant === 'secondary'
+                                                                        ? 'bg-orange-500 text-white hover:opacity-90'
+                                                                        : 'bg-gray-500 text-white hover:opacity-90'
+                                                                    } ${(sendingNDA === record._id || updatingStatus === record._id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            >
+                                                                {(sendingNDA === record._id || updatingStatus === record._id) ? 'Processing...' : actionButton.text}
+                                                            </button>
+                                                            <div className="flex items-center gap-1 ml-2">
+                                                                <button
+                                                                    onClick={() => alert(`Viewing details for ${record.user_id?.name}`)}
+                                                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                    title="View Details"
+                                                                >
+                                                                    <Eye className="w-4 h-4 text-gray-600" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const currentNote = record.nda_status?.compliance_notes || '';
+                                                                        setEditingNote({ id: record._id, note: currentNote });
+                                                                    }}
+                                                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                    title="Edit Notes"
+                                                                >
+                                                                    <Edit className="w-4 h-4 text-gray-600" />
+                                                                </button>
+                                                                <select
+                                                                    value={record.nda_status?.status || 'not_sent'}
+                                                                    onChange={(e) => handleStatusChange(record, e.target.value as 'not_sent' | 'sent' | 'submitted')}
+                                                                    className="text-xs border border-gray-300 rounded px-1 py-1"
+                                                                    title="Change Status"
+                                                                >
+                                                                    <option value="not_sent">Not Sent</option>
+                                                                    <option value="sent">Sent</option>
+                                                                    <option value="submitted">Submitted</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={8} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                                {searchTerm ? `No NDA records found matching "${searchTerm}"` : 'No NDA records found.'}
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
-
                     </main>
                 </div>
             </div>
+
+            {/* Edit Note Modal */}
+            {editingNote && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setEditingNote(null)}></div>
+                    <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Edit Compliance Notes
+                            </h3>
+                            <textarea
+                                value={editingNote.note}
+                                onChange={(e) => setEditingNote({ ...editingNote, note: e.target.value })}
+                                rows={4}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
+                                placeholder="Enter compliance notes..."
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setEditingNote(null)}
+                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveNote}
+                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Save Note
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

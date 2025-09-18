@@ -29,9 +29,9 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
-const EditResearchProject = () => {
+const EditResearchProjectContent = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [contentType, setContentType] = useState<'research' | 'projects'>('research');
     const [title, setTitle] = useState('');
@@ -910,6 +910,21 @@ const EditResearchProject = () => {
                 }
             `}</style>
         </div>
+    );
+};
+
+const EditResearchProject = () => {
+    return (
+        <Suspense fallback={
+            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        }>
+            <EditResearchProjectContent />
+        </Suspense>
     );
 };
 

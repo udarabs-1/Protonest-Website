@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Types based on your backend models
+// Types based on your backend models and updated to match other pages
 interface CVData {
     full_name: string;
     email: string;
@@ -44,6 +44,15 @@ interface User {
     newsletter: boolean;
     cv?: CVData;
     created_at: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
 }
 
 interface FreelancerData {
@@ -52,10 +61,19 @@ interface FreelancerData {
     email: string;
     title: string;
     skills: string[];
-    ndaStatus: 'signed' | 'pending' | 'not_sent';
+    ndaStatus: 'submitted' | 'sent' | 'not_sent';
     submittedOn: string;
     cvFileUrl?: string;
     userId: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
 }
 
 const TalentPool = () => {
@@ -98,7 +116,7 @@ const TalentPool = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch freelancers data from API
+    // Fetch freelancers data from API with NDA status integration
     useEffect(() => {
         fetchFreelancers();
     }, []);
@@ -106,21 +124,33 @@ const TalentPool = () => {
     const fetchFreelancers = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('adminToken'); // Adjust based on your auth implementation
+            const token = localStorage.getItem('adminToken');
 
             if (!token) {
                 throw new Error('No authentication token found');
             }
 
-            // Since there's no direct endpoint to get all users with CVs, 
-            // you'll need to create one in your backend or use the existing user endpoints
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users-with-cvs`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            // First, try to get users with CVs from a dedicated endpoint
+            let response;
+            try {
+                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users-with-cvs`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+            } catch {
+                // If the dedicated endpoint doesn't exist, fall back to getting all users and filtering
+                console.log('Dedicated endpoint not available, using fallback method');
+                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -128,22 +158,77 @@ const TalentPool = () => {
 
             const data = await response.json();
 
-            // Transform the data to match our frontend interface
-            const transformedData: FreelancerData[] = data.users?.map((user: User) => ({
-                id: user.id,
-                userId: user.id,
-                name: `${user.first_name} ${user.last_name}`,
-                email: user.email,
-                title: user.cv?.work_function || 'Not specified',
-                skills: user.cv?.skills || [],
-                ndaStatus: user.cv?.nda_acknowledged ? 'signed' : 'pending',
-                submittedOn: user.cv?.uploaded_at ? new Date(user.cv.uploaded_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                }) : 'N/A',
-                cvFileUrl: user.cv?.cv_file_url,
-            })) || [];
+            // Get all candidates with NDA status from the unified endpoint
+            let ndaData = [];
+            try {
+                const ndaResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (ndaResponse.ok) {
+                    const ndaResult = await ndaResponse.json();
+                    if (ndaResult.status === 'success') {
+                        ndaData = ndaResult.data?.nda_logs || [];
+                    }
+                }
+            } catch (err) {
+                console.log('Could not fetch NDA data:', err);
+            }
+
+            // Create a map of user NDA statuses
+            type NdaStatus = {
+                status: 'not_sent' | 'sent' | 'submitted';
+                sent_on?: string;
+                submitted_on?: string;
+                compliance_notes?: string;
+                resend_count: number;
+                created_at: string;
+                updated_at: string;
+            };
+
+            const ndaStatusMap = ndaData.reduce((acc: Record<string, NdaStatus>, candidate: { user_id?: { _id?: string }, nda_status: NdaStatus }) => {
+                if (candidate.user_id?._id) {
+                    acc[candidate.user_id._id] = candidate.nda_status;
+                }
+                return acc;
+            }, {} as Record<string, NdaStatus>);
+
+            // Transform the data to match our frontend interface, filtering only users with CVs
+            const usersWithCvs = (data.users || data.data || []).filter((user: User) => user.cv);
+
+            const transformedData: FreelancerData[] = usersWithCvs.map((user: User) => {
+                // Get NDA status from the unified system if available
+                const unifiedNdaStatus = ndaStatusMap[user.id];
+                let ndaStatus: 'submitted' | 'sent' | 'not_sent' = 'not_sent';
+
+                if (unifiedNdaStatus) {
+                    ndaStatus = unifiedNdaStatus.status === 'submitted' ? 'submitted'
+                        : unifiedNdaStatus.status === 'sent' ? 'sent'
+                            : 'not_sent';
+                } else if (user.cv?.nda_acknowledged) {
+                    // Fallback to CV-level NDA acknowledgment
+                    ndaStatus = 'submitted';
+                }
+
+                return {
+                    id: user.id,
+                    userId: user.id,
+                    name: `${user.first_name} ${user.last_name}`,
+                    email: user.email,
+                    title: user.cv?.work_function || 'Not specified',
+                    skills: user.cv?.skills || [],
+                    ndaStatus,
+                    submittedOn: user.cv?.uploaded_at ? new Date(user.cv.uploaded_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    }) : 'N/A',
+                    cvFileUrl: user.cv?.cv_file_url,
+                    nda_status: unifiedNdaStatus
+                };
+            });
 
             setFreelancers(transformedData);
         } catch (err) {
@@ -178,12 +263,36 @@ const TalentPool = () => {
     const handleDownloadCV = async (freelancer: FreelancerData) => {
         try {
             if (freelancer.cvFileUrl) {
-                const link = document.createElement('a');
-                link.href = freelancer.cvFileUrl;
-                link.download = `${freelancer.name.replace(/\s+/g, '_')}_CV.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Try to download via fetch first
+                try {
+                    const response = await fetch(freelancer.cvFileUrl, {
+                        mode: 'no-cors',
+                        method: 'GET'
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${freelancer.name.replace(/\s+/g, '_')}_CV.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        throw new Error('Fetch failed');
+                    }
+                } catch {
+                    // Fallback to direct link method
+                    const link = document.createElement('a');
+                    link.href = freelancer.cvFileUrl;
+                    link.target = '_blank';
+                    link.download = `${freelancer.name.replace(/\s+/g, '_')}_CV.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
             } else {
                 alert('CV file not available for download');
             }
@@ -205,7 +314,6 @@ const TalentPool = () => {
                 throw new Error('No authentication token found');
             }
 
-            // You'll need to create this endpoint in your backend
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/${freelancer.userId}`, {
                 method: 'DELETE',
                 headers: {
@@ -231,8 +339,9 @@ const TalentPool = () => {
     const filteredFreelancers = freelancers.filter(freelancer => {
         const matchesFilter =
             activeFilter === 'all' ||
-            (activeFilter === 'signed' && freelancer.ndaStatus === 'signed') ||
-            (activeFilter === 'pending' && freelancer.ndaStatus === 'pending');
+            (activeFilter === 'submitted' && freelancer.ndaStatus === 'submitted') ||
+            (activeFilter === 'sent' && freelancer.ndaStatus === 'sent') ||
+            (activeFilter === 'not_sent' && freelancer.ndaStatus === 'not_sent');
 
         const matchesSearch =
             freelancer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -243,22 +352,22 @@ const TalentPool = () => {
     });
 
     const getNdaStatusBadge = (status: string) => {
-        if (status === 'signed') {
+        if (status === 'submitted') {
             return (
                 <span className="inline-flex items-center justify-center px-2 py-1 bg-[#86ffae] rounded-[15px] border border-gray-300">
-                    <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">Signed</span>
+                    <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">✅ Submitted</span>
                 </span>
             );
-        } else if (status === 'pending') {
+        } else if (status === 'sent') {
             return (
-                <span className="inline-flex items-center justify-center px-2 py-1 bg-[#e2ff86] rounded-[15px] border border-gray-300">
-                    <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">Pending</span>
+                <span className="inline-flex items-center justify-center px-2 py-1 bg-[#86dcff] rounded-[15px] border border-gray-300">
+                    <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">📤 Sent</span>
                 </span>
             );
         }
         return (
-            <span className="inline-flex items-center justify-center px-2 py-1 bg-gray-200 rounded-[15px] border border-gray-300">
-                <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">Not Sent</span>
+            <span className="inline-flex items-center justify-center px-2 py-1 bg-[#ff8686] rounded-[15px] border border-gray-300">
+                <span className="text-[#4e4e4e] text-[11px] font-medium font-poppins">❌ Not Sent</span>
             </span>
         );
     };
@@ -445,7 +554,7 @@ const TalentPool = () => {
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
                             <div className="flex-1 max-w-[603px]">
                                 <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] mb-2 font-montserrat">
-                                    📂 Talent Pool – Freelancer CVs ({filteredFreelancers.length})
+                                    👥 Talent Pool – Freelancer CVs
                                 </h1>
                                 <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
                                     View and manage CVs submitted by freelancers. Use filters to shortlist profiles for upcoming IoT projects.
@@ -494,31 +603,43 @@ const TalentPool = () => {
                                     }`}
                             >
                                 <span className="text-center text-xs font-semibold font-montserrat">
-                                    📎 All ({freelancers.length})
+                                    📎 All
                                 </span>
                             </button>
 
                             <button
-                                onClick={() => handleFilterChange('signed')}
-                                className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'signed'
+                                onClick={() => handleFilterChange('submitted')}
+                                className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'submitted'
                                     ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
                                     : 'border border-[#5530fa] text-[#676767] hover:bg-gray-50'
                                     }`}
                             >
                                 <span className="text-center text-[11px] font-medium font-poppins">
-                                    ✅ NDA Signed ({freelancers.filter(f => f.ndaStatus === 'signed').length})
+                                    ✅ NDA Submitted
                                 </span>
                             </button>
 
                             <button
-                                onClick={() => handleFilterChange('pending')}
-                                className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'pending'
+                                onClick={() => handleFilterChange('sent')}
+                                className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'sent'
                                     ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
                                     : 'border border-[#5530fa] text-[#676767] hover:bg-gray-50'
                                     }`}
                             >
                                 <span className="text-center text-[11px] font-medium font-poppins">
-                                    ⌛ NDA Pending ({freelancers.filter(f => f.ndaStatus === 'pending').length})
+                                    📤 NDA Sent
+                                </span>
+                            </button>
+
+                            <button
+                                onClick={() => handleFilterChange('not_sent')}
+                                className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'not_sent'
+                                    ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                                    : 'border border-[#5530fa] text-[#676767] hover:bg-gray-50'
+                                    }`}
+                            >
+                                <span className="text-center text-[11px] font-medium font-poppins">
+                                    ❌ NDA Not Sent
                                 </span>
                             </button>
                         </div>
@@ -569,6 +690,17 @@ const TalentPool = () => {
                                                         <div className="mb-2">
                                                             {getNdaStatusBadge(freelancer.ndaStatus)}
                                                         </div>
+                                                        {/* NDA Details for Mobile */}
+                                                        {freelancer.nda_status && (
+                                                            <div className="text-[9px] text-gray-400 mt-1">
+                                                                {freelancer.nda_status.sent_on && (
+                                                                    <div>Sent: {new Date(freelancer.nda_status.sent_on).toLocaleDateString()}</div>
+                                                                )}
+                                                                {freelancer.nda_status.submitted_on && (
+                                                                    <div>Submitted: {new Date(freelancer.nda_status.submitted_on).toLocaleDateString()}</div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex items-center gap-2 ml-4">
                                                         <button
@@ -625,7 +757,20 @@ const TalentPool = () => {
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2">
-                                                    {getNdaStatusBadge(freelancer.ndaStatus)}
+                                                    <div>
+                                                        {getNdaStatusBadge(freelancer.ndaStatus)}
+                                                    </div>
+                                                    {/* NDA Details for Desktop */}
+                                                    {freelancer.nda_status && (
+                                                        <div className="text-[9px] text-gray-400 mt-1">
+                                                            {freelancer.nda_status.sent_on && (
+                                                                <div>Sent: {new Date(freelancer.nda_status.sent_on).toLocaleDateString()}</div>
+                                                            )}
+                                                            {freelancer.nda_status.submitted_on && (
+                                                                <div>Submitted: {new Date(freelancer.nda_status.submitted_on).toLocaleDateString()}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="col-span-2">
                                                     <span className="text-[11px] font-medium font-poppins text-[#676767]">
@@ -670,16 +815,6 @@ const TalentPool = () => {
                                 )}
                             </div>
                         </div>
-
-                        {/* Pagination (if needed) */}
-                        {filteredFreelancers.length > 0 && (
-                            <div className="mt-6 flex justify-between items-center">
-                                <p className="text-sm text-gray-600">
-                                    Showing {filteredFreelancers.length} of {freelancers.length} freelancers
-                                </p>
-                                {/* Add pagination here if you implement it */}
-                            </div>
-                        )}
                     </main>
                 </div>
             </div>
