@@ -13,8 +13,95 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+interface DashboardStats {
+    totalApplicants: number;
+    activeRoles: number;
+    avgTimeToHire: number;
+    cvsInTalentPool: number;
+}
+
+interface Candidate {
+    _id: string;
+    user_id: {
+        _id: string;
+        name: string;
+        email: string;
+    };
+    job_id: {
+        _id: string;
+        title: string;
+    };
+    status: string;
+    applied_at: string;
+    updated_at: string;
+    nda_status?: {
+        status: 'not_sent' | 'sent' | 'submitted';
+        sent_on?: string;
+        submitted_on?: string;
+        compliance_notes?: string;
+        resend_count: number;
+        created_at: string;
+        updated_at: string;
+    };
+}
+
+interface Job {
+    _id: string;
+    title: string;
+    status: string;
+    created_at: string;
+}
+
+interface User {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    cv?: {
+        uploaded_at: string;
+        work_function: string;
+    };
+    job_updates: boolean;
+    newsletter: boolean;
+    created_at: string;
+}
+
+interface HiringFunnelStage {
+    stage: string;
+    count: number;
+}
+
+interface RecentSubmission {
+    name: string;
+    stage: string;
+    expertise: string;
+    date: string;
+    _id: string;
+}
+
+interface NDAStatusItem {
+    name: string;
+    role: string;
+    status: string;
+    date: string;
+    _id: string;
+}
+
 const AdminDashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<DashboardStats>({
+        totalApplicants: 0,
+        activeRoles: 0,
+        avgTimeToHire: 0,
+        cvsInTalentPool: 0
+    });
+    const [hiringFunnel, setHiringFunnel] = useState<HiringFunnelStage[]>([]);
+    const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
+    const [ndaStatus, setNdaStatus] = useState<NDAStatusItem[]>([]);
+    const [jobAlerts, setJobAlerts] = useState<User[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -48,30 +135,245 @@ const AdminDashboard = () => {
         };
     }, [sidebarOpen]);
 
+    // Fetch dashboard data
+    useEffect(() => {
+        // Helper functions moved inside useEffect to avoid dependency issues
+        const getDisplayStatus = (status: string) => {
+            const statusMap: { [key: string]: string } = {
+                'pending': 'Applied',
+                'rejected': 'Rejected',
+                'reviewed': 'Shortlisted',
+                'rejected-interview': 'Rejected',
+                'interviewed': 'Interviewed',
+                'shortlisted': 'NDA Sent',
+                'hired': 'Project Started'
+            };
+            return statusMap[status] || status;
+        };
+
+        const getNDAStatusDisplay = (candidate: Candidate) => {
+            if (!candidate.nda_status) {
+                if (candidate.status === 'shortlisted' || candidate.status === 'hired') {
+                    return '❌ Not Sent';
+                }
+                return '❌ Not Required';
+            }
+
+            switch (candidate.nda_status.status) {
+                case 'sent':
+                    return '⏳ Pending';
+                case 'submitted':
+                    return '✅ Signed';
+                default:
+                    return '❌ Not Sent';
+            }
+        };
+
+        const getNDADate = (candidate: Candidate) => {
+            if (candidate.nda_status?.submitted_on) {
+                return formatDate(candidate.nda_status.submitted_on);
+            }
+            if (candidate.nda_status?.sent_on) {
+                return formatDate(candidate.nda_status.sent_on);
+            }
+            return '-';
+        };
+
+        const formatRelativeDate = (dateString: string) => {
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now.getTime() - date.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) return '1 day ago';
+                if (diffDays < 7) return `${diffDays} days ago`;
+                if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+                return formatDate(dateString);
+            } catch {
+                return 'Recently';
+            }
+        };
+
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                const adminToken = localStorage.getItem('adminToken');
+
+                if (!adminToken) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Fetch all data in parallel
+                const [candidatesRes, jobsRes, usersRes] = await Promise.allSettled([
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                        headers: { 'Authorization': `Bearer ${adminToken}` }
+                    }),
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/jobs/admin/all`, {
+                        headers: { 'Authorization': `Bearer ${adminToken}` }
+                    }),
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`, {
+                        headers: { 'Authorization': `Bearer ${adminToken}` }
+                    })
+                ]);
+
+                // Process candidates data
+                let candidates: Candidate[] = [];
+                if (candidatesRes.status === 'fulfilled' && candidatesRes.value.ok) {
+                    const candidatesData = await candidatesRes.value.json();
+                    if (candidatesData.status === 'success') {
+                        candidates = candidatesData.data?.nda_logs || [];
+                    }
+                }
+
+                // Process jobs data
+                let jobs: Job[] = [];
+                if (jobsRes.status === 'fulfilled' && jobsRes.value.ok) {
+                    const jobsData = await jobsRes.value.json();
+                    if (jobsData.success) {
+                        jobs = jobsData.data?.jobs || [];
+                    }
+                }
+
+                // Process users data
+                let users: User[] = [];
+                if (usersRes.status === 'fulfilled' && usersRes.value.ok) {
+                    const usersData = await usersRes.value.json();
+                    if (usersData.success || usersData.users) {
+                        users = usersData.users || usersData.data || [];
+                    }
+                }
+
+                // Calculate stats
+                const totalApplicants = candidates.length;
+                const activeRoles = jobs.filter(job => job.status === 'active' || job.status === 'open').length;
+                const cvsInTalentPool = users.filter(user => user.cv).length;
+
+                // Calculate average time to hire (simplified - based on hired candidates)
+                const hiredCandidates = candidates.filter(c => c.status === 'hired');
+                let avgTimeToHire = 11; // Default value
+                if (hiredCandidates.length > 0) {
+                    const totalTime = hiredCandidates.reduce((sum, candidate) => {
+                        const appliedDate = new Date(candidate.applied_at);
+                        const hiredDate = new Date(candidate.updated_at);
+                        const timeDiff = Math.abs(hiredDate.getTime() - appliedDate.getTime());
+                        return sum + Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                    }, 0);
+                    avgTimeToHire = Math.round(totalTime / hiredCandidates.length);
+                }
+
+                setStats({
+                    totalApplicants,
+                    activeRoles,
+                    avgTimeToHire,
+                    cvsInTalentPool
+                });
+
+                // Generate hiring funnel data
+                const statusCounts = candidates.reduce((acc, candidate) => {
+                    const status = candidate.status;
+                    acc[status] = (acc[status] || 0) + 1;
+                    return acc;
+                }, {} as Record<string, number>);
+
+                const funnelData: HiringFunnelStage[] = [
+                    { stage: 'Received', count: statusCounts.pending || 0 },
+                    { stage: 'Screened', count: statusCounts.reviewed || 0 },
+                    { stage: 'Interview', count: statusCounts.interviewed || 0 },
+                    { stage: 'NDA Sent', count: statusCounts.shortlisted || 0 },
+                    { stage: 'Project Start', count: statusCounts.hired || 0 }
+                ];
+
+                setHiringFunnel(funnelData);
+
+                // Get recent submissions (last 5)
+                const sortedCandidates = [...candidates]
+                    .sort((a, b) => new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime())
+                    .slice(0, 5);
+
+                const recentData: RecentSubmission[] = sortedCandidates.map(candidate => ({
+                    name: candidate.user_id?.name || 'Unknown',
+                    stage: getDisplayStatus(candidate.status),
+                    expertise: 'General', // Could be enhanced with actual expertise data
+                    date: formatRelativeDate(candidate.applied_at),
+                    _id: candidate._id
+                }));
+
+                setRecentSubmissions(recentData);
+
+                // Get NDA status data (last 3 with NDA status)
+                const ndaCandidates = candidates
+                    .filter(candidate => candidate.nda_status || candidate.status === 'shortlisted' || candidate.status === 'hired')
+                    .slice(0, 3);
+
+                const ndaData: NDAStatusItem[] = ndaCandidates.map(candidate => ({
+                    name: candidate.user_id?.name || 'Unknown',
+                    role: candidate.job_id?.title || 'Unknown Role',
+                    status: getNDAStatusDisplay(candidate),
+                    date: getNDADate(candidate),
+                    _id: candidate._id
+                }));
+
+                setNdaStatus(ndaData);
+
+                // Get job alert subscriptions (users with job_updates enabled)
+                const subscribers = users.filter(user => user.job_updates).slice(0, 3);
+                setJobAlerts(subscribers);
+
+            } catch (err) {
+                console.error('Error fetching dashboard data:', err);
+                setError('Failed to load dashboard data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    // Standalone reload function for error retry
+    const reloadDashboard = () => {
+        window.location.reload();
+    };
+
+    // Helper functions moved outside useEffect for reusability
+    const formatDate = (dateString: string) => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        } catch {
+            return '-';
+        }
+    };
+
     const statsCards = [
         {
             title: 'Total Applicants',
-            value: '142',
+            value: stats.totalApplicants.toString(),
             subtitle: 'this month',
             path: '/admin-dashboard/candidates'
         },
         {
             title: 'Active Roles Posted',
-            value: '7',
+            value: stats.activeRoles.toString(),
             subtitle: 'open roles',
             path: '/admin-dashboard/jobs'
         },
         {
             title: 'Avg. Time to Hire',
-            value: '11',
+            value: stats.avgTimeToHire.toString(),
             subtitle: 'days',
             path: '/admin-dashboard/analytics'
         },
         {
             title: 'CVs in Talent Pool',
-            value: '345',
+            value: stats.cvsInTalentPool.toString(),
             subtitle: 'profiles',
-            path: '/admin-dashboard/candidates'
+            path: '/admin-dashboard/talent-pool'
         }
     ];
 
@@ -82,91 +384,16 @@ const AdminDashboard = () => {
         { icon: '📨', label: 'Manage Subscriptions', path: '/admin-dashboard/subscriptions' }
     ];
 
-    const newSubmissions = [
-        {
-            name: 'Sarah M.',
-            stage: 'Received',
-            score: '92%',
-            expertise: 'Firmware',
-            date: '1 day ago'
-        },
-        {
-            name: 'Sarah M.',
-            stage: 'Screened',
-            score: '92%',
-            expertise: 'Firmware',
-            date: '1 day ago'
-        },
-        {
-            name: 'Sarah M.',
-            stage: 'NDA Sent',
-            score: '92%',
-            expertise: 'Firmware',
-            date: '1 day ago'
-        },
-        {
-            name: 'Sarah M.',
-            stage: 'Interview',
-            score: '92%',
-            expertise: 'Firmware',
-            date: '1 day ago'
-        },
-        {
-            name: 'Sarah M.',
-            stage: 'Project Start',
-            score: '92%',
-            expertise: 'Firmware',
-            date: '1 day ago'
-        }
-    ];
-
-    const ndaStatus = [
-        {
-            name: 'Ayesha K.',
-            role: 'PCB Designer',
-            status: '✅ Signed',
-            date: 'Apr 26, 2025'
-        },
-        {
-            name: 'Malik S.',
-            role: 'QA Tester',
-            status: '❌ Not Sent',
-            date: '-'
-        },
-        {
-            name: 'Jason F.',
-            role: 'Backend Developer',
-            status: '⏳ Pending',
-            date: '-'
-        }
-    ];
-
-    const jobAlerts = [
-        {
-            name: 'Sarah M.',
-            email: 'sarah.m@email.com',
-            categories: 'Firmware, QA',
-            frequency: 'Weekly',
-            subscribed: 'Apr 14, 2025',
-            status: 'Active'
-        },
-        {
-            name: 'Sarah M.',
-            email: 'sarah.m@email.com',
-            categories: 'Firmware, QA',
-            frequency: 'Weekly',
-            subscribed: 'Apr 14, 2025',
-            status: 'Active'
-        },
-        {
-            name: 'Sarah M.',
-            email: 'sarah.m@email.com',
-            categories: 'Firmware, QA',
-            frequency: 'Weekly',
-            subscribed: 'Apr 14, 2025',
-            status: 'Deactivated'
-        }
-    ];
+    if (loading) {
+        return (
+            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -323,10 +550,23 @@ const AdminDashboard = () => {
                                 </nav>
                             </div>
 
+                            {/* Error Display */}
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-red-600 text-sm">{error}</p>
+                                    <button
+                                        onClick={reloadDashboard}
+                                        className="mt-2 text-red-600 text-sm underline hover:no-underline"
+                                    >
+                                        Try again
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Welcome Section */}
                             <div className="font-montserrat mb-8">
                                 <h1 className="text-2xl font-semibold text-gray-700 mb-2">
-                                    Welcome back, [Admin Name]
+                                    Welcome back, Admin
                                 </h1>
                             </div>
 
@@ -391,16 +631,16 @@ const AdminDashboard = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {newSubmissions.map((submission, index) => (
+                                                        {hiringFunnel.map((stage, index) => (
                                                             <tr key={index} className="hover:bg-gray-50">
                                                                 <td className="h-10 px-4 py-3 bg-Surface-Default text-left">
                                                                     <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                        {submission.stage}
+                                                                        {stage.stage}
                                                                     </div>
                                                                 </td>
                                                                 <td className="h-10 px-4 py-3 bg-Surface-Default text-left">
                                                                     <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                        {index * 10 + 5} {/* Placeholder count */}
+                                                                        {stage.count}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -411,18 +651,18 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
 
-                                    {/* New CV Submissions Table - Second */}
+                                    {/* Recent CV Submissions Table - Second */}
                                     <div className="flex-1">
                                         {/* Heading aligned above the table */}
                                         <div className="flex justify-between items-center mb-2">
                                             <h2 className="text-[#6c6c6c] text-lg lg:text-base xl:text-lg font-medium font-poppins leading-[23px] tracking-wide">
-                                                New CV Submissions
+                                                Recent Applications
                                             </h2>
                                             <Link
                                                 href="/admin-dashboard/candidates"
                                                 className="flex items-center text-sm text-gray-600 hover:text-purple-600"
                                             >
-                                                View all submissions
+                                                View all
                                                 <ChevronRight className="w-4 h-4 ml-1" />
                                             </Link>
                                         </div>
@@ -449,13 +689,13 @@ const AdminDashboard = () => {
                                                             </th>
                                                             <th className="w-[25%] h-[49px] px-4 py-3 bg-Neutral-200 text-left">
                                                                 <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                                                    Submitted
+                                                                    Applied
                                                                 </div>
                                                             </th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {newSubmissions.map((submission, index) => (
+                                                        {recentSubmissions.length > 0 ? recentSubmissions.map((submission, index) => (
                                                             <tr key={index} className="hover:bg-gray-50">
                                                                 <td className="h-10 px-4 py-3 bg-Surface-Default text-left">
                                                                     <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
@@ -478,7 +718,13 @@ const AdminDashboard = () => {
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        ))}
+                                                        )) : (
+                                                            <tr>
+                                                                <td colSpan={4} className="h-10 px-4 py-6 text-center text-gray-500 text-sm">
+                                                                    No recent applications
+                                                                </td>
+                                                            </tr>
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -544,7 +790,7 @@ const AdminDashboard = () => {
                                                     </th>
                                                     <th className="px-4 py-3 text-left">
                                                         <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                                            Signed Date
+                                                            Date
                                                         </div>
                                                     </th>
                                                     <th className="px-4 py-3 text-left">
@@ -555,7 +801,7 @@ const AdminDashboard = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {ndaStatus.map((nda, index) => (
+                                                {ndaStatus.length > 0 ? ndaStatus.map((nda, index) => (
                                                     <tr key={index} className="hover:bg-gray-50">
                                                         <td className="px-4 py-3 text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
@@ -579,15 +825,22 @@ const AdminDashboard = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
                                                             <Link
-                                                                href={`/admin-dashboard/nda/${nda.name}`}
+                                                                href="/admin-dashboard/nda"
                                                                 className="px-[9px] py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
                                                             >
                                                                 {nda.status === '✅ Signed' ? 'View NDA' :
-                                                                    nda.status === '❌ Not Sent' ? 'Send Reminder' : 'Send NDA'}
+                                                                    nda.status === '❌ Not Sent' ? 'Send NDA' :
+                                                                        nda.status === '❌ Not Required' ? 'View Details' : 'Send Reminder'}
                                                             </Link>
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan={5} className="px-4 py-6 text-center text-gray-500 text-sm">
+                                                            No NDA records found
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -623,12 +876,12 @@ const AdminDashboard = () => {
                                                     </th>
                                                     <th className="px-4 py-3 text-left">
                                                         <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                                            Preferred Categories
+                                                            Newsletter
                                                         </div>
                                                     </th>
                                                     <th className="px-4 py-3 text-left">
                                                         <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                                            Frequency
+                                                            Job Updates
                                                         </div>
                                                     </th>
                                                     <th className="px-4 py-3 text-left">
@@ -644,11 +897,11 @@ const AdminDashboard = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {jobAlerts.map((alert, index) => (
+                                                {jobAlerts.length > 0 ? jobAlerts.map((alert, index) => (
                                                     <tr key={index} className="hover:bg-gray-50">
                                                         <td className="px-4 py-3 text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {alert.name}
+                                                                {`${alert.first_name} ${alert.last_name}`}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
@@ -658,29 +911,35 @@ const AdminDashboard = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {alert.categories}
+                                                                {alert.newsletter ? '✅ Yes' : '❌ No'}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {alert.frequency}
+                                                                {alert.job_updates ? '✅ Yes' : '❌ No'}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {alert.subscribed}
+                                                                {formatDate(alert.created_at)}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-left">
-                                                            <div className={`px-[9px] py-2 rounded-[15px] text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center ${alert.status === 'Active'
+                                                            <div className={`px-[9px] py-2 rounded-[15px] text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center ${alert.job_updates || alert.newsletter
                                                                 ? 'bg-[#bcff9b] text-[#6c6c6c]'
                                                                 : 'bg-[#ff8686] text-white'
                                                                 }`}>
-                                                                {alert.status}
+                                                                {alert.job_updates || alert.newsletter ? 'Active' : 'Inactive'}
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan={6} className="px-4 py-6 text-center text-gray-500 text-sm">
+                                                            No active subscriptions found
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
