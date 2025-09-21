@@ -23,7 +23,8 @@ interface Job {
     id: string;
     title: string;
     category: string;
-    status: 'draft' | 'published' | 'scheduled';
+    publication_status: 'draft' | 'published' | 'scheduled';
+    assignment_status: 'open' | 'closed' | 'hired';
     location: string;
     type: 'full-time' | 'part-time' | 'contract' | 'temporary';
     experience: 'junior' | 'intermediate' | 'senior' | 'expert';
@@ -37,6 +38,9 @@ interface Job {
     updated_at: string;
     created_by: string;
     posted: string;
+    hired_candidate_id?: string;
+    // Legacy field for backward compatibility
+    status: string;
 }
 
 interface ApiResponse {
@@ -92,7 +96,7 @@ const JobPostings = () => {
         setError('');
 
         try {
-            const token = localStorage.getItem('adminToken'); // Adjust token key as needed
+            const token = localStorage.getItem('adminToken');
             if (!token) {
                 throw new Error('Admin authentication required');
             }
@@ -112,10 +116,10 @@ const JobPostings = () => {
 
             const data: ApiResponse = await response.json();
 
-            if (data.status === 'success' && data.data) {
-                setJobPostings(data.data);
+            if (data.status === 'success') {
+                setJobPostings(data.data || []);
             } else {
-                setError('Failed to fetch job postings');
+                setError(data.message || 'Failed to fetch job postings');
             }
         } catch (err: unknown) {
             console.error('Error fetching job postings:', err);
@@ -130,9 +134,9 @@ const JobPostings = () => {
     const applyFilters = useCallback(() => {
         let filtered = [...jobPostings];
 
-        // Apply status filter
+        // Apply status filter (using publication_status)
         if (activeFilter !== 'all') {
-            filtered = filtered.filter(job => job.status === activeFilter);
+            filtered = filtered.filter(job => job.publication_status === activeFilter);
         }
 
         // Apply search filter
@@ -163,7 +167,7 @@ const JobPostings = () => {
         }
 
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             if (!token) {
                 throw new Error('Admin authentication required');
             }
@@ -189,7 +193,7 @@ const JobPostings = () => {
         }
     };
 
-    const getStatusIcon = (status: Job['status']) => {
+    const getStatusIcon = (status: Job['publication_status']) => {
         switch (status) {
             case 'published':
                 return '✅';
@@ -449,7 +453,7 @@ const JobPostings = () => {
                         )}
 
                         {/* Job Postings Table */}
-                        {!loading && (
+                        {!loading && !error && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead>
@@ -488,14 +492,14 @@ const JobPostings = () => {
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         <span className="flex items-center gap-1 capitalize">
-                                                            {getStatusIcon(job.status)} {job.status}
+                                                            {getStatusIcon(job.publication_status)} {job.publication_status}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         {getApplicationsCount()}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {job.status === 'published' ? formatDate(job.created_at) : '-'}
+                                                        {job.publication_status === 'published' ? formatDate(job.created_at) : '-'}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-center">
                                                         <div className="flex items-center justify-center gap-2">
@@ -531,7 +535,7 @@ const JobPostings = () => {
                                                         ? `No job postings found matching "${searchQuery}"`
                                                         : activeFilter !== 'all'
                                                             ? `No job postings found for "${activeFilter}" status`
-                                                            : 'No job postings found'
+                                                            : 'No job postings found. Create your first job posting!'
                                                     }
                                                 </td>
                                             </tr>

@@ -5,6 +5,7 @@ import {
     Bell,
     Briefcase,
     Calendar,
+    ChevronDown,
     ChevronRight,
     LogOut,
     Mail,
@@ -25,19 +26,17 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface Candidate {
-    _id: string;
-    user_id: {
+    id: string;
+    user: {
         _id: string;
         name: string;
         email: string;
     };
-    job_id: {
+    job: {
         _id: string;
         title: string;
     };
     status: string;
-    applied_at: string;
-    updated_at: string;
     nda_status?: {
         status: 'not_sent' | 'sent' | 'submitted';
         sent_on?: string;
@@ -47,6 +46,13 @@ interface Candidate {
         created_at: string;
         updated_at: string;
     };
+    added_at: string;
+    updated_at: string;
+    added_by: string;
+    notes?: string;
+    interview_date?: string;
+    interview_notes?: string;
+    rejection_reason?: string;
 }
 
 interface ExpertiseArea {
@@ -76,6 +82,11 @@ interface CandidateDetails {
     cv_file_url: string | null;
 }
 
+interface StatusDropdown {
+    candidateId: string;
+    isOpen: boolean;
+}
+
 const CandidateManagement = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState('All');
@@ -92,6 +103,8 @@ const CandidateManagement = () => {
     const [selectedNda, setSelectedNda] = useState<'template' | 'upload'>('template');
     const [selectedTemplate, setSelectedTemplate] = useState('NDA_Template_General.pdf');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
+    const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
     // Editable email states
     const [interviewSubject, setInterviewSubject] = useState('');
@@ -101,6 +114,7 @@ const CandidateManagement = () => {
 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const sidebarItems = [
@@ -119,15 +133,25 @@ const CandidateManagement = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch candidates data with NDA status
+    // Status options for the dropdown
+    const statusOptions = [
+        { value: 'applied', label: 'Applied', color: 'bg-[#86dcff]' },
+        { value: 'admin_moved', label: 'Admin Moved', color: 'bg-[#ffd986]' },
+        { value: 'shortlisted', label: 'Shortlisted', color: 'bg-[#e2ff86]' },
+        { value: 'interviewed', label: 'Interviewed', color: 'bg-[#86dcff]' },
+        { value: 'hired', label: 'Hired', color: 'bg-[#86ffae]' },
+        { value: 'rejected', label: 'Rejected', color: 'bg-[#ff8686]' }
+    ];
+
+    // Fetch candidates data from job candidates endpoint
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Fetch candidates with NDA status from the NDA endpoint
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                // Fetch all job candidates with NDA status
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -160,6 +184,24 @@ const CandidateManagement = () => {
         fetchCandidates();
     }, []);
 
+    // Close sidebar and dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+                setSidebarOpen(false);
+            }
+
+            if (statusDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setStatusDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [sidebarOpen, statusDropdown]);
+
     // Fetch candidate details
     const fetchCandidateDetails = async (candidate: Candidate) => {
         setDetailsLoading(true);
@@ -167,7 +209,7 @@ const CandidateManagement = () => {
 
         try {
             const adminToken = localStorage.getItem('adminToken');
-            const userId = candidate.user_id._id;
+            const userId = candidate.user._id;
 
             // Fetch expertise areas
             const expertiseResponse = await fetch(
@@ -218,7 +260,7 @@ const CandidateManagement = () => {
             let jobMatch = null;
             if (jobMatchesData.success && jobMatchesData.data.job_matches) {
                 jobMatch = jobMatchesData.data.job_matches.find(
-                    (match: JobMatch) => match.job_id === candidate.job_id._id
+                    (match: JobMatch) => match.job_id === candidate.job._id
                 );
             }
 
@@ -261,29 +303,14 @@ const CandidateManagement = () => {
         }
     };
 
-    // Close sidebar when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen]);
-
     const statusFilters = [
         { label: 'All', active: activeFilter === 'All' },
         { label: 'Applied', active: activeFilter === 'Applied' },
-        { label: 'Rejected Application', active: activeFilter === 'Rejected Application' },
-        { label: 'Shortlisted Application', active: activeFilter === 'Shortlisted Application' },
-        { label: 'Rejected Interview', active: activeFilter === 'Rejected Interview' },
+        { label: 'Admin Moved', active: activeFilter === 'Admin Moved' },
+        { label: 'Shortlisted', active: activeFilter === 'Shortlisted' },
         { label: 'Interviewed', active: activeFilter === 'Interviewed' },
-        { label: 'Shortlisted Interview', active: activeFilter === 'Shortlisted Interview' },
-        { label: 'Hired', active: activeFilter === 'Hired' }
+        { label: 'Hired', active: activeFilter === 'Hired' },
+        { label: 'Rejected', active: activeFilter === 'Rejected' }
     ];
 
     // Filter candidates based on active filter
@@ -293,13 +320,12 @@ const CandidateManagement = () => {
             : candidates.filter(candidate => {
                 if (!candidate || !candidate.status) return false;
                 const statusMap: { [key: string]: string } = {
-                    'pending': 'Applied',
-                    'rejected': 'Rejected Application',
-                    'reviewed': 'Shortlisted Application',
-                    'rejected-interview': 'Rejected Interview',
+                    'applied': 'Applied',
+                    'admin_moved': 'Admin Moved',
+                    'shortlisted': 'Shortlisted',
                     'interviewed': 'Interviewed',
-                    'shortlisted': 'Shortlisted Interview',
-                    'hired': 'Hired'
+                    'hired': 'Hired',
+                    'rejected': 'Rejected'
                 };
                 const mappedStatus = statusMap[candidate.status] || candidate.status;
                 return mappedStatus === activeFilter;
@@ -309,13 +335,12 @@ const CandidateManagement = () => {
     // Function to get status color based on status
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'pending': return 'bg-[#86dcff]';
-            case 'rejected': return 'bg-[#ff8686]';
-            case 'reviewed': return 'bg-[#e2ff86]';
-            case 'rejected-interview': return 'bg-[#ff8686]';
-            case 'interviewed': return 'bg-[#86dcff]';
+            case 'applied': return 'bg-[#86dcff]';
+            case 'admin_moved': return 'bg-[#ffd986]';
             case 'shortlisted': return 'bg-[#e2ff86]';
+            case 'interviewed': return 'bg-[#86dcff]';
             case 'hired': return 'bg-[#86ffae]';
+            case 'rejected': return 'bg-[#ff8686]';
             default: return 'bg-[#86dcff]';
         }
     };
@@ -339,13 +364,12 @@ const CandidateManagement = () => {
     // Function to get display status text
     const getDisplayStatus = (status: string) => {
         const statusMap: { [key: string]: string } = {
-            'pending': 'Applied',
-            'rejected': 'Rejected Application',
-            'reviewed': 'Shortlisted Application',
-            'rejected-interview': 'Rejected Interview',
+            'applied': 'Applied',
+            'admin_moved': 'Admin Moved',
+            'shortlisted': 'Shortlisted',
             'interviewed': 'Interviewed',
-            'shortlisted': 'Shortlisted Interview',
-            'hired': 'Hired'
+            'hired': 'Hired',
+            'rejected': 'Rejected'
         };
         return statusMap[status] || status;
     };
@@ -365,16 +389,53 @@ const CandidateManagement = () => {
         }
     };
 
+    // Function to handle status change
+    const handleStatusChange = async (candidateId: string, newStatus: string) => {
+        try {
+            setUpdatingStatus(candidateId);
+            setStatusDropdown(null);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update status');
+            }
+
+            // Update local state
+            setCandidates(prev => Array.isArray(prev)
+                ? prev.map(candidate =>
+                    candidate && candidate.id === candidateId
+                        ? { ...candidate, status: newStatus, updated_at: new Date().toISOString() }
+                        : candidate
+                )
+                : []
+            );
+
+        } catch (err) {
+            console.error('Error updating status:', err);
+            alert('Failed to update status');
+        } finally {
+            setUpdatingStatus(null);
+        }
+    };
+
     // Function to get action text based on status and NDA status
     const getActionText = (candidate: Candidate) => {
         switch (candidate.status) {
-            case 'pending': return 'Proceed';
-            case 'rejected': return null;
-            case 'reviewed': return 'Call For Interview';
-            case 'rejected-interview': return null;
-            case 'interviewed': return 'Proceed';
-            case 'shortlisted':
-                // Check NDA status for shortlisted candidates
+            case 'applied': return 'Proceed';
+            case 'admin_moved': return 'Proceed';
+            case 'shortlisted': return 'Call For Interview';
+            case 'interviewed':
+                // Check NDA status for interviewed candidates
                 if (!candidate.nda_status || candidate.nda_status.status === 'not_sent') {
                     return 'Send NDA';
                 } else if (candidate.nda_status.status === 'sent') {
@@ -383,6 +444,7 @@ const CandidateManagement = () => {
                     return 'View NDA Log';
                 }
             case 'hired': return 'View NDA Log';
+            case 'rejected': return null;
             default: return null;
         }
     };
@@ -397,8 +459,8 @@ const CandidateManagement = () => {
 
     // Set default email content when dialog opens
     const setInterviewDialogContent = (candidate: Candidate) => {
-        const defaultSubject = `Interview invitation for ${candidate.job_id?.title || 'the position'}`;
-        const defaultBody = `Dear ${candidate.user_id?.name || 'Candidate'},\n\nWe are pleased to inform you that your application for the ${candidate.job_id?.title || 'position'} role at Protonest has been successful, and we would like to invite you for an interview.\n\nPlease confirm your availability for the scheduled interview time. We look forward to discussing your qualifications and learning more about your experience.\n\nBest regards,\nProtonest Team`;
+        const defaultSubject = `Interview invitation for ${candidate.job?.title || 'the position'}`;
+        const defaultBody = `Dear ${candidate.user?.name || 'Candidate'},\n\nWe are pleased to inform you that your application for the ${candidate.job?.title || 'position'} role at Protonest has been successful, and we would like to invite you for an interview.\n\nPlease confirm your availability for the scheduled interview time. We look forward to discussing your qualifications and learning more about your experience.\n\nBest regards,\nProtonest Team`;
 
         setInterviewSubject(defaultSubject);
         setInterviewBody(defaultBody);
@@ -407,8 +469,8 @@ const CandidateManagement = () => {
 
     // Set default NDA email content
     const setNdaDialogContent = (candidate: Candidate) => {
-        const defaultSubject = `Protonest NDA for ${candidate.job_id?.title || '[Role Name]'} – Action Required`;
-        const defaultBody = `Hello ${candidate.user_id?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${candidate.job_id?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do.....`;
+        const defaultSubject = `Protonest NDA for ${candidate.job?.title || '[Role Name]'} – Action Required`;
+        const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${candidate.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do.....`;
 
         setNdaSubject(defaultSubject);
         setNdaBody(defaultBody);
@@ -420,7 +482,7 @@ const CandidateManagement = () => {
         if (!deleteCandidate) return;
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${candidate._id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidate.id}/status`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -428,27 +490,30 @@ const CandidateManagement = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete application');
+                throw new Error('Failed to delete candidate');
             }
 
-            setCandidates(prev => prev.filter(c => c._id !== candidate._id));
+            setCandidates(prev => prev.filter(c => c.id !== candidate.id));
             setDeleteCandidate(null);
         } catch (err) {
-            console.error('Error deleting application:', err);
-            alert('Failed to delete application');
+            console.error('Error deleting candidate:', err);
+            alert('Failed to delete candidate');
         }
     };
 
-    // Function to handle status update
-    const updateStatus = async (applicationId: string, newStatus: string) => {
+    // Function to update status
+    const updateStatus = async (candidateId: string, newStatus: string, notes?: string) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${applicationId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({
+                    status: newStatus,
+                    notes: notes
+                })
             });
 
             if (!response.ok) {
@@ -457,7 +522,7 @@ const CandidateManagement = () => {
 
             setCandidates(prev => Array.isArray(prev)
                 ? prev.map(candidate =>
-                    candidate && candidate._id === applicationId
+                    candidate && candidate.id === candidateId
                         ? { ...candidate, status: newStatus, updated_at: new Date().toISOString() }
                         : candidate
                 )
@@ -474,7 +539,7 @@ const CandidateManagement = () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${candidateId}/nda/send`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/nda/send`,
                 {
                     method: 'POST',
                     headers: {
@@ -491,7 +556,7 @@ const CandidateManagement = () => {
 
             // Update local state
             setCandidates(prev => prev.map(candidate =>
-                candidate._id === candidateId
+                candidate.id === candidateId
                     ? {
                         ...candidate,
                         nda_status: {
@@ -518,7 +583,7 @@ const CandidateManagement = () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${candidateId}/nda/resend`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/nda/resend`,
                 {
                     method: 'POST',
                     headers: {
@@ -535,7 +600,7 @@ const CandidateManagement = () => {
 
             // Update local state
             setCandidates(prev => prev.map(candidate =>
-                candidate._id === candidateId && candidate.nda_status
+                candidate.id === candidateId && candidate.nda_status
                     ? {
                         ...candidate,
                         nda_status: {
@@ -561,19 +626,19 @@ const CandidateManagement = () => {
         const actionText = getActionText(candidate);
 
         switch (candidate.status) {
-            case 'pending':
-            case 'interviewed':
+            case 'applied':
+            case 'admin_moved':
                 setStatusDialog({ candidate, type: 'proceed' });
                 break;
-            case 'reviewed':
+            case 'shortlisted':
                 setInterviewDialogContent(candidate);
                 break;
-            case 'shortlisted':
+            case 'interviewed':
                 if (actionText === 'Send NDA') {
                     setNdaDialogContent(candidate);
                 } else if (actionText === 'Resend NDA') {
-                    if (confirm(`Resend NDA to ${candidate.user_id?.name}?`)) {
-                        resendNDA(candidate._id);
+                    if (confirm(`Resend NDA to ${candidate.user?.name}?`)) {
+                        resendNDA(candidate.id);
                     }
                 } else {
                     // View NDA Log - redirect to NDA page
@@ -596,15 +661,13 @@ const CandidateManagement = () => {
         const { candidate } = statusDialog;
         let newStatus: string;
 
-        if (candidate.status === 'pending') {
-            newStatus = action === 'shortlist' ? 'reviewed' : 'rejected';
-        } else if (candidate.status === 'interviewed') {
-            newStatus = action === 'shortlist' ? 'shortlisted' : 'rejected-interview';
+        if (candidate.status === 'applied' || candidate.status === 'admin_moved') {
+            newStatus = action === 'shortlist' ? 'shortlisted' : 'rejected';
         } else {
             return;
         }
 
-        updateStatus(candidate._id, newStatus);
+        updateStatus(candidate.id, newStatus);
         setStatusDialog(null);
     };
 
@@ -614,13 +677,13 @@ const CandidateManagement = () => {
 
         // Open email client
         openEmailClient(
-            interviewDialog.user_id?.email || '',
+            interviewDialog.user?.email || '',
             interviewSubject,
             interviewBody
         );
 
         // Update status to interviewed
-        updateStatus(interviewDialog._id, 'interviewed');
+        updateStatus(interviewDialog.id, 'interviewed');
 
         // Close dialog
         setInterviewDialog(null);
@@ -634,16 +697,16 @@ const CandidateManagement = () => {
 
         // Open email client
         openEmailClient(
-            ndaDialog.user_id?.email || '',
+            ndaDialog.user?.email || '',
             ndaSubject,
             ndaBody
         );
 
         // Send NDA via API
-        sendNDA(ndaDialog._id, ndaBody);
+        sendNDA(ndaDialog.id, ndaBody);
 
         // Update status to hired
-        updateStatus(ndaDialog._id, 'hired');
+        updateStatus(ndaDialog.id, 'hired');
 
         // Close dialog and reset
         setNdaDialog(null);
@@ -956,7 +1019,7 @@ const CandidateManagement = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
+                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto overflow-y-visible min-h-[400px]">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead>
                                     <tr>
@@ -976,7 +1039,7 @@ const CandidateManagement = () => {
                                             NDA Status
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Applied On
+                                            Added On
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Actions
@@ -989,28 +1052,66 @@ const CandidateManagement = () => {
                                             const ndaStatusDisplay = getNDAStatusDisplay(candidate);
 
                                             return (
-                                                <tr key={candidate._id} className="hover:bg-gray-50">
+                                                <tr key={candidate.id} className="hover:bg-gray-50">
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {candidate.user_id?.name || 'N/A'}
+                                                        {candidate.user?.name || 'N/A'}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                        <Link href={`/admin-dashboard/jobs/${candidate.job_id?._id}`}>
-                                                            {candidate.job_id?.title || 'N/A'}
+                                                        <Link href={`/admin-dashboard/jobs/${candidate.job?._id}`}>
+                                                            {candidate.job?.title || 'N/A'}
                                                         </Link>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {candidate.user_id?.email || 'N/A'}
+                                                        {candidate.user?.email || 'N/A'}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1`}>
-                                                            {getDisplayStatus(candidate.status)}
-                                                        </span>
+                                                    <td className="px-4 py-3 whitespace-nowrap relative">
+                                                        <div ref={statusDropdown?.candidateId === candidate.id ? dropdownRef : null}>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (statusDropdown?.candidateId === candidate.id) {
+                                                                        setStatusDropdown(null);
+                                                                    } else {
+                                                                        setStatusDropdown({ candidateId: candidate.id, isOpen: true });
+                                                                    }
+                                                                }}
+                                                                disabled={updatingStatus === candidate.id}
+                                                                className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                            >
+                                                                {updatingStatus === candidate.id ? (
+                                                                    <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-600"></div>
+                                                                ) : (
+                                                                    <>
+                                                                        {getDisplayStatus(candidate.status)}
+                                                                        <ChevronDown className="w-3 h-3" />
+                                                                    </>
+                                                                )}
+                                                            </button>
+
+                                                            {/* Status Dropdown */}
+                                                            {statusDropdown?.candidateId === candidate.id && statusDropdown.isOpen && (
+                                                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] flex flex-col">
+                                                                    {statusOptions.map((option) => (
+                                                                        <button
+                                                                            key={option.value}
+                                                                            onClick={() => handleStatusChange(candidate.id, option.value)}
+                                                                            className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 transition-colors block ${option.value === statusOptions[0].value ? 'rounded-t-lg' : ''
+                                                                                } ${option.value === statusOptions[statusOptions.length - 1].value ? 'rounded-b-lg' : ''
+                                                                                } ${candidate.status === option.value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                                                                }`}
+                                                                        >
+                                                                            <span className={`inline-block w-3 h-3 rounded-full mr-2 ${option.color}`}></span>
+                                                                            {option.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${ndaStatusDisplay.color}`}>
                                                         {ndaStatusDisplay.icon} {ndaStatusDisplay.text}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {formatDate(candidate.applied_at)}
+                                                        {formatDate(candidate.added_at)}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
                                                         <div className="flex items-center justify-center gap-2">
@@ -1032,8 +1133,8 @@ const CandidateManagement = () => {
 
                                                             <button
                                                                 className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                                onClick={() => setDeleteCandidate({ id: candidate._id, name: candidate.user_id?.name || 'Unknown' })}
-                                                                title="Delete application"
+                                                                onClick={() => setDeleteCandidate({ id: candidate.id, name: candidate.user?.name || 'Unknown' })}
+                                                                title="Delete candidate"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -1052,8 +1153,6 @@ const CandidateManagement = () => {
                                 </tbody>
                             </table>
                         </div>
-
-
                     </main>
                 </div>
             </div>
@@ -1065,10 +1164,10 @@ const CandidateManagement = () => {
                     <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4">
                         <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Delete Application
+                                Delete Candidate
                             </h3>
                             <p className="text-gray-600 text-sm sm:text-base">
-                                Are you sure you want to delete the application from{' '}
+                                Are you sure you want to delete the candidate{' '}
                                 <span className="font-medium">{deleteCandidate.name}</span>?{' '}
                                 This action cannot be undone.
                             </p>
@@ -1082,7 +1181,7 @@ const CandidateManagement = () => {
                             </button>
                             <button
                                 onClick={() => {
-                                    const candidate = candidates.find(c => c._id === deleteCandidate.id);
+                                    const candidate = candidates.find(c => c.id === deleteCandidate.id);
                                     if (candidate) handleDelete(candidate);
                                 }}
                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
@@ -1101,17 +1200,17 @@ const CandidateManagement = () => {
                     <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full">
                         <div className="mb-6">
                             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-                                Update Application Status
+                                Update Candidate Status
                             </h3>
                             <p className="text-gray-600 mb-4 text-sm sm:text-base">
-                                What would you like to do with {statusDialog.candidate.user_id?.name || 'this candidate'}&apos;s application?
+                                What would you like to do with {statusDialog.candidate.user?.name || 'this candidate'}?
                             </p>
                             <div className="bg-gray-50 p-3 rounded-lg mb-4">
                                 <p className="text-xs sm:text-sm text-gray-700">
-                                    <span className="font-medium">Role:</span> {statusDialog.candidate.job_id?.title || 'N/A'}
+                                    <span className="font-medium">Role:</span> {statusDialog.candidate.job?.title || 'N/A'}
                                 </p>
                                 <p className="text-xs sm:text-sm text-gray-700">
-                                    <span className="font-medium">Email:</span> {statusDialog.candidate.user_id?.email || 'N/A'}
+                                    <span className="font-medium">Email:</span> {statusDialog.candidate.user?.email || 'N/A'}
                                 </p>
                             </div>
                         </div>
@@ -1224,19 +1323,19 @@ const CandidateManagement = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-8 text-center">
                                 <div>
                                     <div className="text-sm sm:text-base font-medium font-poppins text-[#6c6c6c] mb-1">
-                                        {ndaDialog.user_id?.name || 'N/A'}
+                                        {ndaDialog.user?.name || 'N/A'}
                                     </div>
                                     <div className="text-xs sm:text-sm font-light font-poppins text-[#6c6c6c]">Candidate</div>
                                 </div>
                                 <div>
                                     <div className="text-sm sm:text-base font-medium font-poppins text-[#6c6c6c] mb-1 break-all">
-                                        {ndaDialog.user_id?.email || 'N/A'}
+                                        {ndaDialog.user?.email || 'N/A'}
                                     </div>
                                     <div className="text-xs sm:text-sm font-light font-poppins text-[#6c6c6c]">Email</div>
                                 </div>
                                 <div>
                                     <div className="text-sm sm:text-base font-medium font-poppins text-[#6c6c6c] mb-1">
-                                        {ndaDialog.job_id?.title || 'N/A'}
+                                        {ndaDialog.job?.title || 'N/A'}
                                     </div>
                                     <div className="text-xs sm:text-sm font-light font-poppins text-[#6c6c6c]">Role</div>
                                 </div>
@@ -1398,10 +1497,10 @@ const CandidateManagement = () => {
                                         </div>
                                         <div>
                                             <h2 className="text-xl font-semibold text-white">
-                                                {detailsDialog.user_id?.name || 'Candidate Profile'}
+                                                {detailsDialog.user?.name || 'Candidate Profile'}
                                             </h2>
                                             <p className="text-white/80 text-sm">
-                                                Applied for {detailsDialog.job_id?.title || 'N/A'}
+                                                Applied for {detailsDialog.job?.title || 'N/A'}
                                             </p>
                                         </div>
                                     </div>
@@ -1434,7 +1533,7 @@ const CandidateManagement = () => {
                                                 <div className="space-y-2">
                                                     <div className="flex items-center text-sm">
                                                         <span className="text-gray-600 w-16">Email:</span>
-                                                        <span className="text-gray-900">{detailsDialog.user_id?.email || 'N/A'}</span>
+                                                        <span className="text-gray-900">{detailsDialog.user?.email || 'N/A'}</span>
                                                     </div>
                                                     <div className="flex items-center text-sm">
                                                         <MapPin className="w-4 h-4 mr-2 text-gray-400" />
@@ -1452,7 +1551,7 @@ const CandidateManagement = () => {
                                                 <div className="space-y-3">
                                                     <div>
                                                         <span className="text-sm text-gray-600">Applied Role:</span>
-                                                        <p className="font-medium text-gray-900">{detailsDialog.job_id?.title || 'N/A'}</p>
+                                                        <p className="font-medium text-gray-900">{detailsDialog.job?.title || 'N/A'}</p>
                                                     </div>
                                                     <div>
                                                         <span className="text-sm text-gray-600">Status:</span>
@@ -1477,7 +1576,7 @@ const CandidateManagement = () => {
                                                     </div>
                                                     <div className="flex items-center text-sm">
                                                         <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                                        <span className="text-gray-600">Applied: {formatDate(detailsDialog.applied_at)}</span>
+                                                        <span className="text-gray-600">Added: {formatDate(detailsDialog.added_at)}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1634,7 +1733,7 @@ const CandidateManagement = () => {
                                                     )}
                                                     <button
                                                         onClick={() => {
-                                                            const email = detailsDialog.user_id?.email;
+                                                            const email = detailsDialog.user?.email;
                                                             if (email) {
                                                                 window.open(`mailto:${email}`, '_blank');
                                                             }
@@ -1647,13 +1746,13 @@ const CandidateManagement = () => {
                                                         onClick={() => {
                                                             setDetailsDialog(null);
                                                             setDeleteCandidate({
-                                                                id: detailsDialog._id,
-                                                                name: detailsDialog.user_id?.name || 'Unknown'
+                                                                id: detailsDialog.id,
+                                                                name: detailsDialog.user?.name || 'Unknown'
                                                             });
                                                         }}
                                                         className="w-full px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
                                                     >
-                                                        Delete Application
+                                                        Delete Candidate
                                                     </button>
                                                 </div>
                                             </div>
@@ -1681,7 +1780,7 @@ const CandidateManagement = () => {
                                                                     Preview
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleDownloadCV(candidateDetails.cv_file_url!, detailsDialog.user_id?.name || 'candidate')}
+                                                                    onClick={() => handleDownloadCV(candidateDetails.cv_file_url!, detailsDialog.user?.name || 'candidate')}
                                                                     className="px-3 py-1 text-xs border border-gray-300 text-gray-600 rounded hover:bg-gray-50"
                                                                 >
                                                                     Download

@@ -242,7 +242,15 @@ export default function JobDetailPage() {
 
     const handleApplyJob = async () => {
         if (!user) {
-            router.push('/signin');
+            // Store job information for signin flow
+            if (job) {
+                localStorage.setItem('pendingJobApplication', JSON.stringify({
+                    jobId: job.id,
+                    jobTitle: job.title,
+                    timestamp: Date.now()
+                }));
+            }
+            router.push('/signin'); // Changed from '/signup' to '/signin'
             return;
         }
 
@@ -523,17 +531,26 @@ export default function JobDetailPage() {
                     )}
                 </div>
 
-                {/* Sign up prompt */}
                 {!user && (
                     <div className="mb-12">
                         <p className="text-[#6c6c6c] text-base font-normal font-poppins">
                             If you do not already have an account,{' '}
-                            <Link
-                                href="/signup"
+                            <button
+                                onClick={() => {
+                                    // Store job information for signup flow
+                                    if (job) {
+                                        localStorage.setItem('pendingJobApplication', JSON.stringify({
+                                            jobId: job.id,
+                                            jobTitle: job.title,
+                                            timestamp: Date.now()
+                                        }));
+                                    }
+                                    router.push('/signup');
+                                }}
                                 className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer"
                             >
                                 Sign up to apply
-                            </Link>
+                            </button>
                         </p>
                     </div>
                 )}

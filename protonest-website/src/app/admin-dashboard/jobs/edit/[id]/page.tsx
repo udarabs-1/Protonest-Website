@@ -18,7 +18,8 @@ type JobData = {
     id?: string;
     title?: string;
     category?: string;
-    status?: string;
+    publication_status?: 'draft' | 'published' | 'scheduled';
+    assignment_status?: 'open' | 'closed' | 'hired';
     description?: string;
     responsibilities?: string[];
     requirements?: string[];
@@ -27,8 +28,7 @@ type JobData = {
     type?: string;
     experience?: string;
     deadline?: string;
-    scheduleAt?: string | null;
-    publish_now?: boolean;
+    schedule_at?: string | null;
 };
 
 const JobEditor = () => {
@@ -46,7 +46,6 @@ const JobEditor = () => {
     const [formData, setFormData] = useState({
         title: '',
         category: '',
-        status: 'draft',
         description: '',
         responsibilities: '',
         requirements: '',
@@ -117,7 +116,6 @@ const JobEditor = () => {
             setFormData({
                 title: jobData.title || '',
                 category: jobData.category || '',
-                status: jobData.status || 'draft',
                 description: jobData.description || '',
                 responsibilities: jobData.responsibilities ? jobData.responsibilities.join('\n') : '',
                 requirements: jobData.requirements ? jobData.requirements.join('\n') : '',
@@ -126,8 +124,8 @@ const JobEditor = () => {
                 type: jobData.type || 'full-time',
                 experience: jobData.experience || 'intermediate',
                 deadline: jobData.deadline ? new Date(jobData.deadline).toISOString().split('T')[0] : '',
-                schedule_at: jobData.scheduleAt ? new Date(jobData.scheduleAt).toISOString().slice(0, 16) : '',
-                publish_now: jobData.status === 'published' || jobData.status === 'scheduled'
+                schedule_at: jobData.schedule_at ? new Date(jobData.schedule_at).toISOString().slice(0, 16) : '',
+                publish_now: jobData.publication_status === 'published' || jobData.publication_status === 'scheduled'
             });
         }
     }, [jobData]);
@@ -213,7 +211,7 @@ const JobEditor = () => {
                 return;
             }
 
-            // Prepare the data for API - match your Go backend struct exactly
+            // Prepare the data for API
             const apiData = {
                 title: formData.title.trim(),
                 category: formData.category.trim(),
@@ -232,12 +230,9 @@ const JobEditor = () => {
             console.log('Sending API data:', apiData);
 
             const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`;
-            const method = 'PUT';
-
-            console.log(`Making ${method} request to: ${url}`);
 
             const response = await fetch(url, {
-                method,
+                method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(apiData),
             });
@@ -247,7 +242,6 @@ const JobEditor = () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Token expired or invalid
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminInfo');
                     router.push('/admin/login');
@@ -257,32 +251,6 @@ const JobEditor = () => {
             }
 
             if (data.status === 'success') {
-                // Check if we need to publish the job separately
-                if (formData.publish_now) {
-                    try {
-                        const publishResponse = await fetch(
-                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}/publish`,
-                            {
-                                method: 'POST',
-                                headers: getAuthHeaders(),
-                                body: JSON.stringify({
-                                    publish_now: true,
-                                    schedule_at: formData.schedule_at
-                                        ? new Date(formData.schedule_at).toISOString()
-                                        : null,
-                                }),
-                            }
-                        );
-
-                        if (!publishResponse.ok) {
-                            console.warn('Job updated but failed to publish automatically');
-                        }
-                    } catch (publishError) {
-                        console.warn('Job updated but failed to publish:', publishError);
-                    }
-                }
-
-                // After successful submission, redirect back to job listings
                 router.push('/admin-dashboard/jobs');
             } else {
                 throw new Error(data.message || 'Operation failed');
@@ -329,7 +297,6 @@ const JobEditor = () => {
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -342,7 +309,6 @@ const JobEditor = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions */}
                         <div className="flex items-center space-x-4">
                             <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Bell className="w-5 h-5 text-gray-600" />
@@ -350,7 +316,6 @@ const JobEditor = () => {
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
                             </Link>
-
                             <Link href="/admin-dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                 <Image
                                     src="/profile-1.svg"
@@ -372,7 +337,6 @@ const JobEditor = () => {
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -391,7 +355,6 @@ const JobEditor = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -410,7 +373,6 @@ const JobEditor = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="pt-8">
                                 <button
                                     onClick={handleLogout}
@@ -442,7 +404,6 @@ const JobEditor = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={handleLogout}
@@ -457,7 +418,6 @@ const JobEditor = () => {
 
                     {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -474,7 +434,6 @@ const JobEditor = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => router.back()}
@@ -483,18 +442,16 @@ const JobEditor = () => {
                                 <ArrowLeft className="w-5 h-5 text-gray-600" />
                             </button>
                             <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                ✏️ Edit Job Posting {jobData?.title && `- ${jobData.title}`}
+                                Edit Job Posting {jobData?.title && `- ${jobData.title}`}
                             </h1>
                         </div>
 
-                        {/* Error Message */}
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
                         )}
 
-                        {/* Job Editor Form */}
                         <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>

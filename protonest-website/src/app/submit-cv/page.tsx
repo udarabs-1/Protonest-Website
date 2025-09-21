@@ -55,6 +55,12 @@ interface AnalyzeResponse {
     };
 }
 
+interface PendingJobApplication {
+    jobId: string;
+    jobTitle: string;
+    timestamp: number;
+}
+
 const cities: { [key: string]: string[] } = {
     'Sri Lanka': ['Colombo', 'Negombo', 'Kandy', 'Galle', 'Jaffna'],
     'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
@@ -102,8 +108,10 @@ export default function OnboardingPage() {
     const [workFunctionSearch, setWorkFunctionSearch] = useState('');
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+    const [showJobApplicationSuccessModal, setShowJobApplicationSuccessModal] = useState(false);
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
+    const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropdownRefs = useMemo(() => ({
         countryCode: { current: null as HTMLDivElement | null },
@@ -118,6 +126,45 @@ export default function OnboardingPage() {
         func.toLowerCase().includes(workFunctionSearch.toLowerCase()) &&
         !formData.workFunction.split(',').includes(func)
     );
+
+    // Check for pending job application and populate user data on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            // Check for pending job application
+            const pendingJobStr = localStorage.getItem('pendingJobApplication');
+            if (pendingJobStr) {
+                try {
+                    const jobData = JSON.parse(pendingJobStr);
+                    // Check if the job application is still valid (within 24 hours)
+                    const isValid = Date.now() - jobData.timestamp < 24 * 60 * 60 * 1000;
+                    if (isValid) {
+                        setPendingJob(jobData);
+                    } else {
+                        // Remove expired job application
+                        localStorage.removeItem('pendingJobApplication');
+                    }
+                } catch {
+                    // Remove invalid job application data
+                    localStorage.removeItem('pendingJobApplication');
+                }
+            }
+
+            // Pre-populate user data if available
+            const userStr = localStorage.getItem('userData');
+            if (userStr) {
+                try {
+                    const userData = JSON.parse(userStr);
+                    setFormData(prev => ({
+                        ...prev,
+                        fullName: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+                        email: userData.email || ''
+                    }));
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+        }
+    }, []);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -286,23 +333,32 @@ export default function OnboardingPage() {
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
             submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
 
+            // Add talent pool logic parameters
+            if (pendingJob) {
+                // User is uploading CV to apply for a specific job - skip talent pool
+                submitData.append('skip_talent_pool', 'true');
+                submitData.append('pending_job_id', pendingJob.jobId);
+            } else {
+                // User is just uploading CV to join talent pool
+                submitData.append('skip_talent_pool', 'false');
+            }
+
             if (uploadedCV) {
                 submitData.append('cv', uploadedCV);
             }
 
-            // Get JWT token from where you store it (localStorage, context, etc.)
-            const token = localStorage.getItem('jwtToken'); // or from your auth context
-            // Alternative: const token = await getAuthToken(); // if you have a function to get it
+            // Get JWT token
+            const token = localStorage.getItem('jwtToken');
 
             if (!token) {
                 throw new Error('Authentication token not found. Please log in again.');
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/uploadcv`, {
+            // Upload CV using new endpoint
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    // Don't set Content-Type for FormData - browser will set it automatically with boundary
                 },
                 body: submitData,
             });
@@ -311,12 +367,32 @@ export default function OnboardingPage() {
                 const responseData = await response.json();
                 console.log('CV upload successful:', responseData);
 
+                // Check if this was a job application scenario
+                if (pendingJob) {
+                    // Clear the pending job application from localStorage
+                    localStorage.removeItem('pendingJobApplication');
+                    console.log('Job application processed successfully');
+
+                    // Set a flag to show job application success message
+                    sessionStorage.setItem('jobApplicationSuccess', JSON.stringify({
+                        jobTitle: pendingJob.jobTitle,
+                        jobId: pendingJob.jobId,
+                        timestamp: Date.now()
+                    }));
+                }
+
                 // Simulate processing time
                 setTimeout(() => {
                     setShowSubmissionModal(false);
-                    if (suggestedJobs.length > 0) {
+
+                    if (pendingJob) {
+                        // For job applications, show specific success modal or redirect
+                        setShowJobApplicationSuccessModal(true);
+                    } else if (suggestedJobs.length > 0) {
+                        // For talent pool, show suggested jobs
                         setShowJobsModal(true);
                     } else {
+                        // For talent pool with no matches
                         setShowNoMatchModal(true);
                     }
                 }, 3000);
@@ -364,6 +440,15 @@ export default function OnboardingPage() {
         }));
     };
 
+    // Get button text based on pending job
+    const getButtonText = () => {
+        if (pendingJob) {
+            return 'Submit CV and Apply for the Job';
+        } else {
+            return 'Submit CV and Join Talent Pool';
+        }
+    };
+
     // Analysis Modal Component
     const AnalysisModal = () => (
         <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
@@ -400,7 +485,11 @@ export default function OnboardingPage() {
                     </div>
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
-                    Thanks for submitting your CV to our Talent Pool!<br />Parsing your CV to match you with available roles…
+                    {pendingJob ? (
+                        <>Thanks for submitting your CV!<br />Processing your application for {pendingJob.jobTitle}...</>
+                    ) : (
+                        <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles…</>
+                    )}
                 </div>
             </div>
         </div>
@@ -421,7 +510,11 @@ export default function OnboardingPage() {
             >
                 <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] xl:max-w-[1117px] max-h-[90vh] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden overflow-y-auto p-4 sm:p-6 md:p-8">
                     <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
-                        Based on your CV, we recommend the following roles
+                        {pendingJob ? (
+                            <>Your application for {pendingJob.jobTitle} was submitted successfully!<br />Here are other recommended roles based on your CV</>
+                        ) : (
+                            <>Welcome to our talent pool!<br />Based on your CV, we recommend the following roles</>
+                        )}
                     </div>
 
                     {suggestedJobs && suggestedJobs.length > 0 ? (
@@ -438,7 +531,10 @@ export default function OnboardingPage() {
                                         </span>
                                     </div>
                                     <div className="w-full max-w-[261px]">
-                                        <button className="w-full h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95">
+                                        <button
+                                            className="w-full h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
+                                            onClick={() => router.push(`/jobs/view/${job.job_id}`)}
+                                        >
                                             <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</span>
                                         </button>
                                     </div>
@@ -452,14 +548,18 @@ export default function OnboardingPage() {
                     )}
 
                     <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
-                        Check all available jobs for you!
+                        {pendingJob ? (
+                            <>Check all available jobs for you!</>
+                        ) : (
+                            <>You&apos;re now in our talent pool! Check all available jobs for you!</>
+                        )}
                     </div>
                     <div className="flex justify-center mt-4">
                         <button
                             className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
                             onClick={() => router.push('/dashboard')}
                         >
-                            <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Suggested Jobs</span>
+                            <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Available Jobs</span>
                         </button>
                     </div>
                 </div>
@@ -483,17 +583,31 @@ export default function OnboardingPage() {
                 <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
                         <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
-                            We couldn&apos;t find a perfect match just yet.
+                            {pendingJob ? (
+                                <>You have successfully applied for {pendingJob.jobTitle}!</>
+                            ) : (
+                                <>Welcome to our talent pool!</>
+                            )}
                         </div>
                         <div className="text-center text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px] px-2">
-                            Don&apos;t worry! Your CV is now part of our talent pool.<br />
-                            We&apos;ll contact you when something opens up that fits your profile.
+                            {pendingJob ? (
+                                <>Your application has been submitted successfully</>
+                            ) : (
+                                <>We couldn&apos;t find matching roles right now, but don&apos;t worry!<br />
+                                    We&apos;ll contact you when something opens up that fits your profile.</>
+                            )}
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
                             <button
                                 className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                                onClick={() => router.push('/')}
+                                onClick={() => {
+                                    // Clear pending job application
+                                    if (pendingJob) {
+                                        localStorage.removeItem('pendingJobApplication');
+                                    }
+                                    router.push('/');
+                                }}
                             >
                                 <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Return to Homepage</span>
                             </button>
@@ -508,6 +622,89 @@ export default function OnboardingPage() {
                             >
                                 <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Re-Upload CV</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Job Application Success Modal Component
+    const JobApplicationSuccessModal = () => {
+        const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+            if (e.target === e.currentTarget) {
+                setShowJobApplicationSuccessModal(false);
+            }
+        };
+
+        return (
+            <div
+                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
+                onClick={handleBackdropClick}
+            >
+                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-6 sm:p-8 md:p-10">
+                    <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
+                        {/* Success Icon */}
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        {/* Success Message */}
+                        <div className="text-center">
+                            <h2 className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-4">
+                                Application Submitted Successfully!
+                            </h2>
+                            <p className="text-center text-[#6c6c6c] text-base sm:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px] px-2">
+                                Your application for <strong>{pendingJob?.jobTitle}</strong> has been submitted successfully.<br />
+                                We&apos;ll be in touch soon with updates on your application status.
+                            </p>
+                        </div>
+
+                        {/* Additional suggested jobs if available */}
+                        {suggestedJobs && suggestedJobs.length > 0 && (
+                            <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-4">
+                                We&apos;ve also found other roles that might interest you!
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
+                            {suggestedJobs && suggestedJobs.length > 0 ? (
+                                <>
+                                    <button
+                                        className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
+                                        onClick={() => {
+                                            setShowJobApplicationSuccessModal(false);
+                                            setShowJobsModal(true);
+                                        }}
+                                    >
+                                        <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Other Recommended Jobs</span>
+                                    </button>
+                                    <button
+                                        className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                                        onClick={() => router.push('/dashboard')}
+                                    >
+                                        <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Go to Dashboard</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
+                                        onClick={() => router.push('/dashboard')}
+                                    >
+                                        <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Go to Dashboard</span>
+                                    </button>
+                                    <button
+                                        className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                                        onClick={() => router.push('/jobs')}
+                                    >
+                                        <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Browse All Jobs</span>
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -553,11 +750,25 @@ export default function OnboardingPage() {
                         <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-['Montserrat'] leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8">
                             <span className="text-[#6c6c6c]">Submit Your CV and</span>
                             <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Join Our Talent Network</span>
+                            {pendingJob ? (
+                                <>
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Apply for {pendingJob.jobTitle}</span>
+                                </>
+                            ) : (
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Join Our Talent Network</span>
+                            )}
                         </h1>
                         <p className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] text-[#6c6c6c] font-normal font-['Poppins'] leading-6 sm:leading-[30px] max-w-2xl xl:max-w-[1120px] mx-auto">
-                            Tell us a little about yourself.<br />
-                            We&apos;ll match your skills with any opportunities at Protonest according to your preferences
+                            {pendingJob ? (
+                                <>
+                                    Complete your application by uploading your CV.<br />
+                                </>
+                            ) : (
+                                <>
+                                    Tell us a little about yourself.<br />
+                                    We&apos;ll match your skills with any opportunities at Protonest according to your preferences
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -937,7 +1148,7 @@ export default function OnboardingPage() {
                                 disabled={isSubmitting}
                                 className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base"
                             >
-                                Sign Up and Add to Talent Pool
+                                {getButtonText()}
                             </button>
                             <button
                                 type="button"
@@ -955,6 +1166,7 @@ export default function OnboardingPage() {
             {/* Modals */}
             {showAnalysisModal && <AnalysisModal />}
             {showSubmissionModal && <SubmissionModal />}
+            {showJobApplicationSuccessModal && <JobApplicationSuccessModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
 

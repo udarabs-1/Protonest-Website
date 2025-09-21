@@ -26,7 +26,6 @@ const JobCreator = () => {
     const [formData, setFormData] = useState({
         title: '',
         category: '',
-        status: 'draft',
         description: '',
         responsibilities: '',
         requirements: '',
@@ -48,7 +47,6 @@ const JobCreator = () => {
         }
     }, [router]);
 
-    // Helper function to get auth headers
     const getAuthHeaders = () => {
         const adminToken = localStorage.getItem('adminToken');
         return {
@@ -129,7 +127,7 @@ const JobCreator = () => {
                 return;
             }
 
-            // Prepare the data for API - match your Go backend struct exactly
+            // Prepare the data for API
             const apiData = {
                 title: formData.title.trim(),
                 category: formData.category.trim(),
@@ -149,8 +147,6 @@ const JobCreator = () => {
 
             const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs`;
 
-            console.log(`Making POST request to: ${url}`);
-
             const response = await fetch(url, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -162,7 +158,6 @@ const JobCreator = () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Token expired or invalid
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminInfo');
                     router.push('/admin/login');
@@ -172,33 +167,6 @@ const JobCreator = () => {
             }
 
             if (data.status === 'success') {
-                // Check if we need to publish the job separately
-                if (formData.publish_now) {
-                    try {
-                        const jobId = data.data.id || data.data._id;
-                        const publishResponse = await fetch(
-                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}/publish`,
-                            {
-                                method: 'POST',
-                                headers: getAuthHeaders(),
-                                body: JSON.stringify({
-                                    publish_now: true,
-                                    schedule_at: formData.schedule_at
-                                        ? new Date(formData.schedule_at).toISOString()
-                                        : null,
-                                }),
-                            }
-                        );
-
-                        if (!publishResponse.ok) {
-                            console.warn('Job created but failed to publish automatically');
-                        }
-                    } catch (publishError) {
-                        console.warn('Job created but failed to publish:', publishError);
-                    }
-                }
-
-                // After successful submission, redirect back to job listings
                 router.push('/admin-dashboard/jobs');
             } else {
                 throw new Error(data.message || 'Operation failed');
@@ -233,7 +201,6 @@ const JobCreator = () => {
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -246,7 +213,6 @@ const JobCreator = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions */}
                         <div className="flex items-center space-x-4">
                             <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Bell className="w-5 h-5 text-gray-600" />
@@ -254,7 +220,6 @@ const JobCreator = () => {
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
                             </Link>
-
                             <Link href="/admin-dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                 <Image
                                     src="/profile-1.svg"
@@ -276,7 +241,6 @@ const JobCreator = () => {
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -295,7 +259,6 @@ const JobCreator = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -314,7 +277,6 @@ const JobCreator = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="pt-8">
                                 <button
                                     onClick={handleLogout}
@@ -346,7 +308,6 @@ const JobCreator = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={handleLogout}
@@ -361,7 +322,6 @@ const JobCreator = () => {
 
                     {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -378,7 +338,6 @@ const JobCreator = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => router.back()}
@@ -391,14 +350,12 @@ const JobCreator = () => {
                             </h1>
                         </div>
 
-                        {/* Error Message */}
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
                         )}
 
-                        {/* Job Creator Form */}
                         <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>

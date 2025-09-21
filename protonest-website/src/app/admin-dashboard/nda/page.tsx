@@ -17,14 +17,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+// Updated interface to match CandidateManagement structure
 interface NDARecord {
-    _id: string;
-    user_id: {
+    id: string;
+    user: {
         _id: string;
         name: string;
         email: string;
     };
-    job_id: {
+    job: {
         _id: string;
         title: string;
     };
@@ -38,8 +39,13 @@ interface NDARecord {
         created_at: string;
         updated_at: string;
     };
-    applied_at: string;
+    added_at: string;
     updated_at: string;
+    added_by: string;
+    notes?: string;
+    interview_date?: string;
+    interview_notes?: string;
+    rejection_reason?: string;
 }
 
 interface NDAStatusUpdate {
@@ -76,14 +82,15 @@ const NDAComplianceLog = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch NDA records
+    // Updated to use the same API endpoint as CandidateManagement
     useEffect(() => {
         const fetchNDARecords = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                // Use the same endpoint as CandidateManagement page
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -95,7 +102,8 @@ const NDAComplianceLog = () => {
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    setNdaRecords(data.data?.nda_logs || []);
+                    const candidatesData = data.data?.nda_logs || data.data || [];
+                    setNdaRecords(Array.isArray(candidatesData) ? candidatesData : []);
                 } else {
                     throw new Error(data.message || 'Failed to fetch NDA records');
                 }
@@ -144,6 +152,7 @@ const NDAComplianceLog = () => {
         }
     };
 
+    // Updated to match CandidateManagement NDA status display
     const getNDAStatusDisplay = (record: NDARecord) => {
         if (!record.nda_status) {
             return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
@@ -181,14 +190,15 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // API functions
+    // Updated API functions to use new endpoint structure
     const sendNDA = async (recordId: string, notes?: string) => {
         try {
             setSendingNDA(recordId);
             const adminToken = localStorage.getItem('adminToken');
 
+            // Updated to match CandidateManagement endpoint structure
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda/send`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/nda/send`,
                 {
                     method: 'POST',
                     headers: {
@@ -203,8 +213,24 @@ const NDAComplianceLog = () => {
                 throw new Error('Failed to send NDA');
             }
 
-            // Refresh the data
-            window.location.reload();
+            // Update local state instead of full reload
+            setNdaRecords(prev => prev.map(record =>
+                record.id === recordId
+                    ? {
+                        ...record,
+                        nda_status: {
+                            status: 'sent',
+                            sent_on: new Date().toISOString(),
+                            compliance_notes: notes || '',
+                            resend_count: record.nda_status?.resend_count || 0,
+                            created_at: record.nda_status?.created_at || new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    }
+                    : record
+            ));
+
+            alert('NDA sent successfully!');
         } catch (error) {
             console.error('Error sending NDA:', error);
             alert('Failed to send NDA');
@@ -218,8 +244,9 @@ const NDAComplianceLog = () => {
             setSendingNDA(recordId);
             const adminToken = localStorage.getItem('adminToken');
 
+            // Updated to match CandidateManagement endpoint structure
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda/resend`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/nda/resend`,
                 {
                     method: 'POST',
                     headers: {
@@ -234,8 +261,23 @@ const NDAComplianceLog = () => {
                 throw new Error('Failed to resend NDA');
             }
 
-            // Refresh the data
-            window.location.reload();
+            // Update local state
+            setNdaRecords(prev => prev.map(record =>
+                record.id === recordId && record.nda_status
+                    ? {
+                        ...record,
+                        nda_status: {
+                            ...record.nda_status,
+                            sent_on: new Date().toISOString(),
+                            compliance_notes: notes || record.nda_status.compliance_notes || '',
+                            resend_count: (record.nda_status.resend_count || 0) + 1,
+                            updated_at: new Date().toISOString()
+                        }
+                    }
+                    : record
+            ));
+
+            alert('NDA resent successfully!');
         } catch (error) {
             console.error('Error resending NDA:', error);
             alert('Failed to resend NDA');
@@ -244,20 +286,25 @@ const NDAComplianceLog = () => {
         }
     };
 
+    // Updated to use new candidate structure endpoint
     const updateNDAStatus = async (recordId: string, statusUpdate: NDAStatusUpdate) => {
         try {
             setUpdatingStatus(recordId);
             const adminToken = localStorage.getItem('adminToken');
 
+            // Use the candidate status update endpoint
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/${recordId}/nda`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/status`,
                 {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${adminToken}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(statusUpdate)
+                    body: JSON.stringify({
+                        status: 'hired', // Assuming NDA completion means hired
+                        notes: statusUpdate.compliance_notes
+                    })
                 }
             );
 
@@ -265,8 +312,25 @@ const NDAComplianceLog = () => {
                 throw new Error('Failed to update NDA status');
             }
 
-            // Refresh the data
-            window.location.reload();
+            // Update local state
+            setNdaRecords(prev => prev.map(record =>
+                record.id === recordId
+                    ? {
+                        ...record,
+                        nda_status: {
+                            status: statusUpdate.status,
+                            sent_on: record.nda_status?.sent_on,
+                            submitted_on: statusUpdate.status === 'submitted' ? new Date().toISOString() : record.nda_status?.submitted_on,
+                            compliance_notes: statusUpdate.compliance_notes || record.nda_status?.compliance_notes,
+                            resend_count: record.nda_status?.resend_count || 0,
+                            created_at: record.nda_status?.created_at || new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }
+                    }
+                    : record
+            ));
+
+            alert('NDA status updated successfully!');
         } catch (error) {
             console.error('Error updating NDA status:', error);
             alert('Failed to update NDA status');
@@ -280,18 +344,18 @@ const NDAComplianceLog = () => {
 
         switch (action.action) {
             case 'send':
-                if (confirm(`Send NDA to ${record.user_id.name}?`)) {
-                    sendNDA(record._id);
+                if (confirm(`Send NDA to ${record.user.name}?`)) {
+                    sendNDA(record.id);
                 }
                 break;
             case 'resend':
-                if (confirm(`Resend NDA to ${record.user_id.name}?`)) {
-                    resendNDA(record._id);
+                if (confirm(`Resend NDA to ${record.user.name}?`)) {
+                    resendNDA(record.id);
                 }
                 break;
             case 'note':
                 const currentNote = record.nda_status?.compliance_notes || '';
-                setEditingNote({ id: record._id, note: currentNote });
+                setEditingNote({ id: record.id, note: currentNote });
                 break;
         }
     };
@@ -307,15 +371,15 @@ const NDAComplianceLog = () => {
     };
 
     const handleStatusChange = (record: NDARecord, newStatus: 'not_sent' | 'sent' | 'submitted') => {
-        if (confirm(`Change NDA status to ${newStatus.replace('_', ' ')} for ${record.user_id.name}?`)) {
-            updateNDAStatus(record._id, { status: newStatus });
+        if (confirm(`Change NDA status to ${newStatus.replace('_', ' ')} for ${record.user.name}?`)) {
+            updateNDAStatus(record.id, { status: newStatus });
         }
     };
 
-    // Filter records based on search term
+    // Updated filter to match new data structure
     const filteredRecords = ndaRecords.filter(record =>
-        record.user_id?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.job_id?.title.toLowerCase().includes(searchTerm.toLowerCase())
+        record.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.job?.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {
@@ -542,6 +606,9 @@ const NDAComplianceLog = () => {
                                             Days Pending
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                            Resend Count
+                                        </th>
+                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Compliance Notes
                                         </th>
                                         <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
@@ -556,13 +623,13 @@ const NDAComplianceLog = () => {
                                             const actionButton = getActionButton(record);
 
                                             return (
-                                                <tr key={record._id} className="hover:bg-gray-50">
+                                                <tr key={record.id} className="hover:bg-gray-50">
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {record.user_id?.name || 'N/A'}
+                                                        {record.user?.name || 'N/A'}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                        <Link href={`/admin-dashboard/jobs/${record.job_id?._id}`} className="hover:text-[#5530FA]">
-                                                            {record.job_id?.title || 'N/A'}
+                                                        <Link href={`/admin-dashboard/jobs/${record.job?._id}`} className="hover:text-[#5530FA]">
+                                                            {record.job?.title || 'N/A'}
                                                         </Link>
                                                     </td>
                                                     <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${statusDisplay.color}`}>
@@ -577,6 +644,9 @@ const NDAComplianceLog = () => {
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         {getDaysPending(record)}
                                                     </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {record.nda_status?.resend_count || 0}
+                                                    </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] max-w-xs truncate">
                                                         {record.nda_status?.compliance_notes || '-'}
                                                     </td>
@@ -584,19 +654,22 @@ const NDAComplianceLog = () => {
                                                         <div className="flex items-center justify-center gap-1">
                                                             <button
                                                                 onClick={() => handleActionClick(record)}
-                                                                disabled={sendingNDA === record._id || updatingStatus === record._id}
+                                                                disabled={sendingNDA === record.id || updatingStatus === record.id}
                                                                 className={`px-3 py-1 rounded-[15px] text-[10px] font-medium font-poppins transition-opacity ${actionButton.variant === 'primary'
                                                                     ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
                                                                     : actionButton.variant === 'secondary'
                                                                         ? 'bg-orange-500 text-white hover:opacity-90'
                                                                         : 'bg-gray-500 text-white hover:opacity-90'
-                                                                    } ${(sendingNDA === record._id || updatingStatus === record._id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    } ${(sendingNDA === record.id || updatingStatus === record.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
-                                                                {(sendingNDA === record._id || updatingStatus === record._id) ? 'Processing...' : actionButton.text}
+                                                                {(sendingNDA === record.id || updatingStatus === record.id) ? 'Processing...' : actionButton.text}
                                                             </button>
                                                             <div className="flex items-center gap-1 ml-2">
                                                                 <button
-                                                                    onClick={() => alert(`Viewing details for ${record.user_id?.name}`)}
+                                                                    onClick={() => {
+                                                                        // Navigate to candidate details
+                                                                        window.location.href = `/admin-dashboard/candidates?highlight=${record.id}`;
+                                                                    }}
                                                                     className="p-1 hover:bg-gray-100 rounded transition-colors"
                                                                     title="View Details"
                                                                 >
@@ -605,7 +678,7 @@ const NDAComplianceLog = () => {
                                                                 <button
                                                                     onClick={() => {
                                                                         const currentNote = record.nda_status?.compliance_notes || '';
-                                                                        setEditingNote({ id: record._id, note: currentNote });
+                                                                        setEditingNote({ id: record.id, note: currentNote });
                                                                     }}
                                                                     className="p-1 hover:bg-gray-100 rounded transition-colors"
                                                                     title="Edit Notes"
@@ -617,6 +690,7 @@ const NDAComplianceLog = () => {
                                                                     onChange={(e) => handleStatusChange(record, e.target.value as 'not_sent' | 'sent' | 'submitted')}
                                                                     className="text-xs border border-gray-300 rounded px-1 py-1"
                                                                     title="Change Status"
+                                                                    disabled={updatingStatus === record.id}
                                                                 >
                                                                     <option value="not_sent">Not Sent</option>
                                                                     <option value="sent">Sent</option>
@@ -630,7 +704,7 @@ const NDAComplianceLog = () => {
                                         })
                                     ) : (
                                         <tr>
-                                            <td colSpan={8} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                            <td colSpan={9} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                 {searchTerm ? `No NDA records found matching "${searchTerm}"` : 'No NDA records found.'}
                                             </td>
                                         </tr>
@@ -657,7 +731,11 @@ const NDAComplianceLog = () => {
                                 rows={4}
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
                                 placeholder="Enter compliance notes..."
+                                maxLength={500}
                             />
+                            <div className="text-xs text-gray-500 mt-1">
+                                {editingNote.note.length}/500 characters
+                            </div>
                         </div>
                         <div className="flex justify-end gap-3">
                             <button
@@ -668,9 +746,10 @@ const NDAComplianceLog = () => {
                             </button>
                             <button
                                 onClick={handleSaveNote}
-                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                disabled={updatingStatus === editingNote.id}
+                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Save Note
+                                {updatingStatus === editingNote.id ? 'Saving...' : 'Save Note'}
                             </button>
                         </div>
                     </div>

@@ -20,20 +20,27 @@ type Job = {
     created_at: string;
 };
 
-type JobResponse = {
-    id: string;
-    title: string;
-    location: string;
-    type: string;
-    deadline: string;
-    experience: string;
-    category: string;
-    created_at: string;
-    description: string;
-    responsibilities: string[];
-    requirements: string[];
-    overview: string;
-};
+// API Response type for better type safety
+interface ApiJobData {
+    id?: string;
+    title?: string;
+    location?: string;
+    type?: string;
+    deadline?: string;
+    experience?: string;
+    category?: string;
+    created_at?: string;
+    description?: string;
+    responsibilities?: string[];
+    requirements?: string[];
+    overview?: string;
+}
+
+interface ApiResponse {
+    status?: string;
+    data?: ApiJobData[];
+    jobs?: ApiJobData[];
+}
 
 type FilterType = 'experience' | 'location' | 'datePosted' | 'jobType';
 type Filters = {
@@ -136,35 +143,105 @@ export default function RolePage() {
                 // Build API URL with category filter
                 const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(category)}`;
 
+                console.log('Fetching from URL:', apiUrl); // Debug log
+
                 const response = await fetch(apiUrl);
 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch jobs: ${response.status}`);
+                    throw new Error(`Failed to fetch jobs: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json();
+                const data: ApiResponse = await response.json();
 
-                if (data.status === 'success' && data.data) {
-                    // Transform API response to match our Job type
-                    const transformedJobs: Job[] = data.data.map((job: JobResponse) => ({
-                        id: job.id,
-                        title: job.title,
-                        location: job.location,
-                        posted: formatTimeAgo(job.created_at),
-                        type: job.type,
-                        deadline: formatDate(job.deadline),
-                        experience: job.experience,
-                        category: job.category,
-                        created_at: job.created_at
-                    }));
+                // Debug: Log the actual response structure
+                console.log('API Response:', data);
+                console.log('Response structure:', {
+                    status: data.status,
+                    hasData: !!data.data,
+                    dataType: typeof data.data,
+                    dataLength: Array.isArray(data.data) ? data.data.length : 'not array'
+                });
 
-                    setJobs(transformedJobs);
+                // More flexible response handling
+                let jobsData: ApiJobData[] = [];
+
+                if (data.status === 'success') {
+                    // Handle case where data is null (no jobs available)
+                    if (data.data === null) {
+                        console.log('No jobs available for this category');
+                        jobsData = [];
+                    } else if (Array.isArray(data.data)) {
+                        jobsData = data.data;
+                    } else {
+                        console.error('Unexpected data format in success response:', data.data);
+                        throw new Error(`Expected data to be an array or null, got: ${typeof data.data}`);
+                    }
+                } else if (Array.isArray(data)) {
+                    // Handle case where response is directly an array
+                    jobsData = data as ApiJobData[];
+                } else if (data.jobs) {
+                    // Handle case where jobs are in a 'jobs' property
+                    jobsData = data.jobs;
+                } else if (data.data && Array.isArray(data.data)) {
+                    jobsData = data.data;
                 } else {
-                    throw new Error('Invalid response format');
+                    // Log the unexpected response format for debugging
+                    console.error('Unexpected response format:', data);
+                    throw new Error(`Unexpected response format. Expected array or object with data property, got: ${typeof data}`);
                 }
-            } catch (err) {
-                console.error('Error fetching jobs:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load jobs');
+
+                // Transform API response to match our Job type
+                const transformedJobs: Job[] = jobsData.map((job: ApiJobData, index: number) => {
+                    try {
+                        return {
+                            id: job.id || `job-${index}`,
+                            title: job.title || 'Untitled Position',
+                            location: job.location || 'Location TBD',
+                            posted: formatTimeAgo(job.created_at || new Date().toISOString()),
+                            type: job.type || 'full-time',
+                            deadline: formatDate(job.deadline || new Date().toISOString()),
+                            experience: job.experience || 'junior',
+                            category: job.category || category,
+                            created_at: job.created_at || new Date().toISOString()
+                        };
+                    } catch (transformError) {
+                        console.error('Error transforming job:', job, transformError);
+                        // Return a fallback job object
+                        return {
+                            id: `error-job-${index}`,
+                            title: 'Error Loading Job',
+                            location: 'Unknown',
+                            posted: 'Unknown',
+                            type: 'full-time',
+                            deadline: 'Unknown',
+                            experience: 'junior',
+                            category: category || 'Unknown',
+                            created_at: new Date().toISOString()
+                        };
+                    }
+                });
+
+                console.log('Transformed jobs:', transformedJobs);
+                setJobs(transformedJobs);
+
+            } catch (error) {
+                console.error('Error fetching jobs:', error);
+
+                // More detailed error messaging
+                let errorMessage = 'Failed to load jobs';
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    errorMessage = 'Network error: Unable to connect to the server';
+                } else if (error instanceof Error) {
+                    if (error.message.includes('404')) {
+                        errorMessage = 'Jobs endpoint not found (404)';
+                    } else if (error.message.includes('500')) {
+                        errorMessage = 'Server error (500)';
+                    } else {
+                        errorMessage = error.message;
+                    }
+                }
+
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -579,6 +656,7 @@ export default function RolePage() {
                                         ))}
                                     </div>
 
+                                    {/* Job Type Filter */}
                                     {/* Job Type Filter */}
                                     <div className="mb-8">
                                         <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>

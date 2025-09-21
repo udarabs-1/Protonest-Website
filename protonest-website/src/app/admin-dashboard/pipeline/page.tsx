@@ -15,20 +15,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+// Updated interface to match CandidateManagement structure
 interface Candidate {
-    _id: string;
-    user_id: {
+    id: string;
+    user: {
         _id: string;
         name: string;
         email: string;
     };
-    job_id: {
+    job: {
         _id: string;
         title: string;
     };
     status: string;
-    applied_at: string;
-    updated_at: string;
     nda_status?: {
         status: 'not_sent' | 'sent' | 'submitted';
         sent_on?: string;
@@ -38,6 +37,13 @@ interface Candidate {
         created_at: string;
         updated_at: string;
     };
+    added_at: string;
+    updated_at: string;
+    added_by: string;
+    notes?: string;
+    interview_date?: string;
+    interview_notes?: string;
+    rejection_reason?: string;
 }
 
 interface JobMatch {
@@ -83,15 +89,15 @@ const ApplicationPipeline = () => {
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch candidates with NDA status and match scores
+    // Updated to use the same API endpoint as CandidateManagement
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Fetch candidates with NDA status from the same endpoint as other pages
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/nda/all`, {
+                // Use the same endpoint as CandidateManagement page
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -107,11 +113,11 @@ const ApplicationPipeline = () => {
                     const candidatesList = Array.isArray(candidatesData) ? candidatesData : [];
                     setCandidates(candidatesList);
 
-                    // Fetch job matches for each candidate
+                    // Fetch job matches for each candidate using the same structure
                     const matchPromises = candidatesList.map(async (candidate: Candidate) => {
                         try {
                             const matchResponse = await fetch(
-                                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/job-matches/${candidate.user_id._id}`,
+                                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/job-matches/${candidate.user._id}`,
                                 {
                                     headers: {
                                         'Authorization': `Bearer ${adminToken}`
@@ -123,15 +129,15 @@ const ApplicationPipeline = () => {
                                 const matchData = await matchResponse.json();
                                 if (matchData.success && matchData.data.job_matches) {
                                     const jobMatch = matchData.data.job_matches.find(
-                                        (match: JobMatch) => match.job_id === candidate.job_id._id
+                                        (match: JobMatch) => match.job_id === candidate.job._id
                                     );
-                                    return { userId: candidate.user_id._id, match: jobMatch || null };
+                                    return { userId: candidate.user._id, match: jobMatch || null };
                                 }
                             }
-                            return { userId: candidate.user_id._id, match: null };
+                            return { userId: candidate.user._id, match: null };
                         } catch (error) {
-                            console.error(`Error fetching match for candidate ${candidate.user_id._id}:`, error);
-                            return { userId: candidate.user_id._id, match: null };
+                            console.error(`Error fetching match for candidate ${candidate.user._id}:`, error);
+                            return { userId: candidate.user._id, match: null };
                         }
                     });
 
@@ -175,43 +181,39 @@ const ApplicationPipeline = () => {
         };
     }, [sidebarOpen]);
 
-    // Function to get display status text
+    // Updated to match CandidateManagement status mapping
     const getDisplayStatus = (status: string) => {
         const statusMap: { [key: string]: string } = {
-            'pending': 'Applied',
-            'rejected': 'Rejected Application',
-            'reviewed': 'Shortlisted Application',
-            'rejected-interview': 'Rejected Interview',
+            'applied': 'Applied',
+            'admin_moved': 'Admin Moved',
+            'shortlisted': 'Shortlisted',
             'interviewed': 'Interviewed',
-            'shortlisted': 'Shortlisted Interview',
-            'hired': 'Hired'
+            'hired': 'Hired',
+            'rejected': 'Rejected'
         };
         return statusMap[status] || status;
     };
 
-    // Function to get NDA status based on nda_status from database
+    // Updated NDA status to match CandidateManagement
     const getNDAStatus = (candidate: Candidate) => {
         if (!candidate.nda_status) {
-            if (candidate.status === 'shortlisted' || candidate.status === 'hired') {
-                return { text: 'NDA Required', color: 'text-orange-600', icon: '⚠️' };
-            }
-            return { text: 'Not Required', color: 'text-gray-500', icon: '➖' };
+            return { text: 'Not Sent', color: 'text-red-600', icon: '❌' };
         }
 
         switch (candidate.nda_status.status) {
             case 'sent':
-                return { text: 'NDA Sent', color: 'text-orange-600', icon: '📤' };
+                return { text: 'Sent', color: 'text-orange-600', icon: '🟠' };
             case 'submitted':
-                return { text: 'NDA Completed', color: 'text-green-600', icon: '✅' };
+                return { text: 'Submitted', color: 'text-green-600', icon: '✅' };
             default:
-                return { text: 'NDA Required', color: 'text-orange-600', icon: '⚠️' };
+                return { text: 'Not Sent', color: 'text-red-600', icon: '❌' };
         }
     };
 
-    // Function to generate pipeline stages based on status and NDA status
+    // Updated pipeline stages based on the new status structure
     const generatePipelineStages = (candidate: Candidate): PipelineStage[] => {
         const stages: PipelineStage[] = [];
-        const appliedDate = new Date(candidate.applied_at);
+        const appliedDate = new Date(candidate.added_at);
         const updatedDate = new Date(candidate.updated_at);
 
         // Always starts with CV Submitted
@@ -223,80 +225,160 @@ const ApplicationPipeline = () => {
         });
 
         // Add stages based on status progression
-        const statusProgression = ['pending', 'reviewed', 'interviewed', 'shortlisted', 'hired'];
-        const currentStatusIndex = statusProgression.indexOf(candidate.status);
-
-        if (currentStatusIndex >= 1 || candidate.status === 'reviewed') { // reviewed or beyond
-            stages.push({
-                stage: 'Application Reviewed',
-                date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: currentStatusIndex === 1 ? 'active' : 'completed',
-                icon: '👀'
-            });
-        }
-
-        if (currentStatusIndex >= 2 || candidate.status === 'interviewed') { // interviewed or beyond
-            stages.push({
-                stage: 'Interview Completed',
-                date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: currentStatusIndex === 2 ? 'active' : 'completed',
-                icon: '💬'
-            });
-        }
-
-        if (currentStatusIndex >= 3 || candidate.status === 'shortlisted') { // shortlisted or beyond
-            // Add NDA stage based on actual NDA status
-            if (candidate.nda_status) {
-                const ndaDate = candidate.nda_status.sent_on
-                    ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                    : updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
+        switch (candidate.status) {
+            case 'applied':
                 stages.push({
-                    stage: candidate.nda_status.status === 'submitted' ? 'NDA Completed' : 'NDA Sent',
-                    date: ndaDate,
-                    status: candidate.nda_status.status === 'submitted' ? 'completed' : 'active',
-                    icon: candidate.nda_status.status === 'submitted' ? '✅' : '📝'
-                });
-            } else {
-                stages.push({
-                    stage: 'NDA Required',
+                    stage: 'Application Under Review',
                     date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                    status: 'pending',
-                    icon: '⚠️'
+                    status: 'active',
+                    icon: '👀'
                 });
-            }
-        }
+                break;
 
-        if (currentStatusIndex >= 4 || candidate.status === 'hired') { // hired
-            stages.push({
-                stage: 'Project Started',
-                date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: 'active',
-                icon: '🚀'
-            });
-        }
+            case 'admin_moved':
+                stages.push({
+                    stage: 'Application Reviewed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'active',
+                    icon: '👀'
+                });
+                break;
 
-        // Handle rejected states
-        if (candidate.status === 'rejected' || candidate.status === 'rejected-interview') {
-            stages.push({
-                stage: 'Application Rejected',
-                date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: 'active',
-                icon: '❌'
-            });
+            case 'shortlisted':
+                stages.push({
+                    stage: 'Application Reviewed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '👀'
+                });
+                stages.push({
+                    stage: 'Shortlisted',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'active',
+                    icon: '⭐'
+                });
+                break;
+
+            case 'interviewed':
+                stages.push({
+                    stage: 'Application Reviewed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '👀'
+                });
+                stages.push({
+                    stage: 'Shortlisted',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '⭐'
+                });
+                stages.push({
+                    stage: 'Interview Completed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'active',
+                    icon: '💬'
+                });
+
+                // Add NDA stage for interviewed candidates
+                if (candidate.nda_status) {
+                    const ndaDate = candidate.nda_status.sent_on
+                        ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                    stages.push({
+                        stage: candidate.nda_status.status === 'submitted' ? 'NDA Completed' : 'NDA Sent',
+                        date: ndaDate,
+                        status: candidate.nda_status.status === 'submitted' ? 'completed' : 'active',
+                        icon: candidate.nda_status.status === 'submitted' ? '✅' : '📝'
+                    });
+                } else {
+                    stages.push({
+                        stage: 'NDA Required',
+                        date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        status: 'pending',
+                        icon: '⚠️'
+                    });
+                }
+                break;
+
+            case 'hired':
+                stages.push({
+                    stage: 'Application Reviewed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '👀'
+                });
+                stages.push({
+                    stage: 'Shortlisted',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '⭐'
+                });
+                stages.push({
+                    stage: 'Interview Completed',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'completed',
+                    icon: '💬'
+                });
+
+                // Add NDA stage for hired candidates
+                if (candidate.nda_status) {
+                    const ndaDate = candidate.nda_status.sent_on
+                        ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                    stages.push({
+                        stage: 'NDA Completed',
+                        date: ndaDate,
+                        status: 'completed',
+                        icon: '✅'
+                    });
+                }
+
+                stages.push({
+                    stage: 'Project Started',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'active',
+                    icon: '🚀'
+                });
+                break;
+
+            case 'rejected':
+                stages.push({
+                    stage: 'Application Rejected',
+                    date: updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'active',
+                    icon: '❌'
+                });
+                break;
         }
 
         return stages;
     };
 
-    // Filter candidates based on search term
+    // Updated filter to match the new data structure
     const filteredCandidates = candidates.filter(candidate =>
-        candidate.user_id?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        candidate.job_id?.title.toLowerCase().includes(searchTerm.toLowerCase())
+        candidate.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.job?.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const toggleCandidateExpansion = (candidateId: string) => {
         setExpandedCandidate(expandedCandidate === candidateId ? null : candidateId);
+    };
+
+    // Format date function
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch {
+            return 'Invalid Date';
+        }
     };
 
     if (loading) {
@@ -515,13 +597,13 @@ const ApplicationPipeline = () => {
                             <div className="divide-y divide-gray-200">
                                 {filteredCandidates.length > 0 ? (
                                     filteredCandidates.map((candidate) => {
-                                        const jobMatch = jobMatches[candidate.user_id._id];
+                                        const jobMatch = jobMatches[candidate.user._id];
                                         const matchScore = jobMatch ? `${jobMatch.match_percentage.toFixed(0)}%` : 'N/A';
                                         const pipelineStages = generatePipelineStages(candidate);
                                         const ndaStatus = getNDAStatus(candidate);
 
                                         return (
-                                            <div key={candidate._id} className="bg-white">
+                                            <div key={candidate.id} className="bg-white">
                                                 {/* Main Row */}
                                                 <div className="px-4 py-3 grid grid-cols-12 gap-4 hover:bg-gray-50 transition-colors">
                                                     {/* Mobile Layout */}
@@ -529,9 +611,9 @@ const ApplicationPipeline = () => {
                                                         <div className="flex justify-between items-start mb-2">
                                                             <div>
                                                                 <h3 className="text-[11px] font-medium font-poppins text-[#676767] mb-1">
-                                                                    {candidate.user_id?.name || 'N/A'}
+                                                                    {candidate.user?.name || 'N/A'}
                                                                 </h3>
-                                                                <p className="text-[10px] text-gray-500 mb-1">{candidate.job_id?.title || 'N/A'}</p>
+                                                                <p className="text-[10px] text-gray-500 mb-1">{candidate.job?.title || 'N/A'}</p>
                                                                 <p className="text-[10px] text-gray-500">
                                                                     {getDisplayStatus(candidate.status)} • {matchScore}
                                                                 </p>
@@ -542,54 +624,54 @@ const ApplicationPipeline = () => {
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button
-                                                                    onClick={() => toggleCandidateExpansion(candidate._id)}
+                                                                    onClick={() => toggleCandidateExpansion(candidate.id)}
                                                                     className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins"
                                                                 >
-                                                                    {expandedCandidate === candidate._id ? 'Hide' : 'View'}
+                                                                    {expandedCandidate === candidate.id ? 'Hide' : 'View'}
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Desktop Layout */}
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
-                                                            {candidate.user_id?.name || 'N/A'}
+                                                            {candidate.user?.name || 'N/A'}
                                                         </span>
                                                     </div>
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
-                                                            {candidate.job_id?.title || 'N/A'}
+                                                            {candidate.job?.title || 'N/A'}
                                                         </span>
                                                     </div>
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
                                                             {getDisplayStatus(candidate.status)}
                                                         </span>
                                                     </div>
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className={`text-[11px] font-medium font-poppins ${ndaStatus.color} flex items-center gap-1`}>
                                                             <span>{ndaStatus.icon}</span>
                                                             {ndaStatus.text}
                                                         </span>
                                                     </div>
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
                                                             {matchScore}
                                                         </span>
                                                     </div>
-                                                    <div className="col-span-2 hidden md:block">
+                                                    <div className="col-span-2 hidden md:flex md:items-center">
                                                         <button
-                                                            onClick={() => toggleCandidateExpansion(candidate._id)}
+                                                            onClick={() => toggleCandidateExpansion(candidate.id)}
                                                             className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins"
                                                         >
-                                                            {expandedCandidate === candidate._id ? 'Hide' : 'View'}
+                                                            {expandedCandidate === candidate.id ? 'Hide' : 'View'}
                                                         </button>
                                                     </div>
                                                 </div>
 
                                                 {/* Expanded Timeline */}
-                                                {expandedCandidate === candidate._id && (
+                                                {expandedCandidate === candidate.id && (
                                                     <div className="px-4 py-6 bg-gray-50 border-t border-gray-200">
                                                         <h4 className="text-sm font-semibold text-gray-900 mb-4">Application Pipeline Progress</h4>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -627,11 +709,7 @@ const ApplicationPipeline = () => {
                                                                         <div>
                                                                             <span className="text-xs text-gray-600">Sent On:</span>
                                                                             <div className="text-sm font-medium text-gray-900">
-                                                                                {new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', {
-                                                                                    month: 'short',
-                                                                                    day: 'numeric',
-                                                                                    year: 'numeric'
-                                                                                })}
+                                                                                {formatDate(candidate.nda_status.sent_on)}
                                                                             </div>
                                                                         </div>
                                                                     )}
@@ -639,11 +717,7 @@ const ApplicationPipeline = () => {
                                                                         <div>
                                                                             <span className="text-xs text-gray-600">Submitted On:</span>
                                                                             <div className="text-sm font-medium text-gray-900">
-                                                                                {new Date(candidate.nda_status.submitted_on).toLocaleDateString('en-US', {
-                                                                                    month: 'short',
-                                                                                    day: 'numeric',
-                                                                                    year: 'numeric'
-                                                                                })}
+                                                                                {formatDate(candidate.nda_status.submitted_on)}
                                                                             </div>
                                                                         </div>
                                                                     )}
@@ -656,6 +730,12 @@ const ApplicationPipeline = () => {
                                                                         </div>
                                                                     </div>
                                                                 )}
+                                                                <div className="mt-3">
+                                                                    <span className="text-xs text-gray-600">Resend Count:</span>
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {candidate.nda_status.resend_count || 0}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
 
@@ -685,9 +765,59 @@ const ApplicationPipeline = () => {
                                                                             </div>
                                                                         </div>
                                                                     )}
+                                                                    {jobMatch.missing_skills && jobMatch.missing_skills.length > 0 && (
+                                                                        <div className="col-span-1 md:col-span-2">
+                                                                            <span className="text-xs text-gray-600">Missing Skills:</span>
+                                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                                {jobMatch.missing_skills.slice(0, 6).map((skill, skillIndex) => (
+                                                                                    <span key={skillIndex} className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                                                                                        {skill}
+                                                                                    </span>
+                                                                                ))}
+                                                                                {jobMatch.missing_skills.length > 6 && (
+                                                                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                                                        +{jobMatch.missing_skills.length - 6} more
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         )}
+
+                                                        {/* Additional Candidate Info */}
+                                                        <div className="mt-6 pt-4 border-t border-gray-200">
+                                                            <h5 className="text-sm font-medium text-gray-900 mb-3">Candidate Information</h5>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <span className="text-xs text-gray-600">Email:</span>
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {candidate.user?.email || 'N/A'}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-xs text-gray-600">Applied On:</span>
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {formatDate(candidate.added_at)}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-xs text-gray-600">Last Updated:</span>
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {formatDate(candidate.updated_at)}
+                                                                    </div>
+                                                                </div>
+                                                                {candidate.notes && (
+                                                                    <div className="col-span-1 md:col-span-2">
+                                                                        <span className="text-xs text-gray-600">Notes:</span>
+                                                                        <div className="text-sm text-gray-900 bg-gray-100 p-2 rounded mt-1">
+                                                                            {candidate.notes}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
