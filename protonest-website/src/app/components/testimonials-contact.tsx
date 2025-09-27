@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const clients = [
     {
@@ -34,21 +34,62 @@ const clients = [
     },
 ];
 
+// Optimized client avatar blur placeholder
+const avatarBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmNWY1ZjUiLz4KPC9zdmc+Cg==";
+
+// Memoized scroll indicator component
+const ScrollIndicator = ({ onClick }: { onClick: () => void }) => (
+    <button
+        onClick={onClick}
+        className="absolute bottom-2 left-1/2 transform -translate-x-1/2 cursor-pointer group"
+        aria-label="Scroll down to see more content"
+    >
+        <div className="animate-bounce flex flex-col items-center -space-y-4 group-hover:scale-110 transition-transform">
+            <svg
+                className="w-5 h-5 text-[#5530fa] animate-pulse"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+            >
+                <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                />
+            </svg>
+            <svg
+                className="w-5 h-5 text-[#f51da5] animate-pulse"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                style={{ animationDelay: "0.2s" }}
+            >
+                <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                />
+            </svg>
+        </div>
+    </button>
+);
+
 function ClientCard({ name, company, review, imgSrc }: typeof clients[0]) {
     const [showScrollIndicator, setShowScrollIndicator] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    const checkScrollable = useCallback(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        const checkScrollable = () => {
-            const hasVerticalScroll = container.scrollHeight > container.clientHeight;
-            const isAtBottom =
-                container.scrollTop + container.clientHeight >=
-                container.scrollHeight - 1;
-            setShowScrollIndicator(hasVerticalScroll && !isAtBottom);
-        };
+        const hasVerticalScroll = container.scrollHeight > container.clientHeight;
+        const isAtBottom =
+            container.scrollTop + container.clientHeight >=
+            container.scrollHeight - 1;
+        setShowScrollIndicator(hasVerticalScroll && !isAtBottom);
+    }, []);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
 
         // Check initially
         checkScrollable();
@@ -64,9 +105,9 @@ function ClientCard({ name, company, review, imgSrc }: typeof clients[0]) {
             container.removeEventListener("scroll", checkScrollable);
             resizeObserver.disconnect();
         };
-    }, [review]);
+    }, [checkScrollable]);
 
-    const handleScrollIndicatorClick = () => {
+    const handleScrollIndicatorClick = useCallback(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
@@ -74,83 +115,55 @@ function ClientCard({ name, company, review, imgSrc }: typeof clients[0]) {
             top: 50,
             behavior: "smooth",
         });
-    };
+    }, []);
 
     return (
-        <div className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative">
+        <article className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative">
             {/* Scrollable Content Container */}
             <div
                 ref={scrollContainerRef}
-                className="w-full max-w-[259px] h-full overflow-y-auto"
+                className="w-full max-w-[259px] h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
             >
                 <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
                     {/* Avatar with Gradient Border */}
-                    <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center">
+                    <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center flex-shrink-0">
                         <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] bg-white rounded-full flex justify-center items-center overflow-hidden">
                             <Image
                                 src={imgSrc}
-                                alt={name}
+                                alt={`${name} avatar`}
                                 width={39}
                                 height={39}
                                 className="rounded-full w-[34px] h-[34px] sm:w-[39px] sm:h-[39px] object-cover"
+                                placeholder="blur"
+                                blurDataURL={avatarBlurDataURL}
+                                quality={90}
+                                sizes="(max-width: 640px) 34px, 39px"
                             />
                         </div>
                     </div>
 
                     {/* Client Info */}
                     <div className="flex flex-col gap-2 sm:gap-[13px]">
-                        <div className="text-black text-sm sm:text-base font-normal font-poppins">
+                        <h3 className="text-black text-sm sm:text-base font-normal font-poppins">
                             {name}
-                        </div>
-                        <div className="text-[#989898] text-xs font-normal font-poppins">
+                        </h3>
+                        <p className="text-[#989898] text-xs font-normal font-poppins">
                             {company}
-                        </div>
+                        </p>
                     </div>
 
                     {/* Testimonial Text */}
-                    <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed">
-                        {review}
-                    </p>
+                    <blockquote className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed">
+                        &quot;{review}&quot;
+                    </blockquote>
                 </div>
             </div>
 
             {/* Clickable Double Arrow Scroll Indicator */}
             {showScrollIndicator && (
-                <button
-                    onClick={handleScrollIndicatorClick}
-                    className="absolute bottom-2 left-1/2 transform -translate-x-1/2 cursor-pointer"
-                    aria-label="Scroll down to see more content"
-                >
-                    <div className="animate-bounce flex flex-col items-center -space-y-4">
-                        {/* First arrow - Blue */}
-                        <svg
-                            className="w-5 h-5 text-[#5530fa] animate-pulse"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                        {/* Second arrow - Pink */}
-                        <svg
-                            className="w-5 h-5 text-[#f51da5] animate-pulse"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            style={{ animationDelay: "0.2s" }}
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </div>
-                </button>
+                <ScrollIndicator onClick={handleScrollIndicatorClick} />
             )}
-        </div>
+        </article>
     );
 }
 
@@ -158,30 +171,44 @@ export default function Testimonials() {
     const [showAll, setShowAll] = useState(false);
     const [isMediumScreen, setIsMediumScreen] = useState(false);
 
-    // Check screen size
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMediumScreen(window.innerWidth >= 768); // md breakpoint is 768px
-        };
+    // Debounced resize handler for better performance
+    const checkScreenSize = useCallback(() => {
+        setIsMediumScreen(window.innerWidth >= 768);
+    }, []);
 
+    useEffect(() => {
         // Check on mount
         checkScreenSize();
 
-        // Add resize listener
-        window.addEventListener('resize', checkScreenSize);
+        // Debounced resize listener
+        let timeoutId: NodeJS.Timeout;
+        const debouncedResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkScreenSize, 150);
+        };
 
-        return () => window.removeEventListener('resize', checkScreenSize);
+        window.addEventListener('resize', debouncedResize);
+        return () => {
+            window.removeEventListener('resize', debouncedResize);
+            clearTimeout(timeoutId);
+        };
+    }, [checkScreenSize]);
+
+    // Memoized calculations
+    const { visibleClients, shouldShowLoadMore } = useMemo(() => {
+        const initialCount = isMediumScreen ? 6 : 3;
+        const visibleClients = showAll ? clients : clients.slice(0, initialCount);
+        const shouldShowLoadMore = clients.length > initialCount;
+
+        return { initialCount, visibleClients, shouldShowLoadMore };
+    }, [isMediumScreen, showAll]);
+
+    const toggleShowAll = useCallback(() => {
+        setShowAll(prev => !prev);
     }, []);
 
-    // Determine initial count based on screen size
-    const initialCount = isMediumScreen ? 6 : 3;
-    const visibleClients = showAll ? clients : clients.slice(0, initialCount);
-
-    // Determine if we should show the Load More button
-    const shouldShowLoadMore = clients.length > initialCount;
-
     return (
-        <div className="mt-10 sm:mt-16 lg:mt-20 w-full flex-col px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[250px] relative py-6 sm:py-8 lg:py-10">
+        <section className="mt-10 sm:mt-16 lg:mt-20 w-full flex-col px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[250px] relative py-6 sm:py-8 lg:py-10">
             {/* Title */}
             <h2 className="text-center text-xl sm:text-2xl lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-tight sm:leading-[45px] lg:leading-[55px] text-[#6c6c6c] px-4">
                 What Our{" "}
@@ -200,16 +227,18 @@ export default function Testimonials() {
             {/* Testimonial Cards */}
             <div className="mt-12 lg:mt-20 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-[46px] place-items-center">
                 {visibleClients.map((client, idx) => (
-                    <ClientCard key={idx} {...client} />
+                    <ClientCard key={`${client.name}-${idx}`} {...client} />
                 ))}
             </div>
 
-            {/* Show button only if there are more testimonials than the initial count */}
+            {/* Load More Button */}
             {shouldShowLoadMore && (
                 <div className="flex justify-center mt-8 sm:mt-12 lg:mt-15">
                     <button
-                        onClick={() => setShowAll(!showAll)}
-                        className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        onClick={toggleShowAll}
+                        className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:shadow-lg"
+                        aria-expanded={showAll}
+                        aria-label={showAll ? "Show fewer testimonials" : "Show more testimonials"}
                     >
                         <span className="text-white text-sm md:text-base font-medium">
                             {showAll ? "Show Less" : "Load More"}
@@ -218,28 +247,33 @@ export default function Testimonials() {
                 </div>
             )}
 
-            {/* Background Images - Added back from old code */}
-            {/* Background Image - Hidden on mobile for better performance */}
+            {/* Background Images - Optimized loading */}
             <div className="hidden lg:block">
                 <Image
                     src="/contact-4.svg"
-                    alt="Background"
+                    alt=""
                     width={800}
                     height={800}
                     className="absolute md:-mt-40 xl:-mt-50 -z-10 top-0 left-0"
+                    priority={false}
+                    quality={85}
+                    aria-hidden="true"
                 />
             </div>
 
             <div className="lg:hidden">
                 <Image
                     src="/contact-4-mobile.svg"
-                    alt="Background"
-                    width={800}
+                    alt=""
+                    width={350}
                     height={1000}
-                    style={{ objectFit: 'cover' }}
-                    className="w-full max-w-[350px] h-[1000px] absolute mt-30 -z-10 top-0 left-0 overflow-visible"
+                    className="w-full max-w-[350px] h-[1000px] absolute mt-30 -z-10 top-0 left-0 object-cover"
+                    priority={false}
+                    quality={80}
+                    sizes="(max-width: 1024px) 350px, 0px"
+                    aria-hidden="true"
                 />
             </div>
-        </div>
+        </section>
     );
 }

@@ -129,16 +129,14 @@ export default function Navbar() {
                                 <div className="flex items-center">
                                     <Link href="/" onClick={handleNavigation}>
                                         <Image
-                                            src="/logo.png"
+                                            src="/logo.webp"
                                             alt="Company Logo"
                                             width={100}
                                             height={71}
                                             priority={true}
-                                            quality={90}
+                                            quality={95}
                                             sizes="(max-width: 1024px) 80px, (max-width: 1280px) 90px, 100px"
                                             className="lg:w-[80px] lg:h-[57px] xl:w-[90px] xl:h-[64px] 2xl:w-[100px] 2xl:h-[71px]"
-                                            placeholder="blur"
-                                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                                         />
                                     </Link>
                                 </div>
@@ -321,16 +319,14 @@ export default function Navbar() {
                         <div className="flex justify-between items-center max-w-7xl mx-auto">
                             <Link href="/" onClick={handleNavigation}>
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Company Logo"
                                     width={100}
                                     height={71}
                                     priority={true}
-                                    quality={90}
+                                    quality={95}
                                     sizes="(max-width: 768px) 90px, 100px"
                                     className="w-[90px] md:w-[100px] h-16 md:h-18"
-                                    placeholder="blur"
-                                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                                 />
                             </Link>
 
@@ -358,7 +354,7 @@ export default function Navbar() {
                                         height={44}
                                         className="w-full h-full"
                                         priority={false}
-                                        quality={80}
+                                        quality={90}
                                     />
                                 </button>
                             </div>
@@ -377,15 +373,13 @@ export default function Navbar() {
                                 <div className="w-[250px] md:w-[350px] h-16 md:h-20 left-[34px] md:left-[35px] top-[35px] md:top-[32px] absolute">
                                     <Image
                                         className="w-[90px] md:w-[100px] h-16 md:h-18 left-0 top-0 absolute"
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Company Logo"
                                         width={100}
                                         height={71}
                                         priority={false}
-                                        quality={90}
+                                        quality={95}
                                         sizes="(max-width: 768px) 90px, 100px"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                                     />
                                     <button
                                         className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] left-[212px] md:left-[306px] top-[13px] md:top-[18px] absolute hover:scale-105 transition-transform"
@@ -399,7 +393,7 @@ export default function Navbar() {
                                             height={44}
                                             className="w-full h-full"
                                             priority={false}
-                                            quality={80}
+                                            quality={90}
                                         />
                                     </button>
                                 </div>
