@@ -395,7 +395,7 @@ const CandidateManagement = () => {
             setUpdatingStatus(candidateId);
             setStatusDropdown(null);
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/status`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -482,7 +482,7 @@ const CandidateManagement = () => {
         if (!deleteCandidate) return;
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidate.id}/status`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidate.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -504,7 +504,7 @@ const CandidateManagement = () => {
     // Function to update status
     const updateStatus = async (candidateId: string, newStatus: string, notes?: string) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/status`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -539,7 +539,7 @@ const CandidateManagement = () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/nda/send`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/nda/send`,
                 {
                     method: 'POST',
                     headers: {
@@ -583,7 +583,7 @@ const CandidateManagement = () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${candidateId}/nda/resend`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/nda/resend`,
                 {
                     method: 'POST',
                     headers: {

@@ -53,10 +53,20 @@ const ManageAlertsPage = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setJobAlertsEnabled(data.job_updates);
-                setNewsletterEnabled(data.newsletter);
+                console.log('Fetched user data:', data); // Debug log
+
+                // Fixed: Access the properties from the user object
+                setJobAlertsEnabled(data.user.job_updates || false);
+                setNewsletterEnabled(data.user.newsletter || false);
             } else {
-                console.error('Failed to fetch user data');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Failed to fetch user data:', errorData);
+
+                if (response.status === 401) {
+                    // Token might be expired
+                    localStorage.removeItem('jwtToken');
+                    window.location.href = '/login';
+                }
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
@@ -100,15 +110,32 @@ const ManageAlertsPage = () => {
             });
 
             if (response.ok) {
+                const data = await response.json();
+                console.log('Updated preferences:', data); // Debug log
+
+                // Update local state to reflect server response
+                if (data.user) {
+                    setJobAlertsEnabled(data.user.job_updates || false);
+                    setNewsletterEnabled(data.user.newsletter || false);
+                }
+
                 return true;
             } else {
-                const errorData = await response.json();
-                alert(errorData.error || 'Failed to update preferences');
+                const errorData = await response.json().catch(() => ({}));
+
+                if (response.status === 401) {
+                    alert('Session expired. Please login again.');
+                    localStorage.removeItem('jwtToken');
+                    window.location.href = '/login';
+                    return false;
+                }
+
+                alert(errorData.error || `Failed to update preferences: ${response.status}`);
                 return false;
             }
         } catch (error) {
             console.error('Error updating preferences:', error);
-            alert('Failed to update preferences. Please try again.');
+            alert('Failed to update preferences. Please check your connection and try again.');
             return false;
         } finally {
             setLoading(false);
@@ -118,16 +145,22 @@ const ManageAlertsPage = () => {
     const handleSavePreferences = async () => {
         const success = await updatePreferences(jobAlertsEnabled, newsletterEnabled);
         if (success) {
-            alert('Preferences saved successfully!');
-        }
-    };
+            // Show success message
+            alert('Preferences saved successfully! Your subscription settings have been updated.');
 
-    const handleJobAlertsToggle = (enabled: boolean) => {
-        setJobAlertsEnabled(enabled);
+            // Optionally refresh data to ensure sync
+            setTimeout(() => {
+                fetchUserData();
+            }, 1000);
+        }
     };
 
     const handleNewsletterToggle = (enabled: boolean) => {
         setNewsletterEnabled(enabled);
+    };
+
+    const handleJobAlertsToggle = (enabled: boolean) => {
+        setJobAlertsEnabled(enabled);
     };
 
     const RadioButton = ({

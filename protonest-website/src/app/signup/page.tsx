@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 // Google OAuth types - completely isolated to avoid conflicts
@@ -722,7 +723,9 @@ export default function SignUp() {
                             <div className="w-full mt-6 sm:mt-8 md:mt-10">
                                 <div className="text-center">
                                     <span className="text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
-                                    <button className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:text-gray-800">Sign in</button>
+                                    <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                        Sign in
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -975,16 +978,16 @@ export default function SignUp() {
                                         <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             Already have an account?
                                         </span>
-                                        <button className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:text-gray-800 ml-1">
+                                        <Link href="/signin" className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
                                             Sign in
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Right Side - Image */}
-                        <div className="flex items-stretch min-h-screen">
+                        <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
                                     src="/signup1.svg"

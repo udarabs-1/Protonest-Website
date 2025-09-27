@@ -353,11 +353,15 @@ export default function ResponsiveSignIn() {
                         {/* Content Area */}
                         <div className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
                             {/* Title - Aligned with form */}
-                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-8 sm:mb-12 md:mb-16">
+                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-4 sm:mb-6 md:mb-8">
                                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
                                     <span className="text-gray-400">Sign in to </span>
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest</span>
                                 </h1>
+                                {/* Added text below the title */}
+                                <div className="w-full justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-sm sm:text-base font-medium font-['Poppins'] mt-4">
+                                    To sign up, you have to either submit your CV to our talent pool or apply for a job
+                                </div>
                             </div>
 
                             {/* Form Container */}
@@ -437,14 +441,6 @@ export default function ResponsiveSignIn() {
                                     {isLoading ? 'Signing in...' : 'Sign in'}
                                 </button>
                             </div>
-
-                            {/* Sign Up Link - Aligned with form */}
-                            <div className="w-full mt-8 sm:mt-12 md:mt-16">
-                                <div className="text-center">
-                                    <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">Don&apos;t have an account? </span>
-                                    <button className="text-gray-600 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-800">Sign up</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -482,11 +478,15 @@ export default function ResponsiveSignIn() {
                                 </div>
 
                                 {/* Title */}
-                                <div className="mb-12 lg:mb-10 xl:mb-12 2xl:mb-16">
+                                <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
                                         <span className="text-gray-400">Sign in to </span>
                                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest</span>
                                     </h1>
+                                    {/* Added text below the title */}
+                                    <div className="w-[579px] justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-base lg:text-sm xl:text-base 2xl:text-lg font-medium font-['Poppins'] mt-4">
+                                        To sign up, you have to either submit your CV to our talent pool or apply for a job
+                                    </div>
                                 </div>
 
                                 {/* Form Container */}
@@ -566,24 +566,12 @@ export default function ResponsiveSignIn() {
                                         {isLoading ? 'Signing in...' : 'Sign in'}
                                     </button>
                                 </div>
-
-                                {/* Sign Up Link - Centered */}
-                                <div className="max-w-2xl mt-12 lg:mt-8 xl:mt-12 2xl:mt-20 flex justify-center">
-                                    <div className="text-center">
-                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Don&apos;t have an account?
-                                        </span>
-                                        <button className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:text-gray-800 ml-1">
-                                            Sign up
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
                         {/* Right Side - Image */}
-                        <div className="flex items-stretch min-h-screen">
-                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
+                        <div className="flex items-stretch h-screen">
+                            <div className="w-full p-6 lg:p-4 2xl:p-6 flex">
                                 <Image
                                     src="/login1.svg"
                                     alt="Welcome illustration"

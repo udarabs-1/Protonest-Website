@@ -198,7 +198,7 @@ const NDAComplianceLog = () => {
 
             // Updated to match CandidateManagement endpoint structure
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/nda/send`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/nda/send`,
                 {
                     method: 'POST',
                     headers: {
@@ -246,7 +246,7 @@ const NDAComplianceLog = () => {
 
             // Updated to match CandidateManagement endpoint structure
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/nda/resend`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/nda/resend`,
                 {
                     method: 'POST',
                     headers: {
@@ -294,7 +294,7 @@ const NDAComplianceLog = () => {
 
             // Use the candidate status update endpoint
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent/admin/candidates/${recordId}/status`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/status`,
                 {
                     method: 'PUT',
                     headers: {
