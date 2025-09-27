@@ -129,8 +129,13 @@ export default function About() {
               src="/about-1.svg"
               alt="About Protonest hero background"
               fill
+              priority={true}
+              quality={75}
+              sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               className="absolute inset-0"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
             />
 
             <div className="block sm:hidden">
@@ -172,16 +177,26 @@ export default function About() {
               alt="Our Journey background mobile"
               width={768}
               height={500}
+              priority={false}
+              quality={65}
+              sizes="(max-width: 1024px) 100vw, 768px"
               className="absolute w-[350px] md:w-[500px] right-0 h-auto lg:hidden"
               style={{ objectPosition: 'right' }}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
             />
             {/* Desktop image (hidden on md and below) */}
             <Image
               src="/about-2.webp"
               alt="Our Journey background desktop"
               fill
+              priority={false}
+              quality={70}
+              sizes="(min-width: 1024px) 100vw, 0px"
               className="absolute w-[90%] h-auto right-0 hidden lg:block"
               style={{ objectFit: 'contain', objectPosition: 'right' }}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
             />
           </div>
 
@@ -214,8 +229,13 @@ export default function About() {
               src="/about-3.svg"
               alt="Trusted by pioneers background"
               fill
+              priority={false}
+              quality={70}
+              sizes="100vw"
               className="w-full max-w-[1440px] h-auto object-contain"
               style={{ objectFit: 'cover' }}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
             />
           </div>
 
@@ -241,7 +261,12 @@ export default function About() {
               src="/about-4.svg"
               alt="Our Mission background"
               fill
+              priority={false}
+              quality={65}
+              sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
             />
           </div>
 

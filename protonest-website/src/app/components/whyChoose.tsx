@@ -48,10 +48,15 @@ const WhyChooseProtonest = () => {
             <div className="lg:hidden absolute inset-0 flex items-center justify-center">
                 <Image
                     src="/home-6-mobile.svg"
-                    alt="Background Mobile"
+                    alt="Why choose us mobile background"
                     width={768}
                     height={500}
+                    priority={false}
+                    quality={65}
+                    sizes="(max-width: 1024px) 100vw, 768px"
                     className="max-w-full h-auto object-contain"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
             </div>
 
@@ -60,10 +65,15 @@ const WhyChooseProtonest = () => {
                 <div className="flex justify-center">
                     <Image
                         src="/home-6.svg"
-                        alt="Background Desktop"
+                        alt="Why choose us desktop background"
                         width={1440}
                         height={664}
+                        priority={false}
+                        quality={70}
+                        sizes="(min-width: 1024px) 100vw, 1440px"
                         className="max-w-full h-auto object-contain"
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                     />
                 </div>
             </div>
@@ -105,29 +115,32 @@ const WhyChooseProtonest = () => {
                             icon={feature.icon}
                             title={feature.title}
                             isLeft={feature.isLeft}
+                            index={index}
                         />
                     ))}
                 </div>
 
                 {/* Features - Large Screen Layout (LG/XL/2XL - 2 Rows Centered) */}
                 <div className="hidden lg:block pt-16">
-                    {/* First Row - 4 items centered */}
+                    {/* First Row - 3 items centered */}
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24 mb-20">
                         {features.slice(0, 3).map((feature, index) => (
                             <FeatureItemGrid
                                 key={index}
                                 icon={feature.icon}
                                 title={feature.title}
+                                index={index}
                             />
                         ))}
                     </div>
-                    {/* Second Row - 3 items centered */}
+                    {/* Second Row - 4 items centered */}
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24">
                         {features.slice(3, 7).map((feature, index) => (
                             <FeatureItemGrid
-                                key={index + 4}
+                                key={index + 3}
                                 icon={feature.icon}
                                 title={feature.title}
+                                index={index + 3}
                             />
                         ))}
                     </div>
@@ -138,11 +151,11 @@ const WhyChooseProtonest = () => {
 };
 
 // Alternating Feature Item Component (Mobile/SM/MD)
-const FeatureItemAlternating = ({ icon, title, isLeft }: { icon: string, title: string, isLeft: boolean }) => {
+const FeatureItemAlternating = ({ icon, title, isLeft, index }: { icon: string, title: string, isLeft: boolean, index: number }) => {
     return (
         <div className={`flex items-center ${isLeft ? 'justify-start' : 'justify-end'}`}>
             <div className={`inline-flex items-center gap-6 sm:gap-8 ${isLeft ? '' : 'flex-row-reverse'}`}>
-                <FeatureCircle icon={icon} />
+                <FeatureCircle icon={icon} title={title} index={index} />
                 <div className={`max-w-[150px] text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm font-normal font-poppins ${isLeft ? 'text-left' : 'text-right'}`}>
                     {title}
                 </div>
@@ -152,11 +165,11 @@ const FeatureItemAlternating = ({ icon, title, isLeft }: { icon: string, title: 
 };
 
 // Grid Feature Item Component (LG+)
-const FeatureItemGrid = ({ icon, title }: { icon: string, title: string }) => {
+const FeatureItemGrid = ({ icon, title, index }: { icon: string, title: string, index: number }) => {
     return (
         <div className="flex flex-col items-center text-center w-64 group">
             <div className="mb-6">
-                <FeatureCircle icon={icon} />
+                <FeatureCircle icon={icon} title={title} index={index} />
             </div>
             <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-[16px] xl:text-lg font-normal font-poppins leading-relaxed min-h-[3rem] flex items-start justify-center">
                 {title}
@@ -166,15 +179,20 @@ const FeatureItemGrid = ({ icon, title }: { icon: string, title: string }) => {
 };
 
 // Reusable Feature Circle Component
-const FeatureCircle = ({ icon }: { icon: string }) => {
+const FeatureCircle = ({ icon, title, index }: { icon: string, title: string, index: number }) => {
     return (
         <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
             <Image
                 src={icon}
-                alt="Feature icon"
+                alt={`${title} icon`}
                 width={128}
                 height={128}
+                priority={index < 3}
+                quality={80}
+                sizes="(max-width: 640px) 96px, 128px"
                 className="w-full h-full object-contain"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
             />
         </div>
     );

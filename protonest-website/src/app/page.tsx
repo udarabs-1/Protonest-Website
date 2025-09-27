@@ -26,7 +26,12 @@ function LargeScreenHome() {
             src="/home-1.svg"
             alt="Hero background"
             fill
+            priority={true}
+            quality={75}
+            sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
           />
         </div>
 
@@ -73,7 +78,12 @@ function LargeScreenHome() {
             src="/home-2.svg"
             alt="Clients background"
             fill
+            priority={false}
+            quality={70}
+            sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
           />
         </div>
 
@@ -111,6 +121,8 @@ function LargeScreenHome() {
             src="/ellipse.svg"
             alt="Profile Background"
             fill
+            priority={false}
+            quality={80}
             className="object-contain"
           />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -119,13 +131,16 @@ function LargeScreenHome() {
                 src="/profile.jpg"
                 alt="Udara Kumarasena"
                 fill
-                className="object-cover"
-                quality={100}
+                priority={false}
+                quality={90}
                 sizes="70px"
+                className="object-cover"
                 style={{
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
               />
             </div>
           </div>
@@ -142,6 +157,8 @@ function LargeScreenHome() {
               alt="Opening quotation mark"
               width={64}
               height={64}
+              priority={false}
+              quality={80}
               className="h-full w-full"
             />
           </div>
@@ -159,6 +176,8 @@ function LargeScreenHome() {
               alt="Closing quotation mark"
               width={64}
               height={64}
+              priority={false}
+              quality={80}
               className="h-full w-full"
             />
           </div>
@@ -203,7 +222,6 @@ function LargeScreenHome() {
 }
 
 // Small/Medium Screen Component (sm, md)
-
 function SmallScreenHome() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const ref = useRef<HTMLDivElement>(null);
@@ -219,7 +237,12 @@ function SmallScreenHome() {
             src="/home-1.svg"
             alt="Hero background"
             fill
+            priority={true}
+            quality={70}
+            sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
           />
         </div>
 
@@ -270,7 +293,12 @@ function SmallScreenHome() {
             src="/home-2.svg"
             alt="Clients background"
             fill
+            priority={false}
+            quality={65}
+            sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
           />
         </div>
 
@@ -310,6 +338,8 @@ function SmallScreenHome() {
             src="/ellipse.svg"
             alt="Profile Background"
             fill
+            priority={false}
+            quality={80}
             className="object-contain"
           />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -318,13 +348,16 @@ function SmallScreenHome() {
                 src="/profile.jpg"
                 alt="Udara Kumarasena"
                 fill
-                className="object-cover"
-                quality={100}
+                priority={false}
+                quality={90}
                 sizes="(max-width: 640px) 55px, 65px"
+                className="object-cover"
                 style={{
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
               />
             </div>
           </div>
@@ -341,6 +374,8 @@ function SmallScreenHome() {
               alt="Opening quotation mark"
               width={48}
               height={48}
+              priority={false}
+              quality={80}
               className="h-full w-full"
             />
           </div>
@@ -358,6 +393,8 @@ function SmallScreenHome() {
               alt="Closing quotation mark"
               width={48}
               height={48}
+              priority={false}
+              quality={80}
               className="h-full w-full"
             />
           </div>

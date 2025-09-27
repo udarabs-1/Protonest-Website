@@ -27,19 +27,26 @@ const OurTeamSection = () => {
                 {/* Mobile background (shown on md and below) */}
                 <Image
                     src="/about-5-mobile.svg"
-                    alt="Team background mobile"
+                    alt="Our team background mobile"
                     fill
+                    priority={false}
+                    quality={65}
+                    sizes="(max-width: 1024px) 100vw, 0px"
                     className="object-cover object-center lg:hidden"
-                    quality={100}
-                    priority
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
                 {/* Desktop background (shown on lg and above) */}
                 <Image
                     src="/about-5.svg"
-                    alt="Team background desktop"
+                    alt="Our team background desktop"
                     fill
+                    priority={false}
+                    quality={70}
+                    sizes="(min-width: 1024px) 100vw, 0px"
                     className="object-cover object-center hidden lg:block"
-                    quality={100}
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
             </div>
 
@@ -75,16 +82,20 @@ const OurTeamSection = () => {
 
                 {/* Team Members - Desktop Grid (shown on lg and above) */}
                 <div className="hidden lg:grid grid-cols-3 gap-16 xl:gap-20 max-w-6xl mx-auto">
-                    {teamMembers.map(member => (
+                    {teamMembers.map((member, index) => (
                         <div key={member.id} className="flex flex-col items-center text-center group">
                             <div className="w-28 h-28 xl:w-32 xl:h-32 mb-6 transition-transform duration-300 group-hover:scale-105">
                                 <Image
                                     src={`/team${member.id}.svg`}
-                                    alt={member.title}
+                                    alt={`${member.title} icon`}
                                     width={128}
                                     height={128}
+                                    priority={index === 0}
+                                    quality={80}
+                                    sizes="(min-width: 1280px) 128px, 112px"
                                     className="w-full h-full object-cover rounded-lg"
-                                    quality={100}
+                                    placeholder="blur"
+                                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                                 />
                             </div>
                             <h4 className="text-[#4d4d4d] text-[16px] xl:text-lg font-normal font-poppins max-w-[276px]">
@@ -96,18 +107,22 @@ const OurTeamSection = () => {
 
                 {/* Team Members - Mobile List (shown on md and below) */}
                 <div className="lg:hidden space-y-8 sm:space-y-12">
-                    {teamMembers.map(member => (
+                    {teamMembers.map((member, index) => (
                         <div key={member.id} className={`flex ${member.isLeft ? 'justify-start' : 'justify-end'}`}>
                             <div className={`inline-flex items-center gap-6 sm:gap-8 ${member.isLeft ? '' : 'flex-row-reverse'}`}>
                                 {/* Team Member Image */}
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 mb-0 transition-transform duration-300 hover:scale-105">
                                     <Image
                                         src={`/team${member.id}.svg`}
-                                        alt={member.title}
+                                        alt={`${member.title} icon`}
                                         width={96}
                                         height={96}
+                                        priority={index === 0}
+                                        quality={80}
+                                        sizes="(max-width: 640px) 80px, 96px"
                                         className="w-full h-full object-cover rounded-lg"
-                                        quality={100}
+                                        placeholder="blur"
+                                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                                     />
                                 </div>
                                 {/* Team Member Title */}

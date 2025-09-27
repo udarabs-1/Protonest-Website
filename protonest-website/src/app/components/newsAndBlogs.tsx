@@ -35,9 +35,14 @@ const NewsAndBlogs = () => {
             <div className="absolute inset-0 hidden sm:block">
                 <Image
                     src="/home-7.svg"
-                    alt="Background"
+                    alt="News and blogs background"
                     fill
+                    priority={false}
+                    quality={65}
+                    sizes="100vw"
                     className="object-cover opacity-50 sm:opacity-100"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
             </div>
 
@@ -55,8 +60,8 @@ const NewsAndBlogs = () => {
 
                 {/* Blog Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-11 justify-items-center">
-                    {blogs.map(blog => (
-                        <BlogCard key={blog.id} blog={blog} />
+                    {blogs.map((blog, index) => (
+                        <BlogCard key={blog.id} blog={blog} index={index} />
                     ))}
                 </div>
             </div>
@@ -73,7 +78,7 @@ const NewsAndBlogs = () => {
 };
 
 // Updated Blog Card Component with mobile-friendly hover effects and navigation links
-const BlogCard = ({ blog }: { blog: { id: number, title: string, image: string, description: string, link: string } }) => {
+const BlogCard = ({ blog, index }: { blog: { id: number, title: string, image: string, description: string, link: string }, index: number }) => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const ref = useRef<HTMLDivElement>(null);
     const isVisible = useOnScreen(ref);
@@ -92,10 +97,15 @@ const BlogCard = ({ blog }: { blog: { id: number, title: string, image: string, 
                 <div className="relative w-full max-w-[279px] h-[140px] sm:h-[164px] mx-auto rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6">
                     <Image
                         src={blog.image}
-                        alt={blog.title}
+                        alt={`${blog.title} blog post image`}
                         fill
+                        priority={index === 0}
+                        quality={index === 0 ? 85 : 75}
+                        sizes="(max-width: 768px) 279px, (max-width: 1024px) 345px, 279px"
                         className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
                             }`}
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                     />
                     {/* Read More Button */}
                     <div className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 flex items-center justify-center ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -105,7 +115,6 @@ const BlogCard = ({ blog }: { blog: { id: number, title: string, image: string, 
                         </span>
                     </div>
                 </div>
-
 
                 {/* Blog Title */}
                 <h3 className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#4d4d4d]'

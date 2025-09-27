@@ -43,20 +43,34 @@ export default function Footer() {
             {/* Desktop Footer (lg screens and up) */}
             <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[450px] xl:h-[520px] 2xl:h-[578px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
                 <div className="rounded-b-[25px] relative h-full overflow-hidden">
-                    {/* Background GIF - Replaced with Image component */}
+                    {/* Background Video - Convert GIF to video for better performance */}
                     <div className="absolute inset-0 z-0">
-                        <Image
-                            src="/footerWeb.gif"
-                            alt="Footer background"
-                            fill
-                            style={{
-                                objectFit: 'cover',
-                                objectPosition: 'center'
-                            }}
-                            quality={100}
-                            priority={true}
-                            unoptimized={true}
-                        />
+                        <video
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: 'center' }}
+                        >
+                            <source src="/footerWeb.webm" type="video/webm" />
+                            <source src="/footerWeb.mp4" type="video/mp4" />
+                            {/* Fallback to optimized image if video fails */}
+                            <Image
+                                src="/footerWeb.gif"
+                                alt="Footer background"
+                                fill
+                                style={{
+                                    objectFit: 'cover',
+                                    objectPosition: 'center'
+                                }}
+                                quality={60}
+                                priority={false}
+                                sizes="100vw"
+                                placeholder="blur"
+                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
+                            />
+                        </video>
                     </div>
 
                     {/* Gradient Overlay */}
@@ -66,10 +80,15 @@ export default function Footer() {
                         <div className="w-full flex lg:pt-[120px] xl:pt-[150px] 2xl:pt-[180px] justify-between">
                             <Image
                                 src="/logo.png"
-                                alt="Logo"
+                                alt="Protonest Logo"
                                 width={149}
                                 height={106}
+                                priority={false}
+                                quality={90}
+                                sizes="(max-width: 1024px) 120px, (max-width: 1280px) 135px, 149px"
                                 className="lg:w-[120px] lg:h-[85px] xl:w-[135px] xl:h-[96px] 2xl:w-[149px] 2xl:h-[106px]"
+                                placeholder="blur"
+                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                             />
                             <div className="flex flex-col justify-center">
                                 <div className='font-montserrat lg:text-[12px] xl:text-[14px] 2xl:text-[16px] lg:space-x-[25px] xl:space-x-[30px] 2xl:space-x-[35px] text-right'>
@@ -168,20 +187,34 @@ export default function Footer() {
 
             {/* Mobile Footer (lg screens and down) */}
             <div className="block lg:hidden w-full h-[643px] md:h-[720px] relative">
-                {/* Background GIF with margins - Replaced with Image component */}
+                {/* Background Video with margins - Convert GIF to video for better performance */}
                 <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
-                    <Image
-                        src="/footerMobile.gif"
-                        alt="Footer background"
-                        fill
-                        style={{
-                            objectFit: 'cover',
-                            objectPosition: 'center'
-                        }}
-                        quality={100}
-                        priority={true}
-                        unoptimized={true}
-                    />
+                    <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: 'center' }}
+                    >
+                        <source src="/footerMobile.webm" type="video/webm" />
+                        <source src="/footerMobile.mp4" type="video/mp4" />
+                        {/* Fallback to optimized image if video fails */}
+                        <Image
+                            src="/footerMobile.gif"
+                            alt="Footer background"
+                            fill
+                            style={{
+                                objectFit: 'cover',
+                                objectPosition: 'center'
+                            }}
+                            quality={50}
+                            priority={false}
+                            sizes="100vw"
+                            placeholder="blur"
+                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
+                        />
+                    </video>
                 </div>
 
                 {/* Gradient Overlay with same margins */}
@@ -193,10 +226,15 @@ export default function Footer() {
                     <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
                         <Image
                             src="/logo.png"
-                            alt="Logo"
-                            width={149}
-                            height={106}
+                            alt="Protonest Logo"
+                            width={170}
+                            height={120}
+                            priority={false}
+                            quality={90}
+                            sizes="(max-width: 768px) 149px, 170px"
                             className="w-full h-full"
+                            placeholder="blur"
+                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                         />
                     </div>
 
