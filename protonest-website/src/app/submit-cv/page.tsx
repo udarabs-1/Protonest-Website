@@ -3,9 +3,14 @@
 import { ChevronDown, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
+
+// Optimized image blur placeholders
+const backgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MzkiIHZpZXdCb3g9IjAgMCAxMjAwIDQzOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDM5IiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
+
+const mobileBackgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
 
 interface FormData {
     fullName: string;
@@ -61,6 +66,7 @@ interface PendingJobApplication {
     timestamp: number;
 }
 
+// Memoized static data
 const cities: { [key: string]: string[] } = {
     'Sri Lanka': ['Colombo', 'Negombo', 'Kandy', 'Galle', 'Jaffna'],
     'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
@@ -83,6 +89,58 @@ const countryCodes: CountryCode[] = [
     { code: 'FR', dialCode: '+33', flag: '🇫🇷', name: 'France' },
     { code: 'JP', dialCode: '+81', flag: '🇯🇵', name: 'Japan' },
 ];
+
+// Optimized Background Component
+const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className: string }) => (
+    <div className={className}>
+        <Image
+            src={isMobile ? "/jobs-1-mobile.svg" : "/jobs-1.svg"}
+            alt=""
+            fill
+            className="object-cover object-center"
+            placeholder="blur"
+            blurDataURL={isMobile ? mobileBackgroundBlurDataURL : backgroundBlurDataURL}
+            quality={85}
+            priority={true}
+            sizes={isMobile ? "100vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"}
+            aria-hidden="true"
+        />
+    </div>
+);
+
+// Optimized Modal Components
+const LoadingSpinner = () => (
+    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
+        <div className="w-full h-full rounded-full"></div>
+        <div
+            className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-pink-500 border-r-blue-500 animate-spin bg-gradient-to-r from-pink-500 to-blue-500 rounded-full"
+            style={{
+                background: 'conic-gradient(from 0deg, #F51DA5, #5530FA, #F51DA5)',
+                WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)',
+                mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)'
+            }}
+        />
+    </div>
+);
+
+const ModalWrapper = ({
+    children,
+    onBackdropClick,
+    className = "w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px]"
+}: {
+    children: React.ReactNode;
+    onBackdropClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+    className?: string;
+}) => (
+    <div
+        className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
+        onClick={onBackdropClick}
+    >
+        <div className={`${className} bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden`}>
+            {children}
+        </div>
+    </div>
+);
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -112,20 +170,56 @@ export default function OnboardingPage() {
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Memoized dropdown refs
     const dropdownRefs = useMemo(() => ({
         countryCode: { current: null as HTMLDivElement | null },
         country: { current: null as HTMLDivElement | null },
         city: { current: null as HTMLDivElement | null },
     }), []);
 
-    const countries: string[] = ['Sri Lanka', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Singapore', 'India'];
-    const workFunctions: string[] = ['Engineering', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations', 'Product Management'];
-
-    const filteredWorkFunctions = workFunctions.filter(func =>
-        func.toLowerCase().includes(workFunctionSearch.toLowerCase()) &&
-        !formData.workFunction.split(',').includes(func)
+    // Memoized static arrays
+    const countries = useMemo(() =>
+        ['Sri Lanka', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Singapore', 'India'],
+        []
     );
+
+    const workFunctions = useMemo(() =>
+        ['Engineering', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations', 'Product Management'],
+        []
+    );
+
+    // Optimized work functions filtering
+    const filteredWorkFunctions = useMemo(() =>
+        workFunctions.filter(func =>
+            func.toLowerCase().includes(workFunctionSearch.toLowerCase()) &&
+            !formData.workFunction.split(',').includes(func)
+        ),
+        [workFunctions, workFunctionSearch, formData.workFunction]
+    );
+
+    // Debounced screen size check
+    const checkIsMobile = useCallback(() => {
+        return window.innerWidth < 640;
+    }, []);
+
+    useEffect(() => {
+        checkIsMobile();
+
+        let timeoutId: NodeJS.Timeout;
+        const debouncedResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkIsMobile, 150);
+        };
+
+        window.addEventListener('resize', debouncedResize);
+        return () => {
+            window.removeEventListener('resize', debouncedResize);
+            clearTimeout(timeoutId);
+        };
+    }, [checkIsMobile]);
 
     // Check for pending job application and populate user data on mount
     useEffect(() => {
@@ -184,7 +278,7 @@ export default function OnboardingPage() {
         };
     }, [dropdownOpen, dropdownRefs]);
 
-    const validateForm = (): boolean => {
+    const validateForm = useCallback((): boolean => {
         const newErrors: FormErrors = {};
 
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
@@ -205,9 +299,9 @@ export default function OnboardingPage() {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
+    }, [formData, uploadedCV]);
 
-    const handleInputChange = (field: keyof FormData, value: string | boolean): void => {
+    const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
         if (field === 'workFunction') {
             // Remove any duplicate functions when adding new ones
             const functionsArray = (value as string).split(',').filter(Boolean);
@@ -233,9 +327,9 @@ export default function OnboardingPage() {
         if (field === 'country') {
             setFormData(prev => ({ ...prev, city: '' }));
         }
-    };
+    }, [errors]);
 
-    const analyzeCV = async (file: File): Promise<void> => {
+    const analyzeCV = useCallback(async (file: File): Promise<void> => {
         setShowAnalysisModal(true);
         try {
             const formData = new FormData();
@@ -288,9 +382,9 @@ export default function OnboardingPage() {
                 setShowAnalysisModal(false);
             }, 2000);
         }
-    };
+    }, []);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
         const file = event.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -307,13 +401,13 @@ export default function OnboardingPage() {
             // Call the Python API to analyze the CV
             analyzeCV(file);
         }
-    };
+    }, [analyzeCV]);
 
-    const removeSkill = (skillToRemove: string): void => {
+    const removeSkill = useCallback((skillToRemove: string): void => {
         setExtractedSkills(prev => prev.filter(skill => skill !== skillToRemove));
-    };
+    }, []);
 
-    const handleSubmit = async (): Promise<void> => {
+    const handleSubmit = useCallback(async (): Promise<void> => {
         if (!validateForm()) return;
 
         setIsSubmitting(true);
@@ -412,9 +506,9 @@ export default function OnboardingPage() {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [validateForm, formData, extractedSkills, expertiseAreas, suggestedJobs, pendingJob, uploadedCV]);
 
-    const handleReset = (): void => {
+    const handleReset = useCallback((): void => {
         setFormData({
             fullName: '',
             email: '',
@@ -431,58 +525,44 @@ export default function OnboardingPage() {
         setErrors({});
         setSelectedCountryCode(countryCodes[0]);
         setWorkFunctionSearch('');
-    };
+    }, []);
 
-    const toggleDropdown = (field: string): void => {
+    const toggleDropdown = useCallback((field: string): void => {
         setDropdownOpen(prev => ({
             ...prev,
             [field]: !prev[field]
         }));
-    };
+    }, []);
 
     // Get button text based on pending job
-    const getButtonText = () => {
+    const getButtonText = useCallback(() => {
         if (pendingJob) {
             return 'Submit CV and Apply for the Job';
         } else {
             return 'Submit CV and Join Talent Pool';
         }
-    };
+    }, [pendingJob]);
 
     // Analysis Modal Component
     const AnalysisModal = () => (
-        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
-            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
+        <ModalWrapper>
+            <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
                 <div className="flex items-center justify-center">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
-                        <div className="w-full h-full rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-pink-500 border-r-blue-500 animate-spin bg-gradient-to-r from-pink-500 to-blue-500 rounded-full" style={{
-                            background: 'conic-gradient(from 0deg, #F51DA5, #5530FA, #F51DA5)',
-                            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)',
-                            mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)'
-                        }}></div>
-                    </div>
+                    <LoadingSpinner />
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
                     Thanks for submitting your CV!<br />Parsing your CV to match your areas of expertise
                 </div>
             </div>
-        </div>
+        </ModalWrapper>
     );
 
     // Submission Modal Component
     const SubmissionModal = () => (
-        <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
-            <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[365px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
+        <ModalWrapper>
+            <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
                 <div className="flex items-center justify-center">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
-                        <div className="w-full h-full rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-pink-500 border-r-blue-500 animate-spin bg-gradient-to-r from-pink-500 to-blue-500 rounded-full" style={{
-                            background: 'conic-gradient(from 0deg, #F51DA5, #5530FA, #F51DA5)',
-                            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)',
-                            mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), white 0)'
-                        }}></div>
-                    </div>
+                    <LoadingSpinner />
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
                     {pendingJob ? (
@@ -492,7 +572,7 @@ export default function OnboardingPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </ModalWrapper>
     );
 
     // Jobs Modal Component
@@ -504,11 +584,11 @@ export default function OnboardingPage() {
         };
 
         return (
-            <div
-                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
-                onClick={handleBackdropClick}
+            <ModalWrapper
+                onBackdropClick={handleBackdropClick}
+                className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] xl:max-w-[1117px] max-h-[90vh] overflow-y-auto"
             >
-                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] xl:max-w-[1117px] max-h-[90vh] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden overflow-y-auto p-4 sm:p-6 md:p-8">
+                <div className="p-4 sm:p-6 md:p-8">
                     <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
                         {pendingJob ? (
                             <>Your application for {pendingJob.jobTitle} was submitted successfully!<br />Here are other recommended roles based on your CV</>
@@ -563,7 +643,7 @@ export default function OnboardingPage() {
                         </button>
                     </div>
                 </div>
-            </div>
+            </ModalWrapper>
         );
     };
 
@@ -576,11 +656,11 @@ export default function OnboardingPage() {
         };
 
         return (
-            <div
-                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
-                onClick={handleBackdropClick}
+            <ModalWrapper
+                onBackdropClick={handleBackdropClick}
+                className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px]"
             >
-                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-6 sm:p-8 md:p-10">
+                <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
                         <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
                             {pendingJob ? (
@@ -625,7 +705,7 @@ export default function OnboardingPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ModalWrapper>
         );
     };
 
@@ -638,11 +718,11 @@ export default function OnboardingPage() {
         };
 
         return (
-            <div
-                className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
-                onClick={handleBackdropClick}
+            <ModalWrapper
+                onBackdropClick={handleBackdropClick}
+                className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px]"
             >
-                <div className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px] bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden p-6 sm:p-8 md:p-10">
+                <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
                         {/* Success Icon */}
                         <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-green-100 rounded-full flex items-center justify-center">
@@ -708,7 +788,7 @@ export default function OnboardingPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ModalWrapper>
         );
     };
 
@@ -716,32 +796,20 @@ export default function OnboardingPage() {
         <div>
             <Navbar />
 
-            {/* Updated Header Section */}
-            <div className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-                {/* Background Image - Mobile */}
-                <div className="absolute inset-0 -z-10 block sm:hidden">
-                    <Image
-                        src="/jobs-1-mobile.svg"
-                        alt="Careers background mobile"
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                    />
-                </div>
+            {/* Optimized Header Section */}
+            <header className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
+                {/* Background Images */}
+                <BackgroundImage
+                    isMobile={true}
+                    className="absolute inset-0 -z-10 block sm:hidden"
+                />
+                <BackgroundImage
+                    isMobile={false}
+                    className="absolute inset-0 -z-10 hidden sm:block"
+                />
 
-                {/* Background Image - Desktop */}
-                <div className="absolute inset-0 -z-10 hidden sm:block">
-                    <Image
-                        src="/jobs-1.svg"
-                        alt="Careers background"
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                    />
-                </div>
-
-                {/* Top Gradient Overlay */}
+                {/* Gradient Overlays */}
                 <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
-
-                {/* Bottom Gradient Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
 
                 {/* Hero Content */}
@@ -772,9 +840,9 @@ export default function OnboardingPage() {
                         </p>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="min-h-screen relative overflow-hidden">
+            <main className="min-h-screen relative overflow-hidden">
                 <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
                     <div className="space-y-8">
                         {/* Personal Information */}
@@ -1052,7 +1120,7 @@ export default function OnboardingPage() {
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins']"
+                                            className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins'] transition-all duration-300"
                                         >
                                             Browse
                                         </button>
@@ -1146,7 +1214,7 @@ export default function OnboardingPage() {
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base"
+                                className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
                             >
                                 {getButtonText()}
                             </button>
@@ -1154,14 +1222,14 @@ export default function OnboardingPage() {
                                 type="button"
                                 onClick={handleReset}
                                 disabled={isSubmitting}
-                                className="flex-1 sm:max-w-xs px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base"
+                                className="flex-1 sm:max-w-xs px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
                             >
                                 Reset
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
 
             {/* Modals */}
             {showAnalysisModal && <AnalysisModal />}

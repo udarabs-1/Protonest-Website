@@ -6,7 +6,7 @@ import { useOnScreen } from "@/app/components/useOnScreen";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Define a Blog type for better type safety
 interface Blog {
@@ -26,11 +26,33 @@ interface SubscriptionForm {
   newsletter: boolean;
 }
 
+// Optimized image blur placeholders
+const blogImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDcyIiBoZWlnaHQ9IjE2NCIgdmlld0JveD0iMCAwIDQ3MiAxNjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0NzIiIGhlaWdodD0iMTY0IiBmaWxsPSIjZjVmNWY1IiByeD0iMTEiLz4KPC9zdmc+Cg==";
+
+const heroImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI1NTMiIHZpZXdCb3g9IjAgMCAxMjAwIDU1MyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNTUzIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=";
+
 // Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: Blog }) => {
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useOnScreen(ref);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
+    checkIsMobile();
+
+    let timeoutId: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkIsMobile, 150);
+    };
+
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   // For mobile and small screens, use intersection observer; for larger screens, use hover
   const shouldShowEffects = isMobile ? isVisible : false;
@@ -51,6 +73,10 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
             height={164}
             className={`w-full h-full object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
               }`}
+            placeholder="blur"
+            blurDataURL={blogImageBlurDataURL}
+            quality={90}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
           />
           {/* Read More Button with solid background and gradient text */}
           <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -70,7 +96,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 
           <div className="flex flex-wrap gap-2">
             {blog.categoryTags.map((tag: string, index: number) => (
-              <div key={index} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
+              <div key={`${tag}-${index}`} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
                 <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
                   {tag}
                 </div>
@@ -88,7 +114,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 };
 
 export default function BlogSection() {
-  const blogs = [
+  const blogs = useMemo(() => [
     {
       id: "selecting-a-suitable-sensor-for-an-iot-project",
       title: "Selecting A Suitable Sensor For An IoT Project",
@@ -137,7 +163,7 @@ export default function BlogSection() {
       imageUrl: "/blogs6.webp",
       categoryTags: ["IoT", "Actuators", "Automation"]
     }
-  ];
+  ], []);
 
   // State for search functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -158,59 +184,67 @@ export default function BlogSection() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
-  // Check screen size on mount and resize
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint is 768px
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+  // Debounced screen size check
+  const checkScreenSize = useCallback(() => {
+    setIsMobile(window.innerWidth < 768);
   }, []);
 
-  // Get all unique categories from blogs
-  const allCategories = Array.from(
-    new Set(blogs.flatMap(blog => blog.categoryTags))
-  ).sort((a: string, b: string) => a.localeCompare(b));
+  useEffect(() => {
+    checkScreenSize();
 
-  // Filter blogs based on selected categories (AND logic - must match all selected categories)
-  const filteredBlogs = blogs.filter(blog => {
-    return selectedCategories.every(cat => blog.categoryTags.includes(cat));
-  });
+    let timeoutId: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkScreenSize, 150);
+    };
 
-  // Get the blogs to display based on current state
-  const blogsToDisplay = selectedCategories.length > 0 ? filteredBlogs : blogs;
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(timeoutId);
+    };
+  }, [checkScreenSize]);
 
-  // Determine how many blogs to show based on screen size and showAllBlogs state
-  const getVisibleBlogsCount = () => {
-    if (showAllBlogs) return blogsToDisplay.length;
-    return isMobile ? 3 : 6;
-  };
+  // Memoized category calculations
+  const allCategories = useMemo(() =>
+    Array.from(new Set(blogs.flatMap(blog => blog.categoryTags)))
+      .sort((a: string, b: string) => a.localeCompare(b)),
+    [blogs]
+  );
 
-  const visibleBlogs = blogsToDisplay.slice(0, getVisibleBlogsCount());
+  // Memoized filtered blogs
+  const filteredBlogs = useMemo(() =>
+    blogs.filter(blog =>
+      selectedCategories.every(cat => blog.categoryTags.includes(cat))
+    ),
+    [blogs, selectedCategories]
+  );
 
-  // Determine if Load More button should be shown
-  const shouldShowLoadMoreButton = () => {
+  // Memoized display calculations
+  const { visibleBlogs, shouldShowLoadMoreButton } = useMemo(() => {
+    const blogsToDisplay = selectedCategories.length > 0 ? filteredBlogs : blogs;
     const limit = isMobile ? 3 : 6;
-    return blogsToDisplay.length > limit;
-  };
+    const visibleCount = showAllBlogs ? blogsToDisplay.length : limit;
+    const visibleBlogs = blogsToDisplay.slice(0, visibleCount);
+    const shouldShowLoadMoreButton = blogsToDisplay.length > limit;
 
-  const handleLoadMore = () => {
-    setShowAllBlogs(!showAllBlogs);
-  };
+    return { visibleBlogs, shouldShowLoadMoreButton };
+  }, [blogs, filteredBlogs, selectedCategories, isMobile, showAllBlogs]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Optimized event handlers
+  const handleLoadMore = useCallback(() => {
+    setShowAllBlogs(prev => !prev);
+  }, []);
+
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim() === "") return;
 
-    // Find all categories that match the search term (case insensitive)
     const matchedCategories = allCategories.filter((cat: string) =>
       cat.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (matchedCategories.length > 0) {
-      // Add all matched categories that aren't already selected
       const newCategories = matchedCategories.filter(
         (cat: string) => !selectedCategories.includes(cat)
       );
@@ -221,18 +255,16 @@ export default function BlogSection() {
     }
 
     setSearchTerm("");
-    // Reset load more state when searching
     setShowAllBlogs(false);
-  };
+  }, [searchTerm, allCategories, selectedCategories]);
 
-  const removeCategory = (category: string) => {
+  const removeCategory = useCallback((category: string) => {
     setSelectedCategories(prev => prev.filter(c => c !== category));
-    // Reset load more state when removing categories
     setShowAllBlogs(false);
-  };
+  }, []);
 
   // Handle subscription form submission
-  const handleSubscriptionSubmit = async (e: React.FormEvent) => {
+  const handleSubscriptionSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSubscriptionStatus('loading');
     setSubscriptionMessage('');
@@ -256,7 +288,6 @@ export default function BlogSection() {
       if (response.ok) {
         setSubscriptionStatus('success');
         setSubscriptionMessage(data.message || 'Subscription successful! Thank you for subscribing.');
-        // Reset form
         setSubscriptionForm({
           name: '',
           email: '',
@@ -272,16 +303,20 @@ export default function BlogSection() {
       setSubscriptionStatus('error');
       setSubscriptionMessage('An error occurred. Please try again later.');
     }
-  };
+  }, [subscriptionForm]);
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setSubscriptionForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-  };
+  }, []);
+
+  const handleSearchTermChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
 
   return (
     <div>
@@ -319,15 +354,19 @@ export default function BlogSection() {
         </script>
       </Head>
       <Navbar />
-      <div className="md:mt-[50px] mb-30">
+      <main className="md:mt-[50px] mb-30">
         {/* Hero Section with Image */}
-        <div className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
+        <section className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
           <div className="absolute inset-0 z-0">
             <Image
               src="/blogs-1.svg"
               alt="Blogs background"
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
+              placeholder="blur"
+              blurDataURL={heroImageBlurDataURL}
+              priority={true}
+              quality={90}
             />
           </div>
 
@@ -339,16 +378,14 @@ export default function BlogSection() {
 
           <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
             <div className="flex flex-col items-center">
-              <div className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
+              <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                   Blog
                 </span>
-              </div>
-              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto">
-                <span className="text-[rgba(108,108,108,1)]">
-                  IoT Related Insights, and Innovations
-                </span>
-              </div>
+              </h1>
+              <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+                IoT Related Insights, and Innovations
+              </p>
             </div>
 
             {/* Search bar with flex positioning */}
@@ -357,14 +394,15 @@ export default function BlogSection() {
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchTermChange}
                   className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
                   placeholder="Search for blog categories"
+                  aria-label="Search blog categories"
                 />
-                <button type="submit" className="w-5 h-5 mr-3">
+                <button type="submit" className="w-5 h-5 mr-3" aria-label="Search">
                   <Image
                     src="/search.svg"
-                    alt="Search"
+                    alt=""
                     width={20}
                     height={20}
                     className="w-full h-full text-[#6c6c6c]"
@@ -382,17 +420,15 @@ export default function BlogSection() {
                         {category}
                       </span>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeCategory(category);
-                        }}
+                        onClick={() => removeCategory(category)}
                         className="ml-1"
+                        aria-label={`Remove ${category} filter`}
                       >
                         <Image
                           src="/close.svg"
                           width={30}
                           height={30}
-                          alt={`Remove ${category} filter`}
+                          alt=""
                           className="hover:scale-110 transition-transform duration-200"
                         />
                       </button>
@@ -402,7 +438,7 @@ export default function BlogSection() {
               )}
             </div>
           </div>
-        </div>
+        </section>
 
         <section className="lg:-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
           {/* Blog Grid */}
@@ -413,11 +449,13 @@ export default function BlogSection() {
           </div>
 
           {/* Load More / Show Less Button */}
-          {shouldShowLoadMoreButton() && (
+          {shouldShowLoadMoreButton && (
             <div className="flex justify-center mt-8 sm:mt-12">
               <button
                 onClick={handleLoadMore}
-                className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300"
+                className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                aria-expanded={showAllBlogs}
+                aria-label={showAllBlogs ? "Show fewer blog posts" : "Show more blog posts"}
               >
                 {showAllBlogs ? 'Show Less' : 'Load More'}
               </button>
@@ -425,7 +463,7 @@ export default function BlogSection() {
           )}
 
           {/* Newsletter Section */}
-          <div className="mt-20 sm:mt-40 lg:mt-60 relative">
+          <section className="mt-20 sm:mt-40 lg:mt-60 relative">
             <div className="flex flex-col items-start gap-12 sm:gap-16 lg:gap-24">
               <div className="w-full lg:w-1/2 relative">
                 <h2 className="text-[#6c6c6c] text-xl md:text-[22px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[45px] lg:leading-[55px] max-w-[200px] md:max-w-none">
@@ -438,8 +476,9 @@ export default function BlogSection() {
                     src="/blogs-2-mobile.svg"
                     width={150}
                     height={150}
-                    alt="IoT Newsletter Mobile"
+                    alt=""
                     className="opacity-80"
+                    aria-hidden="true"
                   />
                 </div>
 
@@ -450,11 +489,12 @@ export default function BlogSection() {
                 {/* Working Newsletter Form */}
                 <form onSubmit={handleSubscriptionSubmit} className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
                   <div className="space-y-1">
-                    <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
+                    <label htmlFor="newsletter-name" className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Name
                     </label>
                     <input
                       type="text"
+                      id="newsletter-name"
                       name="name"
                       value={subscriptionForm.name}
                       onChange={handleInputChange}
@@ -465,11 +505,12 @@ export default function BlogSection() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
+                    <label htmlFor="newsletter-email" className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
                       Email
                     </label>
                     <input
                       type="email"
+                      id="newsletter-email"
                       name="email"
                       value={subscriptionForm.email}
                       onChange={handleInputChange}
@@ -496,7 +537,7 @@ export default function BlogSection() {
                   {/* Status Message */}
                   {subscriptionMessage && (
                     <div className={`text-sm font-poppins ${subscriptionStatus === 'success' ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      }`} role="alert">
                       {subscriptionMessage}
                     </div>
                   )}
@@ -505,7 +546,7 @@ export default function BlogSection() {
                     <button
                       type="submit"
                       disabled={subscriptionStatus === 'loading'}
-                      className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-[50px] w-[160px] lg:w-[180px] lg:font-semibold text-[15px] xl:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                     >
                       {subscriptionStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
                     </button>
@@ -520,13 +561,16 @@ export default function BlogSection() {
                 src="/blogs-2.svg"
                 width={600}
                 height={600}
-                alt="IoT Newsletter"
+                alt=""
                 className="opacity-80"
+                priority={false}
+                quality={85}
+                aria-hidden="true"
               />
             </div>
-          </div>
+          </section>
         </section>
-      </div>
+      </main>
       <Footer />
     </div>
   );

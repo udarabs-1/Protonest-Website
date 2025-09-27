@@ -5,7 +5,7 @@ import Navbar from '@/app/components/navbar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // Types
 type Job = {
@@ -50,7 +50,12 @@ type Filters = {
     jobType: string[];
 };
 
-// Map role slugs to category names
+// Optimized image blur placeholders
+const heroMobileBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
+
+const heroDesktopBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MzkiIHZpZXdCb3g9IjAgMCAxMjAwIDQzOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDM5IiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
+
+// Map role slugs to category names - memoized
 const roleToCategoryMap: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',
@@ -62,7 +67,7 @@ const roleToCategoryMap: { [key: string]: string } = {
     'other-roles': 'Other'
 };
 
-// Map role slugs to display names
+// Map role slugs to display names - memoized
 const roleTitles: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',
@@ -73,6 +78,12 @@ const roleTitles: { [key: string]: string } = {
     'quality-assurance': 'Quality Assurance',
     'other-roles': 'Other Roles'
 };
+
+// Memoized filter options
+const FILTER_OPTIONS = {
+    experience: ['junior', 'intermediate', 'senior', 'expert'],
+    datePosted: ['Newest', 'Oldest']
+} as const;
 
 // Helper function to format time difference as "X days ago"
 const formatTimeAgo = (dateString: string): string => {
@@ -96,6 +107,95 @@ const formatDate = (dateString: string): string => {
     });
 };
 
+// Memoized filter checkbox component
+const FilterCheckbox = ({
+    isSelected,
+    onClick,
+    label
+}: {
+    isSelected: boolean;
+    onClick: () => void;
+    label: string;
+}) => (
+    <div className="flex items-center mb-2">
+        <button
+            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 ${isSelected ? 'outline-2 outline-offset-[-2px] outline-[#5530fa]' : 'border-[#6c6c6c]'
+                }`}
+            onClick={onClick}
+            aria-checked={isSelected}
+            role="checkbox"
+            aria-label={`Filter by ${label}`}
+        >
+            {isSelected && (
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
+            )}
+        </button>
+        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{label}</span>
+    </div>
+);
+
+// Memoized job card component
+const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
+    <Link
+        href={`/jobs/${roleKey}/${job.id}`}
+        className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+    >
+        <article>
+            <div className="flex justify-between">
+                <div className="w-3/4">
+                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
+                        {job.title}
+                    </h3>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
+                        {job.location} ‐ Posted {job.posted}
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                </div>
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.deadline}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
+                </div>
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.experience}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
+                </div>
+            </div>
+
+            {/* Arrow Image Swap on Hover */}
+            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
+                <div className="w-full h-full group-hover:hidden">
+                    <Image
+                        src="/upleft.svg"
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+                <div className="hidden w-full h-full group-hover:block">
+                    <Image
+                        src="/upleft-hover.svg"
+                        alt=""
+                        width={50}
+                        height={50}
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+            </div>
+
+            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                View Details
+            </button>
+        </article>
+    </Link>
+);
+
 export default function RolePage() {
     const params = useParams();
     const { role } = params;
@@ -115,21 +215,35 @@ export default function RolePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Check if screen is mobile/small
-    useEffect(() => {
-        const checkIsMobile = () => {
-            setIsMobile(window.innerWidth < 1024); // lg breakpoint
-        };
-
-        checkIsMobile();
-        window.addEventListener('resize', checkIsMobile);
-
-        return () => window.removeEventListener('resize', checkIsMobile);
+    // Debounced screen size check
+    const checkIsMobile = useCallback(() => {
+        setIsMobile(window.innerWidth < 1024);
     }, []);
 
-    // Get role key and category
-    const roleKey = Array.isArray(role) ? role[0] : role;
-    const category = roleKey ? roleToCategoryMap[roleKey] : null;
+    useEffect(() => {
+        checkIsMobile();
+
+        let timeoutId: NodeJS.Timeout;
+        const debouncedResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkIsMobile, 150);
+        };
+
+        window.addEventListener('resize', debouncedResize);
+        return () => {
+            window.removeEventListener('resize', debouncedResize);
+            clearTimeout(timeoutId);
+        };
+    }, [checkIsMobile]);
+
+    // Memoized role calculations
+    const { roleKey, category, displayTitle } = useMemo(() => {
+        const roleKey = Array.isArray(role) ? role[0] : role;
+        const category = roleKey ? roleToCategoryMap[roleKey] : null;
+        const displayTitle = roleKey ? roleTitles[roleKey] || roleKey : 'Jobs';
+
+        return { roleKey, category, displayTitle };
+    }, [role]);
 
     // Fetch jobs from API
     useEffect(() => {
@@ -140,11 +254,7 @@ export default function RolePage() {
             setError(null);
 
             try {
-                // Build API URL with category filter
                 const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(category)}`;
-
-                console.log('Fetching from URL:', apiUrl); // Debug log
-
                 const response = await fetch(apiUrl);
 
                 if (!response.ok) {
@@ -153,44 +263,26 @@ export default function RolePage() {
 
                 const data: ApiResponse = await response.json();
 
-                // Debug: Log the actual response structure
-                console.log('API Response:', data);
-                console.log('Response structure:', {
-                    status: data.status,
-                    hasData: !!data.data,
-                    dataType: typeof data.data,
-                    dataLength: Array.isArray(data.data) ? data.data.length : 'not array'
-                });
-
-                // More flexible response handling
                 let jobsData: ApiJobData[] = [];
 
                 if (data.status === 'success') {
-                    // Handle case where data is null (no jobs available)
                     if (data.data === null) {
-                        console.log('No jobs available for this category');
                         jobsData = [];
                     } else if (Array.isArray(data.data)) {
                         jobsData = data.data;
                     } else {
-                        console.error('Unexpected data format in success response:', data.data);
                         throw new Error(`Expected data to be an array or null, got: ${typeof data.data}`);
                     }
                 } else if (Array.isArray(data)) {
-                    // Handle case where response is directly an array
                     jobsData = data as ApiJobData[];
                 } else if (data.jobs) {
-                    // Handle case where jobs are in a 'jobs' property
                     jobsData = data.jobs;
                 } else if (data.data && Array.isArray(data.data)) {
                     jobsData = data.data;
                 } else {
-                    // Log the unexpected response format for debugging
-                    console.error('Unexpected response format:', data);
                     throw new Error(`Unexpected response format. Expected array or object with data property, got: ${typeof data}`);
                 }
 
-                // Transform API response to match our Job type
                 const transformedJobs: Job[] = jobsData.map((job: ApiJobData, index: number) => {
                     try {
                         return {
@@ -206,7 +298,6 @@ export default function RolePage() {
                         };
                     } catch (transformError) {
                         console.error('Error transforming job:', job, transformError);
-                        // Return a fallback job object
                         return {
                             id: `error-job-${index}`,
                             title: 'Error Loading Job',
@@ -221,13 +312,11 @@ export default function RolePage() {
                     }
                 });
 
-                console.log('Transformed jobs:', transformedJobs);
                 setJobs(transformedJobs);
 
             } catch (error) {
                 console.error('Error fetching jobs:', error);
 
-                // More detailed error messaging
                 let errorMessage = 'Failed to load jobs';
                 if (error instanceof TypeError && error.message.includes('fetch')) {
                     errorMessage = 'Network error: Unable to connect to the server';
@@ -250,7 +339,8 @@ export default function RolePage() {
         fetchJobs();
     }, [category]);
 
-    const handleFilterToggle = (filterType: FilterType, value: string) => {
+    // Optimized filter handlers
+    const handleFilterToggle = useCallback((filterType: FilterType, value: string) => {
         setFilters(prev => {
             const currentFilters = [...prev[filterType]];
             const index = currentFilters.indexOf(value);
@@ -266,76 +356,77 @@ export default function RolePage() {
                 [filterType]: currentFilters
             };
         });
-    };
+    }, []);
 
-    const clearAllFilters = () => {
+    const clearAllFilters = useCallback(() => {
         setFilters({
             experience: [],
             location: [],
             datePosted: [],
             jobType: []
         });
-    };
+    }, []);
 
-    // Filter jobs based on selected filters and search query
-    const filteredJobs = jobs.filter(job => {
-        // Filter by experience
-        if (filters.experience.length > 0 && !filters.experience.includes(job.experience)) {
-            return false;
-        }
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    }, []);
 
-        // Filter by location
-        if (filters.location.length > 0 && !filters.location.includes(job.location)) {
-            return false;
-        }
+    const toggleMobileFilters = useCallback(() => {
+        setShowMobileFilters(prev => !prev);
+    }, []);
 
-        // Filter by job type
-        if (filters.jobType.length > 0 && !filters.jobType.includes(job.type)) {
-            return false;
-        }
+    const loadMoreJobs = useCallback(() => {
+        setVisibleJobsCount(prev => prev + 3);
+    }, []);
 
-        // Filter by search query
-        if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-            return false;
-        }
+    // Memoized filter calculations
+    const { filteredJobs, uniqueLocations, uniqueJobTypes } = useMemo(() => {
+        // Get unique values for filters
+        const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)));
+        const uniqueJobTypes = Array.from(new Set(jobs.map(job => job.type)));
 
-        return true;
-    });
-
-    // Sort by date posted if needed
-    if (filters.datePosted.length > 0) {
-        filteredJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-
-            if (filters.datePosted.includes('Newest')) {
-                return dateB - dateA; // Newest first
-            } else {
-                return dateA - dateB; // Oldest first
+        // Filter jobs
+        const filtered = jobs.filter(job => {
+            if (filters.experience.length > 0 && !filters.experience.includes(job.experience)) {
+                return false;
             }
+            if (filters.location.length > 0 && !filters.location.includes(job.location)) {
+                return false;
+            }
+            if (filters.jobType.length > 0 && !filters.jobType.includes(job.type)) {
+                return false;
+            }
+            if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return false;
+            }
+            return true;
         });
-    }
 
-    // Reset visible jobs count when filters or search change
+        // Sort by date if needed
+        if (filters.datePosted.length > 0) {
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+
+                if (filters.datePosted.includes('Newest')) {
+                    return dateB - dateA;
+                } else {
+                    return dateA - dateB;
+                }
+            });
+        }
+
+        return { filteredJobs: filtered, uniqueLocations, uniqueJobTypes };
+    }, [jobs, filters, searchQuery]);
+
+    // Reset visible jobs count when filters change
     useEffect(() => {
         setVisibleJobsCount(3);
     }, [filters, searchQuery]);
 
-    // Get display title
-    const displayTitle = roleKey ? roleTitles[roleKey] || roleKey : 'Jobs';
-
     // Determine which jobs to display
-    const jobsToShow = isMobile
-        ? filteredJobs.slice(0, visibleJobsCount)
-        : filteredJobs;
-
-    // Check if there are more jobs to load
+    const jobsToShow = isMobile ? filteredJobs.slice(0, visibleJobsCount) : filteredJobs;
     const hasMoreJobs = isMobile && visibleJobsCount < filteredJobs.length;
-
-    // Load more jobs function
-    const loadMoreJobs = () => {
-        setVisibleJobsCount(prev => prev + 3);
-    };
 
     if (loading) {
         return (
@@ -361,7 +452,7 @@ export default function RolePage() {
                         <p className="text-red-600 mb-4">Error: {error}</p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+                            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         >
                             Try Again
                         </button>
@@ -373,18 +464,23 @@ export default function RolePage() {
     }
 
     return (
-        <div className="min-h-screen  relative bg-white overflow-x-hidden">
+        <div className="min-h-screen relative bg-white overflow-x-hidden">
             <Navbar />
 
             {/* Hero Section */}
-            <div className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
+            <section className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
                 {/* Background Image - Mobile */}
                 <div className="absolute inset-0 block sm:hidden">
                     <Image
                         src="/jobs-1-mobile.svg"
-                        alt={`${displayTitle} background mobile`}
+                        alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
+                        placeholder="blur"
+                        blurDataURL={heroMobileBlurDataURL}
+                        priority={true}
+                        quality={85}
+                        aria-hidden="true"
                     />
                 </div>
 
@@ -392,43 +488,44 @@ export default function RolePage() {
                 <div className="absolute inset-0 hidden sm:block">
                     <Image
                         src="/jobs-1.svg"
-                        alt={`${displayTitle} background`}
+                        alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
+                        placeholder="blur"
+                        blurDataURL={heroDesktopBlurDataURL}
+                        priority={true}
+                        quality={85}
+                        aria-hidden="true"
                     />
                 </div>
 
-                {/* Top Gradient Overlay */}
+                {/* Gradient Overlays */}
                 <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
-
-                {/* Bottom Gradient Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
 
                 {/* Hero Content */}
                 <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
                     <div className="text-center max-w-4xl xl:max-w-[1120px]">
-                        <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8">
-                            <span className="text-[#6c6c6c]">{displayTitle} Jobs</span>
-                            <br />
+                        <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8 text-[#6c6c6c]">
+                            {displayTitle} Jobs
                         </h1>
                         <p className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] text-[#6c6c6c] font-normal font-poppins leading-6 sm:leading-[30px] max-w-2xl xl:max-w-[1120px] mx-auto">
                             Browse jobs posted on Protonest and apply for the role that fits you.
                         </p>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
-
+            <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filters Sidebar */}
-                    <div className="w-full lg:w-1/4 hidden lg:block">
+                    <aside className="w-full lg:w-1/4 hidden lg:block">
                         <div className="bg-white rounded-xl p-6 shadow-lg">
                             <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
 
                             <button
                                 onClick={clearAllFilters}
-                                className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa] transition-colors"
+                                className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa] transition-colors focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                             >
                                 Clear All Filters
                             </button>
@@ -436,94 +533,67 @@ export default function RolePage() {
                             {/* Experience Level Filter */}
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
-                                {['junior', 'intermediate', 'senior', 'expert'].map(level => (
-                                    <div key={level} className="flex items-center mb-2">
-                                        <div
-                                            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.experience.includes(level)
-                                                ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                : 'border-[#6c6c6c]'
-                                                }`}
-                                            onClick={() => handleFilterToggle('experience', level)}
-                                        >
-                                            {filters.experience.includes(level) && (
-                                                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                            )}
-                                        </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{level}</span>
-                                    </div>
+                                {FILTER_OPTIONS.experience.map(level => (
+                                    <FilterCheckbox
+                                        key={level}
+                                        isSelected={filters.experience.includes(level)}
+                                        onClick={() => handleFilterToggle('experience', level)}
+                                        label={level}
+                                    />
                                 ))}
                             </div>
 
                             {/* Location Filter */}
-                            <div className="mb-8">
-                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
-                                {Array.from(new Set(jobs.map(job => job.location))).map(location => (
-                                    <div key={location} className="flex items-center mb-2">
-                                        <div
-                                            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.location.includes(location)
-                                                ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                : 'border-[#6c6c6c]'
-                                                }`}
+                            {uniqueLocations.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
+                                    {uniqueLocations.map(location => (
+                                        <FilterCheckbox
+                                            key={location}
+                                            isSelected={filters.location.includes(location)}
                                             onClick={() => handleFilterToggle('location', location)}
-                                        >
-                                            {filters.location.includes(location) && (
-                                                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                            )}
-                                        </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c]">{location}</span>
-                                    </div>
-                                ))}
-                            </div>
+                                            label={location}
+                                        />
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Date Posted Filter */}
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h3>
-                                {['Newest', 'Oldest'].map(date => (
-                                    <div key={date} className="flex items-center mb-2">
-                                        <div
-                                            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.datePosted.includes(date)
-                                                ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                : 'border-[#6c6c6c]'
-                                                }`}
-                                            onClick={() => handleFilterToggle('datePosted', date)}
-                                        >
-                                            {filters.datePosted.includes(date) && (
-                                                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                            )}
-                                        </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c]">{date}</span>
-                                    </div>
+                                {FILTER_OPTIONS.datePosted.map(date => (
+                                    <FilterCheckbox
+                                        key={date}
+                                        isSelected={filters.datePosted.includes(date)}
+                                        onClick={() => handleFilterToggle('datePosted', date)}
+                                        label={date}
+                                    />
                                 ))}
                             </div>
 
                             {/* Job Type Filter */}
-                            <div>
-                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
-                                {Array.from(new Set(jobs.map(job => job.type))).map(type => (
-                                    <div key={type} className="flex items-center mb-2">
-                                        <div
-                                            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.jobType.includes(type)
-                                                ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                : 'border-[#6c6c6c]'
-                                                }`}
+                            {uniqueJobTypes.length > 0 && (
+                                <div>
+                                    <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
+                                    {uniqueJobTypes.map(type => (
+                                        <FilterCheckbox
+                                            key={type}
+                                            isSelected={filters.jobType.includes(type)}
                                             onClick={() => handleFilterToggle('jobType', type)}
-                                        >
-                                            {filters.jobType.includes(type) && (
-                                                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                            )}
-                                        </div>
-                                        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{type.replace('-', ' ')}</span>
-                                    </div>
-                                ))}
-                            </div>
+                                            label={type.replace('-', ' ')}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    </aside>
 
                     {/* Main Content Area */}
                     <div className="w-full lg:w-3/4">
-                        <div className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
+                        <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
                             Explore Variety of Jobs
-                        </div>
+                        </h2>
+
                         {/* Search Bar */}
                         <div className="relative w-full mb-8 lg:mb-12">
                             <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
@@ -532,12 +602,13 @@ export default function RolePage() {
                                     placeholder="Search for the job role you are looking for"
                                     className="w-full bg-transparent border-none outline-none text-sm text-[#6c6c6c] font-poppins"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={handleSearchChange}
+                                    aria-label="Search jobs"
                                 />
                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
                                     <Image
                                         src="/search.svg"
-                                        alt="Search"
+                                        alt=""
                                         width={24}
                                         height={24}
                                         className="w-full h-full text-[#6c6c6c]"
@@ -548,9 +619,9 @@ export default function RolePage() {
 
                         {/* Mobile Filter Section */}
                         <div className="lg:hidden mb-6">
-                            <div className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
+                            <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                                 Filter Your Fit
-                            </div>
+                            </h3>
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                                 <div className="relative h-12 w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden">
@@ -560,16 +631,19 @@ export default function RolePage() {
                                         readOnly
                                         placeholder="Filter options"
                                     />
-                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <button
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                        onClick={toggleMobileFilters}
+                                        aria-label="Toggle filters"
+                                    >
                                         <Image
                                             src="/down-arrow.svg"
                                             width={24}
                                             height={24}
-                                            alt="Filter"
-                                            onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                            className={`cursor-pointer transform ${showMobileFilters ? 'rotate-180' : ''}`}
+                                            alt=""
+                                            className={`cursor-pointer transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
                                         />
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
 
@@ -577,117 +651,92 @@ export default function RolePage() {
                             {showMobileFilters && (
                                 <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                                     <div className="flex justify-between items-center mb-6">
-                                        <div className="text-[#6c6c6c] text-xl font-medium font-poppins">
+                                        <h4 className="text-[#6c6c6c] text-xl font-medium font-poppins">
                                             Filter
-                                        </div>
+                                        </h4>
                                         <button
                                             className="text-[#6c6c6c] text-sm font-normal font-poppins"
-                                            onClick={() => setShowMobileFilters(false)}
+                                            onClick={toggleMobileFilters}
+                                            aria-label="Close filters"
                                         >
                                             <Image
                                                 src="/close.svg"
                                                 width={24}
                                                 height={24}
-                                                alt="Close"
+                                                alt=""
                                             />
                                         </button>
                                     </div>
 
-                                    {/* Experience Level Filter */}
-                                    <div className="mb-8">
-                                        <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
-                                        {['junior', 'intermediate', 'senior', 'expert'].map(level => (
-                                            <div key={level} className="flex items-center mb-2">
-                                                <div
-                                                    className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.experience.includes(level)
-                                                        ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                        : 'border-[#6c6c6c]'
-                                                        }`}
+                                    {/* Mobile filters content - same as desktop but in mobile popup */}
+                                    <div className="space-y-8">
+                                        {/* Experience Level Filter */}
+                                        <div>
+                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h5>
+                                            {FILTER_OPTIONS.experience.map(level => (
+                                                <FilterCheckbox
+                                                    key={level}
+                                                    isSelected={filters.experience.includes(level)}
                                                     onClick={() => handleFilterToggle('experience', level)}
-                                                >
-                                                    {filters.experience.includes(level) && (
-                                                        <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{level}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                    label={level}
+                                                />
+                                            ))}
+                                        </div>
 
-                                    {/* Location Filter */}
-                                    <div className="mb-8">
-                                        <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
-                                        {Array.from(new Set(jobs.map(job => job.location))).map(location => (
-                                            <div key={location} className="flex items-center mb-2">
-                                                <div
-                                                    className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.location.includes(location)
-                                                        ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                        : 'border-[#6c6c6c]'
-                                                        }`}
-                                                    onClick={() => handleFilterToggle('location', location)}
-                                                >
-                                                    {filters.location.includes(location) && (
-                                                        <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c]">{location}</span>
+                                        {/* Location Filter */}
+                                        {uniqueLocations.length > 0 && (
+                                            <div>
+                                                <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h5>
+                                                {uniqueLocations.map(location => (
+                                                    <FilterCheckbox
+                                                        key={location}
+                                                        isSelected={filters.location.includes(location)}
+                                                        onClick={() => handleFilterToggle('location', location)}
+                                                        label={location}
+                                                    />
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        )}
 
-                                    {/* Date Posted Filter */}
-                                    <div className="mb-8">
-                                        <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h3>
-                                        {['Newest', 'Oldest'].map(date => (
-                                            <div key={date} className="flex items-center mb-2">
-                                                <div
-                                                    className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.datePosted.includes(date)
-                                                        ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                        : 'border-[#6c6c6c]'
-                                                        }`}
+                                        {/* Date Posted Filter */}
+                                        <div>
+                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h5>
+                                            {FILTER_OPTIONS.datePosted.map(date => (
+                                                <FilterCheckbox
+                                                    key={date}
+                                                    isSelected={filters.datePosted.includes(date)}
                                                     onClick={() => handleFilterToggle('datePosted', date)}
-                                                >
-                                                    {filters.datePosted.includes(date) && (
-                                                        <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c]">{date}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                    label={date}
+                                                />
+                                            ))}
+                                        </div>
 
-                                    {/* Job Type Filter */}
-                                    {/* Job Type Filter */}
-                                    <div className="mb-8">
-                                        <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
-                                        {Array.from(new Set(jobs.map(job => job.type))).map(type => (
-                                            <div key={type} className="flex items-center mb-2">
-                                                <div
-                                                    className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer ${filters.jobType.includes(type)
-                                                        ? ' outline-2 outline-offset-[-2px] outline-[#5530fa]'
-                                                        : 'border-[#6c6c6c]'
-                                                        }`}
-                                                    onClick={() => handleFilterToggle('jobType', type)}
-                                                >
-                                                    {filters.jobType.includes(type) && (
-                                                        <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{type.replace('-', ' ')}</span>
+                                        {/* Job Type Filter */}
+                                        {uniqueJobTypes.length > 0 && (
+                                            <div>
+                                                <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h5>
+                                                {uniqueJobTypes.map(type => (
+                                                    <FilterCheckbox
+                                                        key={type}
+                                                        isSelected={filters.jobType.includes(type)}
+                                                        onClick={() => handleFilterToggle('jobType', type)}
+                                                        label={type.replace('-', ' ')}
+                                                    />
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
 
                                     <div className="mt-8 flex justify-between">
                                         <button
-                                            className="text-[#6c6c6c] text-sm font-normal font-poppins"
+                                            className="text-[#6c6c6c] text-sm font-normal font-poppins focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                                             onClick={clearAllFilters}
                                         >
                                             Clear All
                                         </button>
                                         <button
-                                            className="h-[40px] px-6 font-semibold text-sm font-montserrat text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px]"
-                                            onClick={() => setShowMobileFilters(false)}
+                                            className="h-[40px] px-6 font-semibold text-sm font-montserrat text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                                            onClick={toggleMobileFilters}
                                         >
                                             Apply
                                         </button>
@@ -701,68 +750,11 @@ export default function RolePage() {
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {jobsToShow.map(job => (
-                                        <Link
+                                        <JobCard
                                             key={job.id}
-                                            href={`/jobs/${roleKey}/${job.id}`}
-                                            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
-                                        >
-
-
-                                            <div className="flex justify-between">
-                                                <div className="w-3/4">
-                                                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
-                                                        {job.title}
-                                                    </h3>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
-                                                        {job.location} ‐ Posted {job.posted}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-3 gap-4 mb-6">
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.deadline}</p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.experience}</p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Arrow Image Swap on Hover */}
-                                            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
-                                                {/* Default Arrow */}
-                                                <div className="w-full h-full group-hover:hidden">
-                                                    <Image
-                                                        src="/upleft.svg"
-                                                        alt="Arrow"
-                                                        width={40}
-                                                        height={40}
-                                                        className="w-full h-full object-contain"
-                                                    />
-                                                </div>
-
-                                                {/* Hover Arrow */}
-                                                <div className="hidden w-full h-full group-hover:block">
-                                                    <Image
-                                                        src="/upleft-hover.svg"
-                                                        alt="Hover Arrow"
-                                                        width={50}
-                                                        height={50}
-                                                        className="w-full h-full object-contain"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                                                View Details
-                                            </button>
-                                        </Link>
+                                            job={job}
+                                            roleKey={roleKey || ''}
+                                        />
                                     ))}
                                 </div>
 
@@ -771,7 +763,7 @@ export default function RolePage() {
                                     <div className="mt-8 flex justify-center">
                                         <button
                                             onClick={loadMoreJobs}
-                                            className="w-full md:w-auto bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 px-8 text-white text-sm font-semibold font-montserrat text-center hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300"
+                                            className="w-full md:w-auto bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 px-8 text-white text-sm font-semibold font-montserrat text-center hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                                         >
                                             Load More Jobs
                                         </button>
@@ -787,10 +779,9 @@ export default function RolePage() {
                                 </p>
                             </div>
                         )}
-
                     </div>
                 </div>
-            </div>
+            </main>
             <Footer />
         </div>
     );

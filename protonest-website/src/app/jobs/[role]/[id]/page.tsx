@@ -5,7 +5,7 @@ import Navbar from '@/app/components/navbar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // Types
 type Job = {
@@ -35,8 +35,11 @@ type SuccessPopupProps = {
     onViewSavedJobs?: () => void;
 };
 
-// Success Popup Component with visible background
-const SuccessPopup: React.FC<SuccessPopupProps> = ({ type, onClose, onViewSavedJobs }) => {
+// Optimized image blur placeholder
+const jobCardBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZjVmNWY1IiByeD0iMzUiLz4KPC9zdmc+Cg==";
+
+// Memoized Success Popup Component
+const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     useEffect(() => {
         const timer = setTimeout(() => {
             onClose();
@@ -45,16 +48,25 @@ const SuccessPopup: React.FC<SuccessPopupProps> = ({ type, onClose, onViewSavedJ
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    const handleBackgroundClick = (e: React.MouseEvent) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
-    };
+    }, [onClose]);
+
+    const handleViewSavedJobs = useCallback(() => {
+        if (onViewSavedJobs) {
+            onViewSavedJobs();
+        }
+    }, [onViewSavedJobs]);
 
     return (
         <div
             className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm"
             onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="success-title"
         >
             <div className="w-[359px] h-[365px] relative bg-white/90 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] backdrop-blur-[20px] overflow-hidden">
                 <div className="w-[117px] h-[281px] left-[120px] top-[28px] absolute">
@@ -62,28 +74,96 @@ const SuccessPopup: React.FC<SuccessPopupProps> = ({ type, onClose, onViewSavedJ
                         {type === 'apply' ? '👍' : '🙌'}
                     </div>
                 </div>
-                <div className="w-[357px] h-[26px] left-[1px] top-[214px] absolute text-center justify-start text-[#6c6c6c] text-[25px] font-normal font-['Poppins'] leading-[30px]">
+                <h2
+                    id="success-title"
+                    className="w-[357px] h-[26px] left-[1px] top-[214px] absolute text-center justify-start text-[#6c6c6c] text-[25px] font-normal font-['Poppins'] leading-[30px]"
+                >
                     {type === 'apply' ? 'Applied Successfully!' : 'Job Saved Successfully!'}
-                </div>
+                </h2>
                 {type === 'apply' ? (
-                    <div className="w-[285px] h-[26px] left-[37px] top-[270px] absolute text-center justify-start text-[#6c6c6c] text-base font-normal font-['Poppins'] leading-[30px]">
+                    <p className="w-[285px] h-[26px] left-[37px] top-[270px] absolute text-center justify-start text-[#6c6c6c] text-base font-normal font-['Poppins'] leading-[30px]">
                         Stay tuned for further updates.
-                    </div>
+                    </p>
                 ) : (
-                    <div
-                        data-property-1="Default"
-                        className="w-[295px] h-[51px] px-6 py-4 left-[32px] top-[281px] absolute bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer hover:from-[#f51da5] hover:to-[#5530fa]"
-                        onClick={onViewSavedJobs}
+                    <button
+                        className="w-[295px] h-[51px] px-6 py-4 left-[32px] top-[281px] absolute bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer hover:from-[#f51da5] hover:to-[#5530fa] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                        onClick={handleViewSavedJobs}
                     >
-                        <div className="text-center justify-start text-white text-base font-semibold font-['Montserrat']">View Saved Jobs</div>
-                    </div>
+                        <span className="text-center justify-start text-white text-base font-semibold font-['Montserrat']">View Saved Jobs</span>
+                    </button>
                 )}
             </div>
         </div>
     );
 };
 
-// Helper function to format time difference as "X days ago"
+// Memoized similar job card component
+const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
+    <Link
+        href={`/jobs/${role}/${job.id}`}
+        className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+    >
+        <article>
+            <div className="flex justify-between">
+                <div className="w-3/4">
+                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
+                        {job.title}
+                    </h3>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
+                        {job.location} ‐ Posted {job.posted}
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                </div>
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.deadline}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
+                </div>
+                <div>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.experience}</p>
+                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
+                </div>
+            </div>
+
+            {/* Arrow Image Swap on Hover */}
+            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
+                <div className="w-full h-full group-hover:hidden">
+                    <Image
+                        src="/upleft.svg"
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-contain"
+                        placeholder="blur"
+                        blurDataURL={jobCardBlurDataURL}
+                    />
+                </div>
+                <div className="hidden w-full h-full group-hover:block">
+                    <Image
+                        src="/upleft-hover.svg"
+                        alt=""
+                        width={50}
+                        height={50}
+                        className="w-full h-full object-contain"
+                        placeholder="blur"
+                        blurDataURL={jobCardBlurDataURL}
+                    />
+                </div>
+            </div>
+
+            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                View Details
+            </button>
+        </article>
+    </Link>
+);
+
+// Helper functions - memoized
 const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -95,7 +175,6 @@ const formatTimeAgo = (dateString: string): string => {
     return `${diffDays} days ago`;
 };
 
-// Helper function to format date as "MMM D, YYYY"
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -105,7 +184,6 @@ const formatDate = (dateString: string): string => {
     });
 };
 
-// Helper function to get auth token from localStorage
 const getAuthToken = (): string | null => {
     if (typeof window !== 'undefined') {
         return localStorage.getItem('jwtToken');
@@ -113,7 +191,6 @@ const getAuthToken = (): string | null => {
     return null;
 };
 
-// Helper function to get user from localStorage
 const getUser = (): User | null => {
     if (typeof window !== 'undefined') {
         const userStr = localStorage.getItem('userData');
@@ -138,13 +215,13 @@ export default function JobDetailPage() {
     const [showSuccessPopup, setShowSuccessPopup] = useState<'apply' | 'save' | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Check user authentication status
+    // Memoized user authentication check
     useEffect(() => {
         const currentUser = getUser();
         setUser(currentUser);
     }, []);
 
-    // Memoize the functions with useCallback
+    // Optimized API calls with useCallback
     const checkJobSavedStatus = useCallback(async () => {
         if (!user || !job) return;
 
@@ -187,7 +264,7 @@ export default function JobDetailPage() {
         }
     }, [user, job]);
 
-    // Now this useEffect can include the memoized functions in its dependency array
+    // Effect to check job status when user or job changes
     useEffect(() => {
         if (user && job) {
             checkJobSavedStatus();
@@ -195,7 +272,8 @@ export default function JobDetailPage() {
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
 
-    const handleSaveJob = async () => {
+    // Optimized event handlers
+    const handleSaveJob = useCallback(async () => {
         if (!user) {
             router.push('/signin');
             return;
@@ -238,11 +316,10 @@ export default function JobDetailPage() {
         } finally {
             setActionLoading(false);
         }
-    };
+    }, [user, job, isJobSaved, router]);
 
-    const handleApplyJob = async () => {
+    const handleApplyJob = useCallback(async () => {
         if (!user) {
-            // Store job information for signin flow
             if (job) {
                 localStorage.setItem('pendingJobApplication', JSON.stringify({
                     jobId: job.id,
@@ -250,7 +327,7 @@ export default function JobDetailPage() {
                     timestamp: Date.now()
                 }));
             }
-            router.push('/signin'); // Changed from '/signup' to '/signin'
+            router.push('/signin');
             return;
         }
 
@@ -281,13 +358,33 @@ export default function JobDetailPage() {
         } finally {
             setActionLoading(false);
         }
-    };
+    }, [user, job, hasApplied, router]);
 
-    const handleViewSavedJobs = () => {
+    const handleViewSavedJobs = useCallback(() => {
         setShowSuccessPopup(null);
-        router.push('/saved-jobs'); // Adjust this route as needed
-    };
+        router.push('/saved-jobs');
+    }, [router]);
 
+    const handleSignupClick = useCallback(() => {
+        if (job) {
+            localStorage.setItem('pendingJobApplication', JSON.stringify({
+                jobId: job.id,
+                jobTitle: job.title,
+                timestamp: Date.now()
+            }));
+        }
+        router.push('/signup');
+    }, [job, router]);
+
+    const toggleMenu = useCallback(() => {
+        setShowMenu(prev => !prev);
+    }, []);
+
+    const closePopup = useCallback(() => {
+        setShowSuccessPopup(null);
+    }, []);
+
+    // Fetch job details
     useEffect(() => {
         const fetchJobDetails = async () => {
             if (!id) return;
@@ -298,7 +395,6 @@ export default function JobDetailPage() {
             try {
                 const jobId = Array.isArray(id) ? id[0] : id;
 
-                // Fetch the specific job
                 const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${jobId}`);
 
                 if (!jobResponse.ok) {
@@ -310,7 +406,6 @@ export default function JobDetailPage() {
                 if (jobData.status === 'success' && jobData.data) {
                     const jobDetails = jobData.data;
 
-                    // Transform the API response to match our Job type
                     const transformedJob: Job = {
                         id: jobDetails.id,
                         title: jobDetails.title,
@@ -328,14 +423,13 @@ export default function JobDetailPage() {
 
                     setJob(transformedJob);
 
-                    // Fetch similar jobs in the same category
+                    // Fetch similar jobs
                     const similarResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(jobDetails.category)}&limit=3`);
 
                     if (similarResponse.ok) {
                         const similarData = await similarResponse.json();
 
                         if (similarData.status === 'success' && similarData.data) {
-                            // Filter out the current job and transform the response
                             const similarJobsData = (similarData.data as Job[])
                                 .filter((j: Job) => j.id !== jobDetails.id)
                                 .map((j: Job) => ({
@@ -370,6 +464,14 @@ export default function JobDetailPage() {
         fetchJobDetails();
     }, [id]);
 
+    // Memoized job details sections
+    const jobDetailItems = useMemo(() => [
+        { emoji: '✍️', value: job?.type.replace('-', ' '), label: 'Job Type' },
+        { emoji: '📍', value: job?.location, label: 'Location' },
+        { emoji: '⏳', value: job?.deadline, label: 'Application Deadline' },
+        { emoji: '📝', value: job?.experience, label: 'Experience Level' }
+    ], [job]);
+
     if (loading) {
         return (
             <div className="min-h-screen relative bg-white overflow-x-hidden">
@@ -393,7 +495,7 @@ export default function JobDetailPage() {
                     <p className="text-red-600 text-lg mb-4">{error || 'Job not found.'}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+                        className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     >
                         Try Again
                     </button>
@@ -407,7 +509,7 @@ export default function JobDetailPage() {
         <div className="min-h-screen relative bg-white overflow-x-hidden">
             <Navbar />
 
-            <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
+            <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
                 {/* Job Title and Menu */}
                 <div className="flex justify-between items-start mb-6">
                     <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat">
@@ -417,8 +519,10 @@ export default function JobDetailPage() {
                     {/* Three dots menu */}
                     <div className="relative">
                         <button
-                            onClick={() => setShowMenu(!showMenu)}
-                            className="text-[#6c6c6c] text-2xl md:p-2"
+                            onClick={toggleMenu}
+                            className="text-[#6c6c6c] text-2xl md:p-2 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded"
+                            aria-label="Job options menu"
+                            aria-expanded={showMenu}
                         >
                             &#8942;
                         </button>
@@ -426,7 +530,7 @@ export default function JobDetailPage() {
                         {showMenu && (
                             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-1 z-10">
                                 <button
-                                    className="block w-full text-left px-4 py-2 text-sm text-[#6c6c6c] hover:bg-gray-100 font-poppins disabled:opacity-50"
+                                    className="block w-full text-left px-4 py-2 text-sm text-[#6c6c6c] hover:bg-gray-100 font-poppins disabled:opacity-50 focus:outline-none focus:bg-gray-100"
                                     onClick={handleSaveJob}
                                     disabled={actionLoading}
                                 >
@@ -448,73 +552,53 @@ export default function JobDetailPage() {
                     </div>
                 </div>
 
-                {/* Job Details - Job Type, Location, Deadline, Experience */}
+                {/* Job Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="flex items-center gap-4">
-                        <div className="text-4xl">✍️</div>
-                        <div>
-                            <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins capitalize">{job.type.replace('-', ' ')}</div>
-                            <div className="text-[#6c6c6c] text-base font-normal font-poppins">Job Type</div>
+                    {jobDetailItems.map((item, index) => (
+                        <div key={index} className="flex items-center gap-4">
+                            <div className="text-4xl">{item.emoji}</div>
+                            <div>
+                                <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins capitalize">
+                                    {item.value}
+                                </div>
+                                <div className="text-[#6c6c6c] text-base font-normal font-poppins">{item.label}</div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="text-4xl">📍</div>
-                        <div>
-                            <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins">{job.location}</div>
-                            <div className="text-[#6c6c6c] text-base font-normal font-poppins">Location</div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="text-4xl">⏳</div>
-                        <div>
-                            <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins">{job.deadline}</div>
-                            <div className="text-[#6c6c6c] text-base font-normal font-poppins">Application Deadline</div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="text-4xl">📝</div>
-                        <div>
-                            <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins capitalize">{job.experience}</div>
-                            <div className="text-[#6c6c6c] text-base font-normal font-poppins">Experience Level</div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
                 {/* Job Description */}
-                <div className="mb-8">
+                <section className="mb-8">
                     <p className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                         {job.description}
                     </p>
-                </div>
+                </section>
 
                 {/* What You'll Be Doing */}
                 {job.responsibilities && job.responsibilities.length > 0 && (
-                    <div className="mb-8">
+                    <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What You&apos;ll Be Doing</h2>
                         <div className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                             {job.responsibilities.map((item, index) => (
                                 <div key={index} className="mb-2">• {item}</div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
 
                 {/* What We're Looking For */}
                 {job.requirements && job.requirements.length > 0 && (
-                    <div className="mb-8">
+                    <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What We&apos;re Looking For</h2>
                         <div className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                             {job.requirements.map((item, index) => (
                                 <div key={index} className="mb-2">• {item}</div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
 
-                {/* Apply Button - Applied state as information display */}
+                {/* Apply Button */}
                 <div className="mb-6">
                     {hasApplied ? (
                         <div className="bg-green-500 rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat text-center inline-block">
@@ -524,7 +608,7 @@ export default function JobDetailPage() {
                         <button
                             onClick={handleApplyJob}
                             disabled={actionLoading}
-                            className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                         >
                             {actionLoading ? 'Applying...' : (user ? 'Apply' : 'Sign in & Apply')}
                         </button>
@@ -536,18 +620,8 @@ export default function JobDetailPage() {
                         <p className="text-[#6c6c6c] text-base font-normal font-poppins">
                             If you do not already have an account,{' '}
                             <button
-                                onClick={() => {
-                                    // Store job information for signup flow
-                                    if (job) {
-                                        localStorage.setItem('pendingJobApplication', JSON.stringify({
-                                            jobId: job.id,
-                                            jobTitle: job.title,
-                                            timestamp: Date.now()
-                                        }));
-                                    }
-                                    router.push('/signup');
-                                }}
-                                className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer"
+                                onClick={handleSignupClick}
+                                className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
                             >
                                 Sign up to apply
                             </button>
@@ -555,14 +629,14 @@ export default function JobDetailPage() {
                     </div>
                 )}
 
-                {/* Similar Jobs Section - Only shown if there are similar jobs */}
+                {/* Similar Jobs Section */}
                 {similarJobs.length > 0 && (
-                    <div className="pt-8">
+                    <section className="pt-8">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore similar jobs on Protonest</h2>
                             <Link
                                 href={`/jobs/${role}`}
-                                className="text-[#6c6c6c] text-base font-poppins flex items-center hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:to-[rgba(85,48,250,1)] hover:from-[rgba(245,29,165,1)]"
+                                className="text-[#6c6c6c] text-base font-poppins flex items-center hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:to-[rgba(85,48,250,1)] hover:from-[rgba(245,29,165,1)] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
                             >
                                 View more
                                 <span className="ml-2 text-xl">&gt;</span>
@@ -571,77 +645,22 @@ export default function JobDetailPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {similarJobs.map(similarJob => (
-                                <Link
+                                <SimilarJobCard
                                     key={similarJob.id}
-                                    href={`/jobs/${role}/${similarJob.id}`}
-                                    className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="flex justify-between">
-                                        <div className="w-3/4">
-                                            <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
-                                                {similarJob.title}
-                                            </h3>
-                                            <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
-                                                {similarJob.location} ‐ Posted {similarJob.posted}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4 mb-6">
-                                        <div>
-                                            <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{similarJob.type.replace('-', ' ')}</p>
-                                            <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{similarJob.deadline}</p>
-                                            <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{similarJob.experience}</p>
-                                            <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Arrow Image Swap on Hover */}
-                                    <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
-                                        {/* Default Arrow */}
-                                        <div className="w-full h-full group-hover:hidden">
-                                            <Image
-                                                src="/upleft.svg"
-                                                alt="Arrow"
-                                                width={40}
-                                                height={40}
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-
-                                        {/* Hover Arrow */}
-                                        <div className="hidden w-full h-full group-hover:block">
-                                            <Image
-                                                src="/upleft-hover.svg"
-                                                alt="Hover Arrow"
-                                                width={50}
-                                                height={50}
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                                        View Details
-                                    </button>
-                                </Link>
+                                    job={similarJob}
+                                    role={Array.isArray(role) ? role[0] : role || ''}
+                                />
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
-            </div>
+            </main>
 
             {/* Success Popup */}
             {showSuccessPopup && (
                 <SuccessPopup
                     type={showSuccessPopup}
-                    onClose={() => setShowSuccessPopup(null)}
+                    onClose={closePopup}
                     onViewSavedJobs={handleViewSavedJobs}
                 />
             )}
