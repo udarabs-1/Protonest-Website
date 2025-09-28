@@ -7,11 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
 
-// Optimized image blur placeholders
-const backgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MzkiIHZpZXdCb3g9IjAgMCAxMjAwIDQzOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDM5IiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
-
-const mobileBackgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
-
 interface FormData {
     fullName: string;
     email: string;
@@ -98,8 +93,6 @@ const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className
             alt=""
             fill
             className="object-cover object-center"
-            placeholder="blur"
-            blurDataURL={isMobile ? mobileBackgroundBlurDataURL : backgroundBlurDataURL}
             quality={85}
             priority={true}
             sizes={isMobile ? "100vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"}

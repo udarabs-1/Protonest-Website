@@ -62,13 +62,6 @@ interface DecodedGooglePayload {
     [key: string]: unknown;
 }
 
-// Optimized image blur placeholders
-const logoBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMTEyIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTEyIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZjVmNWY1IiByeD0iOCIvPgo8L3N2Zz4K";
-
-const googleIconBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmNWY1ZjUiLz4KPC9zdmc+Cg==";
-
-const signupImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDgwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjZjBmMGYwIiByeD0iNjciLz4KPC9zdmc+Cg==";
-
 // Helper functions to safely access window properties - memoized
 const getWindowGoogle = (): SignUpGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignUpGoogleAPI | undefined;
@@ -580,8 +573,6 @@ export default function SignUp() {
                                 height={80}
                                 priority
                                 className="w-25 sm:w-30 md:w-35 object-contain"
-                                placeholder="blur"
-                                blurDataURL={logoBlurDataURL}
                             />
                         </header>
 
@@ -610,8 +601,6 @@ export default function SignUp() {
                                         width={40}
                                         height={40}
                                         className="w-8 h-8 sm:w-10 sm:h-10"
-                                        placeholder="blur"
-                                        blurDataURL={googleIconBlurDataURL}
                                     />
                                     <span className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
                                         {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
@@ -815,8 +804,6 @@ export default function SignUp() {
                                         height={80}
                                         priority
                                         className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain"
-                                        placeholder="blur"
-                                        blurDataURL={logoBlurDataURL}
                                     />
                                 </header>
 
@@ -843,8 +830,6 @@ export default function SignUp() {
                                             width={48}
                                             height={48}
                                             className="w-9 h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 2xl:w-12 2xl:h-12"
-                                            placeholder="blur"
-                                            blurDataURL={googleIconBlurDataURL}
                                         />
                                         <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
@@ -1034,8 +1019,6 @@ export default function SignUp() {
                                     height={600}
                                     priority
                                     className="w-full h-full object-cover rounded-tr-[67px] rounded-tl-[67px] rounded-br-[67px]"
-                                    placeholder="blur"
-                                    blurDataURL={signupImageBlurDataURL}
                                 />
                             </div>
                         </div>

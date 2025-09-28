@@ -39,8 +39,6 @@ const ClientMarquee = () => {
                                         quality={85}
                                         sizes="(max-width: 768px) 180px, 182px"
                                         className="object-contain"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                                     />
                                 </div>
                             </div>

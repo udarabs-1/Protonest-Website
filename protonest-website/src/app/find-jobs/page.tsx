@@ -8,13 +8,6 @@ import Blogs from '../components/blogs';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
 
-// Optimized image blur placeholders
-const heroMobileBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
-
-const heroDesktopBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MzkiIHZpZXdCb3g9IjAgMCAxMjAwIDQzOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDM5IiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
-
-const backgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgdmlld0JveD0iMCAwIDgwMCA4MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIiBmaWxsPSIjZjBmMGYwIiByeD0iNDAiLz4KPC9zdmc+Cg==";
-
 // Memoized role card component
 const RoleCard = ({ role, onClick }: {
     role: { emoji: string; title: string; slug: string };
@@ -75,8 +68,6 @@ export default function CareersPage() {
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL={heroMobileBlurDataURL}
                         priority={true}
                         quality={85}
                         aria-hidden="true"
@@ -90,8 +81,6 @@ export default function CareersPage() {
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL={heroDesktopBlurDataURL}
                         priority={true}
                         quality={85}
                         aria-hidden="true"
@@ -187,8 +176,6 @@ export default function CareersPage() {
                     width={809}
                     height={809}
                     priority={false}
-                    placeholder="blur"
-                    blurDataURL={backgroundBlurDataURL}
                     quality={80}
                     aria-hidden="true"
                 />
@@ -199,8 +186,6 @@ export default function CareersPage() {
                     width={809}
                     height={809}
                     priority={false}
-                    placeholder="blur"
-                    blurDataURL={backgroundBlurDataURL}
                     quality={80}
                     aria-hidden="true"
                 />
@@ -213,8 +198,6 @@ export default function CareersPage() {
                     width={787}
                     height={787}
                     priority={false}
-                    placeholder="blur"
-                    blurDataURL={backgroundBlurDataURL}
                     quality={80}
                     aria-hidden="true"
                 />
@@ -225,8 +208,6 @@ export default function CareersPage() {
                     width={1057}
                     height={1057}
                     priority={false}
-                    placeholder="blur"
-                    blurDataURL={backgroundBlurDataURL}
                     quality={80}
                     aria-hidden="true"
                 />

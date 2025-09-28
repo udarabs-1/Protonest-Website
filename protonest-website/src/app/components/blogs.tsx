@@ -4,11 +4,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOnScreen } from './useOnScreen';
 
-// Optimized image blur placeholders
-const blogImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjc5IiBoZWlnaHQ9IjE2NCIgdmlld0JveD0iMCAwIDI3OSAxNjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyNzkiIGhlaWdodD0iMTY0IiBmaWxsPSIjZjVmNWY1IiByeD0iMTEiLz4KPC9zdmc+Cg==";
-
-const backgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2NDIiIHZpZXdCb3g9IjAgMCAxMjAwIDY0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjQyIiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
-
 // Blog data interface
 interface BlogData {
     id: number;
@@ -63,8 +58,6 @@ const BlogCard = ({ blog }: { blog: BlogData }) => {
                         fill
                         className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
                             }`}
-                        placeholder="blur"
-                        blurDataURL={blogImageBlurDataURL}
                         quality={90}
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 279px"
                     />
@@ -127,8 +120,6 @@ const Blogs = () => {
                     alt=""
                     fill
                     className="object-cover opacity-50 sm:opacity-100"
-                    placeholder="blur"
-                    blurDataURL={backgroundBlurDataURL}
                     priority={false}
                     quality={80}
                     aria-hidden="true"

@@ -35,9 +35,6 @@ type SuccessPopupProps = {
     onViewSavedJobs?: () => void;
 };
 
-// Optimized image blur placeholder
-const jobCardBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjZjVmNWY1IiByeD0iMzUiLz4KPC9zdmc+Cg==";
-
 // Memoized Success Popup Component
 const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     useEffect(() => {
@@ -139,8 +136,6 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                         width={40}
                         height={40}
                         className="w-full h-full object-contain"
-                        placeholder="blur"
-                        blurDataURL={jobCardBlurDataURL}
                     />
                 </div>
                 <div className="hidden w-full h-full group-hover:block">
@@ -150,8 +145,6 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                         width={50}
                         height={50}
                         className="w-full h-full object-contain"
-                        placeholder="blur"
-                        blurDataURL={jobCardBlurDataURL}
                     />
                 </div>
             </div>

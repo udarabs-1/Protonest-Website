@@ -50,11 +50,6 @@ type Filters = {
     jobType: string[];
 };
 
-// Optimized image blur placeholders
-const heroMobileBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
-
-const heroDesktopBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MzkiIHZpZXdCb3g9IjAgMCAxMjAwIDQzOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDM5IiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
-
 // Map role slugs to category names - memoized
 const roleToCategoryMap: { [key: string]: string } = {
     'front-end': 'Front-End',
@@ -476,8 +471,6 @@ export default function RolePage() {
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL={heroMobileBlurDataURL}
                         priority={true}
                         quality={85}
                         aria-hidden="true"
@@ -491,8 +484,6 @@ export default function RolePage() {
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL={heroDesktopBlurDataURL}
                         priority={true}
                         quality={85}
                         aria-hidden="true"

@@ -163,8 +163,6 @@ export default function ProjectSlider() {
                         quality={70}
                         sizes="100vw"
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                     />
                 </div>
 
@@ -271,8 +269,6 @@ export default function ProjectSlider() {
                                                             sizes="(max-width: 1024px) 350px, (max-width: 1280px) 400px, (max-width: 1536px) 450px, 480px"
                                                             className={`object-cover w-full h-full rounded-[12px] lg:rounded-[14px] xl:rounded-[15px] transition-all duration-300 ${hoveredSlide === index ? 'grayscale' : 'grayscale-0'
                                                                 }`}
-                                                            placeholder="blur"
-                                                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                                                         />
                                                         {/* Read More Button */}
                                                         <div className={`absolute bottom-3 lg:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -328,8 +324,6 @@ export default function ProjectSlider() {
                         quality={65}
                         sizes="100vw"
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                     />
                 </div>
 
@@ -423,8 +417,6 @@ export default function ProjectSlider() {
                                                             sizes="(max-width: 640px) 300px, (max-width: 768px) 350px, 400px"
                                                             className={`object-cover w-full h-full rounded-[10px] sm:rounded-[12px] md:rounded-[14px] transition-all duration-300 ${(hoveredSlide === index || isActiveAndVisible) ? 'grayscale' : 'grayscale-0'
                                                                 }`}
-                                                            placeholder="blur"
-                                                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4x+Zb1XSjy0k5f3T9O7+HS7iT14cXNH3THyMZKX4kxY78TLrGj8VJBdGtOhLdOUNNZIjKgWTsqAH4KQOYGsGFq3EFGW5jKTNOsrfUP3P2qkr4EjKI8F6q/Zz"
                                                         />
                                                         {/* Read More Button - Enhanced for mobile */}
                                                         <div className={`absolute bottom-2 sm:bottom-3 md:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${(hoveredSlide === index || isActiveAndVisible) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>

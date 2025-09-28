@@ -33,8 +33,6 @@ const OurTeamSection = () => {
                     quality={65}
                     sizes="(max-width: 1024px) 100vw, 0px"
                     className="object-cover object-center lg:hidden"
-                    placeholder="blur"
-                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
                 {/* Desktop background (shown on lg and above) */}
                 <Image
@@ -45,8 +43,6 @@ const OurTeamSection = () => {
                     quality={70}
                     sizes="(min-width: 1024px) 100vw, 0px"
                     className="object-cover object-center hidden lg:block"
-                    placeholder="blur"
-                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                 />
             </div>
 
@@ -94,8 +90,6 @@ const OurTeamSection = () => {
                                     quality={80}
                                     sizes="(min-width: 1280px) 128px, 112px"
                                     className="w-full h-full object-cover rounded-lg"
-                                    placeholder="blur"
-                                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                                 />
                             </div>
                             <h4 className="text-[#4d4d4d] text-[16px] xl:text-lg font-normal font-poppins max-w-[276px]">
@@ -121,8 +115,6 @@ const OurTeamSection = () => {
                                         quality={80}
                                         sizes="(max-width: 640px) 80px, 96px"
                                         className="w-full h-full object-cover rounded-lg"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjRjVGNUY1Ii8+Cjwvc3ZnPgo="
                                     />
                                 </div>
                                 {/* Team Member Title */}

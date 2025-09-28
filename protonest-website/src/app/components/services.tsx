@@ -3,11 +3,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOnScreen } from './useOnScreen';
 
-// Optimized image blur placeholders
-const serviceImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTgwIiBoZWlnaHQ9IjIxMCIgdmlld0JveD0iMCAwIDU4MCAyMTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1ODAiIGhlaWdodD0iMjEwIiBmaWxsPSIjZjVmNWY1IiByeD0iMjUiLz4KPC9zdmc+Cg==";
-
-const backgroundBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3NDkiIHZpZXdCb3g9IjAgMCAxMjAwIDc0OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNzQ5IiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
-
 // Service data interface
 interface ServiceData {
     id: number;
@@ -136,8 +131,6 @@ const ServiceCard = ({
                     alt={service.alt}
                     fill
                     className="object-cover"
-                    placeholder="blur"
-                    blurDataURL={serviceImageBlurDataURL}
                     quality={85}
                     sizes={generateSizes(width)}
                     priority={service.id <= 2} // Prioritize first 2 service cards
@@ -147,8 +140,8 @@ const ServiceCard = ({
             {/* Hover image */}
             <div
                 className={`absolute inset-0 transition-opacity duration-300 rounded-[25px] sm:rounded-[35px] overflow-hidden ${shouldShowHover
-                        ? 'opacity-100 delay-300'
-                        : 'opacity-0 group-hover:opacity-100 group-hover:delay-300'
+                    ? 'opacity-100 delay-300'
+                    : 'opacity-0 group-hover:opacity-100 group-hover:delay-300'
                     }`}
             >
                 <Image
@@ -156,8 +149,6 @@ const ServiceCard = ({
                     alt={`${service.alt} Hover`}
                     fill
                     className="object-cover"
-                    placeholder="blur"
-                    blurDataURL={serviceImageBlurDataURL}
                     quality={85}
                     sizes={generateSizes(width)}
                     loading="lazy" // Lazy load hover images
@@ -175,9 +166,6 @@ const ServiceLayout2XL = ({ services }: { services: ServiceData[] }) => (
                 src="/home-3.svg"
                 alt=""
                 fill
-                className="object-cover"
-                placeholder="blur"
-                blurDataURL={backgroundBlurDataURL}
                 quality={80}
                 priority={false}
                 aria-hidden="true"
@@ -230,8 +218,6 @@ const ServiceLayoutXL = ({ services }: { services: ServiceData[] }) => (
                 alt=""
                 fill
                 className="object-cover"
-                placeholder="blur"
-                blurDataURL={backgroundBlurDataURL}
                 quality={80}
                 priority={false}
                 aria-hidden="true"

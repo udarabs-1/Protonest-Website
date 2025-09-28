@@ -26,11 +26,6 @@ interface SubscriptionForm {
   newsletter: boolean;
 }
 
-// Optimized image blur placeholders
-const blogImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDcyIiBoZWlnaHQ9IjE2NCIgdmlld0JveD0iMCAwIDQ3MiAxNjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0NzIiIGhlaWdodD0iMTY0IiBmaWxsPSIjZjVmNWY1IiByeD0iMTEiLz4KPC9zdmc+Cg==";
-
-const heroImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI1NTMiIHZpZXdCb3g9IjAgMCAxMjAwIDU1MyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNTUzIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=";
-
 // Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: Blog }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -73,8 +68,6 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
             height={164}
             className={`w-full h-full object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
               }`}
-            placeholder="blur"
-            blurDataURL={blogImageBlurDataURL}
             quality={90}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
           />
@@ -363,8 +356,6 @@ export default function BlogSection() {
               alt="Blogs background"
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
-              placeholder="blur"
-              blurDataURL={heroImageBlurDataURL}
               priority={true}
               quality={90}
             />

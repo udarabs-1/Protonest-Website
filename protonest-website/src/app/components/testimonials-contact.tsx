@@ -34,9 +34,6 @@ const clients = [
     },
 ];
 
-// Optimized client avatar blur placeholder
-const avatarBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmNWY1ZjUiLz4KPC9zdmc+Cg==";
-
 // Memoized scroll indicator component
 const ScrollIndicator = ({ onClick }: { onClick: () => void }) => (
     <button
@@ -134,8 +131,6 @@ function ClientCard({ name, company, review, imgSrc }: typeof clients[0]) {
                                 width={39}
                                 height={39}
                                 className="rounded-full w-[34px] h-[34px] sm:w-[39px] sm:h-[39px] object-cover"
-                                placeholder="blur"
-                                blurDataURL={avatarBlurDataURL}
                                 quality={90}
                                 sizes="(max-width: 640px) 34px, 39px"
                             />

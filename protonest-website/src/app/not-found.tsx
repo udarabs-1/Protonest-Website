@@ -6,11 +6,6 @@ import { useCallback } from 'react';
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 
-// Optimized image blur placeholders
-const backgroundImageBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjZjhmOGY4Ii8+Cjwvc3ZnPgo=";
-
-const illustrationBlurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjBmMGYwIiByeD0iMjAiLz4KPC9zdmc+Cg==";
-
 // Memoized Back Button Component
 const BackButton = () => {
   const handleClick = useCallback(() => {
@@ -46,8 +41,6 @@ const ResponsiveImage = ({ isMobile = false }: { isMobile?: boolean }) => (
       fill
       className="object-contain"
       sizes={isMobile ? "(max-width: 768px) 100vw" : "(min-width: 1024px) 50vw"}
-      placeholder="blur"
-      blurDataURL={illustrationBlurDataURL}
       quality={90}
       priority={!isMobile}
     />
@@ -97,8 +90,6 @@ export default function NotFound() {
               alt=""
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
-              placeholder="blur"
-              blurDataURL={backgroundImageBlurDataURL}
               priority={true}
               quality={85}
               aria-hidden="true"
