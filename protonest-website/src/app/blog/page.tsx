@@ -12,10 +12,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 interface Blog {
   id: string;
   title: string;
-  excerpt: string;
-  readTime: string;
-  imageUrl: string;
-  categoryTags: string[];
+  slug: string;
+  content: string;
+  excerpt?: string;
+  cover_image?: string;
+  categories: string[];
+  author: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // Subscription form interface
@@ -25,6 +30,32 @@ interface SubscriptionForm {
   career_updates: boolean;
   newsletter: boolean;
 }
+
+// Function to extract excerpt from HTML content
+const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
+  // Remove HTML tags
+  const textContent = htmlContent.replace(/<[^>]*>/g, '');
+  // Trim whitespace and limit length
+  const trimmed = textContent.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+
+  // Find the last complete word within the limit
+  const truncated = trimmed.substring(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+  return lastSpaceIndex > -1
+    ? truncated.substring(0, lastSpaceIndex) + '...'
+    : truncated + '...';
+};
+
+// Function to estimate read time
+const calculateReadTime = (content: string): string => {
+  const textContent = content.replace(/<[^>]*>/g, '');
+  const wordCount = textContent.split(/\s+/).length;
+  const readingSpeed = 200; // Average words per minute
+  const minutes = Math.ceil(wordCount / readingSpeed);
+  return `${minutes} min read`;
+};
 
 // Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: Blog }) => {
@@ -52,8 +83,12 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
   // For mobile and small screens, use intersection observer; for larger screens, use hover
   const shouldShowEffects = isMobile ? isVisible : false;
 
+  // Generate excerpt and read time from content
+  const excerpt = blog.excerpt || extractExcerpt(blog.content);
+  const readTime = calculateReadTime(blog.content);
+
   return (
-    <Link href={`/${blog.id}`} passHref>
+    <Link href={`/blog/${blog.slug}`} passHref>
       <article
         ref={ref}
         className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
@@ -62,7 +97,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
         {/* Image Container with hover effects */}
         <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
           <Image
-            src={blog.imageUrl}
+            src={blog.cover_image || '/default-blog-image.jpg'}
             alt={blog.title}
             width={472}
             height={164}
@@ -70,6 +105,10 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
               }`}
             quality={90}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/default-blog-image.jpg';
+            }}
           />
           {/* Read More Button with solid background and gradient text */}
           <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -88,7 +127,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
           </h3>
 
           <div className="flex flex-wrap gap-2">
-            {blog.categoryTags.map((tag: string, index: number) => (
+            {blog.categories.map((tag: string, index: number) => (
               <div key={`${tag}-${index}`} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
                 <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
                   {tag}
@@ -98,8 +137,12 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
           </div>
 
           <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
-            {blog.excerpt}
+            {excerpt}
           </p>
+
+          <div className="text-[#83848b] text-[10px] font-normal font-poppins">
+            {readTime}
+          </div>
         </div>
       </article>
     </Link>
@@ -107,56 +150,10 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 };
 
 export default function BlogSection() {
-  const blogs = useMemo(() => [
-    {
-      id: "selecting-a-suitable-sensor-for-an-iot-project",
-      title: "Selecting A Suitable Sensor For An IoT Project",
-      excerpt: "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to monitor temperature, detect motion, or measure air quality, choosing the right sensor is crucial.",
-      readTime: "3 min read",
-      imageUrl: "/blogs1.svg",
-      categoryTags: ["IoT", "Sensors", "Hardware"]
-    },
-    {
-      id: "selecting-a-suitable-battery-for-an-iot-project",
-      title: "Selecting a Perfect Battery for an IoT Project",
-      excerpt: "The rapid growth of the Internet of Things has enabled a wide range of innovations in smart home devices and industrial sensors. The key behind all these systems is one important component \"The battery\". The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
-      readTime: "5 min read",
-      imageUrl: "/blogs2.svg",
-      categoryTags: ["IoT", "Batteries", "Hardware"]
-    },
-    {
-      id: "selecting-cloud-backend-for-iot-project",
-      title: "Selecting the Perfect Cloud Backend for an IoT Project",
-      excerpt: "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind. The core of any IoT system is the backend platform, which stores, processes, and analyzes data while providing a secure and seamless communication backbone between devices.",
-      readTime: "4 min read",
-      imageUrl: "/blogs3.svg",
-      categoryTags: ["IoT", "Cloud Computing", "Backend"]
-    },
-    {
-      id: "right-display-for-an-iot-device",
-      title: "Selecting the Right Display for an IoT Device",
-      excerpt: "Selecting the right display for an IoT device is crucial, as the display is one of the main parts connecting users with embedded systems, interaction, and user experience. Selecting the right interface matters in a project, and it is affected by many factors. Apart from mobile and web dashboards connected with IoT systems, touch/non-touch displays play a critical role in having a built-in user interface for the users.",
-      readTime: "4 min read",
-      imageUrl: "/blogs4.webp",
-      categoryTags: ["IoT", "Hardware", "Displays"]
-    },
-    {
-      id: "communication-method-for-an-iot-project",
-      title: "Communication Method For An IoT Project : Selection Guide",
-      excerpt: "Selecting a suitable communication method for an IoT project is a crucial part of implementing an IoT system. In IoT, communication methods play a key role, which allows the devices to connect and exchange information. Due to the wide range of applications in IoT and the modern approach to the construction of IoT networks, it is challenging to decide which communication method is suitable for your IoT Project. So, many IoT applications exist and they range from controlling smart homes to industrial automation thus implying that there is no unique communication method that can be adopted.",
-      readTime: "4 min read",
-      imageUrl: "/blogs5.webp",
-      categoryTags: ["IoT", "Communication", "Networking"]
-    },
-    {
-      id: "actuator-for-an-iot-project",
-      title: "Actuator for an IoT Project : Selection Guide",
-      excerpt: "Selecting an actuator for an IoT Project has a direct bearing on the project&apos;s productivity, dependability, and effectiveness. This article is aimed at classifying the actuators, describing the criteria for their selection, and providing you with examples of using it.",
-      readTime: "4 min read",
-      imageUrl: "/blogs6.webp",
-      categoryTags: ["IoT", "Actuators", "Automation"]
-    }
-  ], []);
+  // State for blogs data
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // State for search functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -176,6 +173,44 @@ export default function BlogSection() {
 
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
+
+  // Fetch blogs from API
+  const fetchBlogs = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch blogs');
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        setBlogs(result.data || []);
+      } else {
+        throw new Error(result.message || 'Failed to fetch blogs');
+      }
+    } catch (err) {
+      console.error('Error fetching blogs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load blogs');
+      setBlogs([]); // Set empty array as fallback
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch blogs on component mount
+  useEffect(() => {
+    fetchBlogs();
+  }, [fetchBlogs]);
 
   // Debounced screen size check
   const checkScreenSize = useCallback(() => {
@@ -200,7 +235,8 @@ export default function BlogSection() {
 
   // Memoized category calculations
   const allCategories = useMemo(() =>
-    Array.from(new Set(blogs.flatMap(blog => blog.categoryTags)))
+    Array.from(new Set(blogs.flatMap(blog => blog.categories)))
+      .filter(category => category && category.trim() !== '') // Filter out empty categories
       .sort((a: string, b: string) => a.localeCompare(b)),
     [blogs]
   );
@@ -208,7 +244,7 @@ export default function BlogSection() {
   // Memoized filtered blogs
   const filteredBlogs = useMemo(() =>
     blogs.filter(blog =>
-      selectedCategories.every(cat => blog.categoryTags.includes(cat))
+      selectedCategories.every(cat => blog.categories.includes(cat))
     ),
     [blogs, selectedCategories]
   );
@@ -431,16 +467,66 @@ export default function BlogSection() {
           </div>
         </section>
 
-        <section className="lg:-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
+        <section className="px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin"></div>
+              <span className="ml-3 text-[#6c6c6c] font-poppins">Loading blogs...</span>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <p className="text-red-600 font-poppins mb-4">{error}</p>
+                <button
+                  onClick={fetchBlogs}
+                  className="px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* No Blogs State */}
+          {!loading && !error && blogs.length === 0 && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <p className="text-[#6c6c6c] font-poppins text-lg">No blogs available at the moment.</p>
+                <p className="text-[#6c6c6c] font-poppins text-sm mt-2">Check back later for new content!</p>
+              </div>
+            </div>
+          )}
+
+          {/* No Filtered Results */}
+          {!loading && !error && blogs.length > 0 && filteredBlogs.length === 0 && selectedCategories.length > 0 && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <p className="text-[#6c6c6c] font-poppins text-lg">No blogs found for the selected categories.</p>
+                <button
+                  onClick={() => setSelectedCategories([])}
+                  className="mt-4 px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Blog Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
-            {visibleBlogs.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} />
-            ))}
-          </div>
+          {!loading && !error && visibleBlogs.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
+              {visibleBlogs.map((blog) => (
+                <BlogCard key={blog.id} blog={blog} />
+              ))}
+            </div>
+          )}
 
           {/* Load More / Show Less Button */}
-          {shouldShowLoadMoreButton && (
+          {!loading && !error && shouldShowLoadMoreButton && (
             <div className="flex justify-center mt-8 sm:mt-12">
               <button
                 onClick={handleLoadMore}

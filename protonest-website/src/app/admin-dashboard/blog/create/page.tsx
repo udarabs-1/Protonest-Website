@@ -1,5 +1,7 @@
 "use client";
 
+import type { NodeViewRendererProps } from '@tiptap/core';
+import { mergeAttributes } from '@tiptap/core';
 import Color from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
 import ImageExtension from '@tiptap/extension-image';
@@ -31,26 +33,261 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+// Custom TextStyle extension to support fontSize
+const CustomTextStyle = TextStyle.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            fontSize: {
+                default: null,
+                parseHTML: element => element.style.fontSize,
+                renderHTML: attributes => {
+                    if (!attributes.fontSize) {
+                        return {}
+                    }
+                    return {
+                        style: `font-size: ${attributes.fontSize}`,
+                    }
+                },
+            },
+        }
+    },
+});
+
+interface SelectedImageNode {
+    node: {
+        attrs: {
+            src: string;
+            alt?: string;
+            width?: number;
+            height?: number;
+            style?: string;
+        };
+    };
+    getPos: () => number;
+    container: HTMLDivElement;
+    img: HTMLImageElement;
+}
+
 const CreateBlogPost = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string>('');
+    const [categories, setCategories] = useState<string[]>([]);
+    const [categoryInput, setCategoryInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadingContentImage, setUploadingContentImage] = useState(false);
+    const [selectedImageNode, setSelectedImageNode] = useState<SelectedImageNode | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
+    // Custom resizable image extension
+    const ResizableImage = ImageExtension.extend({
+        name: 'resizableImage',
+
+        addAttributes() {
+            return {
+                src: {
+                    default: null,
+                },
+                alt: {
+                    default: null,
+                },
+                title: {
+                    default: null,
+                },
+                width: {
+                    default: null,
+                    parseHTML: (element: HTMLElement) => element.getAttribute('width'),
+                    renderHTML: (attributes: Record<string, string | number>) => {
+                        if (!attributes.width) return {};
+                        return { width: attributes.width };
+                    },
+                },
+                height: {
+                    default: null,
+                    parseHTML: (element: HTMLElement) => element.getAttribute('height'),
+                    renderHTML: (attributes: Record<string, string | number>) => {
+                        if (!attributes.height) return {};
+                        return { height: attributes.height };
+                    },
+                },
+                style: {
+                    default: null,
+                    parseHTML: (element: HTMLElement) => element.getAttribute('style'),
+                    renderHTML: (attributes: Record<string, string | number>) => {
+                        if (!attributes.style) return {};
+                        return { style: attributes.style };
+                    },
+                },
+            }
+        },
+
+        renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, string | number> }) {
+            return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)]
+        },
+
+        addNodeView() {
+            return (props: NodeViewRendererProps) => {
+                const { node, getPos, editor } = props;
+
+                const container = document.createElement('div');
+                container.className = 'image-container';
+                container.style.cssText = `
+                    position: relative;
+                    display: inline-block;
+                    max-width: 100%;
+                    margin: 1rem 0;
+                `;
+
+                const img = document.createElement('img');
+                img.src = node.attrs.src || '';
+                img.alt = node.attrs.alt || '';
+                img.style.cssText = `
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    ${node.attrs.width ? `width: ${node.attrs.width}px;` : ''}
+                    ${node.attrs.height ? `height: ${node.attrs.height}px;` : ''}
+                    ${node.attrs.style || ''}
+                `;
+
+                // Add resize handles
+                const resizeHandles = ['nw', 'ne', 'sw', 'se'].map(position => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle resize-${position}`;
+                    handle.style.cssText = `
+                        position: absolute;
+                        width: 10px;
+                        height: 10px;
+                        background: #5530fa;
+                        border: 2px solid white;
+                        border-radius: 50%;
+                        cursor: ${position}-resize;
+                        display: none;
+                        ${position.includes('n') ? 'top: -5px;' : 'bottom: -5px;'}
+                        ${position.includes('w') ? 'left: -5px;' : 'right: -5px;'}
+                    `;
+                    return handle;
+                });
+
+                // Show/hide handles on selection
+                const showHandles = () => {
+                    resizeHandles.forEach(handle => handle.style.display = 'block');
+                    container.style.outline = '2px solid #5530fa';
+                    setSelectedImageNode({
+                        node: { attrs: node.attrs as SelectedImageNode['node']['attrs'] },
+                        getPos: getPos as () => number,
+                        container,
+                        img
+                    });
+                };
+
+                const hideHandles = () => {
+                    resizeHandles.forEach(handle => handle.style.display = 'none');
+                    container.style.outline = 'none';
+                    setSelectedImageNode(null);
+                };
+
+                img.addEventListener('click', showHandles);
+
+                // Click outside to deselect
+                const handleDocumentClick = (e: Event) => {
+                    const target = e.target as HTMLElement;
+                    if (!container.contains(target)) {
+                        hideHandles();
+                    }
+                };
+
+                document.addEventListener('click', handleDocumentClick);
+
+                // Resize functionality
+                resizeHandles.forEach((handle, index) => {
+                    handle.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startWidth = img.offsetWidth;
+                        const startHeight = img.offsetHeight;
+                        const aspectRatio = startWidth / startHeight;
+
+                        const onMouseMove = (e: MouseEvent) => {
+                            const deltaX = e.clientX - startX;
+
+                            let newWidth = startWidth;
+                            let newHeight = startHeight;
+
+                            // Calculate new dimensions based on handle position
+                            const position = ['nw', 'ne', 'sw', 'se'][index];
+
+                            if (position.includes('e')) {
+                                newWidth = startWidth + deltaX;
+                            } else {
+                                newWidth = startWidth - deltaX;
+                            }
+
+                            // Maintain aspect ratio
+                            newHeight = newWidth / aspectRatio;
+
+                            // Apply minimum size constraints
+                            newWidth = Math.max(50, Math.min(800, newWidth));
+                            newHeight = Math.max(50, Math.min(600, newHeight));
+
+                            img.style.width = `${newWidth}px`;
+                            img.style.height = `${newHeight}px`;
+                        };
+
+                        const onMouseUp = () => {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+
+                            // Update the node attributes
+                            if (typeof getPos === 'function') {
+                                const pos = getPos();
+                                if (pos !== undefined) {
+                                    editor.view.dispatch(
+                                        editor.view.state.tr.setNodeMarkup(pos, null, {
+                                            ...node.attrs,
+                                            width: img.offsetWidth,
+                                            height: img.offsetHeight,
+                                        })
+                                    );
+                                }
+                            }
+                        };
+
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+
+                    container.appendChild(handle);
+                });
+
+                container.appendChild(img);
+
+                return {
+                    dom: container,
+                    destroy: () => {
+                        document.removeEventListener('click', handleDocumentClick);
+                    }
+                };
+            };
+        },
+    });
+
     const editor = useEditor({
         extensions: [
             StarterKit,
-            ImageExtension.configure({
+            ResizableImage.configure({
                 HTMLAttributes: {
-                    class: 'max-w-full h-auto rounded-lg',
+                    class: 'editor-image',
                 },
+                allowBase64: true,
+                inline: false,
             }),
             LinkExtension.configure({
                 openOnClick: false,
@@ -59,10 +296,10 @@ const CreateBlogPost = () => {
                 },
             }),
             TextAlign.configure({
-                types: ['heading', 'paragraph'],
+                types: ['heading', 'paragraph', 'resizableImage'],
             }),
             Color,
-            TextStyle,
+            CustomTextStyle,
             FontFamily,
         ],
         content: '<p>Start writing your blog post here...</p>',
@@ -70,6 +307,23 @@ const CreateBlogPost = () => {
         editorProps: {
             attributes: {
                 class: 'prose prose-lg max-w-none focus:outline-none min-h-[400px] p-6',
+            },
+            handleDrop: (view, event, slice, moved) => {
+                if (moved) {
+                    return false; // Let TipTap handle internal moves
+                }
+
+                // Handle external file drops
+                const files = Array.from(event.dataTransfer?.files || []);
+                const imageFile = files.find(file => file.type.startsWith('image/'));
+
+                if (imageFile) {
+                    event.preventDefault();
+                    handleImageUploadToEditor(imageFile);
+                    return true;
+                }
+
+                return false;
             },
         },
     });
@@ -89,6 +343,28 @@ const CreateBlogPost = () => {
         { icon: '👀', label: 'System Logs', path: '/admin-dashboard/logs' },
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
+
+
+    const addCategory = (categoryText: string) => {
+        const trimmed = categoryText.trim();
+        if (trimmed && !categories.includes(trimmed)) {
+            setCategories([...categories, trimmed]);
+        }
+        setCategoryInput('');
+    };
+
+    // Handle removing categories
+    const removeCategory = (categoryToRemove: string) => {
+        setCategories(categories.filter(category => category !== categoryToRemove));
+    };
+
+    // Handle category input key press
+    const handleCategoryKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addCategory(categoryInput);
+        }
+    };
 
     // Handle file selection
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,6 +422,104 @@ const CreateBlogPost = () => {
         e.preventDefault();
     };
 
+    // Handle image upload to editor
+    const handleImageUploadToEditor = useCallback(async (file: File) => {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setError('Please select a valid image file (JPG, PNG)');
+            return;
+        }
+
+        // Validate file size (2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            setError('Image size should be less than 2MB');
+            return;
+        }
+
+        setUploadingContentImage(true);
+        setError(null);
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            const formData = new FormData();
+            formData.append('cover_image', file);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/blogs/upload-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to upload image');
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'success' && result.data.url) {
+                editor?.chain().focus().setImage({
+                    src: result.data.url,
+                    alt: file.name,
+                    width: 400, // Default width
+                    // height will be auto-calculated to maintain aspect ratio
+                }).run();
+            } else {
+                throw new Error(result.message || 'Failed to upload image');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to upload image');
+        } finally {
+            setUploadingContentImage(false);
+        }
+    }, [editor]);
+
+    // Image alignment functions
+    const alignImageLeft = () => {
+        if (selectedImageNode) {
+            const { container } = selectedImageNode;
+            container.style.textAlign = 'left';
+            container.style.float = 'left';
+            container.style.marginRight = '1rem';
+            container.style.marginLeft = '0';
+            container.style.display = 'inline-block';
+        }
+    };
+
+    const alignImageCenter = () => {
+        if (selectedImageNode) {
+            const { container } = selectedImageNode;
+            container.style.textAlign = 'center';
+            container.style.float = 'none';
+            container.style.margin = '1rem auto';
+            container.style.display = 'block';
+            container.style.width = 'fit-content';
+            container.style.marginLeft = 'auto';
+            container.style.marginRight = 'auto';
+        }
+    };
+
+    const alignImageRight = () => {
+        if (selectedImageNode) {
+            const { container } = selectedImageNode;
+            container.style.textAlign = 'right';
+            container.style.float = 'right';
+            container.style.marginLeft = '1rem';
+            container.style.marginRight = '0';
+            container.style.display = 'inline-block';
+        }
+    };
+
+    // Delete selected image
+    const deleteSelectedImage = () => {
+        if (selectedImageNode && selectedImageNode.getPos) {
+            const pos = selectedImageNode.getPos();
+            editor?.chain().focus().deleteRange({ from: pos, to: pos + 1 }).run();
+            setSelectedImageNode(null);
+        }
+    };
+
     // Add image to editor
     const addImage = useCallback(() => {
         const input = document.createElement('input');
@@ -154,54 +528,11 @@ const CreateBlogPost = () => {
         input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    setError('Please select a valid image file (JPG, PNG)');
-                    return;
-                }
-
-                // Validate file size (2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    setError('Image size should be less than 2MB');
-                    return;
-                }
-
-                setUploadingContentImage(true);
-                setError(null);
-
-                try {
-                    const token = localStorage.getItem('adminToken');
-                    const formData = new FormData();
-                    formData.append('cover_image', file);
-
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/blogs/upload-image`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                        },
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to upload image');
-                    }
-
-                    const result = await response.json();
-
-                    if (result.status === 'success' && result.data.url) {
-                        editor?.chain().focus().setImage({ src: result.data.url }).run();
-                    } else {
-                        throw new Error(result.message || 'Failed to upload image');
-                    }
-                } catch (err) {
-                    setError(err instanceof Error ? err.message : 'Failed to upload image');
-                } finally {
-                    setUploadingContentImage(false);
-                }
+                await handleImageUploadToEditor(file);
             }
         };
         input.click();
-    }, [editor]);
+    }, [handleImageUploadToEditor]);
 
     // Add link to editor
     const addLink = useCallback(() => {
@@ -244,6 +575,7 @@ const CreateBlogPost = () => {
             formData.append('title', title);
             formData.append('content', content);
             formData.append('published', published.toString());
+            formData.append('categories', JSON.stringify(categories));
 
             if (coverImage) {
                 formData.append('cover_image', coverImage);
@@ -477,6 +809,46 @@ const CreateBlogPost = () => {
                             </div>
                         </div>
 
+                        {/* Blog Categories Section */}
+                        <div className="mb-6">
+                            <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Categories</h2>
+                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
+                                <input
+                                    type="text"
+                                    value={categoryInput}
+                                    onChange={(e) => setCategoryInput(e.target.value)}
+                                    onKeyPress={handleCategoryKeyPress}
+                                    className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80 mb-4"
+                                    placeholder="Type a category and press Enter to add"
+                                />
+
+                                {/* Categories Display */}
+                                <div className="flex flex-wrap gap-2">
+                                    {categories.map((category, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
+                                        >
+                                            <span>{category}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCategory(category)}
+                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {categories.length === 0 && (
+                                    <p className="text-xs text-[#6c6c6c]/60 mt-2">
+                                        Add categories to help readers discover your blog post
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Cover Image Upload Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
@@ -558,7 +930,49 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Headers */}
+                                        {/* Font Family */}
+                                        <select
+                                            onChange={(e) => {
+                                                const fontFamily = e.target.value;
+                                                if (fontFamily) {
+                                                    editor.chain().focus().setFontFamily(fontFamily).run();
+                                                }
+                                            }}
+                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                        >
+                                            <option value="">Font</option>
+                                            <option value="Poppins">Poppins</option>
+                                            <option value="Montserrat">Montserrat</option>
+                                        </select>
+
+                                        <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                                        {/* Font Size */}
+                                        <select
+                                            onChange={(e) => {
+                                                const fontSize = e.target.value;
+                                                if (fontSize) {
+                                                    editor.chain().focus().setMark('textStyle', { fontSize }).run();
+                                                }
+                                            }}
+                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                        >
+                                            <option value="">Size</option>
+                                            <option value="12px">12px</option>
+                                            <option value="14px">14px</option>
+                                            <option value="16px">16px</option>
+                                            <option value="18px">18px</option>
+                                            <option value="20px">20px</option>
+                                            <option value="24px">24px</option>
+                                            <option value="28px">28px</option>
+                                            <option value="32px">32px</option>
+                                            <option value="36px">36px</option>
+                                            <option value="48px">48px</option>
+                                        </select>
+
+                                        <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                                        {/* Headers for Structure */}
                                         <select
                                             onChange={(e) => {
                                                 const level = parseInt(e.target.value);
@@ -576,7 +990,7 @@ const CreateBlogPost = () => {
                                                             editor.isActive('heading', { level: 4 }) ? '4' : '0'
                                             }
                                         >
-                                            <option value="0">Normal</option>
+                                            <option value="0">Paragraph</option>
                                             <option value="1">Heading 1</option>
                                             <option value="2">Heading 2</option>
                                             <option value="3">Heading 3</option>
@@ -649,6 +1063,40 @@ const CreateBlogPost = () => {
                                             )}
                                         </button>
 
+                                        {/* Image Controls - Show only when image is selected */}
+                                        {selectedImageNode && (
+                                            <>
+                                                <button
+                                                    onClick={alignImageLeft}
+                                                    className="p-2 hover:bg-gray-200 rounded"
+                                                    title="Align Image Left"
+                                                >
+                                                    <span className="text-xs font-bold">⬅️</span>
+                                                </button>
+                                                <button
+                                                    onClick={alignImageCenter}
+                                                    className="p-2 hover:bg-gray-200 rounded"
+                                                    title="Center Image"
+                                                >
+                                                    <span className="text-xs font-bold">⬆️</span>
+                                                </button>
+                                                <button
+                                                    onClick={alignImageRight}
+                                                    className="p-2 hover:bg-gray-200 rounded"
+                                                    title="Align Image Right"
+                                                >
+                                                    <span className="text-xs font-bold">➡️</span>
+                                                </button>
+                                                <button
+                                                    onClick={deleteSelectedImage}
+                                                    className="p-2 hover:bg-red-200 rounded text-red-600"
+                                                    title="Delete Image"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
                                         {/* Text Color */}
@@ -658,24 +1106,6 @@ const CreateBlogPost = () => {
                                             className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
                                             title="Text Color"
                                         />
-
-                                        {/* Font Size */}
-                                        <select
-                                            onChange={(e) => {
-                                                const size = e.target.value;
-                                                if (size) {
-                                                    editor.chain().focus().setFontFamily(size).run();
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
-                                        >
-                                            <option value="">Font</option>
-                                            <option value="Arial">Arial</option>
-                                            <option value="Helvetica">Helvetica</option>
-                                            <option value="Times New Roman">Times</option>
-                                            <option value="Courier New">Courier</option>
-                                            <option value="Georgia">Georgia</option>
-                                        </select>
                                     </div>
                                 </div>
 
@@ -756,11 +1186,64 @@ const CreateBlogPost = () => {
                     text-decoration: underline;
                 }
                 
-                .ProseMirror img {
+                .ProseMirror .image-container {
+                    position: relative;
+                    display: inline-block;
+                    max-width: 100%;
+                    margin: 1rem 0;
+                    user-select: none;
+                }
+                
+                .ProseMirror .image-container img {
                     max-width: 100%;
                     height: auto;
                     border-radius: 8px;
-                    margin: 1rem 0;
+                    cursor: pointer;
+                    transition: box-shadow 0.2s ease;
+                }
+                
+                .ProseMirror .image-container:hover img {
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+                
+                .ProseMirror .resize-handle {
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: #5530fa;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    display: none;
+                    z-index: 10;
+                }
+                
+                .ProseMirror .resize-handle:hover {
+                    background: #4520d9;
+                    transform: scale(1.2);
+                }
+                
+                .ProseMirror .resize-nw {
+                    top: -5px;
+                    left: -5px;
+                    cursor: nw-resize;
+                }
+                
+                .ProseMirror .resize-ne {
+                    top: -5px;
+                    right: -5px;
+                    cursor: ne-resize;
+                }
+                
+                .ProseMirror .resize-sw {
+                    bottom: -5px;
+                    left: -5px;
+                    cursor: sw-resize;
+                }
+                
+                .ProseMirror .resize-se {
+                    bottom: -5px;
+                    right: -5px;
+                    cursor: se-resize;
                 }
                 
                 .ProseMirror blockquote {
@@ -793,6 +1276,27 @@ const CreateBlogPost = () => {
                     background-color: transparent;
                     color: inherit;
                     padding: 0;
+                }
+
+                .gradient-border {
+                    border-image: linear-gradient(45deg, #F51DA5, #5530FA) 1;
+                    background: linear-gradient(white, white) padding-box, 
+                                linear-gradient(45deg, #F51DA5, #5530FA) border-box;
+                }
+
+                /* Image drag placeholder */
+                .ProseMirror .image-container.dragging {
+                    opacity: 0.5;
+                }
+                
+                /* Better focus states */
+                .ProseMirror:focus {
+                    outline: none;
+                }
+                
+                /* Selection styles */
+                .ProseMirror ::selection {
+                    background: rgba(85, 48, 250, 0.2);
                 }
             `}</style>
         </div>
