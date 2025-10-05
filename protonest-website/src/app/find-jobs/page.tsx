@@ -20,14 +20,14 @@ const RoleCard = ({ role, onClick }: {
     return (
         <button
             onClick={handleClick}
-            className="h-14 xl:h-[65.89px] max-w-[250px] px-3 sm:px-6 py-2 sm:py-4 rounded-full xl:rounded-[57px] border gradient-button-static-3 flex hover:bg-gradient-to-r hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] items-center gap-1 sm:gap-2 transition-colors cursor-pointer group min-w-0"
+            className="h-14 xl:h-[65.89px] max-w-[250px] px-3 sm:px-6 py-2 sm:py-4 rounded-full xl:rounded-[57px] border gradient-button-static-3 flex items-center justify-center hover:bg-gradient-to-r hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] gap-1 sm:gap-2 transition-colors cursor-pointer group min-w-0"
             aria-label={`View ${role.title} positions`}
         >
-            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 min-w-0">
                 <div className="text-base sm:text-2xl xl:text-3xl font-semibold font-['Montserrat'] group-hover:scale-110 transition-transform flex-shrink-0">
                     {role.emoji}
                 </div>
-                <div className="text-xs sm:text-base text-[#6c6c6c] font-medium font-['Montserrat'] group-hover:text-white whitespace-pre-line leading-tight overflow-hidden">
+                <div className="text-xs sm:text-base text-[#6c6c6c] font-medium font-['Montserrat'] group-hover:text-white whitespace-pre-line leading-tight overflow-hidden text-center">
                     {role.title}
                 </div>
             </div>
@@ -45,7 +45,7 @@ export default function CareersPage() {
         { emoji: '⚡️', title: 'Electronics', slug: 'electronics' },
         { emoji: '🎨', title: 'UI/UX\nDesigning', slug: 'ui-ux-designing' },
         { emoji: '⚙️', title: 'Mechanical', slug: 'mechanical' },
-        { emoji: '🧑‍💻', title: 'Embedded Firmware', slug: 'embedded-firmware' },
+        { emoji: '🧑‍💻', title: 'Embedded\nFirmware', slug: 'embedded-firmware' },
         { emoji: '✍️', title: 'Quality Assurance', slug: 'quality-assurance' },
         { emoji: '➕', title: 'Other Roles', slug: 'other-roles' }
     ], []);
