@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useOnScreen } from './useOnScreen';
+import { useOnScreen } from './use-on-screen';
 
 // Blog data interface
 interface BlogData {

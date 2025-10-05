@@ -7,7 +7,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -69,7 +68,8 @@ const ApplicationPipeline = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [jobMatches, setJobMatches] = useState<{ [userId: string]: JobMatch | null }>({});
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -180,6 +180,22 @@ const ApplicationPipeline = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [sidebarOpen]);
+
+    // Handle adding a filter
+    const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && searchInput.trim()) {
+            const trimmedInput = searchInput.trim();
+            if (!activeFilters.includes(trimmedInput)) {
+                setActiveFilters([...activeFilters, trimmedInput]);
+            }
+            setSearchInput('');
+        }
+    };
+
+    // Handle removing a filter
+    const handleRemoveFilter = (filterToRemove: string) => {
+        setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
+    };
 
     // Updated to match CandidateManagement status mapping
     const getDisplayStatus = (status: string) => {
@@ -356,11 +372,41 @@ const ApplicationPipeline = () => {
         return stages;
     };
 
-    // Updated filter to match the new data structure
-    const filteredCandidates = candidates.filter(candidate =>
-        candidate.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        candidate.job?.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Updated filter to match the new data structure with null safety
+    const filteredCandidates = candidates.filter(candidate => {
+        if (!candidate) return false;
+
+        // If no filters, show all candidates
+        if (activeFilters.length === 0) return true;
+
+        // Check if candidate matches ANY of the active filters
+        return activeFilters.some(filter => {
+            const lowerFilter = filter.toLowerCase();
+
+            // Search in candidate name (with null check)
+            if (candidate.user?.name && candidate.user.name.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in job title (with null check)
+            if (candidate.job?.title && candidate.job.title.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in email (with null check)
+            if (candidate.user?.email && candidate.user.email.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in status
+            const statusMap: { [key: string]: string } = {
+                'applied': 'Applied',
+                'admin_moved': 'Admin Moved',
+                'shortlisted': 'Shortlisted',
+                'interviewed': 'Interviewed',
+                'hired': 'Hired',
+                'rejected': 'Rejected'
+            };
+            const mappedStatus = statusMap[candidate.status]?.toLowerCase() || candidate.status?.toLowerCase();
+            if (mappedStatus && mappedStatus.includes(lowerFilter)) return true;
+
+            return false;
+        });
+    });
 
     const toggleCandidateExpansion = (candidateId: string) => {
         setExpandedCandidate(expandedCandidate === candidateId ? null : candidateId);
@@ -563,23 +609,48 @@ const ApplicationPipeline = () => {
                             </p>
                         </div>
 
+                        {/* Search Bar */}
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onKeyDown={handleAddFilter}
                                     className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Search by candidate name or role applied for"
+                                    placeholder="Type and press Enter to add filter (name, role, email, status...)"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
-                            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                            </button>
                         </div>
+
+                        {/* Active Filters Display */}
+                        {activeFilters.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {activeFilters.map((filter, index) => (
+                                        <div
+                                            key={index}
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
+                                        >
+                                            <span>{filter}</span>
+                                            <button
+                                                onClick={() => handleRemoveFilter(filter)}
+                                                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                                aria-label={`Remove filter: ${filter}`}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Application Pipeline Table */}
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
@@ -825,7 +896,10 @@ const ApplicationPipeline = () => {
                                     })
                                 ) : (
                                     <div className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                        {searchTerm ? `No candidates found matching "${searchTerm}"` : 'No candidates in the pipeline yet.'}
+                                        {activeFilters.length > 0
+                                            ? `No candidates found matching filters: ${activeFilters.join(', ')}`
+                                            : 'No candidates in the pipeline yet.'
+                                        }
                                     </div>
                                 )}
                             </div>

@@ -71,6 +71,7 @@ const SuggestedJobs = () => {
 
     const sidebarItems = [
         { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },

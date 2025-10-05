@@ -9,7 +9,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -58,7 +57,8 @@ const NDAComplianceLog = () => {
     const [ndaRecords, setNdaRecords] = useState<NDARecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const [editingNote, setEditingNote] = useState<{ id: string; note: string } | null>(null);
     const [sendingNDA, setSendingNDA] = useState<string | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -136,6 +136,22 @@ const NDAComplianceLog = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [sidebarOpen]);
+
+    // Handle adding a filter
+    const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && searchInput.trim()) {
+            const trimmedInput = searchInput.trim();
+            if (!activeFilters.includes(trimmedInput)) {
+                setActiveFilters([...activeFilters, trimmedInput]);
+            }
+            setSearchInput('');
+        }
+    };
+
+    // Handle removing a filter
+    const handleRemoveFilter = (filterToRemove: string) => {
+        setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
+    };
 
     // Helper functions
     const formatDate = (dateString?: string) => {
@@ -376,11 +392,32 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Updated filter to match new data structure
-    const filteredRecords = ndaRecords.filter(record =>
-        record.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.job?.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Updated filter with null safety
+    const filteredRecords = ndaRecords.filter(record => {
+        if (!record) return false;
+
+        // If no filters, show all records
+        if (activeFilters.length === 0) return true;
+
+        // Check if record matches ANY of the active filters
+        return activeFilters.some(filter => {
+            const lowerFilter = filter.toLowerCase();
+
+            // Search in candidate name (with null check)
+            if (record.user?.name && record.user.name.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in job title (with null check)
+            if (record.job?.title && record.job.title.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in email (with null check)
+            if (record.user?.email && record.user.email.toLowerCase().includes(lowerFilter)) return true;
+
+            // Search in NDA status
+            if (record.nda_status?.status && record.nda_status.status.toLowerCase().includes(lowerFilter)) return true;
+
+            return false;
+        });
+    });
 
     if (loading) {
         return (
@@ -564,23 +601,48 @@ const NDAComplianceLog = () => {
                             </p>
                         </div>
 
+                        {/* Search Bar */}
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onKeyDown={handleAddFilter}
                                     className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Search by candidate name or role applied for"
+                                    placeholder="Type and press Enter to add filter (name, role, email, status...)"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
-                            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                            </button>
                         </div>
+
+                        {/* Active Filters Display */}
+                        {activeFilters.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {activeFilters.map((filter, index) => (
+                                        <div
+                                            key={index}
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
+                                        >
+                                            <span>{filter}</span>
+                                            <button
+                                                onClick={() => handleRemoveFilter(filter)}
+                                                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                                aria-label={`Remove filter: ${filter}`}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* NDA Records Table */}
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
@@ -705,7 +767,10 @@ const NDAComplianceLog = () => {
                                     ) : (
                                         <tr>
                                             <td colSpan={9} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                                {searchTerm ? `No NDA records found matching "${searchTerm}"` : 'No NDA records found.'}
+                                                {activeFilters.length > 0
+                                                    ? `No NDA records found matching filters: ${activeFilters.join(', ')}`
+                                                    : 'No NDA records found.'
+                                                }
                                             </td>
                                         </tr>
                                     )}

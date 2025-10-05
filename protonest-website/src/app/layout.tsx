@@ -1,7 +1,7 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from 'next/font/google';
-import PageViewTracker from './components/PageViewTracker';
+import PageViewTracker from './components/page-view-tracker';
 import "./globals.css";
 
 const montserrat = Montserrat({

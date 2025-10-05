@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       {
         source: '/our-services',
         destination: '/',
-        permanent: true, // 301 redirect
+        permanent: true,
       },
       {
         source: '/welcome-to-protonest-where-iot-ideas-take-flight',
@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'protonestwebsite.blob.core.windows.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
         port: '',
         pathname: '/**',
       },

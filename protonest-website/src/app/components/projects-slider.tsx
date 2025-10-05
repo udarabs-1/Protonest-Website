@@ -272,7 +272,7 @@ export default function ProjectSlider() {
                                                         />
                                                         {/* Read More Button */}
                                                         <div className={`absolute bottom-3 lg:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                                            <Link href="/down">
+                                                            <Link href="/research-and-project">
                                                                 <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[13px] lg:text-[14px] xl:text-[15px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
                                                                     Read More
                                                                 </button>
@@ -305,7 +305,7 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-6 lg:mt-8 xl:mt-10 2xl:mt-12 text-center">
-                        <Link href="/down">
+                        <Link href="/research-and-project">
                             <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] gradient-button font-medium font-poppins text-[13px] lg:text-[14px] xl:text-[15px] hover:font-semibold transition">
                                 View All Projects
                             </button>
@@ -420,7 +420,7 @@ export default function ProjectSlider() {
                                                         />
                                                         {/* Read More Button - Enhanced for mobile */}
                                                         <div className={`absolute bottom-2 sm:bottom-3 md:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${(hoveredSlide === index || isActiveAndVisible) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                                            <Link href="/down">
+                                                            <Link href="/research-and-project">
                                                                 <button className="w-[120px] sm:w-[140px] md:w-[160px] h-[35px] sm:h-[40px] md:h-[45px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[11px] sm:text-[12px] md:text-[14px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition shadow-lg">
                                                                     Read More
                                                                 </button>
@@ -453,7 +453,7 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-6 sm:mt-8 md:mt-10 text-center">
-                        <Link href="/down">
+                        <Link href="/research-and-project">
                             <button className="w-[140px] sm:w-[160px] md:w-[170px] h-[40px] sm:h-[45px] md:h-[48px] gradient-button font-medium font-poppins text-[12px] sm:text-[13px] md:text-[14px] hover:font-semibold transition">
                                 View All Projects
                             </button>

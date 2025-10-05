@@ -3,11 +3,11 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from 'react';
-import ClientMarquee from "../components/clientMarquee";
+import ClientMarquee from "../components/client-marquee";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import OurTeamSection from "../components/ourTeam";
-import { useOnScreen } from "../components/useOnScreen";
+import OurTeamSection from "../components/our-team";
+import { useOnScreen } from "../components/use-on-screen";
 
 // Value Card Component with mobile-friendly hover effects
 type ValueType = {

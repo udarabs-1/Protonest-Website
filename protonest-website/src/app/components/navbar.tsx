@@ -34,7 +34,7 @@ export default function Navbar() {
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
             { id: "whats-new-blog", href: "/blog", label: "Blog", description: "Insights, trends & stories from the IoT frontier." },
-            { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
+            { id: "whats-new-research", href: "/research-and-project", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
         ],
     };
 
@@ -55,7 +55,7 @@ export default function Navbar() {
     };
 
     const navItems: NavItem[] = [
-        { href: "/", label: "Home" },
+        { href: "/", label: "Home", },
         { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
         { href: "/find-jobs", label: "Find Jobs" },

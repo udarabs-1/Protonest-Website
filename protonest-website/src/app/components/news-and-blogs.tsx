@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
-import { useOnScreen } from './useOnScreen';
+import { useOnScreen } from './use-on-screen';
 
 const NewsAndBlogs = () => {
     const blogs = [

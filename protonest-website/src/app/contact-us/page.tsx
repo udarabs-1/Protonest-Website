@@ -5,7 +5,7 @@ import { useState } from "react";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import StatusModal from "../components/StatusModel";
+import StatusModal from "../components/status-model";
 import Testimonials from "../components/testimonials-contact";
 
 export default function Contact() {

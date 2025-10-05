@@ -2,7 +2,7 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
-import { useOnScreen } from "@/app/components/useOnScreen";
+import { useOnScreen } from "@/app/components/use-on-screen";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";

@@ -13,7 +13,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     Trash2,
     TrendingUp,
     Upload,
@@ -89,7 +88,6 @@ interface StatusDropdown {
 
 const CandidateManagement = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [activeFilter, setActiveFilter] = useState('All');
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -105,6 +103,10 @@ const CandidateManagement = () => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
+    // New states for dynamic filtering
+    const [searchInput, setSearchInput] = useState('');
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
     // Editable email states
     const [interviewSubject, setInterviewSubject] = useState('');
@@ -303,22 +305,44 @@ const CandidateManagement = () => {
         }
     };
 
-    const statusFilters = [
-        { label: 'All', active: activeFilter === 'All' },
-        { label: 'Applied', active: activeFilter === 'Applied' },
-        { label: 'Admin Moved', active: activeFilter === 'Admin Moved' },
-        { label: 'Shortlisted', active: activeFilter === 'Shortlisted' },
-        { label: 'Interviewed', active: activeFilter === 'Interviewed' },
-        { label: 'Hired', active: activeFilter === 'Hired' },
-        { label: 'Rejected', active: activeFilter === 'Rejected' }
-    ];
+    // Handle adding a filter
+    const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && searchInput.trim()) {
+            const trimmedInput = searchInput.trim();
+            if (!activeFilters.includes(trimmedInput)) {
+                setActiveFilters([...activeFilters, trimmedInput]);
+            }
+            setSearchInput('');
+        }
+    };
 
-    // Filter candidates based on active filter
+    // Handle removing a filter
+    const handleRemoveFilter = (filterToRemove: string) => {
+        setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
+    };
+
+    // Filter candidates based on active filters
     const filteredCandidates = Array.isArray(candidates)
-        ? (activeFilter === 'All'
-            ? candidates
-            : candidates.filter(candidate => {
-                if (!candidate || !candidate.status) return false;
+        ? candidates.filter(candidate => {
+            if (!candidate) return false;
+
+            // If no filters, show all candidates
+            if (activeFilters.length === 0) return true;
+
+            // Check if candidate matches ANY of the active filters
+            return activeFilters.some(filter => {
+                const lowerFilter = filter.toLowerCase();
+
+                // Search in candidate name
+                if (candidate.user?.name?.toLowerCase().includes(lowerFilter)) return true;
+
+                // Search in job title
+                if (candidate.job?.title?.toLowerCase().includes(lowerFilter)) return true;
+
+                // Search in email
+                if (candidate.user?.email?.toLowerCase().includes(lowerFilter)) return true;
+
+                // Search in status
                 const statusMap: { [key: string]: string } = {
                     'applied': 'Applied',
                     'admin_moved': 'Admin Moved',
@@ -327,9 +351,12 @@ const CandidateManagement = () => {
                     'hired': 'Hired',
                     'rejected': 'Rejected'
                 };
-                const mappedStatus = statusMap[candidate.status] || candidate.status;
-                return mappedStatus === activeFilter;
-            }))
+                const mappedStatus = statusMap[candidate.status]?.toLowerCase() || candidate.status?.toLowerCase();
+                if (mappedStatus?.includes(lowerFilter)) return true;
+
+                return false;
+            });
+        })
         : [];
 
     // Function to get status color based on status
@@ -984,40 +1011,48 @@ const CandidateManagement = () => {
                             </p>
                         </div>
 
+                        {/* Search Bar */}
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] opacity-50"
-                                    placeholder="Search by candidate name or role applied for"
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onKeyDown={handleAddFilter}
+                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    placeholder="Type and press Enter to add filter (name, role, email, status...)"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
-                            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                            </button>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-4 mb-6">
-                            <div className="flex flex-wrap gap-2">
-                                {statusFilters.map((filter, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setActiveFilter(filter.label)}
-                                        className={`h-[34px] px-4 rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530FA] flex items-center transition-colors ${filter.active
-                                            ? 'bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white'
-                                            : 'text-[#676767] bg-white hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <span className="text-xs md:text-[11px] font-medium">
-                                            {filter.label}
-                                        </span>
-                                    </button>
-                                ))}
+                        {/* Active Filters Display */}
+                        {activeFilters.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {activeFilters.map((filter, index) => (
+                                        <div
+                                            key={index}
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
+                                        >
+                                            <span>{filter}</span>
+                                            <button
+                                                onClick={() => handleRemoveFilter(filter)}
+                                                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                                aria-label={`Remove filter: ${filter}`}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto overflow-y-visible min-h-[400px]">
                             <table className="min-w-full divide-y divide-gray-200">
@@ -1146,7 +1181,10 @@ const CandidateManagement = () => {
                                     ) : (
                                         <tr>
                                             <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                                No candidates found for &quot;{activeFilter}&quot; status.
+                                                {activeFilters.length > 0
+                                                    ? `No candidates found matching filters: ${activeFilters.join(', ')}`
+                                                    : 'No candidates found.'
+                                                }
                                             </td>
                                         </tr>
                                     )}

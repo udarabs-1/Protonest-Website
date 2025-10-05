@@ -4,15 +4,15 @@ import Head from 'next/head';
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from 'react';
-import ClientMarquee from "./components/clientMarquee";
+import ClientMarquee from "./components/client-marquee";
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
-import NewsAndBlogs from "./components/newsAndBlogs";
-import ProjectSlider from "./components/projectsSlider";
+import NewsAndBlogs from "./components/news-and-blogs";
+import ProjectSlider from "./components/projects-slider";
 import ServicesSection from "./components/services";
 import TestimonialSection from "./components/testimonials";
-import { useOnScreen } from "./components/useOnScreen";
-import WhyChooseProtonest from "./components/whyChoose";
+import { useOnScreen } from "./components/use-on-screen";
+import WhyChooseProtonest from "./components/why-choose";
 
 // Large Screen Component (lg, xl, 2xl)
 function LargeScreenHome() {
@@ -61,7 +61,7 @@ function LargeScreenHome() {
             <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer" className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center">
               Get Your Free Quote Now
             </Link>
-            <Link href="/down" className="w-[240px] gradient-button font-medium flex items-center justify-center">
+            <Link href="/find-jobs" className="w-[240px] gradient-button font-medium flex items-center justify-center">
               Work With Us
             </Link>
           </div>
@@ -268,7 +268,7 @@ function SmallScreenHome() {
                 Get Your Free Quote Now
               </button>
             </Link>
-            <Link href="/down">
+            <Link href="/find-jobs">
               <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
                 Work With Us
               </button>

@@ -15,34 +15,38 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-interface Job {
+interface AppliedJob {
+    _id: string;
+    applied_at: string;
+    job_id: {
+        _id: string;
+        title: string;
+    };
+    status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired';
+    updated_at: string;
+    user_id: {
+        _id: string;
+        email: string;
+        name: string;
+    };
+}
+
+interface JobDetails {
     id: string;
     title: string;
     location: string;
     type: string;
     description: string;
-    requirements: string[];
-    postedDate?: string;
-    applicationDeadline?: string;
-    experience?: string;
-    category?: string;
-    overview?: string;
-    matchPercentage?: number;
-    matchedSkills?: string[];
-    missingSkills?: string[];
+    experience: string;
+    deadline: string;
+    category: string;
 }
 
-interface AppliedJob {
-    _id: string;
-    user_id: string;
-    job_id: string;
-    status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired';
-    applied_at: string;
-    updated_at: string;
-    job_details: Job;
+interface EnrichedAppliedJob extends AppliedJob {
+    jobDetails?: JobDetails;
 }
 
-const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
+const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
     const getStatusDisplay = (status: string) => {
         switch (status) {
             case 'pending':
@@ -60,7 +64,6 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
         }
     };
 
-    // Helper function to format time difference as "X days ago"
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
         const now = new Date();
@@ -72,7 +75,6 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
         return `${diffDays} days ago`;
     };
 
-    // Helper function to format date
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -86,51 +88,44 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
 
     return (
         <div className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6">
-            {/* Job Title */}
             <div className="w-full h-[43px] mt-8">
                 <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
-                    {job.job_details.title}
+                    {job.job_id.title}
                 </div>
             </div>
 
-            {/* Job Type and Applied Date */}
             <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                {job.job_details.type} - Applied {formatTimeAgo(job.applied_at)}
+                {job.jobDetails?.type || 'Job'} - Applied {formatTimeAgo(job.applied_at)}
             </div>
 
-            {/* Job Details Grid */}
             <div className="mt-6 grid grid-cols-2 gap-4">
-                {/* Experience Level */}
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
-                        {job.job_details.experience || 'Not specified'}
+                        {job.jobDetails?.experience || 'Not specified'}
                     </div>
                     <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                         Experience Level
                     </div>
                 </div>
 
-                {/* Location */}
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                        {job.job_details.location}
+                        {job.jobDetails?.location || 'Remote'}
                     </div>
                     <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                         Location
                     </div>
                 </div>
 
-                {/* Application Deadline */}
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                        {job.job_details.applicationDeadline ? formatDate(job.job_details.applicationDeadline) : 'Not specified'}
+                        {job.jobDetails?.deadline ? formatDate(job.jobDetails.deadline) : 'Not specified'}
                     </div>
                     <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                         Application Deadline
                     </div>
                 </div>
 
-                {/* Status */}
                 <div className="flex flex-col">
                     <div className={`h-5 text-xs font-medium font-['Poppins'] leading-[35px] ${statusDisplay.color}`}>
                         {statusDisplay.emoji} {statusDisplay.text}
@@ -141,9 +136,8 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
                 </div>
             </div>
 
-            {/* Arrow Image Swap on Hover */}
             <Link
-                href={`/dashboard/applied-jobs/${job.job_id}`}
+                href={`/dashboard/applied-jobs/${job.job_id._id}`}
                 className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
             >
                 <div className="w-full h-full group-hover:hidden">
@@ -166,9 +160,8 @@ const AppliedJobCard = ({ job }: { job: AppliedJob }) => {
                 </div>
             </Link>
 
-            {/* View Details Button with Gradient Hover Effect */}
             <Link
-                href={`/dashboard/applied-jobs/${job.job_id}`}
+                href={`/dashboard/applied-jobs/${job.job_id._id}`}
                 className="absolute bottom-6 left-6 right-6 bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300"
             >
                 View Details
@@ -215,8 +208,8 @@ const StatusFilter = ({
 
 const AppliedJobs = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
-    const [filteredJobs, setFilteredJobs] = useState<AppliedJob[]>([]);
+    const [appliedJobs, setAppliedJobs] = useState<EnrichedAppliedJob[]>([]);
+    const [filteredJobs, setFilteredJobs] = useState<EnrichedAppliedJob[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -225,6 +218,7 @@ const AppliedJobs = () => {
 
     const sidebarItems = [
         { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
@@ -233,7 +227,6 @@ const AppliedJobs = () => {
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -247,7 +240,6 @@ const AppliedJobs = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch applied jobs data
     useEffect(() => {
         const fetchAppliedJobs = async () => {
             try {
@@ -260,8 +252,30 @@ const AppliedJobs = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setAppliedJobs(data.data || []);
-                    setFilteredJobs(data.data || []);
+                    const jobs: AppliedJob[] = data.data || [];
+
+                    const enrichedJobs = await Promise.all(
+                        jobs.map(async (job) => {
+                            try {
+                                const jobResponse = await fetch(
+                                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${job.job_id._id}`
+                                );
+                                if (jobResponse.ok) {
+                                    const jobData = await jobResponse.json();
+                                    return {
+                                        ...job,
+                                        jobDetails: jobData.data
+                                    };
+                                }
+                            } catch (error) {
+                                console.error('Error fetching job details:', error);
+                            }
+                            return job;
+                        })
+                    );
+
+                    setAppliedJobs(enrichedJobs);
+                    setFilteredJobs(enrichedJobs);
                 } else {
                     console.error('Failed to fetch applied jobs');
                 }
@@ -275,25 +289,19 @@ const AppliedJobs = () => {
         fetchAppliedJobs();
     }, []);
 
-    // Handle search and filter functionality
     useEffect(() => {
         let filtered = appliedJobs;
 
-        // Apply status filter
         if (activeFilter !== 'all') {
             filtered = filtered.filter(job => job.status === activeFilter);
         }
 
-        // Apply search filter
         if (searchQuery.trim()) {
             filtered = filtered.filter(job =>
-                job.job_details.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                job.job_details.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                job.job_details.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                job.job_details.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                job.job_details.matchedSkills?.some(skill =>
-                    skill.toLowerCase().includes(searchQuery.toLowerCase())
-                )
+                job.job_id.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.jobDetails?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.jobDetails?.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                job.jobDetails?.category?.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
@@ -311,16 +319,13 @@ const AppliedJobs = () => {
     return (
         <div>
             <div className="font-poppins min-h-screen bg-white relative">
-                {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                {/* Header */}
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            {/* Logo - Smaller on mobile */}
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
@@ -333,7 +338,6 @@ const AppliedJobs = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions */}
                             <div className="flex items-center space-x-4">
                                 <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                     <Bell className="w-5 h-5 text-gray-600" />
@@ -358,12 +362,10 @@ const AppliedJobs = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar - Mobile */}
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            {/* Mobile Sidebar Header */}
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
@@ -382,7 +384,6 @@ const AppliedJobs = () => {
                                 </button>
                             </div>
 
-                            {/* Sidebar Content */}
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -401,7 +402,6 @@ const AppliedJobs = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="pt-8">
                                     <Link
                                         href="/logout"
@@ -414,7 +414,6 @@ const AppliedJobs = () => {
                             </div>
                         </div>
 
-                        {/* Sidebar - Desktop */}
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -433,7 +432,6 @@ const AppliedJobs = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="p-4 pt-8">
                                     <Link
                                         href="/logout"
@@ -446,9 +444,7 @@ const AppliedJobs = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content */}
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            {/* Breadcrumb with Hamburger Menu for mobile */}
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -463,7 +459,6 @@ const AppliedJobs = () => {
                                 </nav>
                             </div>
 
-                            {/* Applied Jobs Section */}
                             <div className="mb-8">
                                 <div className="flex flex-col mb-6">
                                     <div className="flex items-center gap-2 mb-2">
@@ -475,7 +470,6 @@ const AppliedJobs = () => {
                                     </p>
                                 </div>
 
-                                {/* Search Bar */}
                                 <div className="relative mb-6 flex items-center gap-3">
                                     <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
                                         <input
@@ -489,13 +483,11 @@ const AppliedJobs = () => {
                                     </div>
                                 </div>
 
-                                {/* Status Filters */}
                                 <StatusFilter
                                     activeFilter={activeFilter}
                                     onFilterChange={setActiveFilter}
                                 />
 
-                                {/* Applied Jobs Grid */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {filteredJobs.length > 0 ? (
                                         filteredJobs.map((job) => (

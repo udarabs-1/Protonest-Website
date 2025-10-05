@@ -105,9 +105,9 @@ export default function Footer() {
                                         Careers
                                     </Link>
                                     <Link
-                                        href="/down"
-                                        className={getNavLinkClass('/research', true)}
-                                        onMouseEnter={() => handleMouseEnter('/research')}
+                                        href="/research-and-project"
+                                        className={getNavLinkClass('/research-and-project', true)}
+                                        onMouseEnter={() => handleMouseEnter('/research-and-project')}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         Research
@@ -269,7 +269,7 @@ export default function Footer() {
                             <Link href="/find-jobs" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/find-jobs', false)}`}>Careers</div>
                             </Link>
-                            <Link href="/down" className="inline-flex justify-start items-center gap-[7px]">
+                            <Link href="/research-and-project" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>
                             </Link>
                         </div>

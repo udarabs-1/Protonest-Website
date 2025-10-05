@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Update the CVInfo interface to match the API response structure
 interface CVInfoResponse {
     status: string;
     message?: string;
@@ -49,6 +48,7 @@ const ResubmitCVPage = () => {
 
     const sidebarItems = [
         { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
         { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
         { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
         { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
@@ -57,7 +57,6 @@ const ResubmitCVPage = () => {
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Fetch CV info on component mount
     useEffect(() => {
         fetchCVInfo();
     }, []);
@@ -85,7 +84,6 @@ const ResubmitCVPage = () => {
                     setCurrentFileName(data.data.original_name);
                 }
             } else if (response.status === 404) {
-                // No CV found, which is okay
                 setCvInfo(null);
                 setLastSubmitted('Never');
                 setCurrentFileName('No file uploaded');
@@ -98,7 +96,6 @@ const ResubmitCVPage = () => {
         }
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -112,7 +109,6 @@ const ResubmitCVPage = () => {
         };
     }, [sidebarOpen]);
 
-    // Handle file upload
     const handleFileSelect = (file: File) => {
         if (file.type === 'application/pdf') {
             setSelectedFile(file);
@@ -171,8 +167,7 @@ const ResubmitCVPage = () => {
             const formData = new FormData();
             formData.append('cv', selectedFile);
 
-            // Use the new updatecv endpoint that only updates the CV file
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/updatecv`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/update`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${jwtToken}`,
@@ -185,7 +180,6 @@ const ResubmitCVPage = () => {
             if (response.ok && data.status === 'success') {
                 setSuccess('CV updated successfully!');
                 setSelectedFile(null);
-                // Refresh CV info
                 await fetchCVInfo();
             } else {
                 throw new Error(data.message || 'Failed to update CV');
@@ -200,7 +194,6 @@ const ResubmitCVPage = () => {
 
     const handlePreviewCV = () => {
         if (cvInfo?.file_url) {
-            // Open the CV file URL directly in a new tab for preview
             window.open(cvInfo.file_url, '_blank');
         } else {
             setError('No CV available for preview');
@@ -209,7 +202,6 @@ const ResubmitCVPage = () => {
 
     const handleDownloadCV = () => {
         if (cvInfo?.file_url) {
-            // Create a temporary anchor element to trigger download
             const link = document.createElement('a');
             link.href = cvInfo.file_url;
             link.download = cvInfo.original_name || 'cv.pdf';
@@ -222,16 +214,13 @@ const ResubmitCVPage = () => {
     return (
         <div>
             <div className="font-poppins min-h-screen bg-white relative">
-                {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                {/* Header */}
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            {/* Logo */}
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
@@ -244,7 +233,6 @@ const ResubmitCVPage = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions */}
                             <div className="flex items-center space-x-4">
                                 <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                     <Bell className="w-5 h-5 text-gray-600" />
@@ -268,12 +256,10 @@ const ResubmitCVPage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar - Mobile */}
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            {/* Mobile Sidebar Header */}
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
@@ -292,7 +278,6 @@ const ResubmitCVPage = () => {
                                 </button>
                             </div>
 
-                            {/* Sidebar Content */}
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -311,7 +296,6 @@ const ResubmitCVPage = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="pt-8">
                                     <Link
                                         href="/logout"
@@ -324,7 +308,6 @@ const ResubmitCVPage = () => {
                             </div>
                         </div>
 
-                        {/* Sidebar - Desktop */}
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -343,7 +326,6 @@ const ResubmitCVPage = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="p-4 pt-8">
                                     <Link
                                         href="/logout"
@@ -356,9 +338,7 @@ const ResubmitCVPage = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content */}
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            {/* Breadcrumb with Hamburger Menu for mobile */}
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -373,7 +353,6 @@ const ResubmitCVPage = () => {
                                 </nav>
                             </div>
 
-                            {/* Page Header */}
                             <div className="mb-8">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[25px]">📨</span>
@@ -384,7 +363,6 @@ const ResubmitCVPage = () => {
                                 </p>
                             </div>
 
-                            {/* Error/Success Messages */}
                             {error && (
                                 <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
                                     {error}
@@ -396,7 +374,6 @@ const ResubmitCVPage = () => {
                                 </div>
                             )}
 
-                            {/* Current CV Status Card */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
                                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                     <div className="flex-1">
@@ -431,7 +408,6 @@ const ResubmitCVPage = () => {
                                 </div>
                             </div>
 
-                            {/* Upload New Version Card */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12">
                                 <div className="mb-6">
                                     <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">Upload a New Version</h3>
@@ -440,7 +416,6 @@ const ResubmitCVPage = () => {
                                     </p>
                                 </div>
 
-                                {/* File Upload Area */}
                                 <div className="mb-6">
                                     <div
                                         className={`relative rounded-[35px] border-2 border-dashed transition-all duration-300 ${isDragging
@@ -484,7 +459,6 @@ const ResubmitCVPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Browse Button */}
                                     <div className="flex justify-center mt-6">
                                         <button
                                             onClick={handleBrowseClick}
@@ -494,7 +468,6 @@ const ResubmitCVPage = () => {
                                         </button>
                                     </div>
 
-                                    {/* Hidden File Input */}
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -504,7 +477,6 @@ const ResubmitCVPage = () => {
                                     />
                                 </div>
 
-                                {/* Submit Button */}
                                 <div className="flex justify-center lg:justify-end">
                                     <button
                                         onClick={handleSubmit}

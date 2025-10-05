@@ -971,8 +971,12 @@ export default function SignUp() {
                                         />
                                         <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             I understand and agree to the{' '}
-                                            <span className="underline">Protonest Terms and Conditions</span> and{' '}
-                                            <span className="underline">Privacy Policy</span>
+                                            <Link href="/terms-and-conditions" className="underline">
+                                                Protonest Terms and Conditions
+                                            </Link> and{' '}
+                                            <Link href="/privacy-policy" className="underline">
+                                                Privacy Policy
+                                            </Link>
                                         </div>
                                     </div>
 

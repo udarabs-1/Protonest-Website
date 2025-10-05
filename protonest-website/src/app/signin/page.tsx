@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // Google OAuth types - isolated to avoid conflicts
@@ -563,12 +564,12 @@ export default function ResponsiveSignIn() {
                                                 {error}
                                             </div>
                                         )}
-                                        <button
-                                            type="button"
-                                            className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:text-gray-600 ml-auto rounded"
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded"
                                         >
                                             Forgot Password?
-                                        </button>
+                                        </Link>
                                     </div>
 
                                     {/* Sign In Button */}
