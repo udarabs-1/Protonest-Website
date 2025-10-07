@@ -107,7 +107,7 @@ const EditResearchProjectContent = () => {
         { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
         { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
         { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/pipeline' },
+        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
         { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
         { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
         { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },

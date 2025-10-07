@@ -334,7 +334,7 @@ const Dashboard = () => {
         <div>
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
                     onClick={() => setShowLogoutDialog(false)}
                 >
                     <div
