@@ -2,19 +2,17 @@
 
 import Footer from '@/app/components/footer';
 import {
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
     MoreVertical,
     Search,
-    Settings,
     SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface Job {
@@ -41,6 +39,18 @@ interface SavedJob {
     created_at: string;
     job_details: Job;
 }
+
+// Add category to slug mapping
+const categoryToSlugMap: { [key: string]: string } = {
+    'Front-End': 'front-end',
+    'Back-End': 'back-end',
+    'Electronics': 'electronics',
+    'UI/UX Designing': 'ui-ux-designing',
+    'Mechanical Engineering': 'mechanical',
+    'Embedded Systems': 'embedded-firmware',
+    'Quality Assurance': 'quality-assurance',
+    'Other': 'other-roles'
+};
 
 const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) => void }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -81,6 +91,9 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
             year: 'numeric'
         });
     };
+
+    // Get the role slug from the job category
+    const roleSlug = categoryToSlugMap[job.job_details.category || ''] || 'other-roles';
 
     return (
         <div className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6">
@@ -171,7 +184,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
 
             {/* Arrow Image Swap on Hover */}
             <Link
-                href={`/dashboard/saved-jobs/${job.job_id}`}
+                href={`/jobs/${roleSlug}/${job.job_id}`}
                 className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
             >
                 <div className="w-full h-full group-hover:hidden">
@@ -196,7 +209,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
 
             {/* View Details Button with Gradient Hover Effect */}
             <Link
-                href={`/dashboard/saved-jobs/${job.job_id}`}
+                href={`/jobs/${roleSlug}/${job.job_id}`}
                 className="absolute bottom-6 left-6 right-6 bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300"
             >
                 View Details
@@ -206,12 +219,14 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
 };
 
 const SavedJobs = () => {
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
     const [filteredJobs, setFilteredJobs] = useState<SavedJob[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -225,6 +240,14 @@ const SavedJobs = () => {
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
+
+    // Authentication check
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            router.push('/signin');
+        }
+    }, [router]);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -313,6 +336,11 @@ const SavedJobs = () => {
         setFilteredJobs(filtered);
     }, [searchQuery, activeFilters, savedJobs]);
 
+    const handleLogout = () => {
+        localStorage.removeItem('jwtToken');
+        router.push('/signin');
+    };
+
     // Remove a saved job
     const removeSavedJob = async (jobId: string) => {
         try {
@@ -350,6 +378,36 @@ const SavedJobs = () => {
 
     return (
         <div>
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="font-poppins min-h-screen bg-white relative">
                 {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
@@ -373,15 +431,8 @@ const SavedJobs = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions */}
-                            <div className="flex items-center space-x-4">
-                                <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Bell className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <Link href="/dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Settings className="w-5 h-5 text-gray-600" />
-                                </Link>
-
+                            {/* Header Actions - Only Profile Icon */}
+                            <div className="flex items-center">
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -443,13 +494,13 @@ const SavedJobs = () => {
 
                                 {/* Logout Button */}
                                 <div className="pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -475,13 +526,13 @@ const SavedJobs = () => {
 
                                 {/* Logout Button */}
                                 <div className="p-4 pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </aside>

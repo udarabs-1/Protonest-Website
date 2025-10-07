@@ -2,23 +2,23 @@
 
 import Footer from '@/app/components/footer';
 import {
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
-    Settings,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const ManageAlertsPage = () => {
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [jobAlertsEnabled, setJobAlertsEnabled] = useState(true);
     const [newsletterEnabled, setNewsletterEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -33,12 +33,16 @@ const ManageAlertsPage = () => {
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Fetch user data on component mount
+    // Authentication check
     useEffect(() => {
-        fetchUserData();
-    }, []);
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            router.push('/signin');
+        }
+    }, [router]);
 
-    const fetchUserData = async () => {
+    // Fetch user data function
+    const fetchUserData = useCallback(async () => {
         try {
             const token = localStorage.getItem('jwtToken');
             if (!token) {
@@ -66,13 +70,18 @@ const ManageAlertsPage = () => {
                 if (response.status === 401) {
                     // Token might be expired
                     localStorage.removeItem('jwtToken');
-                    window.location.href = '/login';
+                    router.push('/signin');
                 }
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
         }
-    };
+    }, [router]);
+
+    // Fetch user data on component mount
+    useEffect(() => {
+        fetchUserData();
+    }, [fetchUserData]);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -87,6 +96,11 @@ const ManageAlertsPage = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [sidebarOpen]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('jwtToken');
+        router.push('/signin');
+    };
 
     const updatePreferences = async (jobUpdates: boolean, newsletter: boolean) => {
         try {
@@ -127,7 +141,7 @@ const ManageAlertsPage = () => {
                 if (response.status === 401) {
                     alert('Session expired. Please login again.');
                     localStorage.removeItem('jwtToken');
-                    window.location.href = '/login';
+                    router.push('/signin');
                     return false;
                 }
 
@@ -209,6 +223,36 @@ const ManageAlertsPage = () => {
 
     return (
         <div>
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="font-poppins min-h-screen bg-white relative">
                 {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
@@ -232,14 +276,8 @@ const ManageAlertsPage = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions */}
-                            <div className="flex items-center space-x-4">
-                                <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Bell className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <Link href="/dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Settings className="w-5 h-5 text-gray-600" />
-                                </Link>
+                            {/* Header Actions - Only Profile Icon */}
+                            <div className="flex items-center">
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -301,13 +339,13 @@ const ManageAlertsPage = () => {
 
                                 {/* Logout Button */}
                                 <div className="pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -333,13 +371,13 @@ const ManageAlertsPage = () => {
 
                                 {/* Logout Button */}
                                 <div className="p-4 pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </aside>

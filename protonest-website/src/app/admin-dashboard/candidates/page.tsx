@@ -22,7 +22,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Candidate {
     id: string;
@@ -104,9 +104,11 @@ const CandidateManagement = () => {
     const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-    // New states for dynamic filtering
+    // New states for role-based filtering with autocomplete
     const [searchInput, setSearchInput] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
+    const [showAutocomplete, setShowAutocomplete] = useState(false);
+    const [autocompleteRoles, setAutocompleteRoles] = useState<string[]>([]);
 
     // Editable email states
     const [interviewSubject, setInterviewSubject] = useState('');
@@ -117,6 +119,7 @@ const CandidateManagement = () => {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const autocompleteRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const sidebarItems = [
@@ -186,7 +189,7 @@ const CandidateManagement = () => {
         fetchCandidates();
     }, []);
 
-    // Close sidebar and dropdown when clicking outside
+    // Close sidebar, dropdown, and autocomplete when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -196,13 +199,41 @@ const CandidateManagement = () => {
             if (statusDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setStatusDropdown(null);
             }
+
+            if (showAutocomplete && autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
+                setShowAutocomplete(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, statusDropdown]);
+    }, [sidebarOpen, statusDropdown, showAutocomplete]);
+
+    // Get unique roles from candidates for autocomplete
+    const getUniqueRoles = useCallback((): string[] => {
+        const roles = candidates
+            .filter(candidate => candidate?.job?.title)
+            .map(candidate => candidate.job.title);
+        return Array.from(new Set(roles)).sort();
+    }, [candidates]);
+
+    // Update autocomplete suggestions based on search input
+    useEffect(() => {
+        if (searchInput.trim()) {
+            const uniqueRoles = getUniqueRoles();
+            const filtered = uniqueRoles.filter(role =>
+                role.toLowerCase().includes(searchInput.toLowerCase()) &&
+                !activeFilters.includes(role)
+            );
+            setAutocompleteRoles(filtered);
+            setShowAutocomplete(filtered.length > 0);
+        } else {
+            setAutocompleteRoles([]);
+            setShowAutocomplete(false);
+        }
+    }, [searchInput, candidates, activeFilters, getUniqueRoles]);
 
     // Fetch candidate details
     const fetchCandidateDetails = async (candidate: Candidate) => {
@@ -305,14 +336,42 @@ const CandidateManagement = () => {
         }
     };
 
-    // Handle adding a filter
+    // Handle search input change
+    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
+
+    // Handle selecting a role from autocomplete
+    const handleSelectRole = (role: string) => {
+        if (!activeFilters.includes(role)) {
+            setActiveFilters([...activeFilters, role]);
+        }
+        setSearchInput('');
+        setShowAutocomplete(false);
+    };
+
+    // Handle adding a filter by pressing Enter
     const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchInput.trim()) {
             const trimmedInput = searchInput.trim();
-            if (!activeFilters.includes(trimmedInput)) {
-                setActiveFilters([...activeFilters, trimmedInput]);
+            // Check if the input matches any existing role
+            const uniqueRoles = getUniqueRoles();
+            const matchingRole = uniqueRoles.find(role =>
+                role.toLowerCase() === trimmedInput.toLowerCase()
+            );
+
+            if (matchingRole && !activeFilters.includes(matchingRole)) {
+                setActiveFilters([...activeFilters, matchingRole]);
+                setSearchInput('');
+                setShowAutocomplete(false);
+            } else if (!matchingRole) {
+                // If no exact match, still allow custom filter
+                if (!activeFilters.includes(trimmedInput)) {
+                    setActiveFilters([...activeFilters, trimmedInput]);
+                }
+                setSearchInput('');
+                setShowAutocomplete(false);
             }
-            setSearchInput('');
         }
     };
 
@@ -321,7 +380,7 @@ const CandidateManagement = () => {
         setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
     };
 
-    // Filter candidates based on active filters
+    // Filter candidates based on active role filters
     const filteredCandidates = Array.isArray(candidates)
         ? candidates.filter(candidate => {
             if (!candidate) return false;
@@ -329,32 +388,11 @@ const CandidateManagement = () => {
             // If no filters, show all candidates
             if (activeFilters.length === 0) return true;
 
-            // Check if candidate matches ANY of the active filters
+            // Check if candidate's role matches ANY of the active filters
             return activeFilters.some(filter => {
                 const lowerFilter = filter.toLowerCase();
-
-                // Search in candidate name
-                if (candidate.user?.name?.toLowerCase().includes(lowerFilter)) return true;
-
-                // Search in job title
-                if (candidate.job?.title?.toLowerCase().includes(lowerFilter)) return true;
-
-                // Search in email
-                if (candidate.user?.email?.toLowerCase().includes(lowerFilter)) return true;
-
-                // Search in status
-                const statusMap: { [key: string]: string } = {
-                    'applied': 'Applied',
-                    'admin_moved': 'Admin Moved',
-                    'shortlisted': 'Shortlisted',
-                    'interviewed': 'Interviewed',
-                    'hired': 'Hired',
-                    'rejected': 'Rejected'
-                };
-                const mappedStatus = statusMap[candidate.status]?.toLowerCase() || candidate.status?.toLowerCase();
-                if (mappedStatus?.includes(lowerFilter)) return true;
-
-                return false;
+                const jobTitle = candidate.job?.title?.toLowerCase() || '';
+                return jobTitle.includes(lowerFilter);
             });
         })
         : [];
@@ -1011,20 +1049,38 @@ const CandidateManagement = () => {
                             </p>
                         </div>
 
-                        {/* Search Bar */}
+                        {/* Search Bar with Autocomplete */}
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="relative flex-1">
+                            <div className="relative flex-1" ref={autocompleteRef}>
                                 <input
                                     type="text"
                                     value={searchInput}
-                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onChange={handleSearchInputChange}
                                     onKeyDown={handleAddFilter}
                                     className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Type and press Enter to add filter (name, role, email, status...)"
+                                    placeholder="Search by role and press Enter to add filter..."
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
+
+                                {/* Autocomplete Dropdown */}
+                                {showAutocomplete && autocompleteRoles.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                                        {autocompleteRoles.map((role, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => handleSelectRole(role)}
+                                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-sm text-gray-700"
+                                            >
+                                                <div className="flex items-center">
+                                                    <Briefcase className="w-4 h-4 mr-2 text-[#5530FA]" />
+                                                    {role}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -1032,7 +1088,7 @@ const CandidateManagement = () => {
                         {activeFilters.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                                    <span className="text-sm font-medium text-gray-600">Filtering by Role:</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {activeFilters.map((filter, index) => (
@@ -1040,6 +1096,7 @@ const CandidateManagement = () => {
                                             key={index}
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
                                         >
+                                            <Briefcase className="w-4 h-4" />
                                             <span>{filter}</span>
                                             <button
                                                 onClick={() => handleRemoveFilter(filter)}
@@ -1182,7 +1239,7 @@ const CandidateManagement = () => {
                                         <tr>
                                             <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                 {activeFilters.length > 0
-                                                    ? `No candidates found matching filters: ${activeFilters.join(', ')}`
+                                                    ? `No candidates found for role(s): ${activeFilters.join(', ')}`
                                                     : 'No candidates found.'
                                                 }
                                             </td>
@@ -1194,6 +1251,10 @@ const CandidateManagement = () => {
                     </main>
                 </div>
             </div>
+
+            {/* All remaining dialogs remain the same as in your original code */}
+            {/* Delete Confirmation Dialog, Status Selection Dialog, Interview Invitation Dialog, NDA Dialog, Details Dialog */}
+            {/* I'll include them for completeness */}
 
             {/* Delete Confirmation Dialog */}
             {deleteCandidate && (

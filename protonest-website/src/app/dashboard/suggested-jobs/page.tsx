@@ -2,7 +2,6 @@
 
 import Footer from '@/app/components/footer';
 import {
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
@@ -12,7 +11,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface SuggestedJob {
@@ -59,13 +58,27 @@ interface Job {
     missingSkills?: string[];
 }
 
+// Add category to slug mapping
+const categoryToSlugMap: { [key: string]: string } = {
+    'Front-End': 'front-end',
+    'Back-End': 'back-end',
+    'Electronics': 'electronics',
+    'UI/UX Designing': 'ui-ux-designing',
+    'Mechanical Engineering': 'mechanical',
+    'Embedded Systems': 'embedded-firmware',
+    'Quality Assurance': 'quality-assurance',
+    'Other': 'other-roles'
+};
+
 const SuggestedJobs = () => {
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [suggestedJobs, setSuggestedJobs] = useState<Job[]>([]);
     const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -79,6 +92,14 @@ const SuggestedJobs = () => {
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
+
+    // Authentication check
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            router.push('/signin');
+        }
+    }, [router]);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -99,8 +120,6 @@ const SuggestedJobs = () => {
         const fetchSuggestedJobs = async () => {
             try {
                 setLoading(true);
-
-
 
                 // Fetch suggested jobs
                 const suggestedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/suggested-jobs`, {
@@ -205,6 +224,11 @@ const SuggestedJobs = () => {
         setFilteredJobs(filtered);
     }, [searchQuery, activeFilters, suggestedJobs]);
 
+    const handleLogout = () => {
+        localStorage.removeItem('jwtToken');
+        router.push('/signin');
+    };
+
     // Helper function to format time difference as "X days ago"
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
@@ -216,7 +240,6 @@ const SuggestedJobs = () => {
         if (diffDays === 1) return '1 day ago';
         return `${diffDays} days ago`;
     };
-
 
     // Remove filter function
     const removeFilter = (filterToRemove: string) => {
@@ -249,6 +272,36 @@ const SuggestedJobs = () => {
 
     return (
         <div>
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="font-poppins min-h-screen bg-white relative">
                 {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
@@ -272,11 +325,8 @@ const SuggestedJobs = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions */}
-                            <div className="flex items-center space-x-4">
-                                <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Bell className="w-5 h-5 text-gray-600" />
-                                </button>
+                            {/* Header Actions - Only Profile Icon */}
+                            <div className="flex items-center">
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -338,13 +388,13 @@ const SuggestedJobs = () => {
 
                                 {/* Logout Button */}
                                 <div className="pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -370,13 +420,13 @@ const SuggestedJobs = () => {
 
                                 {/* Logout Button */}
                                 <div className="p-4 pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </aside>
@@ -457,103 +507,107 @@ const SuggestedJobs = () => {
                                 {/* Suggested Jobs Container */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {filteredJobs.length > 0 ? (
-                                        filteredJobs.map((job) => (
-                                            <div
-                                                key={job.id}
-                                                className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6"
-                                            >
-                                                {/* Job Title */}
-                                                <div className="w-full h-[43px]">
-                                                    <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
-                                                        {job.title}
-                                                    </div>
-                                                </div>
+                                        filteredJobs.map((job) => {
+                                            // Get the role slug from the job category
+                                            const roleSlug = categoryToSlugMap[job.category || ''] || 'other-roles';
 
-                                                {/* Job Type and Posted Date */}
-                                                <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                    {job.type} - Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
-                                                </div>
-
-
-                                                {/* Job Details Grid */}
-                                                <div className="mt-6 grid grid-cols-2 gap-4">
-                                                    {/* Match Score */}
-                                                    <div className="flex flex-col">
-                                                        <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                                                            {job.matchPercentage ? `${job.matchPercentage}% Match` : 'N/A'}
-                                                        </div>
-                                                        <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                            Match Score
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Experience Level */}
-                                                    <div className="flex flex-col">
-                                                        <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
-                                                            {job.experience || 'Not specified'}
-                                                        </div>
-                                                        <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                            Experience Level
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Application Deadline */}
-                                                    <div className="flex flex-col">
-                                                        <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                                                            {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'Not specified'}
-                                                        </div>
-                                                        <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                            Application Deadline
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Location */}
-                                                    <div className="flex flex-col">
-                                                        <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
-                                                            {job.location}
-                                                        </div>
-                                                        <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
-                                                            Location
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Arrow Image Swap on Hover */}
-                                                <Link
-                                                    href={`/dashboard/suggested-jobs/${job.id}`}
-                                                    className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
+                                            return (
+                                                <div
+                                                    key={job.id}
+                                                    className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6"
                                                 >
-                                                    <div className="w-full h-full group-hover:hidden">
-                                                        <Image
-                                                            src="/upleft.svg"
-                                                            alt="Arrow"
-                                                            width={40}
-                                                            height={40}
-                                                            className="w-full h-full object-contain"
-                                                        />
+                                                    {/* Job Title */}
+                                                    <div className="w-full h-[43px]">
+                                                        <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
+                                                            {job.title}
+                                                        </div>
                                                     </div>
-                                                    <div className="hidden w-full h-full group-hover:block">
-                                                        <Image
-                                                            src="/upleft-hover.svg"
-                                                            alt="Hover Arrow"
-                                                            width={50}
-                                                            height={50}
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                    </div>
-                                                </Link>
 
-                                                {/* View Details Button with Gradient Hover Effect - Fixed Position */}
-                                                <div className="mt-6">
+                                                    {/* Job Type and Posted Date */}
+                                                    <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
+                                                        {job.type} - Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
+                                                    </div>
+
+                                                    {/* Job Details Grid */}
+                                                    <div className="mt-6 grid grid-cols-2 gap-4">
+                                                        {/* Match Score */}
+                                                        <div className="flex flex-col">
+                                                            <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
+                                                                {job.matchPercentage ? `${job.matchPercentage}% Match` : 'N/A'}
+                                                            </div>
+                                                            <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
+                                                                Match Score
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Experience Level */}
+                                                        <div className="flex flex-col">
+                                                            <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
+                                                                {job.experience || 'Not specified'}
+                                                            </div>
+                                                            <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
+                                                                Experience Level
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Application Deadline */}
+                                                        <div className="flex flex-col">
+                                                            <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
+                                                                {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'Not specified'}
+                                                            </div>
+                                                            <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
+                                                                Application Deadline
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Location */}
+                                                        <div className="flex flex-col">
+                                                            <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
+                                                                {job.location}
+                                                            </div>
+                                                            <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
+                                                                Location
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Arrow Image Swap on Hover */}
                                                     <Link
-                                                        href={`/dashboard/suggested-jobs/${job.id}`}
-                                                        className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 block"
+                                                        href={`/jobs/${roleSlug}/${job.id}`}
+                                                        className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
                                                     >
-                                                        View Details
+                                                        <div className="w-full h-full group-hover:hidden">
+                                                            <Image
+                                                                src="/upleft.svg"
+                                                                alt="Arrow"
+                                                                width={40}
+                                                                height={40}
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                        <div className="hidden w-full h-full group-hover:block">
+                                                            <Image
+                                                                src="/upleft-hover.svg"
+                                                                alt="Hover Arrow"
+                                                                width={50}
+                                                                height={50}
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
                                                     </Link>
+
+                                                    {/* View Details Button with Gradient Hover Effect - Fixed Position */}
+                                                    <div className="mt-6">
+                                                        <Link
+                                                            href={`/jobs/${roleSlug}/${job.id}`}
+                                                            className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 block"
+                                                        >
+                                                            View Details
+                                                        </Link>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     ) : (
                                         <div className="col-span-full text-center py-12">
                                             <div className="text-gray-600 text-lg font-poppins mb-4">

@@ -2,7 +2,6 @@
 
 import Footer from '@/app/components/footer';
 import {
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
@@ -10,7 +9,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 type ApplicationStatus = 'pending' | 'shortlisted' | 'rejected';
@@ -21,6 +20,7 @@ interface Application {
     job_id: {
         _id: string;
         title: string;
+        category?: string;
     };
     status: ApplicationStatus;
     applied_at: string;
@@ -37,6 +37,7 @@ interface Job {
     postedDate?: string;
     applicationDeadline?: string;
     experience?: string;
+    category?: string;
 }
 
 interface User {
@@ -74,7 +75,19 @@ interface PublicJobResponse {
     created_at: string;
 }
 
+const categoryToSlugMap: { [key: string]: string } = {
+    'Front-End': 'front-end',
+    'Back-End': 'back-end',
+    'Electronics': 'electronics',
+    'UI/UX Designing': 'ui-ux-designing',
+    'Mechanical Engineering': 'mechanical',
+    'Embedded Systems': 'embedded-firmware',
+    'Quality Assurance': 'quality-assurance',
+    'Other': 'other-roles'
+};
+
 const Dashboard = () => {
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [savedJobsCount, setSavedJobsCount] = useState(0);
     const [appliedJobsCount, setAppliedJobsCount] = useState(0);
@@ -82,6 +95,7 @@ const Dashboard = () => {
     const [suggestedJobs, setSuggestedJobs] = useState<Job[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -95,6 +109,13 @@ const Dashboard = () => {
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
+
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            router.push('/signin');
+        }
+    }, [router]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -123,6 +144,10 @@ const Dashboard = () => {
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
                     setUser(userData.user);
+                } else if (userResponse.status === 401) {
+                    localStorage.removeItem('jwtToken');
+                    router.push('/signin');
+                    return;
                 }
 
                 const savedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/count`, {
@@ -155,7 +180,29 @@ const Dashboard = () => {
 
                 if (applicationsResponse.ok) {
                     const applicationsData = await applicationsResponse.json();
-                    setApplications(applicationsData.data || []);
+                    const enrichedApplications = await Promise.all(
+                        (applicationsData.data || []).map(async (app: Application) => {
+                            try {
+                                const jobResponse = await fetch(
+                                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${app.job_id._id}`
+                                );
+                                if (jobResponse.ok) {
+                                    const jobData = await jobResponse.json();
+                                    return {
+                                        ...app,
+                                        job_id: {
+                                            ...app.job_id,
+                                            category: jobData.data.category
+                                        }
+                                    };
+                                }
+                            } catch (error) {
+                                console.error('Error fetching job details:', error);
+                            }
+                            return app;
+                        })
+                    );
+                    setApplications(enrichedApplications);
                 }
 
                 const suggestedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/suggested-jobs`, {
@@ -183,7 +230,9 @@ const Dashboard = () => {
                                     description: publicJob.description,
                                     requirements: publicJob.requirements || [],
                                     postedDate: publicJob.created_at,
-                                    applicationDeadline: publicJob.deadline
+                                    applicationDeadline: publicJob.deadline,
+                                    experience: publicJob.experience,
+                                    category: publicJob.category
                                 };
                             }
                         } catch (error) {
@@ -203,7 +252,12 @@ const Dashboard = () => {
         };
 
         fetchDashboardData();
-    }, []);
+    }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('jwtToken');
+        router.push('/signin');
+    };
 
     const statsCards = [
         {
@@ -278,6 +332,35 @@ const Dashboard = () => {
 
     return (
         <div>
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="font-poppins min-h-screen bg-white relative">
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
@@ -299,9 +382,6 @@ const Dashboard = () => {
                             </div>
 
                             <div className="flex items-center space-x-4">
-                                <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Bell className="w-5 h-5 text-gray-600" />
-                                </button>
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -359,13 +439,13 @@ const Dashboard = () => {
                                 </nav>
 
                                 <div className="pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -389,13 +469,13 @@ const Dashboard = () => {
                                 </nav>
 
                                 <div className="p-4 pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </aside>
@@ -501,37 +581,41 @@ const Dashboard = () => {
                                             </thead>
                                             <tbody>
                                                 {applications.length > 0 ? (
-                                                    applications.map((app, index) => (
-                                                        <tr key={index} className="hover:bg-gray-50">
-                                                            <td className="px-4 py-3 text-left">
-                                                                <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                    {app.job_id?.title || 'N/A'}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-left">
-                                                                <div className={`text-[11px] font-medium font-poppins leading-none ${getStatusColor(app.status)}`}>
-                                                                    {getStatusIcon(app.status)} {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-left">
-                                                                <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                    {new Date(app.applied_at).toLocaleDateString('en-US', {
-                                                                        year: 'numeric',
-                                                                        month: 'short',
-                                                                        day: 'numeric'
-                                                                    })}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-center">
-                                                                <Link
-                                                                    href={`/dashboard/applied-jobs/${app._id}`}
-                                                                    className="w-[198px] h-8 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
-                                                                >
-                                                                    View
-                                                                </Link>
-                                                            </td>
-                                                        </tr>
-                                                    ))
+                                                    applications.map((app, index) => {
+                                                        const roleSlug = categoryToSlugMap[app.job_id?.category || ''] || 'other-roles';
+
+                                                        return (
+                                                            <tr key={index} className="hover:bg-gray-50">
+                                                                <td className="px-4 py-3 text-left">
+                                                                    <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
+                                                                        {app.job_id?.title || 'N/A'}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-left">
+                                                                    <div className={`text-[11px] font-medium font-poppins leading-none ${getStatusColor(app.status)}`}>
+                                                                        {getStatusIcon(app.status)} {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-left">
+                                                                    <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
+                                                                        {new Date(app.applied_at).toLocaleDateString('en-US', {
+                                                                            year: 'numeric',
+                                                                            month: 'short',
+                                                                            day: 'numeric'
+                                                                        })}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-center">
+                                                                    <Link
+                                                                        href={`/jobs/${roleSlug}/${app.job_id._id}`}
+                                                                        className="w-[198px] h-8 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
+                                                                    >
+                                                                        View
+                                                                    </Link>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })
                                                 ) : (
                                                     <tr>
                                                         <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
@@ -560,69 +644,73 @@ const Dashboard = () => {
                                     <div className="w-full overflow-x-auto pb-4">
                                         {suggestedJobs.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {suggestedJobs.map((job) => (
-                                                    <Link
-                                                        key={job.id}
-                                                        href={`/dashboard/suggested-jobs/${job.id}`}
-                                                        className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
-                                                    >
-                                                        <div className="flex justify-between">
-                                                            <div className="w-3/4">
-                                                                <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
-                                                                    {job.title}
-                                                                </h3>
-                                                                <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
-                                                                    {job.location} ‐ Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
-                                                                </p>
-                                                            </div>
-                                                        </div>
+                                                {suggestedJobs.map((job) => {
+                                                    const roleSlug = categoryToSlugMap[job.category || ''] || 'other-roles';
 
-                                                        <div className="grid grid-cols-3 gap-4 mb-6">
-                                                            <div>
-                                                                <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
-                                                                <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
-                                                                    {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'N/A'}
-                                                                </p>
-                                                                <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
-                                                                    {job.experience || 'Not specified'}
-                                                                </p>
-                                                                <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
-                                                            <div className="w-full h-full group-hover:hidden">
-                                                                <Image
-                                                                    src="/upleft.svg"
-                                                                    alt="Arrow"
-                                                                    width={40}
-                                                                    height={40}
-                                                                    className="w-full h-full object-contain"
-                                                                />
+                                                    return (
+                                                        <Link
+                                                            key={job.id}
+                                                            href={`/jobs/${roleSlug}/${job.id}`}
+                                                            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
+                                                        >
+                                                            <div className="flex justify-between">
+                                                                <div className="w-3/4">
+                                                                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
+                                                                        {job.title}
+                                                                    </h3>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
+                                                                        {job.location} ‐ Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
+                                                                    </p>
+                                                                </div>
                                                             </div>
 
-                                                            <div className="hidden w-full h-full group-hover:block">
-                                                                <Image
-                                                                    src="/upleft-hover.svg"
-                                                                    alt="Hover Arrow"
-                                                                    width={50}
-                                                                    height={50}
-                                                                    className="w-full h-full object-contain"
-                                                                />
+                                                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
+                                                                        {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'N/A'}
+                                                                    </p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
+                                                                        {job.experience || 'Not specified'}
+                                                                    </p>
+                                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
+                                                                </div>
                                                             </div>
-                                                        </div>
 
-                                                        <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                                                            View Details
-                                                        </button>
-                                                    </Link>
-                                                ))}
+                                                            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
+                                                                <div className="w-full h-full group-hover:hidden">
+                                                                    <Image
+                                                                        src="/upleft.svg"
+                                                                        alt="Arrow"
+                                                                        width={40}
+                                                                        height={40}
+                                                                        className="w-full h-full object-contain"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="hidden w-full h-full group-hover:block">
+                                                                    <Image
+                                                                        src="/upleft-hover.svg"
+                                                                        alt="Hover Arrow"
+                                                                        width={50}
+                                                                        height={50}
+                                                                        className="w-full h-full object-contain"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                                                                View Details
+                                                            </button>
+                                                        </Link>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
                                             <div className="text-center py-12">

@@ -2,17 +2,15 @@
 
 import Footer from '@/app/components/footer';
 import {
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
     Search,
-    Settings,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface Job {
@@ -60,6 +58,17 @@ const FilterCheckbox = ({
     </div>
 );
 
+const categoryToSlugMap: { [key: string]: string } = {
+    'Front-End': 'front-end',
+    'Back-End': 'back-end',
+    'Electronics': 'electronics',
+    'UI/UX Designing': 'ui-ux-designing',
+    'Mechanical Engineering': 'mechanical',
+    'Embedded Systems': 'embedded-firmware',
+    'Quality Assurance': 'quality-assurance',
+    'Other': 'other-roles'
+};
+
 const JobCard = ({ job }: { job: Job }) => {
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
@@ -81,9 +90,11 @@ const JobCard = ({ job }: { job: Job }) => {
         });
     };
 
+    const roleSlug = categoryToSlugMap[job.category] || 'other-roles';
+
     return (
         <Link
-            href={`/dashboard/all-jobs/${job.id}`}
+            href={`/jobs/${roleSlug}/${job.id}`}
             className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
         >
             <div className="flex justify-between">
@@ -145,12 +156,14 @@ const JobCard = ({ job }: { job: Job }) => {
 };
 
 const AllJobsPage = () => {
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [filters, setFilters] = useState<Filters>({
         experience: [],
         location: [],
@@ -171,6 +184,14 @@ const AllJobsPage = () => {
         { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
+
+    // Authentication check
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            router.push('/signin');
+        }
+    }, [router]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -269,6 +290,11 @@ const AllJobsPage = () => {
         });
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('jwtToken');
+        router.push('/signin');
+    };
+
     const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)));
     const uniqueJobTypes = Array.from(new Set(jobs.map(job => job.type)));
     const uniqueCategories = Array.from(new Set(jobs.map(job => job.category)));
@@ -283,6 +309,36 @@ const AllJobsPage = () => {
 
     return (
         <div>
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="font-poppins min-h-screen bg-white relative">
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
@@ -304,12 +360,6 @@ const AllJobsPage = () => {
                             </div>
 
                             <div className="flex items-center space-x-4">
-                                <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Bell className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <Link href="/dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                    <Settings className="w-5 h-5 text-gray-600" />
-                                </Link>
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
                                         src="/profile-1.svg"
@@ -367,13 +417,13 @@ const AllJobsPage = () => {
                                 </nav>
 
                                 <div className="pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -397,13 +447,13 @@ const AllJobsPage = () => {
                                 </nav>
 
                                 <div className="p-4 pt-8">
-                                    <Link
-                                        href="/logout"
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button
+                                        onClick={() => setShowLogoutDialog(true)}
+                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
                                         <LogOut className="w-5 h-5 mr-4" />
                                         <span className="font-normal">Logout</span>
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </aside>
@@ -550,7 +600,72 @@ const AllJobsPage = () => {
                                                 >
                                                     Clear All
                                                 </button>
-                                                {/* Mobile filters - same structure as desktop */}
+
+                                                <div className="mb-8">
+                                                    <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h4>
+                                                    {['junior', 'intermediate', 'senior', 'expert'].map(level => (
+                                                        <FilterCheckbox
+                                                            key={level}
+                                                            isSelected={filters.experience.includes(level)}
+                                                            onClick={() => handleFilterToggle('experience', level)}
+                                                            label={level}
+                                                        />
+                                                    ))}
+                                                </div>
+
+                                                {uniqueCategories.length > 0 && (
+                                                    <div className="mb-8">
+                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h4>
+                                                        {uniqueCategories.map(category => (
+                                                            <FilterCheckbox
+                                                                key={category}
+                                                                isSelected={filters.category.includes(category)}
+                                                                onClick={() => handleFilterToggle('category', category)}
+                                                                label={category}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {uniqueLocations.length > 0 && (
+                                                    <div className="mb-8">
+                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h4>
+                                                        {uniqueLocations.map(location => (
+                                                            <FilterCheckbox
+                                                                key={location}
+                                                                isSelected={filters.location.includes(location)}
+                                                                onClick={() => handleFilterToggle('location', location)}
+                                                                label={location}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <div className="mb-8">
+                                                    <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h4>
+                                                    {['Newest', 'Oldest'].map(date => (
+                                                        <FilterCheckbox
+                                                            key={date}
+                                                            isSelected={filters.datePosted.includes(date)}
+                                                            onClick={() => handleFilterToggle('datePosted', date)}
+                                                            label={date}
+                                                        />
+                                                    ))}
+                                                </div>
+
+                                                {uniqueJobTypes.length > 0 && (
+                                                    <div>
+                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h4>
+                                                        {uniqueJobTypes.map(type => (
+                                                            <FilterCheckbox
+                                                                key={type}
+                                                                isSelected={filters.jobType.includes(type)}
+                                                                onClick={() => handleFilterToggle('jobType', type)}
+                                                                label={type.replace('-', ' ')}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

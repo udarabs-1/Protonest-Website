@@ -2,7 +2,6 @@
 
 import {
     ArrowLeft,
-    Bell,
     ChevronRight,
     LogOut,
     Menu,
@@ -41,6 +40,7 @@ const JobEditor = () => {
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState('');
     const [jobData, setJobData] = useState<JobData | null>(null);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -58,14 +58,32 @@ const JobEditor = () => {
         publish_now: false
     });
 
-    // Check for admin authentication on component mount
+    // Authentication check
     useEffect(() => {
-        const adminToken = localStorage.getItem('adminToken');
-        if (!adminToken) {
-            router.push('/admin/login');
-            return;
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            router.push('/admin-signin');
         }
     }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('adminToken');
+        router.push('/admin-signin');
+    };
+
+    const sidebarItems = [
+        { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
+        { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
+        { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
+        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/pipeline' },
+        { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
+        { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
+        { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },
+        { icon: '🔬', label: 'Research Manager', path: '/admin-dashboard/research' },
+        { icon: '👥', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
+        { icon: '📥', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
+        { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
+    ];
 
     // Fetch job data using the public API endpoint
     useEffect(() => {
@@ -130,38 +148,6 @@ const JobEditor = () => {
         }
     }, [jobData]);
 
-    // Helper function to get auth headers
-    const getAuthHeaders = () => {
-        const adminToken = localStorage.getItem('adminToken');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminToken}`
-        };
-    };
-
-    // Handle logout
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminInfo');
-        router.push('/admin/login');
-    };
-
-    const sidebarItems = [
-        { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/pipeline' },
-        { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: '🔬', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: '👥', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: '📥', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: '📈', label: 'Analytics & Reports', path: '/admin-dashboard/analytics' },
-        { icon: '👀', label: 'System Logs', path: '/admin-dashboard/logs' },
-        { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
-    ];
-
     // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -175,6 +161,15 @@ const JobEditor = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [sidebarOpen]);
+
+    // Helper function to get auth headers
+    const getAuthHeaders = () => {
+        const adminToken = localStorage.getItem('adminToken');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+        };
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -201,7 +196,7 @@ const JobEditor = () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
             if (!adminToken) {
-                router.push('/admin/login');
+                router.push('/admin-signin');
                 return;
             }
 
@@ -243,8 +238,7 @@ const JobEditor = () => {
             if (!response.ok) {
                 if (response.status === 401) {
                     localStorage.removeItem('adminToken');
-                    localStorage.removeItem('adminInfo');
-                    router.push('/admin/login');
+                    router.push('/admin-signin');
                     return;
                 }
                 throw new Error(data.message || 'Failed to update job');
@@ -288,6 +282,36 @@ const JobEditor = () => {
 
     return (
         <div className="font-poppins min-h-screen bg-white relative">
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
@@ -309,21 +333,10 @@ const JobEditor = () => {
                             </Link>
                         </div>
 
-                        <div className="flex items-center space-x-4">
-                            <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Bell className="w-5 h-5 text-gray-600" />
-                            </button>
+                        {/* Header Actions - Only Settings Button */}
+                        <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                            <Link href="/admin-dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-                                <Image
-                                    src="/profile-1.svg"
-                                    alt="User Avatar"
-                                    width={40}
-                                    height={40}
-                                    className="w-full h-full object-cover"
-                                />
                             </Link>
                         </div>
                     </div>
@@ -375,8 +388,8 @@ const JobEditor = () => {
 
                             <div className="pt-8">
                                 <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    onClick={() => setShowLogoutDialog(true)}
+                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                     <LogOut className="w-5 h-5 mr-4" />
                                     <span className="font-normal">Logout</span>
@@ -406,8 +419,8 @@ const JobEditor = () => {
 
                             <div className="p-4 pt-8">
                                 <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                                    onClick={() => setShowLogoutDialog(true)}
+                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                     <LogOut className="w-5 h-5 mr-4" />
                                     <span className="font-normal">Logout</span>
