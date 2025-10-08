@@ -1,7 +1,6 @@
 "use client";
 
 import {
-    Bell,
     CheckCircle,
     ChevronRight,
     Download,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface Admin {
@@ -66,32 +65,50 @@ const AdminSettings = () => {
     });
     const [deleteAdmin, setDeleteAdmin] = useState<Admin | null>(null);
     const [deleteNDAConfirm, setDeleteNDAConfirm] = useState<NDADocument | null>(null);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const ndaFileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
+    const router = useRouter();
 
     const sidebarItems = [
         { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
         { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
         { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
+        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/pipeline' },
         { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
         { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
         { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },
         { icon: '🔬', label: 'Research Manager', path: '/admin-dashboard/research' },
         { icon: '👥', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
         { icon: '📥', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: '📈', label: 'Analytics & Reports', path: '/admin-dashboard/analytics' },
-        { icon: '👀', label: 'System Logs', path: '/admin-dashboard/logs' },
         { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
+
+    // Authentication check
+    useEffect(() => {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            router.push('/admin-signin');
+        }
+    }, [router]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('adminToken');
+        router.push('/admin-signin');
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
+
+                if (!adminToken) {
+                    router.push('/admin-signin');
+                    return;
+                }
 
                 const adminsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/all`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -120,7 +137,7 @@ const AdminSettings = () => {
         };
 
         fetchData();
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -465,6 +482,36 @@ const AdminSettings = () => {
 
     return (
         <div className="font-poppins min-h-screen bg-white relative">
+            {/* Logout Confirmation Dialog */}
+            {showLogoutDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowLogoutDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowLogoutDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
@@ -477,15 +524,11 @@ const AdminSettings = () => {
                                 <Image src="/logo.png" alt="Protonest Logo" width={130} height={80} className="object-contain" />
                             </Link>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <button className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Bell className="w-5 h-5 text-gray-600" />
-                            </button>
+
+                        {/* Header Actions - Only Settings Button */}
+                        <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                            <Link href="/admin-dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-                                <Image src="/profile-1.svg" alt="User Avatar" width={40} height={40} className="w-full h-full object-cover" />
                             </Link>
                         </div>
                     </div>
@@ -513,10 +556,13 @@ const AdminSettings = () => {
                                 ))}
                             </nav>
                             <div className="pt-8">
-                                <Link href="/logout" className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                                <button
+                                    onClick={() => setShowLogoutDialog(true)}
+                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                >
                                     <LogOut className="w-5 h-5 mr-4" />
                                     <span className="font-normal">Logout</span>
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -532,10 +578,13 @@ const AdminSettings = () => {
                                 ))}
                             </nav>
                             <div className="p-4 pt-8">
-                                <Link href="/logout" className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                                <button
+                                    onClick={() => setShowLogoutDialog(true)}
+                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                >
                                     <LogOut className="w-5 h-5 mr-4" />
                                     <span className="font-normal">Logout</span>
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </aside>
