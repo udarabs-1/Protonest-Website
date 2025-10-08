@@ -45,13 +45,6 @@ const TermsAndConditionsPage = () => {
             </h2>
           </div>
 
-          {/* Last Updated */}
-          <div className="mb-8">
-            <p className="text-xs font-light font-['Poppins'] text-[#6c6c6c] leading-relaxed">
-              Last Updated on XX.XX.XXXX
-            </p>
-          </div>
-
           {/* Content */}
           <div className="space-y-6">
 
