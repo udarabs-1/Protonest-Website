@@ -433,12 +433,12 @@ export default function ResponsiveSignIn() {
                                             {error}
                                         </div>
                                     )}
-                                    <button
-                                        type="button"
+                                    <Link
+                                        href="/forgot-password"
                                         className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded"
                                     >
                                         Forgot Password?
-                                    </button>
+                                    </Link>
                                 </div>
 
                                 {/* Sign In Button */}
