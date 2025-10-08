@@ -26,6 +26,7 @@ interface ProfileData {
     profileImage: string;
     jobUpdates: boolean;
     newsletter: boolean;
+    isGoogleUser?: boolean;
 }
 
 const ProfilePage = () => {
@@ -39,6 +40,9 @@ const ProfilePage = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+    const [sendingResetLink, setSendingResetLink] = useState(false);
+    const [showPasswordSuccess, setShowPasswordSuccess] = useState(false);
 
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
@@ -49,7 +53,8 @@ const ProfilePage = () => {
         bio: '',
         profileImage: '/profile-1.svg',
         jobUpdates: true,
-        newsletter: false
+        newsletter: false,
+        isGoogleUser: false
     });
     const [editedData, setEditedData] = useState<ProfileData>({ ...profileData });
 
@@ -68,7 +73,6 @@ const ProfilePage = () => {
         { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -76,13 +80,11 @@ const ProfilePage = () => {
         }
     }, [router]);
 
-    // API utility function
     const apiCall = async (endpoint: string, options: RequestInit = {}) => {
         const token = localStorage.getItem('jwtToken');
 
         const defaultHeaders: Record<string, string> = {};
 
-        // Only add Content-Type for non-FormData requests
         if (!(options.body instanceof FormData)) {
             defaultHeaders['Content-Type'] = 'application/json';
         }
@@ -107,7 +109,6 @@ const ProfilePage = () => {
         return response.json();
     };
 
-    // Load profile data
     const loadProfile = useCallback(async () => {
         try {
             setLoading(true);
@@ -128,6 +129,7 @@ const ProfilePage = () => {
                     profileImage: userData.profile_image || '/profile-1.svg',
                     jobUpdates: userData.job_updates || false,
                     newsletter: userData.newsletter || false,
+                    isGoogleUser: userData.is_oauth_user || false
                 };
 
                 setProfileData(mappedData);
@@ -135,18 +137,16 @@ const ProfilePage = () => {
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load profile');
-            console.error('Error loading profile:', err);
+            console.error('Error loading profile');
         } finally {
             setLoading(false);
         }
     }, []);
 
-    // Load profile on mount
     useEffect(() => {
         loadProfile();
     }, [loadProfile]);
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -160,7 +160,6 @@ const ProfilePage = () => {
         };
     }, [sidebarOpen]);
 
-    // Clear messages after delay
     useEffect(() => {
         if (error || success) {
             const timer = setTimeout(() => {
@@ -188,7 +187,6 @@ const ProfilePage = () => {
             setSaving(true);
             setError(null);
 
-            // Map frontend field names to backend field names
             const updateData = {
                 first_name: editedData.firstName,
                 last_name: editedData.lastName,
@@ -218,6 +216,7 @@ const ProfilePage = () => {
                     profileImage: userData.profile_image || '/profile-1.svg',
                     jobUpdates: userData.job_updates || false,
                     newsletter: userData.newsletter || false,
+                    isGoogleUser: userData.is_google_user || userData.google_id || userData.auth_provider === 'google' || false
                 };
 
                 setProfileData(mappedData);
@@ -227,7 +226,7 @@ const ProfilePage = () => {
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to update profile');
-            console.error('Error updating profile:', err);
+            console.error('Error updating profile');
         } finally {
             setSaving(false);
         }
@@ -243,13 +242,11 @@ const ProfilePage = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        // Validate file size (5MB)
         if (file.size > 5 * 1024 * 1024) {
             setError('Image must be less than 5MB');
             return;
         }
 
-        // Validate file type
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             setError('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
@@ -271,17 +268,15 @@ const ProfilePage = () => {
             if (response.success && response.user) {
                 const newImageUrl = response.profile_image || response.user.profile_image;
 
-                // Update both profile data and edited data
                 setProfileData(prev => ({ ...prev, profileImage: newImageUrl }));
                 setEditedData(prev => ({ ...prev, profileImage: newImageUrl }));
                 setSuccess('Profile image updated successfully!');
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to upload image');
-            console.error('Error uploading image:', err);
+            console.error('Error uploading image');
         } finally {
             setUploadingImage(false);
-            // Reset the file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -289,9 +284,37 @@ const ProfilePage = () => {
     };
 
     const handleChangePassword = () => {
-        // This could navigate to a change password page or open a modal
-        console.log('Change password clicked');
-        // You can implement this based on your app's architecture
+        setShowPasswordDialog(true);
+    };
+
+    const handleSendPasswordResetLink = async () => {
+        try {
+            setSendingResetLink(true);
+            setError(null);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: profileData.email }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setShowPasswordDialog(false);
+                setShowPasswordSuccess(true);
+            } else {
+                setError(data.error || 'Failed to send reset email. Please try again.');
+                setShowPasswordDialog(false);
+            }
+        } catch {
+            setError('Network error. Please try again.');
+            setShowPasswordDialog(false);
+        } finally {
+            setSendingResetLink(false);
+        }
     };
 
     const handlePreviewCV = async () => {
@@ -303,7 +326,6 @@ const ProfilePage = () => {
 
             if (response.status === 'success' && response.data) {
                 const cvInfo = response.data;
-                // Open CV file in a new tab
                 if (cvInfo.file_url) {
                     window.open(cvInfo.file_url, '_blank');
                 } else {
@@ -318,7 +340,7 @@ const ProfilePage = () => {
             } else {
                 setError(err instanceof Error ? err.message : 'Failed to load CV');
             }
-            console.error('Error loading CV:', err);
+            console.error('Error loading CV');
         } finally {
             setLoadingCV(false);
         }
@@ -334,7 +356,72 @@ const ProfilePage = () => {
 
     return (
         <div>
-            {/* Logout Confirmation Dialog */}
+            {showPasswordSuccess && (
+                <div
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowPasswordSuccess(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="text-6xl mb-4">📩</div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">Reset Link Sent!</h3>
+                            <p className="text-gray-600 mb-6 text-center">
+                                We&apos;ve sent a password reset link to {profileData.email}. Please check your email to reset your password.
+                            </p>
+                            <button
+                                onClick={() => setShowPasswordSuccess(false)}
+                                className="px-6 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPasswordDialog && (
+                <div
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => !sendingResetLink && setShowPasswordDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Change Password</h3>
+                        <p className="text-gray-600 mb-6">
+                            We&apos;ll send a password reset link to your email address: <strong>{profileData.email}</strong>
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowPasswordDialog(false)}
+                                disabled={sendingResetLink}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSendPasswordResetLink}
+                                disabled={sendingResetLink}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {sendingResetLink ? (
+                                    <>
+                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                        Sending...
+                                    </>
+                                ) : (
+                                    'Send Reset Link'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -365,12 +452,10 @@ const ProfilePage = () => {
             )}
 
             <div className="font-poppins min-h-screen bg-white relative">
-                {/* Mobile Sidebar Overlay */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                {/* Error/Success Messages */}
                 {(error || success) && (
                     <div className="fixed top-4 right-4 z-50 max-w-md">
                         {error && (
@@ -386,11 +471,9 @@ const ProfilePage = () => {
                     </div>
                 )}
 
-                {/* Header */}
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            {/* Logo */}
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
@@ -403,7 +486,6 @@ const ProfilePage = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions - Only Profile Icon */}
                             <div className="flex items-center">
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
@@ -421,12 +503,10 @@ const ProfilePage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar - Mobile */}
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            {/* Mobile Sidebar Header */}
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
@@ -445,7 +525,6 @@ const ProfilePage = () => {
                                 </button>
                             </div>
 
-                            {/* Sidebar Content */}
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -464,7 +543,6 @@ const ProfilePage = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -477,7 +555,6 @@ const ProfilePage = () => {
                             </div>
                         </div>
 
-                        {/* Sidebar - Desktop */}
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -496,7 +573,6 @@ const ProfilePage = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -509,9 +585,7 @@ const ProfilePage = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content */}
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            {/* Breadcrumb with Hamburger Menu for mobile */}
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -526,7 +600,6 @@ const ProfilePage = () => {
                                 </nav>
                             </div>
 
-                            {/* Page Header */}
                             <div className="mb-8">
                                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
@@ -541,7 +614,6 @@ const ProfilePage = () => {
                                         </p>
                                     </div>
 
-                                    {/* Edit/Save Button */}
                                     <div className="flex gap-2">
                                         {isEditing ? (
                                             <>
@@ -574,11 +646,8 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {/* Profile Content */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-8 mb-8">
-                                {/* Profile Header Section */}
                                 <div className="flex flex-col sm:flex-row gap-6 mb-8 pb-8 border-b border-gray-100">
-                                    {/* Profile Image */}
                                     <div className="flex flex-col items-center sm:items-start">
                                         <div className="relative">
                                             <div className="w-[92px] h-[88px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full inline-flex justify-center items-center">
@@ -615,9 +684,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
 
-                                    {/* Profile Info */}
                                     <div className="flex-1">
-                                        {/* Name */}
                                         <div className="mb-2">
                                             {isEditing ? (
                                                 <div className="flex gap-2">
@@ -643,8 +710,6 @@ const ProfilePage = () => {
                                             )}
                                         </div>
 
-
-                                        {/* Email */}
                                         <div>
                                             {isEditing ? (
                                                 <input
@@ -663,8 +728,6 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-
-                                {/* Preferences Section */}
                                 {isEditing && (
                                     <div className="mb-8 pb-8 border-b border-gray-100">
                                         <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins'] mb-4">Preferences</h3>
@@ -695,7 +758,6 @@ const ProfilePage = () => {
                                     </div>
                                 )}
 
-                                {/* CV Section */}
                                 <div className="mb-8">
                                     <h3 className="text-xl font-medium text-[#6c6c6c] font-['Poppins'] mb-4">Current CV</h3>
                                     <button
@@ -715,19 +777,22 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {/* Account Security Section */}
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-8">
-                                <h3 className="text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-2">
-                                    <span className="text-xl">🔐</span>
-                                    Account Security
-                                </h3>
-                                <button
-                                    onClick={handleChangePassword}
-                                    className="w-full text-left text-[#6c6c6c]/80 text-base font-normal font-['Poppins'] hover:text-[#5530fa] transition-colors cursor-pointer py-4 border-b border-gray-100"
-                                >
-                                    Change Password
-                                </button>
-                            </div>
+                            {!profileData.isGoogleUser && (
+                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-8">
+                                    <h3 className="text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-2">
+                                        <span className="text-xl">🔐</span>
+                                        Account Security
+                                    </h3>
+                                    <button
+                                        onClick={handleChangePassword}
+                                        className="group inline-block w-full text-left cursor-pointer py-4 border-b border-gray-100"
+                                    >
+                                        <span className="text-[#6c6c6c]/80 group-hover:bg-gradient-to-r group-hover:from-[#5530fa] group-hover:to-[#f51da5] group-hover:text-transparent group-hover:bg-clip-text text-base font-normal font-['Poppins']">
+                                            Change Password
+                                        </span>
+                                    </button>
+                                </div>
+                            )}
                         </main>
                     </div>
                 </div>

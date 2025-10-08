@@ -137,6 +137,7 @@ const ModalWrapper = ({
 
 export default function OnboardingPage() {
     const router = useRouter();
+    const [isAuthChecking, setIsAuthChecking] = useState(true);
 
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
@@ -198,6 +199,25 @@ export default function OnboardingPage() {
         return window.innerWidth < 640;
     }, []);
 
+    // Authentication check - MUST BE FIRST
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('jwtToken');
+
+            if (!token) {
+                // Store current URL to redirect back after sign in
+                const currentPath = window.location.pathname;
+                if (currentPath !== '/signin') {
+                    sessionStorage.setItem('redirectAfterSignIn', currentPath);
+                }
+                router.push('/signin');
+                return;
+            }
+
+            setIsAuthChecking(false);
+        }
+    }, [router]);
+
     useEffect(() => {
         checkIsMobile();
 
@@ -216,7 +236,7 @@ export default function OnboardingPage() {
 
     // Check for pending job application and populate user data on mount
     useEffect(() => {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && !isAuthChecking) {
             // Check for pending job application
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
             if (pendingJobStr) {
@@ -251,7 +271,7 @@ export default function OnboardingPage() {
                 }
             }
         }
-    }, []);
+    }, [isAuthChecking]);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -670,7 +690,6 @@ export default function OnboardingPage() {
                                     We&apos;ll contact you when something opens up that fits your profile.</>
                             )}
                         </div>
-
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
                             <button
                                 className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"

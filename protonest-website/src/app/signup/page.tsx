@@ -771,7 +771,7 @@ export default function SignUp() {
                                 <div className="text-center">
                                     <span className="text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
                                     <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300">
-                                        Sign in
+                                        Sign In
                                     </Link>
                                 </div>
                             </div>
@@ -1006,7 +1006,7 @@ export default function SignUp() {
                                             Already have an account?
                                         </span>
                                         <Link href="/signin" className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
-                                            Sign in
+                                            Sign In
                                         </Link>
                                     </div>
                                 </div>

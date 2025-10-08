@@ -73,8 +73,8 @@ const ManageAlertsPage = () => {
                     router.push('/signin');
                 }
             }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
+        } catch {
+            console.error('Error fetching user data');
         }
     }, [router]);
 
@@ -148,8 +148,8 @@ const ManageAlertsPage = () => {
                 alert(errorData.error || `Failed to update preferences: ${response.status}`);
                 return false;
             }
-        } catch (error) {
-            console.error('Error updating preferences:', error);
+        } catch {
+            console.error('Error updating preferences');
             alert('Failed to update preferences. Please check your connection and try again.');
             return false;
         } finally {

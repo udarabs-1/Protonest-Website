@@ -85,6 +85,18 @@ interface StatusDropdown {
     isOpen: boolean;
 }
 
+interface NDADocument {
+    id: string;
+    download_url: string;
+    file_name: string;
+    file_size: number;
+    version: number;
+    uploaded_by: string;
+    description?: string;
+    is_active: boolean;
+    uploaded_at: string;
+}
+
 const CandidateManagement = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -98,8 +110,10 @@ const CandidateManagement = () => {
     const [candidateDetails, setCandidateDetails] = useState<CandidateDetails | null>(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [selectedNda, setSelectedNda] = useState<'template' | 'upload'>('template');
-    const [selectedTemplate, setSelectedTemplate] = useState('NDA_Template_General.pdf');
+    const [ndaDocuments, setNdaDocuments] = useState<NDADocument[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<string>('');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [uploadingNDA, setUploadingNDA] = useState(false);
     const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -160,6 +174,35 @@ const CandidateManagement = () => {
         { value: 'rejected', label: 'Rejected', color: 'bg-[#ff8686]' }
     ];
 
+    // Fetch NDA documents
+    const fetchNDADocuments = async () => {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/nda/admin/all`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch NDA documents');
+            }
+
+            const data = await response.json();
+            // Change this part:
+            if (data.documents && Array.isArray(data.documents)) {
+                setNdaDocuments(data.documents);
+                // Set the first active document as default
+                const activeDoc = data.documents.find((doc: NDADocument) => doc.is_active);
+                if (activeDoc) {
+                    setSelectedTemplate(activeDoc.id);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching NDA documents:', error);
+        }
+    };
+
     // Fetch candidates data from job candidates endpoint
     useEffect(() => {
         const fetchCandidates = async () => {
@@ -182,7 +225,8 @@ const CandidateManagement = () => {
                 if (data.status === 'success') {
                     const candidatesData = data.data?.nda_logs || data.data || [];
                     setCandidates(Array.isArray(candidatesData) ? candidatesData : []);
-                } else {
+                }
+                else {
                     throw new Error(data.message || 'Failed to fetch candidates');
                 }
             } catch (err) {
@@ -199,6 +243,7 @@ const CandidateManagement = () => {
         };
 
         fetchCandidates();
+        fetchNDADocuments();
     }, []);
 
     // Close sidebar, dropdown, and autocomplete when clicking outside
@@ -547,7 +592,7 @@ const CandidateManagement = () => {
     // Set default NDA email content
     const setNdaDialogContent = (candidate: Candidate) => {
         const defaultSubject = `Protonest NDA for ${candidate.job?.title || '[Role Name]'} – Action Required`;
-        const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${candidate.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do.....`;
+        const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${candidate.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:\n\n1. Download and carefully read the attached NDA document\n2. Sign the document electronically or print, sign, and scan\n3. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached\n\nPlease complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.\n\nBest regards,\nProtonest Team`;
 
         setNdaSubject(defaultSubject);
         setNdaBody(defaultBody);
@@ -611,10 +656,25 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to send NDA
-    const sendNDA = async (candidateId: string, notes?: string) => {
+    // Function to send NDA with template or uploaded file
+    const sendNDA = async (candidateId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
+
+            const requestBody: {
+                nda_document_id?: string;
+                nda_document_url?: string;
+                compliance_notes?: string;
+            } = {
+                compliance_notes: ndaBody || ''
+            };
+
+            if (selectedNda === 'template' && ndaDocumentId) {
+                requestBody.nda_document_id = ndaDocumentId;
+            } else if (selectedNda === 'upload' && uploadedFileUrl) {
+                requestBody.nda_document_url = uploadedFileUrl;
+            }
+
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/nda/send`,
                 {
@@ -623,13 +683,16 @@ const CandidateManagement = () => {
                         'Authorization': `Bearer ${adminToken}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ compliance_notes: notes || '' })
+                    body: JSON.stringify(requestBody)
                 }
             );
 
             if (!response.ok) {
-                throw new Error('Failed to send NDA');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to send NDA');
             }
+
+            await response.json();
 
             // Update local state
             setCandidates(prev => prev.map(candidate =>
@@ -639,7 +702,7 @@ const CandidateManagement = () => {
                         nda_status: {
                             status: 'sent',
                             sent_on: new Date().toISOString(),
-                            compliance_notes: notes || '',
+                            compliance_notes: ndaBody || '',
                             resend_count: candidate.nda_status?.resend_count || 0,
                             created_at: candidate.nda_status?.created_at || new Date().toISOString(),
                             updated_at: new Date().toISOString()
@@ -649,9 +712,11 @@ const CandidateManagement = () => {
             ));
 
             alert('NDA sent successfully!');
+            return true;
         } catch (error) {
             console.error('Error sending NDA:', error);
-            alert('Failed to send NDA');
+            alert(error instanceof Error ? error.message : 'Failed to send NDA');
+            return false;
         }
     };
 
@@ -695,6 +760,60 @@ const CandidateManagement = () => {
         } catch (error) {
             console.error('Error resending NDA:', error);
             alert('Failed to resend NDA');
+        }
+    };
+
+    // Function to handle file upload for NDA
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024) {
+            setUploadedFile(file);
+        } else {
+            alert('Please select a PDF file under 10MB');
+        }
+    };
+
+    // Function to upload NDA document to server
+    const uploadNDADocument = async (file: File): Promise<string | null> => {
+        try {
+            setUploadingNDA(true);
+            const adminToken = localStorage.getItem('adminToken');
+
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('description', `NDA for ${ndaDialog?.user?.name || 'candidate'}`);
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/nda/upload`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: formData
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to upload NDA document');
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.data?.document_url) {
+                // Refresh NDA documents list
+                await fetchNDADocuments();
+                return data.data.document_url;
+            }
+
+            throw new Error('Invalid response from server');
+        } catch (error) {
+            console.error('Error uploading NDA document:', error);
+            alert(error instanceof Error ? error.message : 'Failed to upload NDA document');
+            return null;
+        } finally {
+            setUploadingNDA(false);
         }
     };
 
@@ -769,10 +888,33 @@ const CandidateManagement = () => {
     };
 
     // Handle NDA sending
-    const handleSendNda = () => {
+    const handleSendNda = async () => {
         if (!ndaDialog) return;
 
-        // Open email client
+        let ndaDocumentUrl: string | null = null;
+        let ndaDocumentId: string | undefined = undefined;
+
+        if (selectedNda === 'upload') {
+            if (!uploadedFile) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            // Upload the file first
+            ndaDocumentUrl = await uploadNDADocument(uploadedFile);
+            if (!ndaDocumentUrl) {
+                return; // Upload failed
+            }
+        } else {
+            // Using template
+            if (!selectedTemplate) {
+                alert('Please select an NDA template');
+                return;
+            }
+            ndaDocumentId = selectedTemplate;
+        }
+
+        // Open email client first
         openEmailClient(
             ndaDialog.user?.email || '',
             ndaSubject,
@@ -780,27 +922,23 @@ const CandidateManagement = () => {
         );
 
         // Send NDA via API
-        sendNDA(ndaDialog.id, ndaBody);
+        const success = await sendNDA(
+            ndaDialog.id,
+            ndaDocumentId,
+            ndaDocumentUrl || undefined
+        );
 
-        // Update status to hired
-        updateStatus(ndaDialog.id, 'hired');
+        if (success) {
+            // Update status to hired
+            await updateStatus(ndaDialog.id, 'hired');
 
-        // Close dialog and reset
-        setNdaDialog(null);
-        setNdaSubject('');
-        setNdaBody('');
-        setUploadedFile(null);
-        setSelectedNda('template');
-        setSelectedTemplate('NDA_Template_General.pdf');
-    };
-
-    // Handle file upload
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file && file.type === 'application/pdf' && file.size <= 5 * 1024 * 1024) {
-            setUploadedFile(file);
-        } else {
-            alert('Please select a PDF file under 5MB');
+            // Close dialog and reset
+            setNdaDialog(null);
+            setNdaSubject('');
+            setNdaBody('');
+            setUploadedFile(null);
+            setSelectedNda('template');
+            setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
         }
     };
 
@@ -1283,10 +1421,6 @@ const CandidateManagement = () => {
                 </div>
             </div>
 
-            {/* All remaining dialogs remain the same as in your original code */}
-            {/* Delete Confirmation Dialog, Status Selection Dialog, Interview Invitation Dialog, NDA Dialog, Details Dialog */}
-            {/* I'll include them for completeness */}
-
             {/* Delete Confirmation Dialog */}
             {deleteCandidate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1493,24 +1627,27 @@ const CandidateManagement = () => {
 
                                         {selectedNda === 'template' && (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ml-7">
-                                                <button
-                                                    onClick={() => setSelectedTemplate('NDA_Template_General.pdf')}
-                                                    className={`px-4 sm:px-6 py-3 sm:py-4 rounded-[57px] text-xs sm:text-sm font-semibold transition-colors ${selectedTemplate === 'NDA_Template_General.pdf'
-                                                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                                                        : 'border border-[#5530fa] text-[#4d4d4d]'
-                                                        }`}
-                                                >
-                                                    NDA_Template_General.pdf
-                                                </button>
-                                                <button
-                                                    onClick={() => setSelectedTemplate('NDA_High_Security_v2.pdf')}
-                                                    className={`px-4 sm:px-6 py-3 sm:py-4 rounded-[57px] text-xs sm:text-sm font-medium transition-colors ${selectedTemplate === 'NDA_High_Security_v2.pdf'
-                                                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                                                        : 'border border-[#5530fa] text-[#4d4d4d]'
-                                                        }`}
-                                                >
-                                                    NDA_High_Security_v2.pdf
-                                                </button>
+                                                {ndaDocuments.length > 0 ? (
+                                                    ndaDocuments.map((doc) => (
+                                                        <button
+                                                            key={doc.id}
+                                                            onClick={() => setSelectedTemplate(doc.id)}
+                                                            className={`px-4 sm:px-6 py-3 sm:py-4 rounded-[57px] text-xs sm:text-sm font-semibold transition-colors ${selectedTemplate === doc.id
+                                                                ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                                                                : 'border border-[#5530fa] text-[#4d4d4d]'
+                                                                }`}
+                                                        >
+                                                            {doc.file_name}
+                                                            {doc.is_active && (
+                                                                <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
+                                                                    Active
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 col-span-2">No NDA templates available. Please upload one.</p>
+                                                )}
                                             </div>
                                         )}
 
@@ -1535,7 +1672,7 @@ const CandidateManagement = () => {
                                                     <p className="text-xs font-normal font-poppins text-[#6c6c6c] leading-[18px] mb-4">
                                                         Upload the file by drag and drop here or<br />
                                                         click on the browse button<br />
-                                                        <span className="block mt-2">Allowed file types: .pdf<br />Max size: 5MB</span>
+                                                        <span className="block mt-2">Allowed file types: .pdf<br />Max size: 10MB</span>
                                                     </p>
                                                     {uploadedFile && (
                                                         <div className="mb-4 p-2 bg-green-100 rounded-lg">
@@ -1544,9 +1681,10 @@ const CandidateManagement = () => {
                                                     )}
                                                     <button
                                                         onClick={() => fileInputRef.current?.click()}
-                                                        className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat"
+                                                        disabled={uploadingNDA}
+                                                        className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Browse
+                                                        {uploadingNDA ? 'Uploading...' : 'Browse'}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1566,7 +1704,7 @@ const CandidateManagement = () => {
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
                                         placeholder="Enter email subject..."
                                     />
-                                    <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-2">{ndaSubject.length}/50</p>
+                                    <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-2">{ndaSubject.length}/100</p>
                                 </div>
                             </div>
 
@@ -1581,17 +1719,18 @@ const CandidateManagement = () => {
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80 leading-relaxed resize-none"
                                         placeholder="Enter email body..."
                                     />
-                                    <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-4">{ndaBody.length}/500</p>
+                                    <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-4">{ndaBody.length}/1000</p>
                                 </div>
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2">
+                            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
                                 <button
                                     onClick={handleSendNda}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat order-1"
+                                    disabled={uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
+                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                 >
-                                    Send NDA
+                                    {uploadingNDA ? 'Processing...' : 'Send NDA'}
                                 </button>
                                 <button
                                     onClick={() => {
@@ -1600,9 +1739,10 @@ const CandidateManagement = () => {
                                         setNdaBody('');
                                         setUploadedFile(null);
                                         setSelectedNda('template');
-                                        setSelectedTemplate('NDA_Template_General.pdf');
+                                        setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
                                     }}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2"
+                                    disabled={uploadingNDA}
+                                    className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                 >
                                     Cancel
                                 </button>
@@ -1612,7 +1752,7 @@ const CandidateManagement = () => {
                 </div>
             )}
 
-            {/* Enhanced Candidate Details Dialog */}
+            {/* Enhanced Candidate Details Dialog - Same as before */}
             {detailsDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>

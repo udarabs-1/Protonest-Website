@@ -228,6 +228,7 @@ const AppliedJobs = () => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -263,54 +264,104 @@ const AppliedJobs = () => {
         };
     }, [sidebarOpen]);
 
+    // Fetch applied jobs data from API
     useEffect(() => {
-        const fetchAppliedJobs = async () => {
+        const jwtToken = localStorage.getItem('jwtToken');
+        if (!jwtToken) {
+            return;
+        }
+        fetchAppliedJobs();
+    }, []);
+
+    const fetchAppliedJobs = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const token = localStorage.getItem('jwtToken');
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Try multiple possible endpoints
+            let response;
+            let applicationsData;
+
+            // First try the applications endpoint
             try {
-                setLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
+                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
                     }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const jobs: AppliedJob[] = data.data || [];
-
-                    const enrichedJobs = await Promise.all(
-                        jobs.map(async (job) => {
-                            try {
-                                const jobResponse = await fetch(
-                                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${job.job_id._id}`
-                                );
-                                if (jobResponse.ok) {
-                                    const jobData = await jobResponse.json();
-                                    return {
-                                        ...job,
-                                        jobDetails: jobData.data
-                                    };
-                                }
-                            } catch (error) {
-                                console.error('Error fetching job details:', error);
-                            }
-                            return job;
-                        })
-                    );
-
-                    setAppliedJobs(enrichedJobs);
-                    setFilteredJobs(enrichedJobs);
-                } else {
-                    console.error('Failed to fetch applied jobs');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            } catch (error) {
-                console.error('Error fetching applied jobs:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        fetchAppliedJobs();
-    }, []);
+                applicationsData = await response.json();
+            } catch {
+                console.log('Primary endpoint failed, trying fallback...');
+                // Try alternative endpoint structure
+                try {
+                    response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/applications`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    applicationsData = await response.json();
+                } catch {
+                    throw new Error('Failed to fetch applications from all endpoints');
+                }
+            }
+
+            // Handle different response structures
+            const jobs: AppliedJob[] = applicationsData.data || applicationsData.applications || applicationsData || [];
+
+            if (jobs.length === 0) {
+                setAppliedJobs([]);
+                setFilteredJobs([]);
+                setLoading(false);
+                return;
+            }
+
+            // Enrich jobs with job details
+            const enrichedJobs = await Promise.all(
+                jobs.map(async (job) => {
+                    try {
+                        const jobResponse = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${job.job_id._id}`
+                        );
+                        if (jobResponse.ok) {
+                            const jobData = await jobResponse.json();
+                            return {
+                                ...job,
+                                jobDetails: jobData.data
+                            };
+                        }
+                    } catch (error) {
+                        console.error('Error fetching job details:', error);
+                    }
+                    return job;
+                })
+            );
+
+            setAppliedJobs(enrichedJobs);
+            setFilteredJobs(enrichedJobs);
+        } catch (err) {
+            console.error('Error fetching applied jobs:', err);
+            setError('Failed to load applied jobs data');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         let filtered = appliedJobs;
@@ -338,8 +389,11 @@ const AppliedJobs = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading applied jobs...</p>
+                </div>
             </div>
         );
     }
@@ -510,6 +564,18 @@ const AppliedJobs = () => {
                                     <span className="text-[#5C4EC9]">Applied Jobs</span>
                                 </nav>
                             </div>
+
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-red-600 text-sm">{error}</p>
+                                    <button
+                                        onClick={fetchAppliedJobs}
+                                        className="mt-2 text-red-600 text-sm underline hover:no-underline"
+                                    >
+                                        Try again
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="mb-8">
                                 <div className="flex flex-col mb-6">

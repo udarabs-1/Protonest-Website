@@ -184,8 +184,8 @@ const ResubmitCVPage = () => {
                     fullName: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
                     email: userData.email || ''
                 }));
-            } catch (error) {
-                console.error('Error parsing user data:', error);
+            } catch {
+                console.error('Error parsing user data');
             }
         }
     };
@@ -221,8 +221,8 @@ const ResubmitCVPage = () => {
             } else {
                 throw new Error('Failed to fetch CV info');
             }
-        } catch (error) {
-            console.error('Error fetching CV info:', error);
+        } catch {
+            console.error('Error fetching CV info');
             setHasCVUploaded(false);
         }
     };
@@ -357,8 +357,8 @@ const ResubmitCVPage = () => {
                     setExtractedSkills(allSkills);
                     setSuggestedJobs(data.results.suggested_jobs || []);
                 }
-            } catch (error) {
-                console.error('CV analysis error:', error);
+            } catch {
+                console.error('CV analysis error');
                 setError('Failed to analyze CV. You can still submit it.');
             } finally {
                 setTimeout(() => {
@@ -478,9 +478,9 @@ const ResubmitCVPage = () => {
             } else {
                 throw new Error(data.message || 'Failed to update CV');
             }
-        } catch (error) {
-            console.error('Error updating CV:', error);
-            setError(error instanceof Error ? error.message : 'Failed to update CV. Please try again.');
+        } catch {
+            console.error('Error updating CV');
+            setError('Failed to update CV. Please try again.');
             setShowSubmissionModal(false);
         } finally {
             setIsSubmitting(false);

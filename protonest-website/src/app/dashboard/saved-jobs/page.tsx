@@ -281,8 +281,8 @@ const SavedJobs = () => {
                 } else {
                     console.error('Failed to fetch saved jobs');
                 }
-            } catch (error) {
-                console.error('Error fetching saved jobs:', error);
+            } catch {
+                console.error('Error fetching saved jobs');
             } finally {
                 setLoading(false);
             }
@@ -358,8 +358,8 @@ const SavedJobs = () => {
             } else {
                 console.error('Failed to remove saved job');
             }
-        } catch (error) {
-            console.error('Error removing saved job:', error);
+        } catch {
+            console.error('Error removing saved job');
         }
     };
 

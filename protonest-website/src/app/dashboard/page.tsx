@@ -196,8 +196,8 @@ const Dashboard = () => {
                                         }
                                     };
                                 }
-                            } catch (error) {
-                                console.error('Error fetching job details:', error);
+                            } catch {
+                                console.error('Error fetching job details');
                             }
                             return app;
                         })
@@ -235,8 +235,8 @@ const Dashboard = () => {
                                     category: publicJob.category
                                 };
                             }
-                        } catch (error) {
-                            console.error('Error fetching job details:', error);
+                        } catch {
+                            console.error('Error fetching job details');
                         }
                         return null;
                     });
@@ -244,8 +244,8 @@ const Dashboard = () => {
                     const jobDetails = await Promise.all(jobDetailsPromises);
                     setSuggestedJobs(jobDetails.filter(job => job !== null) as Job[]);
                 }
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
+            } catch {
+                console.error('Error fetching dashboard data');
             } finally {
                 setLoading(false);
             }

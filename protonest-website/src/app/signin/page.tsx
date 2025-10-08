@@ -356,8 +356,7 @@ export default function ResponsiveSignIn() {
                             {/* Title */}
                             <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-4 sm:mb-6 md:mb-8">
                                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
-                                    <span className="text-gray-400">Sign in to </span>
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest</span>
+                                    <span className="text-gray-400">Sign In</span>
                                 </h1>
                                 <p className="w-full justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-sm sm:text-base font-medium font-['Poppins'] mt-4">
                                     To sign up, you have to either submit your CV to our talent pool or apply for a job
@@ -486,8 +485,7 @@ export default function ResponsiveSignIn() {
                                 {/* Title */}
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
-                                        <span className="text-gray-400">Sign in to </span>
-                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest</span>
+                                        <span className="text-gray-400">Sign In</span>
                                     </h1>
                                     <p className="w-[579px] justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-base lg:text-sm xl:text-base 2xl:text-lg font-medium font-['Poppins'] mt-4">
                                         To sign up, you have to either submit your CV to our talent pool or apply for a job
@@ -578,7 +576,7 @@ export default function ResponsiveSignIn() {
                                         disabled={isLoading || !isFormValid}
                                         className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {isLoading ? 'Signing in...' : 'Sign in'}
+                                        {isLoading ? 'Signing In...' : 'Sign In'}
                                     </button>
                                 </form>
                             </div>

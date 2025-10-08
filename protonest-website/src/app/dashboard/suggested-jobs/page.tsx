@@ -158,8 +158,8 @@ const SuggestedJobs = () => {
                                     missingSkills: suggestedJob.missing_skills
                                 };
                             }
-                        } catch (error) {
-                            console.error('Error fetching job details:', error);
+                        } catch {
+                            console.error('Error fetching job details');
                         }
                         return null;
                     });
@@ -169,8 +169,8 @@ const SuggestedJobs = () => {
                     setSuggestedJobs(validJobs);
                     setFilteredJobs(validJobs);
                 }
-            } catch (error) {
-                console.error('Error fetching suggested jobs:', error);
+            } catch {
+                console.error('Error fetching suggested jobs');
             } finally {
                 setLoading(false);
             }

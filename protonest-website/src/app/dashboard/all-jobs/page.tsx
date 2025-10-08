@@ -218,8 +218,8 @@ const AllJobsPage = () => {
                     setJobs(jobsData);
                     setFilteredJobs(jobsData);
                 }
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
+            } catch {
+                console.error('Error fetching jobs');
             } finally {
                 setLoading(false);
             }

@@ -289,7 +289,7 @@ export default function ResponsiveSignIn() {
                         </div>
 
                         {/* Right Side - Image */}
-                        <div className="flex items-stretch min-h-screen">
+                        <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
                                     src="/login1.svg"

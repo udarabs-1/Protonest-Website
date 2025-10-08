@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type DropdownKey = 'whats-new';
 
@@ -20,16 +20,22 @@ interface NavItem {
     label: string;
     hasDropdown?: boolean;
     key?: DropdownKey;
+    isConditional?: boolean;
 }
 
 export default function Navbar() {
     const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+    const [isUserSignedIn, setIsUserSignedIn] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
 
-    // Replace this with your actual authentication logic
-    const isUserSignedIn = false;
+    // Check if user is signed in
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        setIsUserSignedIn(!!token);
+    }, []);
 
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
@@ -54,17 +60,31 @@ export default function Navbar() {
         setMobileMenuOpen(false);
     };
 
+    // Handle conditional navigation for Find Jobs
+    const handleFindJobsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        if (isUserSignedIn) {
+            router.push('/dashboard/all-jobs');
+        } else {
+            router.push('/find-jobs');
+        }
+        handleNavigation();
+    };
+
     const navItems: NavItem[] = [
-        { href: "/", label: "Home", },
+        { href: "/", label: "Home" },
         { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
-        { href: "/find-jobs", label: "Find Jobs" },
+        { href: "/find-jobs", label: "Find Jobs", isConditional: true },
         { href: "/contact-us", label: "Contact Us" }
     ];
 
     const isNavItemActive = (item: NavItem) => {
         if (item.hasDropdown) {
             return activeDropdown === item.key;
+        }
+        if (item.isConditional && isUserSignedIn) {
+            return pathname === '/dashboard/all-jobs';
         }
         return pathname === item.href;
     };
@@ -115,8 +135,8 @@ export default function Navbar() {
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
 
-    // Only show the account button on the find-jobs page
-    const showAccountButton = pathname === "/find-jobs";
+    // Only show the account button on the find-jobs page or dashboard
+    const showAccountButton = pathname === "/find-jobs" || pathname.startsWith('/dashboard');
 
     return (
         <div>
@@ -146,6 +166,7 @@ export default function Navbar() {
                                         const showGradient = shouldShowGradient(item);
                                         const hasDropdown = item.hasDropdown;
                                         const isHovered = hoveredItem === item.href;
+                                        const isConditional = item.isConditional;
 
                                         return (
                                             <div key={item.href} className="relative">
@@ -159,6 +180,8 @@ export default function Navbar() {
                                                             if (hasDropdown && item.key) {
                                                                 e.preventDefault();
                                                                 toggleDropdown(item.key);
+                                                            } else if (isConditional) {
+                                                                handleFindJobsClick(e);
                                                             } else {
                                                                 handleNavigation();
                                                             }
@@ -402,6 +425,7 @@ export default function Navbar() {
                                     {navItems.map((item, index) => {
                                         const showGradient = shouldShowGradient(item);
                                         const hasDropdown = item.hasDropdown;
+                                        const isConditional = item.isConditional;
 
                                         return (
                                             <div key={index} className="w-full">
@@ -450,9 +474,15 @@ export default function Navbar() {
                                                     <Link
                                                         href={item.href}
                                                         className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full hover:scale-105 transition-transform origin-left"
-                                                        onClick={handleNavigation}
+                                                        onClick={(e) => {
+                                                            if (isConditional) {
+                                                                handleFindJobsClick(e);
+                                                            } else {
+                                                                handleNavigation();
+                                                            }
+                                                        }}
                                                     >
-                                                        <span className={`text-base md:text-lg font-montserrat transition-all duration-200 ${pathname === item.href
+                                                        <span className={`text-base md:text-lg font-montserrat transition-all duration-200 ${pathname === item.href || (isConditional && isUserSignedIn && pathname === '/dashboard/all-jobs')
                                                             ? 'text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text'
                                                             : 'text-[#83848b] hover:text-[#f51da5]'}`}
                                                         >

@@ -35,6 +35,147 @@ type SuccessPopupProps = {
     onViewSavedJobs?: () => void;
 };
 
+type ConfirmDialogProps = {
+    type: 'apply' | 'save' | 'unsave';
+    jobTitle: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+};
+
+type ErrorDialogProps = {
+    message: string;
+    onClose: () => void;
+    onUploadCV?: () => void;
+};
+
+// Confirmation Dialog Component
+const ConfirmDialog = ({ type, jobTitle, onConfirm, onCancel }: ConfirmDialogProps) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onCancel();
+        }
+    }, [onCancel]);
+
+    const getDialogContent = () => {
+        switch (type) {
+            case 'apply':
+                return {
+                    title: 'Confirm Application',
+                    message: `Are you sure you want to apply for "${jobTitle}"?`,
+                    confirmText: 'Yes, Apply',
+                    cancelText: 'Cancel'
+                };
+            case 'save':
+                return {
+                    title: 'Save Job',
+                    message: `Do you want to save "${jobTitle}" to your saved jobs?`,
+                    confirmText: 'Yes, Save',
+                    cancelText: 'Cancel'
+                };
+            case 'unsave':
+                return {
+                    title: 'Remove Saved Job',
+                    message: `Are you sure you want to remove "${jobTitle}" from your saved jobs?`,
+                    confirmText: 'Yes, Remove',
+                    cancelText: 'Cancel'
+                };
+        }
+    };
+
+    const content = getDialogContent();
+
+    return (
+        <div
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm px-4"
+            onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4">
+                    {content.title}
+                </h3>
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6">
+                    {content.message}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                    <button
+                        onClick={onCancel}
+                        className="px-6 py-3 rounded-[57px] border border-gray-300 text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                    >
+                        {content.cancelText}
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                    >
+                        {content.confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Error Dialog Component
+const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const isNoCVError = message.toLowerCase().includes('cv') || message.toLowerCase().includes('resume');
+
+    return (
+        <div
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm px-4"
+            onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                        <span className="text-3xl">⚠️</span>
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
+                    {isNoCVError ? 'CV Required' : 'Error'}
+                </h3>
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6 text-center">
+                    {message}
+                </p>
+                <div className="flex flex-col gap-3">
+                    {isNoCVError && onUploadCV ? (
+                        <>
+                            <button
+                                onClick={onUploadCV}
+                                className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                            >
+                                Upload CV Now
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="w-full px-6 py-3 rounded-[57px] border border-gray-300 text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={onClose}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                        >
+                            Close
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Memoized Success Popup Component
 const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     useEffect(() => {
@@ -207,6 +348,8 @@ export default function JobDetailPage() {
     const [hasApplied, setHasApplied] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState<'apply' | 'save' | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState<'apply' | 'save' | 'unsave' | null>(null);
+    const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
 
     // Memoized user authentication check
     useEffect(() => {
@@ -265,8 +408,33 @@ export default function JobDetailPage() {
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
 
-    // Optimized event handlers
-    const handleSaveJob = useCallback(async () => {
+    // Check if user has uploaded CV - FIXED VERSION
+    const checkUserCV = useCallback(async (): Promise<boolean> => {
+        if (!user) return false;
+
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Check if CV info exists and has file_url
+                return !!(data.status === 'success' && data.data && data.data.file_url);
+            }
+            return false;
+        } catch (error) {
+            console.error('Error checking CV status:', error);
+            return false;
+        }
+    }, [user]);
+
+    // Handle save job confirmation
+    const handleSaveJobClick = useCallback(() => {
         if (!user) {
             router.push('/signin');
             return;
@@ -274,7 +442,18 @@ export default function JobDetailPage() {
 
         if (!job) return;
 
+        // Show confirmation dialog
+        setShowConfirmDialog(isJobSaved ? 'unsave' : 'save');
+        setShowMenu(false);
+    }, [user, job, isJobSaved, router]);
+
+    // Confirm save/unsave job
+    const confirmSaveJob = useCallback(async () => {
+        if (!job) return;
+
         setActionLoading(true);
+        setShowConfirmDialog(null);
+
         try {
             const token = getAuthToken();
             const endpoint = isJobSaved
@@ -298,20 +477,20 @@ export default function JobDetailPage() {
                 if (!isJobSaved) {
                     setShowSuccessPopup('save');
                 }
-                setShowMenu(false);
             } else {
                 const errorData = await response.json();
-                alert(errorData.message || 'Failed to save job');
+                setShowErrorDialog(errorData.message || 'Failed to save job');
             }
         } catch (error) {
             console.error('Error saving job:', error);
-            alert('Failed to save job. Please try again.');
+            setShowErrorDialog('Failed to save job. Please try again.');
         } finally {
             setActionLoading(false);
         }
-    }, [user, job, isJobSaved, router]);
+    }, [job, isJobSaved]);
 
-    const handleApplyJob = useCallback(async () => {
+    // Handle apply job click
+    const handleApplyJobClick = useCallback(() => {
         if (!user) {
             if (job) {
                 localStorage.setItem('pendingJobApplication', JSON.stringify({
@@ -326,7 +505,26 @@ export default function JobDetailPage() {
 
         if (!job || hasApplied) return;
 
+        // Show confirmation dialog
+        setShowConfirmDialog('apply');
+    }, [user, job, hasApplied, router]);
+
+    // Confirm apply job
+    const confirmApplyJob = useCallback(async () => {
+        if (!job) return;
+
+        setShowConfirmDialog(null);
+
+        // Check if user has CV
+        const hasCV = await checkUserCV();
+
+        if (!hasCV) {
+            setShowErrorDialog('You need to upload your CV before applying for jobs. Please upload your CV to continue.');
+            return;
+        }
+
         setActionLoading(true);
+
         try {
             const token = getAuthToken();
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
@@ -343,19 +541,19 @@ export default function JobDetailPage() {
                 setShowSuccessPopup('apply');
             } else {
                 const errorData = await response.json();
-                alert(errorData.message || 'Failed to apply for job');
+                setShowErrorDialog(errorData.message || 'Failed to apply for job');
             }
         } catch (error) {
             console.error('Error applying for job:', error);
-            alert('Failed to apply for job. Please try again.');
+            setShowErrorDialog('Failed to apply for job. Please try again.');
         } finally {
             setActionLoading(false);
         }
-    }, [user, job, hasApplied, router]);
+    }, [job, checkUserCV]);
 
     const handleViewSavedJobs = useCallback(() => {
         setShowSuccessPopup(null);
-        router.push('/saved-jobs');
+        router.push('/dashboard/saved-jobs');
     }, [router]);
 
     const handleSignupClick = useCallback(() => {
@@ -369,12 +567,25 @@ export default function JobDetailPage() {
         router.push('/signup');
     }, [job, router]);
 
+    const handleUploadCV = useCallback(() => {
+        setShowErrorDialog(null);
+        router.push('/dashboard/resubmit-cv');
+    }, [router]);
+
     const toggleMenu = useCallback(() => {
         setShowMenu(prev => !prev);
     }, []);
 
     const closePopup = useCallback(() => {
         setShowSuccessPopup(null);
+    }, []);
+
+    const closeConfirmDialog = useCallback(() => {
+        setShowConfirmDialog(null);
+    }, []);
+
+    const closeErrorDialog = useCallback(() => {
+        setShowErrorDialog(null);
     }, []);
 
     // Fetch job details
@@ -524,7 +735,7 @@ export default function JobDetailPage() {
                             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-1 z-10">
                                 <button
                                     className="block w-full text-left px-4 py-2 text-sm text-[#6c6c6c] hover:bg-gray-100 font-poppins disabled:opacity-50 focus:outline-none focus:bg-gray-100"
-                                    onClick={handleSaveJob}
+                                    onClick={handleSaveJobClick}
                                     disabled={actionLoading}
                                 >
                                     {actionLoading ? 'Loading...' : (isJobSaved ? 'Remove from Saved' : 'Save Job')}
@@ -599,7 +810,7 @@ export default function JobDetailPage() {
                         </div>
                     ) : (
                         <button
-                            onClick={handleApplyJob}
+                            onClick={handleApplyJobClick}
                             disabled={actionLoading}
                             className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                         >
@@ -648,6 +859,25 @@ export default function JobDetailPage() {
                     </section>
                 )}
             </main>
+
+            {/* Confirmation Dialog */}
+            {showConfirmDialog && job && (
+                <ConfirmDialog
+                    type={showConfirmDialog}
+                    jobTitle={job.title}
+                    onConfirm={showConfirmDialog === 'apply' ? confirmApplyJob : confirmSaveJob}
+                    onCancel={closeConfirmDialog}
+                />
+            )}
+
+            {/* Error Dialog */}
+            {showErrorDialog && (
+                <ErrorDialog
+                    message={showErrorDialog}
+                    onClose={closeErrorDialog}
+                    onUploadCV={showErrorDialog.toLowerCase().includes('cv') ? handleUploadCV : undefined}
+                />
+            )}
 
             {/* Success Popup */}
             {showSuccessPopup && (
