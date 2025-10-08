@@ -108,9 +108,12 @@ const TestimonialSection = () => {
                 <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px]">
                     <Image
                         src="/home-5.svg"
-                        alt="Background"
+                        alt="Testimonials background"
                         fill
-                        style={{ objectFit: 'cover' }}
+                        priority={false}
+                        quality={70}
+                        sizes="100vw"
+                        style={{ objectFit: 'cover', objectPosition: 'center' }}
                     />
                 </div>
             </div>
@@ -320,9 +323,12 @@ const TestimonialCard = ({
                         <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] bg-white rounded-full flex justify-center items-center overflow-hidden">
                             <Image
                                 src={avatar}
-                                alt={name}
-                                width={39}
-                                height={39}
+                                alt={`${name} profile picture`}
+                                width={41}
+                                height={41}
+                                priority={false}
+                                quality={85}
+                                sizes="(max-width: 640px) 36px, 41px"
                                 className="rounded-full w-[34px] h-[34px] sm:w-[39px] sm:h-[39px] object-cover"
                             />
                         </div>
@@ -366,7 +372,7 @@ const TestimonialCard = ({
                             className="w-5 h-5 text-[#f51da5] animate-pulse"
                             fill="currentColor"
                             viewBox="0 0 20 20"
-                            style={{ animationDelay: '0.2s' }}
+                            style={{ animationDelay: '0.2s' } as React.CSSProperties}
                         >
                             <path
                                 fillRule="evenodd"

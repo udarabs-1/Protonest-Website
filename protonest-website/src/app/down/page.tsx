@@ -1,7 +1,52 @@
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCallback } from 'react';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
+
+// Memoized Back Button Component
+const BackButton = () => {
+  const handleClick = useCallback(() => {
+    // Optional: Add analytics or custom navigation logic here
+  }, []);
+
+  return (
+    <Link
+      href="/"
+      onClick={handleClick}
+      className="inline-flex items-center text-[#6c6c6c] hover:text-[#5a5a5a] transition-colors duration-200 mb-4 sm:mb-6 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
+      aria-label="Go back to homepage"
+    >
+      <span className="text-lg sm:text-xl md:text-xl lg:text-xl xl:text-2xl font-normal font-['Potta_One'] leading-[30px]">
+        &lt;
+      </span>
+      <span className="text-base sm:text-lg md:text-lg lg:text-lg xl:text-xl font-normal font-['Poppins'] leading-[30px] ml-1">
+        Back
+      </span>
+    </Link>
+  );
+};
+
+// Memoized Responsive Image Component
+const ResponsiveImage = ({ isMobile = false }: { isMobile?: boolean }) => (
+  <div className={`relative ${isMobile
+    ? 'w-50 h-50 md:w-58 md:h-58'
+    : 'w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 2xl:w-[28rem] 2xl:h-[28rem]'
+    }`}>
+    <Image
+      src="/down-1.png"
+      alt="Maintenance illustration showing system upgrades in progress"
+      fill
+      className="object-contain"
+      sizes={isMobile ? "(max-width: 768px) 100vw" : "(min-width: 1024px) 50vw"}
+
+      quality={90}
+      priority={!isMobile}
+    />
+  </div>
+);
 
 export default function Down() {
   return (
@@ -14,16 +59,19 @@ export default function Down() {
       </div>
 
       {/* Main Content Area */}
-      <div className="min-h-screen overflow-hidden bg-white">
+      <main className="min-h-screen overflow-visible bg-white">
         {/* Background Image Container */}
         <div className="relative w-full h-screen flex items-center justify-center -mt-[150px] sm:-mt-[120px] md:-mt-[100px] lg:-mt-[150px]">
           {/* Background Image */}
           <div className="absolute inset-0 z-10">
             <Image
               src="/404-1.svg"
-              alt="404 background"
+              alt=""
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
+              priority={true}
+              quality={85}
+              aria-hidden="true"
             />
           </div>
 
@@ -61,40 +109,9 @@ export default function Down() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
   );
 }
-
-// Back Button Component
-const BackButton = () => (
-  <Link
-    href="/"
-    className="inline-flex items-center text-[#6c6c6c] hover:text-[#5a5a5a] transition-colors duration-200 mb-4 sm:mb-6"
-  >
-    <span className="text-lg sm:text-xl md:text-xl lg:text-xl xl:text-2xl font-normal font-['Potta_One'] leading-[30px]">
-      &lt;
-    </span>
-    <span className="text-base sm:text-lg md:text-lg lg:text-lg xl:text-xl font-normal font-['Poppins'] leading-[30px] ml-1">
-      Back
-    </span>
-  </Link>
-);
-
-// Responsive Image Component
-const ResponsiveImage = ({ isMobile = false }) => (
-  <div className={`relative ${isMobile
-    ? 'w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48'
-    : 'w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 2xl:w-[28rem] 2xl:h-[28rem]'
-    }`}>
-    <Image
-      src="/down-1.png"
-      alt="Maintenance Page Illustration"
-      fill
-      className="object-contain"
-      sizes={isMobile ? "(max-width: 768px) 100vw" : "(min-width: 1024px) 50vw"}
-    />
-  </div>
-);

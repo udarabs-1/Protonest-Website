@@ -43,20 +43,32 @@ export default function Footer() {
             {/* Desktop Footer (lg screens and up) */}
             <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[450px] xl:h-[520px] 2xl:h-[578px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
                 <div className="rounded-b-[25px] relative h-full overflow-hidden">
-                    {/* Background GIF - Replaced with Image component */}
+                    {/* Background Video - Convert GIF to video for better performance */}
                     <div className="absolute inset-0 z-0">
-                        <Image
-                            src="/footerWeb.gif"
-                            alt="Footer background"
-                            fill
-                            style={{
-                                objectFit: 'cover',
-                                objectPosition: 'center'
-                            }}
-                            quality={100}
-                            priority={true}
-                            unoptimized={true}
-                        />
+                        <video
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: 'center' }}
+                        >
+                            <source src="/footerWeb.webm" type="video/webm" />
+                            <source src="/footerWeb.mp4" type="video/mp4" />
+                            {/* Fallback to optimized image if video fails */}
+                            <Image
+                                src="/footerWeb.gif"
+                                alt="Footer background"
+                                fill
+                                style={{
+                                    objectFit: 'cover',
+                                    objectPosition: 'center'
+                                }}
+                                quality={60}
+                                priority={false}
+                                sizes="100vw"
+                            />
+                        </video>
                     </div>
 
                     {/* Gradient Overlay */}
@@ -66,9 +78,12 @@ export default function Footer() {
                         <div className="w-full flex lg:pt-[120px] xl:pt-[150px] 2xl:pt-[180px] justify-between">
                             <Image
                                 src="/logo.png"
-                                alt="Logo"
+                                alt="Protonest Logo"
                                 width={149}
                                 height={106}
+                                priority={false}
+                                quality={90}
+                                sizes="(max-width: 1024px) 120px, (max-width: 1280px) 135px, 149px"
                                 className="lg:w-[120px] lg:h-[85px] xl:w-[135px] xl:h-[96px] 2xl:w-[149px] 2xl:h-[106px]"
                             />
                             <div className="flex flex-col justify-center">
@@ -82,17 +97,17 @@ export default function Footer() {
                                         Home
                                     </Link>
                                     <Link
-                                        href="/down"
-                                        className={getNavLinkClass('/careers', true)}
-                                        onMouseEnter={() => handleMouseEnter('/careers')}
+                                        href="/find-jobs"
+                                        className={getNavLinkClass('/find-jobs', true)}
+                                        onMouseEnter={() => handleMouseEnter('/find-jobs')}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         Careers
                                     </Link>
                                     <Link
-                                        href="/down"
-                                        className={getNavLinkClass('/research', true)}
-                                        onMouseEnter={() => handleMouseEnter('/research')}
+                                        href="/research-and-project"
+                                        className={getNavLinkClass('/research-and-project', true)}
+                                        onMouseEnter={() => handleMouseEnter('/research-and-project')}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         Research
@@ -168,20 +183,32 @@ export default function Footer() {
 
             {/* Mobile Footer (lg screens and down) */}
             <div className="block lg:hidden w-full h-[643px] md:h-[720px] relative">
-                {/* Background GIF with margins - Replaced with Image component */}
+                {/* Background Video with margins - Convert GIF to video for better performance */}
                 <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
-                    <Image
-                        src="/footerMobile.gif"
-                        alt="Footer background"
-                        fill
-                        style={{
-                            objectFit: 'cover',
-                            objectPosition: 'center'
-                        }}
-                        quality={100}
-                        priority={true}
-                        unoptimized={true}
-                    />
+                    <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: 'center' }}
+                    >
+                        <source src="/footerMobile.webm" type="video/webm" />
+                        <source src="/footerMobile.mp4" type="video/mp4" />
+                        {/* Fallback to optimized image if video fails */}
+                        <Image
+                            src="/footerMobile.gif"
+                            alt="Footer background"
+                            fill
+                            style={{
+                                objectFit: 'cover',
+                                objectPosition: 'center'
+                            }}
+                            quality={50}
+                            priority={false}
+                            sizes="100vw"
+                        />
+                    </video>
                 </div>
 
                 {/* Gradient Overlay with same margins */}
@@ -193,9 +220,12 @@ export default function Footer() {
                     <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
                         <Image
                             src="/logo.png"
-                            alt="Logo"
-                            width={149}
-                            height={106}
+                            alt="Protonest Logo"
+                            width={170}
+                            height={120}
+                            priority={false}
+                            quality={90}
+                            sizes="(max-width: 768px) 149px, 170px"
                             className="w-full h-full"
                         />
                     </div>
@@ -236,10 +266,10 @@ export default function Footer() {
                             <Link href="/" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/', false)}`}>Home</div>
                             </Link>
-                            <Link href="/down" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/careers', false)}`}>Careers</div>
+                            <Link href="/find-jobs" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/find-jobs', false)}`}>Careers</div>
                             </Link>
-                            <Link href="/down" className="inline-flex justify-start items-center gap-[7px]">
+                            <Link href="/research-and-project" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>
                             </Link>
                         </div>

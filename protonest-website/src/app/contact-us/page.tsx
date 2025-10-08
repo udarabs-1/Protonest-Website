@@ -5,7 +5,7 @@ import { useState } from "react";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import StatusModal from "../components/StatusModel";
+import StatusModal from "../components/status-model";
 import Testimonials from "../components/testimonials-contact";
 
 export default function Contact() {
@@ -33,7 +33,7 @@ export default function Contact() {
     setSubmitStatus('');
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export default function Contact() {
         setFormData({ name: '', email: '', message: '' }); // Reset form
       } else {
         setSubmitStatus('error');
-        console.error('Error:', result.error);
+        console.error('Error:', result.message || result.error);
       }
     } catch (error) {
       setSubmitStatus('error');
@@ -117,6 +117,9 @@ export default function Contact() {
               src="/contact-1.svg"
               alt="Contact page hero background"
               fill
+              priority={true}
+              quality={75}
+              sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               className="absolute inset-0"
             />
@@ -160,8 +163,11 @@ export default function Contact() {
             <div className="block md:hidden">
               <Image
                 src="/contact-2-mobile.svg"
-                alt="Mobile background with decorative elements"
+                alt="Contact form background mobile"
                 fill
+                priority={false}
+                quality={65}
+                sizes="(max-width: 768px) 100vw, 0px"
                 style={{ objectFit: 'cover', objectPosition: 'center' }}
               />
             </div>
@@ -169,8 +175,11 @@ export default function Contact() {
             <div className="hidden md:block max-w-[1440px] ml-auto h-full">
               <Image
                 src="/contact-2.webp"
-                alt="Background with decorative elements"
+                alt="Contact form background desktop"
                 fill
+                priority={false}
+                quality={70}
+                sizes="(min-width: 768px) 100vw, 0px"
                 style={{ objectFit: 'cover', objectPosition: 'right' }}
               />
             </div>
@@ -264,8 +273,11 @@ export default function Contact() {
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
                 src="/contact-3.svg"
-                alt="Contact background"
+                alt="Contact cards background"
                 fill
+                priority={false}
+                quality={65}
+                sizes="(min-width: 768px) 100vw, 0px"
                 style={{ objectFit: 'cover', objectPosition: 'center' }}
                 className="w-full h-full"
               />

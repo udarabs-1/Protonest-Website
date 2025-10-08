@@ -3,13 +3,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-type DropdownKey = 'whats-new' | 'jobs';
+type DropdownKey = 'whats-new';
 
 interface DropdownItem {
-    id: string; // Added unique ID field
+    id: string;
     href: string;
     label: string;
     description: string;
@@ -20,23 +20,27 @@ interface NavItem {
     label: string;
     hasDropdown?: boolean;
     key?: DropdownKey;
+    isConditional?: boolean;
 }
 
 export default function Navbar() {
     const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+    const [isUserSignedIn, setIsUserSignedIn] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
+
+    // Check if user is signed in
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        setIsUserSignedIn(!!token);
+    }, []);
 
     const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
         "whats-new": [
             { id: "whats-new-blog", href: "/blog", label: "Blog", description: "Insights, trends & stories from the IoT frontier." },
-            { id: "whats-new-research", href: "/down", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
-        ],
-        "jobs": [
-            { id: "jobs-home", href: "/down", label: "Careers Home", description: "Join the Protonest freelance network." },
-            { id: "jobs-categories", href: "/down", label: "Career Categories", description: "Browse roles by tech focus — firmware, design, etc." },
-            { id: "jobs-cv", href: "/down", label: "Submit Your CV", description: "Upload your CV to get matched to open roles." }
+            { id: "whats-new-research", href: "/research-and-project", label: "Research & Projects", description: "Explore our work and research conducted by our team" },
         ],
     };
 
@@ -56,17 +60,31 @@ export default function Navbar() {
         setMobileMenuOpen(false);
     };
 
+    // Handle conditional navigation for Find Jobs
+    const handleFindJobsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        if (isUserSignedIn) {
+            router.push('/dashboard/all-jobs');
+        } else {
+            router.push('/find-jobs');
+        }
+        handleNavigation();
+    };
+
     const navItems: NavItem[] = [
         { href: "/", label: "Home" },
         { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
-        { href: "/jobs", label: "Find Jobs", hasDropdown: true, key: "jobs" },
+        { href: "/find-jobs", label: "Find Jobs", isConditional: true },
         { href: "/contact-us", label: "Contact Us" }
     ];
 
     const isNavItemActive = (item: NavItem) => {
         if (item.hasDropdown) {
             return activeDropdown === item.key;
+        }
+        if (item.isConditional && isUserSignedIn) {
+            return pathname === '/dashboard/all-jobs';
         }
         return pathname === item.href;
     };
@@ -117,6 +135,9 @@ export default function Navbar() {
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
 
+    // Only show the account button on the find-jobs page or dashboard
+    const showAccountButton = pathname === "/find-jobs" || pathname.startsWith('/dashboard');
+
     return (
         <div>
             {/* Desktop Navigation (lg screens and up) */}
@@ -128,10 +149,13 @@ export default function Navbar() {
                                 <div className="flex items-center">
                                     <Link href="/" onClick={handleNavigation}>
                                         <Image
-                                            src="/logo.png"
-                                            alt="Logo"
-                                            width={90}
-                                            height={64}
+                                            src="/logo.webp"
+                                            alt="Company Logo"
+                                            width={100}
+                                            height={71}
+                                            priority={true}
+                                            quality={95}
+                                            sizes="(max-width: 1024px) 80px, (max-width: 1280px) 90px, 100px"
                                             className="lg:w-[80px] lg:h-[57px] xl:w-[90px] xl:h-[64px] 2xl:w-[100px] 2xl:h-[71px]"
                                         />
                                     </Link>
@@ -142,6 +166,7 @@ export default function Navbar() {
                                         const showGradient = shouldShowGradient(item);
                                         const hasDropdown = item.hasDropdown;
                                         const isHovered = hoveredItem === item.href;
+                                        const isConditional = item.isConditional;
 
                                         return (
                                             <div key={item.href} className="relative">
@@ -155,6 +180,8 @@ export default function Navbar() {
                                                             if (hasDropdown && item.key) {
                                                                 e.preventDefault();
                                                                 toggleDropdown(item.key);
+                                                            } else if (isConditional) {
+                                                                handleFindJobsClick(e);
                                                             } else {
                                                                 handleNavigation();
                                                             }
@@ -218,14 +245,18 @@ export default function Navbar() {
                                     })}
                                 </div>
 
-                                <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                    <Link
-                                        href="/down"
-                                        className="flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
-                                    >
-                                        Sign In
-                                    </Link>
-                                </div>
+                                {showAccountButton ? (
+                                    <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
+                                        <Link
+                                            href={isUserSignedIn ? "/dashboard" : "/signin"}
+                                            className="flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                        >
+                                            My Account
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px]"></div>
+                                )}
                             </div>
                         </div>
                     </nav>
@@ -257,7 +288,6 @@ export default function Navbar() {
                                             {dropdownItems[activeDropdown].map((dropdownItem, index) => (
                                                 <motion.div
                                                     key={dropdownItem.id}
-
                                                     custom={index}
                                                     initial="closed"
                                                     animate="open"
@@ -312,32 +342,42 @@ export default function Navbar() {
                         <div className="flex justify-between items-center max-w-7xl mx-auto">
                             <Link href="/" onClick={handleNavigation}>
                                 <Image
-                                    src="/logo.png"
-                                    alt="Logo"
-                                    width={90}
-                                    height={64}
+                                    src="/logo.webp"
+                                    alt="Company Logo"
+                                    width={100}
+                                    height={71}
+                                    priority={true}
+                                    quality={95}
+                                    sizes="(max-width: 768px) 90px, 100px"
                                     className="w-[90px] md:w-[100px] h-16 md:h-18"
                                 />
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                <Link
-                                    href="/down"
-                                    className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
-                                >
-                                    <span className="text-sm font-medium font-montserrat">Sign In</span>
-                                </Link>
+                                {showAccountButton && (
+                                    <Link
+                                        href={isUserSignedIn ? "/dashboard" : "/signin"}
+                                        className="h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
+                                    >
+                                        <span className="text-sm font-medium font-montserrat">
+                                            My Account
+                                        </span>
+                                    </Link>
+                                )}
 
                                 <button
                                     className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] hover:scale-105 transition-transform"
                                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    aria-label="Toggle mobile menu"
                                 >
                                     <Image
                                         src="/menu.svg"
-                                        alt="Menu Toggle Icon"
-                                        width={38}
-                                        height={38}
+                                        alt=""
+                                        width={44}
+                                        height={44}
                                         className="w-full h-full"
+                                        priority={false}
+                                        quality={90}
                                     />
                                 </button>
                             </div>
@@ -356,21 +396,27 @@ export default function Navbar() {
                                 <div className="w-[250px] md:w-[350px] h-16 md:h-20 left-[34px] md:left-[35px] top-[35px] md:top-[32px] absolute">
                                     <Image
                                         className="w-[90px] md:w-[100px] h-16 md:h-18 left-0 top-0 absolute"
-                                        src="/logo.png"
-                                        alt="Logo"
-                                        width={90}
-                                        height={64}
+                                        src="/logo.webp"
+                                        alt="Company Logo"
+                                        width={100}
+                                        height={71}
+                                        priority={false}
+                                        quality={95}
+                                        sizes="(max-width: 768px) 90px, 100px"
                                     />
                                     <button
                                         className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] left-[212px] md:left-[306px] top-[13px] md:top-[18px] absolute hover:scale-105 transition-transform"
                                         onClick={() => setMobileMenuOpen(false)}
+                                        aria-label="Close mobile menu"
                                     >
                                         <Image
                                             src="/menu.svg"
-                                            alt="Close Menu"
-                                            width={38}
-                                            height={38}
+                                            alt=""
+                                            width={44}
+                                            height={44}
                                             className="w-full h-full"
+                                            priority={false}
+                                            quality={90}
                                         />
                                     </button>
                                 </div>
@@ -379,6 +425,7 @@ export default function Navbar() {
                                     {navItems.map((item, index) => {
                                         const showGradient = shouldShowGradient(item);
                                         const hasDropdown = item.hasDropdown;
+                                        const isConditional = item.isConditional;
 
                                         return (
                                             <div key={index} className="w-full">
@@ -427,9 +474,15 @@ export default function Navbar() {
                                                     <Link
                                                         href={item.href}
                                                         className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full hover:scale-105 transition-transform origin-left"
-                                                        onClick={handleNavigation}
+                                                        onClick={(e) => {
+                                                            if (isConditional) {
+                                                                handleFindJobsClick(e);
+                                                            } else {
+                                                                handleNavigation();
+                                                            }
+                                                        }}
                                                     >
-                                                        <span className={`text-base md:text-lg font-montserrat transition-all duration-200 ${pathname === item.href
+                                                        <span className={`text-base md:text-lg font-montserrat transition-all duration-200 ${pathname === item.href || (isConditional && isUserSignedIn && pathname === '/dashboard/all-jobs')
                                                             ? 'text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text'
                                                             : 'text-[#83848b] hover:text-[#f51da5]'}`}
                                                         >

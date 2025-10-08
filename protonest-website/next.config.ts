@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       {
         source: '/our-services',
         destination: '/',
-        permanent: true, // 301 redirect
+        permanent: true,
       },
       {
         source: '/welcome-to-protonest-where-iot-ideas-take-flight',
@@ -15,6 +15,28 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'protonestwebsite.blob.core.windows.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
+  compress: true,
+  poweredByHeader: false,
 };
 
 export default nextConfig;

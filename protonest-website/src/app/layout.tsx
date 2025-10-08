@@ -1,10 +1,8 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from 'next/font/google';
-import LoadingScreen from './components/LoadingScreen';
-import PageViewTracker from './components/PageViewTracker';
+import PageViewTracker from './components/page-view-tracker';
 import "./globals.css";
-import { LoadingProvider } from './providers/LoadingProvider';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -32,13 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable} ${poppins.variable}`}>
       <body>
-        <LoadingProvider>
-          <LoadingScreen logoSrc="/logo.png" />
-          <main>
-            <PageViewTracker />
-            {children}
-          </main>
-        </LoadingProvider>
+        <main>
+          <PageViewTracker />
+          {children}
+        </main>
         {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>

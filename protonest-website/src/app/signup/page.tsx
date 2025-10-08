@@ -1,0 +1,1034 @@
+"use client";
+
+import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+// Google OAuth types - completely isolated to avoid conflicts
+interface SignUpGoogleOAuthConfig {
+    client_id: string;
+    callback: (response: GoogleCredentialResponse) => void;
+    auto_select: boolean;
+    cancel_on_tap_outside: boolean;
+    use_fedcm_for_prompt?: boolean;
+    itp_support?: boolean;
+    ux_mode?: 'popup' | 'redirect';
+    context?: 'signin' | 'signup' | 'use';
+}
+
+interface SignUpGoogleAccounts {
+    id: {
+        initialize: (config: SignUpGoogleOAuthConfig) => void;
+        prompt: (callback?: (notification: SignUpPromptMomentNotification) => void) => void;
+        renderButton: (element: HTMLElement, options: {
+            theme?: 'outline' | 'filled_blue' | 'filled_black';
+            size?: 'large' | 'medium' | 'small';
+            width?: number;
+        }) => void;
+    };
+}
+
+interface SignUpGoogleAPI {
+    accounts: SignUpGoogleAccounts;
+}
+
+interface SignUpPromptMomentNotification {
+    isNotDisplayed: () => boolean;
+    getNotDisplayedReason: () => string;
+    isSkippedMoment: () => boolean;
+    getSkippedReason: () => string;
+    isDismissedMoment: () => boolean;
+    getDismissedReason: () => string;
+}
+
+interface PendingJobApplication {
+    jobId: string;
+    jobTitle: string;
+    timestamp: number;
+}
+
+interface GoogleCredentialResponse {
+    credential: string;
+    select_by: string;
+}
+
+interface DecodedGooglePayload {
+    email: string;
+    given_name: string;
+    family_name: string;
+    sub: string;
+    email_verified: boolean;
+    [key: string]: unknown;
+}
+
+// Helper functions to safely access window properties - memoized
+const getWindowGoogle = (): SignUpGoogleAPI | undefined => {
+    return (window as Record<string, unknown>)?.google as SignUpGoogleAPI | undefined;
+};
+
+const getWindowGoogleInitialized = (): boolean => {
+    return ((window as Record<string, unknown>)?.googleInitialized as boolean) || false;
+};
+
+const setWindowGoogleInitialized = (value: boolean): void => {
+    (window as Record<string, unknown>).googleInitialized = value;
+};
+
+// Memoized custom checkbox component
+const CustomCheckbox = ({
+    checked,
+    onChange,
+    label
+}: {
+    checked: boolean;
+    onChange: () => void;
+    label: string;
+}) => (
+    <button
+        type="button"
+        onClick={onChange}
+        className="flex items-center gap-2"
+        aria-checked={checked}
+        role="checkbox"
+        aria-label={label}
+    >
+        <div className={`w-4 h-4 rounded-xl outline-2 outline-offset-[-2px] ${checked ? 'outline-[#5530fa]' : 'outline-[#949494]'}`}>
+            {checked && (
+                <div className="w-2.5 h-2.5 mx-auto mt-[3px] bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full" />
+            )}
+        </div>
+        <span className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">{label}</span>
+    </button>
+);
+
+export default function SignUp() {
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [confirmPassword, setConfirmPassword] = useState<string>('');
+    const [firstName, setFirstName] = useState<string>('');
+    const [lastName, setLastName] = useState<string>('');
+    const [error, setError] = useState<string>('');
+    const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
+    const [jobUpdates, setJobUpdates] = useState<boolean>(true);
+    const [newsletter, setNewsletter] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
+    const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
+
+    // Memoized API configuration
+    const apiConfig = useMemo(() => ({
+        apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+        googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    }), []);
+
+    // Optimized event handlers with useCallback
+    const togglePassword = useCallback(() => {
+        setShowPassword(prev => !prev);
+    }, []);
+
+    const toggleConfirmPassword = useCallback(() => {
+        setShowConfirmPassword(prev => !prev);
+    }, []);
+
+    const handleFirstNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFirstName(e.target.value);
+        if (error) setError('');
+    }, [error]);
+
+    const handleLastNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setLastName(e.target.value);
+        if (error) setError('');
+    }, [error]);
+
+    const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value);
+        if (error) setError('');
+    }, [error]);
+
+    const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.target.value);
+        if (error) setError('');
+    }, [error]);
+
+    const handleConfirmPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setConfirmPassword(e.target.value);
+        if (error) setError('');
+    }, [error]);
+
+    const toggleAgreedToTerms = useCallback(() => {
+        setAgreedToTerms(prev => !prev);
+    }, []);
+
+    // Handle Google OAuth response with improved error handling
+    const handleGoogleSignUp = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const payload: DecodedGooglePayload = JSON.parse(atob(response.credential.split('.')[1]));
+
+            const googleUserData = {
+                email: payload.email,
+                firstName: payload.given_name,
+                lastName: payload.family_name,
+                googleId: payload.sub,
+                verified: payload.email_verified
+            };
+
+            const pendingJobStr = localStorage.getItem('pendingJobApplication');
+            let skipTalentPool = false;
+            let jobId = '';
+
+            if (pendingJobStr) {
+                try {
+                    const pendingJobData: PendingJobApplication = JSON.parse(pendingJobStr);
+                    const isValid = Date.now() - pendingJobData.timestamp < 24 * 60 * 60 * 1000;
+                    if (isValid) {
+                        skipTalentPool = true;
+                        jobId = pendingJobData.jobId;
+                    }
+                } catch (error) {
+                    console.error('Error parsing pending job application:', error);
+                }
+            }
+
+            const requestData = {
+                first_name: googleUserData.firstName,
+                last_name: googleUserData.lastName,
+                email: googleUserData.email,
+                google_id: googleUserData.googleId,
+                job_updates: true,
+                newsletter: true,
+                skip_talent_pool: skipTalentPool,
+                oauth_provider: 'google',
+                ...(jobId && { job_id: jobId })
+            };
+
+            const signupResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/google-signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...requestData,
+                    id_token: response.credential
+                }),
+            });
+
+            const signupData = await signupResponse.json();
+
+            if (!signupResponse.ok) {
+                setError(signupData.message || 'Google signup failed. Please try again.');
+                setIsLoading(false);
+                return;
+            }
+
+            if (signupData.data && signupData.data.token) {
+                localStorage.setItem('jwtToken', signupData.data.token);
+                localStorage.setItem('userData', JSON.stringify(signupData.data.user));
+            }
+
+            // Create subscription
+            try {
+                const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: `${googleUserData.firstName} ${googleUserData.lastName}`,
+                        email: googleUserData.email,
+                        career_updates: true,
+                        newsletter: true
+                    }),
+                });
+
+                const subscriptionData = await subscriptionResponse.json();
+
+                if (!subscriptionResponse.ok) {
+                    console.warn('Subscription creation failed:', subscriptionData.message);
+                }
+            } catch (subscriptionError) {
+                console.warn('Subscription error:', subscriptionError);
+            }
+
+            if (pendingJobStr && jobId) {
+                window.location.href = '/dashboard';
+            } else {
+                window.location.href = '/submit-cv';
+            }
+
+        } catch (error) {
+            console.error('Google signup error:', error);
+            setError('Google signup failed. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [apiConfig.apiUrl]);
+
+    // Initialize Google OAuth with improved error handling
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !getWindowGoogleInitialized()) {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+
+            script.onload = () => {
+                try {
+                    const google = getWindowGoogle();
+                    if (google && google.accounts) {
+                        if (!apiConfig.googleClientId) {
+                            console.error('NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured');
+                            setGoogleLoadError(true);
+                            return;
+                        }
+
+                        google.accounts.id.initialize({
+                            client_id: apiConfig.googleClientId,
+                            callback: handleGoogleSignUp,
+                            auto_select: false,
+                            cancel_on_tap_outside: true,
+                            use_fedcm_for_prompt: false,
+                            itp_support: true,
+                            ux_mode: 'popup',
+                            context: 'signup'
+                        });
+
+                        setWindowGoogleInitialized(true);
+                        setGoogleLoadError(false);
+                    } else {
+                        console.error('Google accounts library not loaded properly');
+                        setGoogleLoadError(true);
+                    }
+                } catch (error) {
+                    console.error('Error initializing Google OAuth:', error);
+                    setGoogleLoadError(true);
+                }
+            };
+
+            script.onerror = () => {
+                console.error('Failed to load Google accounts script');
+                setGoogleLoadError(true);
+            };
+
+            document.head.appendChild(script);
+
+            return () => {
+                if (document.head.contains(script)) {
+                    document.head.removeChild(script);
+                }
+            };
+        }
+    }, [apiConfig.googleClientId, handleGoogleSignUp]);
+
+    // Check for pending job application on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const pendingJobStr = localStorage.getItem('pendingJobApplication');
+            if (pendingJobStr) {
+                try {
+                    const jobData: PendingJobApplication = JSON.parse(pendingJobStr);
+                    const isValid = Date.now() - jobData.timestamp < 24 * 60 * 60 * 1000;
+                    if (isValid) {
+                        setPendingJob(jobData);
+                    } else {
+                        localStorage.removeItem('pendingJobApplication');
+                    }
+                } catch {
+                    localStorage.removeItem('pendingJobApplication');
+                }
+            }
+        }
+    }, []);
+
+    // Handle Google Sign-In button click with improved error handling
+    const handleGoogleSignInClick = useCallback((): void => {
+        if (googleLoadError) {
+            setError('Google Sign-Up is not available. Please use manual sign-up.');
+            return;
+        }
+
+        try {
+            const google = getWindowGoogle();
+            if (google && google.accounts && google.accounts.id) {
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.position = 'fixed';
+                buttonContainer.style.top = '-9999px';
+                buttonContainer.style.left = '-9999px';
+                document.body.appendChild(buttonContainer);
+
+                try {
+                    google.accounts.id.renderButton(buttonContainer, {
+                        theme: 'outline',
+                        size: 'large',
+                        width: 250
+                    });
+
+                    setTimeout(() => {
+                        const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
+                        if (button) {
+                            button.click();
+                        }
+                        document.body.removeChild(buttonContainer);
+                    }, 100);
+                } catch (renderError) {
+                    console.warn('renderButton failed, falling back to prompt method:', renderError);
+                    document.body.removeChild(buttonContainer);
+
+                    google.accounts.id.prompt((notification: SignUpPromptMomentNotification) => {
+                        if (notification.isNotDisplayed()) {
+                            const reason = notification.getNotDisplayedReason();
+                            console.warn('Google sign-in prompt not displayed:', reason);
+
+                            if (reason === 'browser_not_supported' || reason === 'invalid_client') {
+                                setError('Google sign-in not supported. Please use manual sign-up.');
+                            } else {
+                                setError('Google sign-in unavailable. Please try manual sign-up.');
+                            }
+                        } else if (notification.isSkippedMoment()) {
+                            console.warn('Google sign-in prompt skipped:', notification.getSkippedReason());
+                        } else if (notification.isDismissedMoment()) {
+                            console.log('Google sign-in prompt dismissed:', notification.getDismissedReason());
+                        }
+                    });
+                }
+            } else {
+                console.error('Google accounts API not available');
+                setError('Google Sign-Up is not available. Please try manual sign-up.');
+            }
+        } catch (error) {
+            console.error('Error triggering Google sign-in:', error);
+            setError('Google sign-in failed. Please try manual sign-up.');
+        }
+    }, [googleLoadError]);
+
+    const handleSignUp = useCallback(async (): Promise<void> => {
+        setError('');
+
+        if (!email || !password || !confirmPassword || !firstName || !lastName || !agreedToTerms) {
+            setError('Please fill in all required fields');
+            return;
+        }
+
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const pendingJobStr = localStorage.getItem('pendingJobApplication');
+            let skipTalentPool = false;
+            let jobId = '';
+
+            if (pendingJobStr) {
+                try {
+                    const pendingJobData: PendingJobApplication = JSON.parse(pendingJobStr);
+                    const isValid = Date.now() - pendingJobData.timestamp < 24 * 60 * 60 * 1000;
+                    if (isValid) {
+                        skipTalentPool = true;
+                        jobId = pendingJobData.jobId;
+                    }
+                } catch (error) {
+                    console.error('Error parsing pending job application:', error);
+                }
+            }
+
+            const requestData = {
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password,
+                job_updates: jobUpdates,
+                newsletter: newsletter,
+                skip_talent_pool: skipTalentPool,
+                ...(jobId && { job_id: jobId })
+            };
+
+            const signupResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            const signupData = await signupResponse.json();
+
+            if (!signupResponse.ok) {
+                setError(signupData.message || 'Signup failed. Please try again.');
+                setIsLoading(false);
+                return;
+            }
+
+            if (signupData.data && signupData.data.token) {
+                localStorage.setItem('jwtToken', signupData.data.token);
+                localStorage.setItem('userData', JSON.stringify(signupData.data.user));
+            }
+
+            if (jobUpdates || newsletter) {
+                try {
+                    const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: `${firstName} ${lastName}`,
+                            email: email,
+                            career_updates: jobUpdates,
+                            newsletter: newsletter
+                        }),
+                    });
+
+                    const subscriptionData = await subscriptionResponse.json();
+
+                    if (!subscriptionResponse.ok) {
+                        console.warn('Subscription creation failed:', subscriptionData.message);
+                    }
+                } catch (subscriptionError) {
+                    console.warn('Subscription error:', subscriptionError);
+                }
+            }
+
+            if (pendingJobStr && jobId) {
+                window.location.href = '/dashboard';
+            } else {
+                window.location.href = '/submit-cv';
+            }
+
+        } catch (error) {
+            console.error('Signup error:', error);
+            setError('Network error. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [firstName, lastName, email, password, confirmPassword, agreedToTerms, jobUpdates, newsletter, apiConfig.apiUrl]);
+
+    // Memoized form validation
+    const isFormValid = useMemo(() => {
+        return email.trim() !== '' &&
+            password.trim() !== '' &&
+            confirmPassword.trim() !== '' &&
+            firstName.trim() !== '' &&
+            lastName.trim() !== '' &&
+            agreedToTerms;
+    }, [email, password, confirmPassword, firstName, lastName, agreedToTerms]);
+
+    // Memoized title component
+    const getTitle = useCallback((): React.ReactElement => {
+        if (pendingJob) {
+            return (
+                <>
+                    <span className="text-gray-400">Join the </span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest </span>
+                    <span className="text-gray-400">Team</span>
+                </>
+            );
+        } else {
+            return (
+                <>
+                    <span className="text-gray-400">Join the </span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest </span>
+                    <span className="text-gray-400">Talent Pool</span>
+                </>
+            );
+        }
+    }, [pendingJob]);
+
+    return (
+        <div className="bg-white">
+            {/* Mobile/Tablet Layout (sm to md) */}
+            <div className="block lg:hidden">
+                <div className="relative w-full min-h-screen bg-white">
+                    {/* Background Gradients */}
+                    <div className="absolute inset-0 opacity-20 pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
+                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
+                        </div>
+                    </div>
+
+                    {/* Side Gradients for Visual Effect */}
+                    <div className="absolute left-0 top-64 w-10 h-72 bg-gradient-to-r from-white/0 to-white sm:hidden pointer-events-none" />
+                    <div className="absolute left-0 top-96 w-10 h-60 bg-gradient-to-r from-white/0 to-white hidden sm:block md:hidden pointer-events-none" />
+
+                    {/* Main Container */}
+                    <div className="relative z-10 pb-8">
+                        {/* Header with Logo */}
+                        <header className="pt-11 px-4 sm:px-8 md:px-16">
+                            <Image
+                                src="/logo.png"
+                                alt="Protonest Logo"
+                                width={112}
+                                height={80}
+                                priority
+                                className="w-25 sm:w-30 md:w-35 object-contain"
+                            />
+                        </header>
+
+                        {/* Content Area */}
+                        <main className="px-4 sm:px-8 md:px-16 pt-8 sm:pt-12 md:pt-16">
+                            {/* Title */}
+                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-6 sm:mb-8 md:mb-10">
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
+                                    {getTitle()}
+                                </h1>
+                            </div>
+
+                            {/* Form Container with Scrollable Area */}
+                            <form className="w-full max-h-[60vh] overflow-y-auto pr-2 space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+                                {/* Google Sign In */}
+                                <button
+                                    type="button"
+                                    onClick={handleGoogleSignInClick}
+                                    disabled={isLoading || googleLoadError}
+                                    className="w-full h-14 sm:h-16 md:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 sm:gap-5 md:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    aria-label="Sign up with Google"
+                                >
+                                    <Image
+                                        src="/google.svg"
+                                        alt=""
+                                        width={40}
+                                        height={40}
+                                        className="w-8 h-8 sm:w-10 sm:h-10"
+                                    />
+                                    <span className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
+                                        {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
+                                    </span>
+                                </button>
+
+                                {/* Divider */}
+                                <div className="flex items-center space-x-4 my-6 sm:my-8">
+                                    <div className="flex-1 h-px bg-gray-300"></div>
+                                    <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">or continue</span>
+                                    <div className="flex-1 h-px bg-gray-300"></div>
+                                </div>
+
+                                {/* Name Inputs */}
+                                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                                    <div className="w-full sm:w-1/2 h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                        <input
+                                            type="text"
+                                            placeholder="First Name"
+                                            value={firstName}
+                                            onChange={handleFirstNameChange}
+                                            className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
+                                            required
+                                            aria-label="First Name"
+                                        />
+                                    </div>
+                                    <div className="w-full sm:w-1/2 h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                        <input
+                                            type="text"
+                                            placeholder="Last Name"
+                                            value={lastName}
+                                            onChange={handleLastNameChange}
+                                            className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
+                                            required
+                                            aria-label="Last Name"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Email Input */}
+                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        value={email}
+                                        onChange={handleEmailChange}
+                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
+                                        required
+                                        aria-label="Email"
+                                    />
+                                </div>
+
+                                {/* Password Input */}
+                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Password with 8 or more characters"
+                                        value={password}
+                                        onChange={handlePasswordChange}
+                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
+                                        required
+                                        aria-label="Password"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={togglePassword}
+                                        className="text-gray-400"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+
+                                {/* Confirm Password Input */}
+                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Re-enter password"
+                                        value={confirmPassword}
+                                        onChange={handleConfirmPasswordChange}
+                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
+                                        required
+                                        aria-label="Confirm Password"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={toggleConfirmPassword}
+                                        className="text-gray-400"
+                                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+
+                                {/* Job Updates Subscription */}
+                                <div className="space-y-2">
+                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
+                                        Would you like to subscribe to our careers page and receive updates of future job postings via email? You can change this any time.
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <CustomCheckbox
+                                            checked={jobUpdates}
+                                            onChange={() => setJobUpdates(true)}
+                                            label="Yes"
+                                        />
+                                        <CustomCheckbox
+                                            checked={!jobUpdates}
+                                            onChange={() => setJobUpdates(false)}
+                                            label="No"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Newsletter Subscription */}
+                                <div className="space-y-2">
+                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
+                                        Would you like to subscribe to the Protonest Newsletter and receive updates on recent news and blog posts on our site? You can change this anytime.
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <CustomCheckbox
+                                            checked={newsletter}
+                                            onChange={() => setNewsletter(true)}
+                                            label="Yes"
+                                        />
+                                        <CustomCheckbox
+                                            checked={!newsletter}
+                                            onChange={() => setNewsletter(false)}
+                                            label="No"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Terms and Conditions */}
+                                <div className="flex items-center gap-3">
+                                    <CustomCheckbox
+                                        checked={agreedToTerms}
+                                        onChange={toggleAgreedToTerms}
+                                        label=""
+                                    />
+                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
+                                        I understand and agree to the{' '}
+                                        <span className="underline">Protonest Terms and Conditions</span> and{' '}
+                                        <span className="underline">Privacy Policy</span>
+                                    </div>
+                                </div>
+
+                                {/* Error Message */}
+                                {error && (
+                                    <div className="text-red-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']" role="alert">
+                                        {error}
+                                    </div>
+                                )}
+                            </form>
+
+                            {/* Continue Button */}
+                            <div className="mt-6">
+                                <button
+                                    onClick={handleSignUp}
+                                    disabled={isLoading || !isFormValid}
+                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] outline outline-offset-[-1px] text-white text-base sm:text-lg md:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading ? 'Processing...' : 'Continue to Upload the CV to Sign Up'}
+                                </button>
+                            </div>
+
+                            {/* Sign In Link */}
+                            <div className="w-full mt-6 sm:mt-8 md:mt-10">
+                                <div className="text-center">
+                                    <span className="text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
+                                    <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                        Sign In
+                                    </Link>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop Layout (lg and above) */}
+            <div className="hidden lg:block">
+                <div className="relative w-full min-h-screen bg-white">
+                    {/* Background Gradients */}
+                    <div className="absolute inset-0 opacity-20 pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
+                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
+                        </div>
+                    </div>
+
+                    {/* Main Grid Container */}
+                    <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
+                        {/* Left Side - Form */}
+                        <div className="flex flex-col justify-center min-h-screen">
+                            <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
+                                {/* Logo */}
+                                <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
+                                    <Image
+                                        src="/logo.png"
+                                        alt="Protonest Logo"
+                                        width={112}
+                                        height={80}
+                                        priority
+                                        className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain"
+                                    />
+                                </header>
+
+                                {/* Title */}
+                                <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
+                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-medium font-['Montserrat'] leading-tight">
+                                        {getTitle()}
+                                    </h1>
+                                </div>
+
+                                {/* Form Container with Scrollable Area */}
+                                <form className="max-w-2xl max-h-[50vh] overflow-y-auto pr-4 space-y-4 lg:space-y-3 xl:space-y-4 2xl:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+                                    {/* Google Sign In */}
+                                    <button
+                                        type="button"
+                                        onClick={handleGoogleSignInClick}
+                                        disabled={isLoading || googleLoadError}
+                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 lg:gap-3 xl:gap-4 2xl:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        aria-label="Sign up with Google"
+                                    >
+                                        <Image
+                                            src="/google.svg"
+                                            alt=""
+                                            width={48}
+                                            height={48}
+                                            className="w-9 h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 2xl:w-12 2xl:h-12"
+                                        />
+                                        <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
+                                        </span>
+                                    </button>
+
+                                    {/* Divider */}
+                                    <div className="flex items-center space-x-4 my-6 lg:my-4 xl:my-6 2xl:my-8">
+                                        <div className="flex-1 h-px bg-gray-300"></div>
+                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">or continue</span>
+                                        <div className="flex-1 h-px bg-gray-300"></div>
+                                    </div>
+
+                                    {/* Name Inputs */}
+                                    <div className="flex gap-6">
+                                        <div className="w-1/2 h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                            <input
+                                                type="text"
+                                                placeholder="First Name"
+                                                value={firstName}
+                                                onChange={handleFirstNameChange}
+                                                className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
+                                                required
+                                                aria-label="First Name"
+                                            />
+                                        </div>
+                                        <div className="w-1/2 h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                            <input
+                                                type="text"
+                                                placeholder="Last Name"
+                                                value={lastName}
+                                                onChange={handleLastNameChange}
+                                                className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
+                                                required
+                                                aria-label="Last Name"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Email Input */}
+                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
+                                        <input
+                                            type="email"
+                                            placeholder="Email"
+                                            value={email}
+                                            onChange={handleEmailChange}
+                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
+                                            required
+                                            aria-label="Email"
+                                        />
+                                    </div>
+
+                                    {/* Password Input */}
+                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Password with 8 or more characters"
+                                            value={password}
+                                            onChange={handlePasswordChange}
+                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
+                                            required
+                                            aria-label="Password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={togglePassword}
+                                            className="text-gray-400"
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+
+                                    {/* Confirm Password Input */}
+                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            placeholder="Re-enter password"
+                                            value={confirmPassword}
+                                            onChange={handleConfirmPasswordChange}
+                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
+                                            required
+                                            aria-label="Confirm Password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={toggleConfirmPassword}
+                                            className="text-gray-400"
+                                            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+
+                                    {/* Job Updates Subscription */}
+                                    <div className="space-y-2">
+                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            Would you like to subscribe to our careers page and receive updates of future job postings via email? You can change this any time.
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <CustomCheckbox
+                                                checked={jobUpdates}
+                                                onChange={() => setJobUpdates(true)}
+                                                label="Yes"
+                                            />
+                                            <CustomCheckbox
+                                                checked={!jobUpdates}
+                                                onChange={() => setJobUpdates(false)}
+                                                label="No"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Newsletter Subscription */}
+                                    <div className="space-y-2">
+                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            Would you like to subscribe to the Protonest Newsletter and receive updates on recent news and blog posts on our site? You can change this anytime.
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <CustomCheckbox
+                                                checked={newsletter}
+                                                onChange={() => setNewsletter(true)}
+                                                label="Yes"
+                                            />
+                                            <CustomCheckbox
+                                                checked={!newsletter}
+                                                onChange={() => setNewsletter(false)}
+                                                label="No"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Terms and Conditions */}
+                                    <div className="flex items-center gap-3">
+                                        <CustomCheckbox
+                                            checked={agreedToTerms}
+                                            onChange={toggleAgreedToTerms}
+                                            label=""
+                                        />
+                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            I understand and agree to the{' '}
+                                            <Link href="/terms-and-conditions" className="underline">
+                                                Protonest Terms and Conditions
+                                            </Link> and{' '}
+                                            <Link href="/privacy-policy" className="underline">
+                                                Privacy Policy
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    {/* Error Message */}
+                                    {error && (
+                                        <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']" role="alert">
+                                            {error}
+                                        </div>
+                                    )}
+                                </form>
+
+                                {/* Continue Button */}
+                                <div className="max-w-2xl mt-6">
+                                    <button
+                                        onClick={handleSignUp}
+                                        disabled={isLoading || !isFormValid}
+                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] outline outline-offset-[-1px] text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading ? 'Processing...' : 'Sign up and Continue to Upload CV'}
+                                    </button>
+                                </div>
+
+                                {/* Sign In Link */}
+                                <div className="max-w-2xl mt-8 lg:mt-6 xl:mt-8 2xl:mt-12 flex justify-center">
+                                    <div className="text-center">
+                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            Already have an account?
+                                        </span>
+                                        <Link href="/signin" className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
+                                            Sign In
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Side - Image */}
+                        <div className="flex items-stretch h-screen">
+                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
+                                <Image
+                                    src="/signup1.svg"
+                                    alt="Welcome illustration"
+                                    width={800}
+                                    height={600}
+                                    priority
+                                    className="w-full h-full object-cover rounded-tr-[67px] rounded-tl-[67px] rounded-br-[67px]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

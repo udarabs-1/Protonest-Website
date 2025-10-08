@@ -3,11 +3,11 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from 'react';
-import ClientMarquee from "../components/clientMarquee";
+import ClientMarquee from "../components/client-marquee";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import OurTeamSection from "../components/ourTeam";
-import { useOnScreen } from "../components/useOnScreen";
+import OurTeamSection from "../components/our-team";
+import { useOnScreen } from "../components/use-on-screen";
 
 // Value Card Component with mobile-friendly hover effects
 type ValueType = {
@@ -129,8 +129,12 @@ export default function About() {
               src="/about-1.svg"
               alt="About Protonest hero background"
               fill
+              priority={true}
+              quality={75}
+              sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               className="absolute inset-0"
+
             />
 
             <div className="block sm:hidden">
@@ -172,6 +176,9 @@ export default function About() {
               alt="Our Journey background mobile"
               width={768}
               height={500}
+              priority={false}
+              quality={65}
+              sizes="(max-width: 1024px) 100vw, 768px"
               className="absolute w-[350px] md:w-[500px] right-0 h-auto lg:hidden"
               style={{ objectPosition: 'right' }}
             />
@@ -180,6 +187,9 @@ export default function About() {
               src="/about-2.webp"
               alt="Our Journey background desktop"
               fill
+              priority={false}
+              quality={70}
+              sizes="(min-width: 1024px) 100vw, 0px"
               className="absolute w-[90%] h-auto right-0 hidden lg:block"
               style={{ objectFit: 'contain', objectPosition: 'right' }}
             />
@@ -214,8 +224,12 @@ export default function About() {
               src="/about-3.svg"
               alt="Trusted by pioneers background"
               fill
+              priority={false}
+              quality={70}
+              sizes="100vw"
               className="w-full max-w-[1440px] h-auto object-contain"
               style={{ objectFit: 'cover' }}
+
             />
           </div>
 
@@ -241,6 +255,9 @@ export default function About() {
               src="/about-4.svg"
               alt="Our Mission background"
               fill
+              priority={false}
+              quality={65}
+              sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
             />
           </div>
