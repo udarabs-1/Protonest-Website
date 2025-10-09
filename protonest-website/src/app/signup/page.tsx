@@ -75,6 +75,29 @@ const setWindowGoogleInitialized = (value: boolean): void => {
     (window as Record<string, unknown>).googleInitialized = value;
 };
 
+// Modal Component
+const MessageModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+                <div className="mb-4 text-4xl">⚠️</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 font-['Montserrat']">
+                    Account Notice
+                </h3>
+                <p className="text-gray-600 mb-6 font-['Poppins']">
+                    {message}
+                </p>
+                <button
+                    onClick={onClose}
+                    className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                >
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 // Memoized custom checkbox component
 const CustomCheckbox = ({
     checked,
@@ -117,6 +140,7 @@ export default function SignUp() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
+    const [modalMessage, setModalMessage] = useState<string>('');
 
     // Memoized API configuration
     const apiConfig = useMemo(() => ({
@@ -160,6 +184,10 @@ export default function SignUp() {
 
     const toggleAgreedToTerms = useCallback(() => {
         setAgreedToTerms(prev => !prev);
+    }, []);
+
+    const closeModal = useCallback(() => {
+        setModalMessage('');
     }, []);
 
     // Handle Google OAuth response with improved error handling
@@ -221,7 +249,12 @@ export default function SignUp() {
             const signupData = await signupResponse.json();
 
             if (!signupResponse.ok) {
-                setError(signupData.message || 'Google signup failed. Please try again.');
+                // Check for conflict status (409) - account already exists
+                if (signupResponse.status === 409) {
+                    setModalMessage(signupData.message || 'An account with this email already exists.');
+                } else {
+                    setModalMessage(signupData.message || 'Google signup failed. Please try again.');
+                }
                 setIsLoading(false);
                 return;
             }
@@ -466,7 +499,12 @@ export default function SignUp() {
             const signupData = await signupResponse.json();
 
             if (!signupResponse.ok) {
-                setError(signupData.message || 'Signup failed. Please try again.');
+                // Check for conflict status (409) - account already exists
+                if (signupResponse.status === 409) {
+                    setModalMessage(signupData.message || 'An account with this email already exists.');
+                } else {
+                    setError(signupData.message || 'Signup failed. Please try again.');
+                }
                 setIsLoading(false);
                 return;
             }
@@ -548,6 +586,8 @@ export default function SignUp() {
 
     return (
         <div className="bg-white">
+            {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
+
             {/* Mobile/Tablet Layout (sm to md) */}
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
@@ -742,8 +782,12 @@ export default function SignUp() {
                                     />
                                     <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
                                         I understand and agree to the{' '}
-                                        <span className="underline">Protonest Terms and Conditions</span> and{' '}
-                                        <span className="underline">Privacy Policy</span>
+                                        <Link href="/terms-and-conditions" className="underline">
+                                            Protonest Terms and Conditions
+                                        </Link> and{' '}
+                                        <Link href="/privacy-policy" className="underline">
+                                            Privacy Policy
+                                        </Link>
                                     </div>
                                 </div>
 

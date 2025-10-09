@@ -60,6 +60,29 @@ const setWindowGoogleInitialized = (value: boolean): void => {
     (window as Record<string, unknown>).googleInitialized = value;
 };
 
+// Modal Component
+const MessageModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+                <div className="mb-4 text-4xl">⚠️</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 font-['Montserrat']">
+                    Account Notice
+                </h3>
+                <p className="text-gray-600 mb-6 font-['Poppins']">
+                    {message}
+                </p>
+                <button
+                    onClick={onClose}
+                    className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                >
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 export default function ResponsiveSignIn() {
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
@@ -67,6 +90,7 @@ export default function ResponsiveSignIn() {
     const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
+    const [modalMessage, setModalMessage] = useState<string>('');
 
     // Memoized API configuration
     const apiConfig = useMemo(() => ({
@@ -81,13 +105,17 @@ export default function ResponsiveSignIn() {
 
     const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
-        if (error) setError(''); // Clear error when user starts typing
+        if (error) setError('');
     }, [error]);
 
     const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
-        if (error) setError(''); // Clear error when user starts typing
+        if (error) setError('');
     }, [error]);
+
+    const closeModal = useCallback(() => {
+        setModalMessage('');
+    }, []);
 
     // Handle Google OAuth response for sign-in with improved error handling
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
@@ -127,11 +155,11 @@ export default function ResponsiveSignIn() {
                 }
             } else {
                 if (signInResponse.status === 404) {
-                    setError('No Google account found. Please sign up with Google first.');
+                    setModalMessage('No Google account found. Please sign up with Google first.');
                 } else if (signInResponse.status === 400) {
-                    setError(signInData.message || 'Google sign in failed. Please check your account.');
+                    setModalMessage(signInData.message || 'This account was created with email and password. Please sign in with your email and password.');
                 } else {
-                    setError(signInData.message || 'Google sign in failed. Please try again.');
+                    setModalMessage(signInData.message || 'Google sign in failed. Please try again.');
                 }
             }
 
@@ -306,7 +334,11 @@ export default function ResponsiveSignIn() {
                     setError('Login successful but no token received');
                 }
             } else {
-                setError(data.message || 'Login failed. Please try again.');
+                if (response.status === 400 && data.message.includes('Google')) {
+                    setModalMessage(data.message);
+                } else {
+                    setError(data.message || 'Login failed. Please try again.');
+                }
             }
         } catch (error) {
             console.error('Sign in error:', error);
@@ -323,8 +355,11 @@ export default function ResponsiveSignIn() {
 
     return (
         <div className="bg-white">
+            {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
+
             {/* Mobile/Tablet Layout (sm to md) */}
             <div className="block lg:hidden">
+                {/* ... rest of the mobile layout remains the same ... */}
                 <div className="relative w-full min-h-screen bg-white">
                     {/* Background Gradients */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none">

@@ -1224,19 +1224,19 @@ export default function OnboardingPage() {
                         <div className="flex flex-col sm:flex-row gap-4 pt-8">
                             <button
                                 type="button"
+                                onClick={handleReset}
+                                disabled={isSubmitting}
+                                className="flex-1 max-w-1/6 px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                type="button"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
                                 className="flex-1 sm:max-w-md px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
                             >
                                 {getButtonText()}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleReset}
-                                disabled={isSubmitting}
-                                className="flex-1 sm:max-w-xs px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
-                            >
-                                Reset
                             </button>
                         </div>
                     </div>

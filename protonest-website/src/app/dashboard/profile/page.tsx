@@ -489,7 +489,7 @@ const ProfilePage = () => {
                             <div className="flex items-center">
                                 <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
                                     <Image
-                                        src="/profile-1.svg"
+                                        src={profileData.profileImage}
                                         alt="User Avatar"
                                         width={40}
                                         height={40}
@@ -543,7 +543,7 @@ const ProfilePage = () => {
                                     ))}
                                 </nav>
 
-                                <div className="pt-8">
+                                <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"

@@ -50,7 +50,6 @@ type Filters = {
     jobType: string[];
 };
 
-// Map role slugs to category names - memoized
 const roleToCategoryMap: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',
@@ -59,10 +58,9 @@ const roleToCategoryMap: { [key: string]: string } = {
     'mechanical': 'Mechanical Engineering',
     'embedded-firmware': 'Embedded Systems',
     'quality-assurance': 'Quality Assurance',
-    'other-roles': 'Other'
+    'other-roles': 'Other Roles'
 };
 
-// Map role slugs to display names - memoized
 const roleTitles: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',

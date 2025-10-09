@@ -4,18 +4,105 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+// Modal Component for Messages
+const MessageModal = ({
+    message,
+    onClose,
+    type = 'error'
+}: {
+    message: string;
+    onClose: () => void;
+    type?: 'error' | 'success' | 'info';
+}) => {
+    const getIcon = () => {
+        switch (type) {
+            case 'success':
+                return '✅';
+            case 'info':
+                return 'ℹ️';
+            case 'error':
+            default:
+                return '⚠️';
+        }
+    };
+
+    const getTitle = () => {
+        switch (type) {
+            case 'success':
+                return 'Success';
+            case 'info':
+                return 'Information';
+            case 'error':
+            default:
+                return 'Notice';
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                <div className="text-center">
+                    <div className="mb-4 text-4xl">{getIcon()}</div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4 font-['Montserrat']">
+                        {getTitle()}
+                    </h3>
+                    <p className="text-gray-600 mb-6 font-['Poppins']">
+                        {message}
+                    </p>
+                    <button
+                        onClick={onClose}
+                        className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                    >
+                        Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Success Modal Component
+const SuccessModal = () => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="w-full max-w-[833px] h-auto bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] backdrop-blur-[20px] p-8 md:p-12 relative">
+            <div className="flex flex-col items-center justify-center min-h-[300px]">
+                <div className="text-[80px] md:text-[120px] mb-6">📩</div>
+                <div className="text-center text-[#6c6c6c] text-lg md:text-[25px] font-normal font-['Poppins'] leading-[30px] px-4">
+                    We&apos;ve emailed you a secure link to reset your password
+                </div>
+                <Link
+                    href="/signin"
+                    className="mt-8 px-8 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                >
+                    Back to Sign In
+                </Link>
+            </div>
+        </div>
+    </div>
+);
+
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    const [modalType, setModalType] = useState<'error' | 'success' | 'info'>('error');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setModalMessage('');
 
         if (!email) {
             setError('Please enter your email address');
+            return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address');
             return;
         }
 
@@ -33,39 +120,52 @@ export default function ForgotPassword() {
             const data = await response.json();
 
             if (response.ok) {
+                // Success - show success modal
                 setShowSuccess(true);
             } else {
-                setError(data.error || 'Failed to send reset email. Please try again.');
+                // Handle different error cases
+                if (response.status === 404) {
+                    // User not found
+                    setModalType('error');
+                    setModalMessage(data.error || 'No account found with this email address. Please check your email or sign up for a new account.');
+                } else if (response.status === 400) {
+                    // OAuth user trying to reset password
+                    setModalType('info');
+                    setModalMessage(data.error || 'This account uses Google sign-in. Please use "Sign in with Google" to access your account.');
+                } else {
+                    // Other errors
+                    setModalType('error');
+                    setModalMessage(data.error || 'Failed to send reset email. Please try again.');
+                }
             }
         } catch (error) {
             console.error('Forgot password error:', error);
-            setError('Network error. Please try again.');
+            setModalType('error');
+            setModalMessage('Network error. Please check your connection and try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
+    const closeModal = () => {
+        setModalMessage('');
+    };
+
     return (
         <div className="bg-white">
-            {showSuccess && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="w-full max-w-[833px] h-auto bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] backdrop-blur-[20px] p-8 md:p-12 relative">
-                        <div className="flex flex-col items-center justify-center min-h-[300px]">
-                            <div className="text-[80px] md:text-[120px] mb-6">📩</div>
-                            <div className="text-center text-[#6c6c6c] text-lg md:text-[25px] font-normal font-['Poppins'] leading-[30px] px-4">
-                                We&apos;ve emailed you a secure link to reset your password
-                            </div>
-                            <Link
-                                href="/signin"
-                                className="mt-8 px-8 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
-                            >
-                                Back to Sign In
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+            {modalMessage && (
+                <MessageModal
+                    message={modalMessage}
+                    onClose={closeModal}
+                    type={modalType}
+                />
             )}
 
+            {showSuccess && (
+                <SuccessModal />
+            )}
+
+            {/* Mobile/Tablet Layout */}
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -105,7 +205,10 @@ export default function ForgotPassword() {
                                         type="email"
                                         placeholder="Email"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                            if (error) setError('');
+                                        }}
                                         className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] focus:outline-none"
                                         disabled={isLoading}
                                     />
@@ -136,6 +239,7 @@ export default function ForgotPassword() {
                 </div>
             </div>
 
+            {/* Desktop Layout */}
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -176,7 +280,10 @@ export default function ForgotPassword() {
                                             type="email"
                                             placeholder="Email"
                                             value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            onChange={(e) => {
+                                                setEmail(e.target.value);
+                                                if (error) setError('');
+                                            }}
                                             className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] focus:outline-none"
                                             disabled={isLoading}
                                         />

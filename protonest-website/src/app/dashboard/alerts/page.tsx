@@ -2,6 +2,8 @@
 
 import Footer from '@/app/components/footer';
 import {
+    AlertCircle,
+    CheckCircle,
     ChevronRight,
     LogOut,
     Menu,
@@ -19,6 +21,9 @@ const ManageAlertsPage = () => {
     const [newsletterEnabled, setNewsletterEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [showErrorDialog, setShowErrorDialog] = useState(false);
+    const [dialogMessage, setDialogMessage] = useState('');
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -102,11 +107,21 @@ const ManageAlertsPage = () => {
         router.push('/signin');
     };
 
+    const showSuccessMessage = (message: string) => {
+        setDialogMessage(message);
+        setShowSuccessDialog(true);
+    };
+
+    const showErrorMessage = (message: string) => {
+        setDialogMessage(message);
+        setShowErrorDialog(true);
+    };
+
     const updatePreferences = async (jobUpdates: boolean, newsletter: boolean) => {
         try {
             const token = localStorage.getItem('jwtToken');
             if (!token) {
-                alert('Authentication required. Please login again.');
+                showErrorMessage('Authentication required. Please login again.');
                 return false;
             }
 
@@ -139,18 +154,18 @@ const ManageAlertsPage = () => {
                 const errorData = await response.json().catch(() => ({}));
 
                 if (response.status === 401) {
-                    alert('Session expired. Please login again.');
+                    showErrorMessage('Session expired. Please login again.');
                     localStorage.removeItem('jwtToken');
                     router.push('/signin');
                     return false;
                 }
 
-                alert(errorData.error || `Failed to update preferences: ${response.status}`);
+                showErrorMessage(errorData.error || `Failed to update preferences: ${response.status}`);
                 return false;
             }
         } catch {
             console.error('Error updating preferences');
-            alert('Failed to update preferences. Please check your connection and try again.');
+            showErrorMessage('Failed to update preferences. Please check your connection and try again.');
             return false;
         } finally {
             setLoading(false);
@@ -160,8 +175,7 @@ const ManageAlertsPage = () => {
     const handleSavePreferences = async () => {
         const success = await updatePreferences(jobAlertsEnabled, newsletterEnabled);
         if (success) {
-            // Show success message
-            alert('Preferences saved successfully! Your subscription settings have been updated.');
+            showSuccessMessage('Preferences saved successfully! Your subscription settings have been updated.');
 
             // Optionally refresh data to ensure sync
             setTimeout(() => {
@@ -223,6 +237,64 @@ const ManageAlertsPage = () => {
 
     return (
         <div>
+            {/* Success Dialog */}
+            {showSuccessDialog && (
+                <div
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowSuccessDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <CheckCircle className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">Success!</h3>
+                            <p className="text-gray-600 mb-6 text-center">
+                                {dialogMessage}
+                            </p>
+                            <button
+                                onClick={() => setShowSuccessDialog(false)}
+                                className="px-6 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Dialog */}
+            {showErrorDialog && (
+                <div
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowErrorDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                <AlertCircle className="w-8 h-8 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2 text-center">Oops!</h3>
+                            <p className="text-gray-600 mb-6 text-center">
+                                {dialogMessage}
+                            </p>
+                            <button
+                                onClick={() => setShowErrorDialog(false)}
+                                className="px-6 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
