@@ -351,18 +351,100 @@ export default function JobDetailPage() {
     const [showConfirmDialog, setShowConfirmDialog] = useState<'apply' | 'save' | 'unsave' | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
 
-    // Memoized user authentication check
+    // Memoized user authentication check - NOW LISTENS TO STORAGE CHANGES
     useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
+        const updateUser = () => {
+            const currentUser = getUser();
+            const token = getAuthToken();
+
+            // Only set user if both user data and token exist
+            if (currentUser && token) {
+                setUser(currentUser);
+            } else {
+                setUser(null);
+            }
+        };
+
+        // Initial check
+        updateUser();
+
+        // Listen for storage changes (logout/login from other tabs or dashboard)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'userData' || e.key === 'jwtToken' || e.key === null) {
+                updateUser();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        // Also listen for custom logout event (same-tab logout)
+        const handleLogout = () => {
+            updateUser();
+        };
+
+        window.addEventListener('userLoggedOut', handleLogout);
+
+        // Listen for focus to check auth status when user returns to tab
+        const handleFocus = () => {
+            updateUser();
+        };
+
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('userLoggedOut', handleLogout);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, []);
+
+    // Check for pending application after sign in
+    useEffect(() => {
+        const processPendingApplication = () => {
+            if (user && job) {
+                const pendingApplication = localStorage.getItem('pendingJobApplication');
+                if (pendingApplication) {
+                    try {
+                        const pending = JSON.parse(pendingApplication);
+                        // Check if it's the same job and within 10 minutes
+                        if (pending.jobId === job.id && Date.now() - pending.timestamp < 10 * 60 * 1000) {
+                            // Clear the pending application
+                            localStorage.removeItem('pendingJobApplication');
+
+                            // Check if already applied
+                            if (!hasApplied) {
+                                // Automatically trigger application confirmation dialog
+                                setShowConfirmDialog('apply');
+                            }
+                        } else {
+                            // Clear expired or different job application
+                            localStorage.removeItem('pendingJobApplication');
+                        }
+                    } catch (error) {
+                        console.error('Error processing pending application:', error);
+                        localStorage.removeItem('pendingJobApplication');
+                    }
+                }
+            }
+        };
+
+        processPendingApplication();
+    }, [user, job, hasApplied]);
 
     // Optimized API calls with useCallback
     const checkJobSavedStatus = useCallback(async () => {
-        if (!user || !job) return;
+        if (!user || !job) {
+            setIsJobSaved(false);
+            return;
+        }
 
         try {
             const token = getAuthToken();
+            if (!token) {
+                setIsJobSaved(false);
+                return;
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/check/${job.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -373,17 +455,28 @@ export default function JobDetailPage() {
             if (response.ok) {
                 const data = await response.json();
                 setIsJobSaved(data.data?.saved || false);
+            } else {
+                setIsJobSaved(false);
             }
         } catch (error) {
             console.error('Error checking job saved status:', error);
+            setIsJobSaved(false);
         }
     }, [user, job]);
 
     const checkApplicationStatus = useCallback(async () => {
-        if (!user || !job) return;
+        if (!user || !job) {
+            setHasApplied(false);
+            return;
+        }
 
         try {
             const token = getAuthToken();
+            if (!token) {
+                setHasApplied(false);
+                return;
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/status/${job.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -394,9 +487,12 @@ export default function JobDetailPage() {
             if (response.ok) {
                 const data = await response.json();
                 setHasApplied(data.data?.applied || false);
+            } else {
+                setHasApplied(false);
             }
         } catch (error) {
             console.error('Error checking application status:', error);
+            setHasApplied(false);
         }
     }, [user, job]);
 
@@ -405,15 +501,21 @@ export default function JobDetailPage() {
         if (user && job) {
             checkJobSavedStatus();
             checkApplicationStatus();
+        } else {
+            // Reset states when user logs out
+            setIsJobSaved(false);
+            setHasApplied(false);
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
 
-    // Check if user has uploaded CV - FIXED VERSION
+    // Check if user has uploaded CV
     const checkUserCV = useCallback(async (): Promise<boolean> => {
         if (!user) return false;
 
         try {
             const token = getAuthToken();
+            if (!token) return false;
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -423,7 +525,6 @@ export default function JobDetailPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                // Check if CV info exists and has file_url
                 return !!(data.status === 'success' && data.data && data.data.file_url);
             }
             return false;
@@ -442,7 +543,6 @@ export default function JobDetailPage() {
 
         if (!job) return;
 
-        // Show confirmation dialog
         setShowConfirmDialog(isJobSaved ? 'unsave' : 'save');
         setShowMenu(false);
     }, [user, job, isJobSaved, router]);
@@ -492,10 +592,13 @@ export default function JobDetailPage() {
     // Handle apply job click
     const handleApplyJobClick = useCallback(() => {
         if (!user) {
-            if (job) {
+            if (job && role) {
+                const currentUrl = `/jobs/${Array.isArray(role) ? role[0] : role}/${job.id}`;
                 localStorage.setItem('pendingJobApplication', JSON.stringify({
                     jobId: job.id,
                     jobTitle: job.title,
+                    jobUrl: currentUrl,
+                    role: Array.isArray(role) ? role[0] : role,
                     timestamp: Date.now()
                 }));
             }
@@ -505,9 +608,8 @@ export default function JobDetailPage() {
 
         if (!job || hasApplied) return;
 
-        // Show confirmation dialog
         setShowConfirmDialog('apply');
-    }, [user, job, hasApplied, router]);
+    }, [user, job, hasApplied, role, router]);
 
     // Confirm apply job
     const confirmApplyJob = useCallback(async () => {
@@ -539,6 +641,8 @@ export default function JobDetailPage() {
             if (response.ok) {
                 setHasApplied(true);
                 setShowSuccessPopup('apply');
+                // Clear any pending application after successful application
+                localStorage.removeItem('pendingJobApplication');
             } else {
                 const errorData = await response.json();
                 setShowErrorDialog(errorData.message || 'Failed to apply for job');
@@ -557,15 +661,18 @@ export default function JobDetailPage() {
     }, [router]);
 
     const handleSignupClick = useCallback(() => {
-        if (job) {
+        if (job && role) {
+            const currentUrl = `/jobs/${Array.isArray(role) ? role[0] : role}/${job.id}`;
             localStorage.setItem('pendingJobApplication', JSON.stringify({
                 jobId: job.id,
                 jobTitle: job.title,
+                jobUrl: currentUrl,
+                role: Array.isArray(role) ? role[0] : role,
                 timestamp: Date.now()
             }));
         }
         router.push('/signup');
-    }, [job, router]);
+    }, [job, role, router]);
 
     const handleUploadCV = useCallback(() => {
         setShowErrorDialog(null);
