@@ -16,42 +16,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Types based on your backend models and updated to match other pages
-interface CVData {
-    full_name: string;
-    email: string;
-    phone_number: string;
-    country: string;
-    city: string;
-    work_function: string;
-    nda_acknowledged: boolean;
-    cv_file_url: string;
-    skills: string[];
-    expertise_areas: { [key: string]: string[] };
-    suggested_jobs: Record<string, unknown>[];
-    uploaded_at: string;
-    updated_at: string;
-}
-
-interface User {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    job_updates: boolean;
-    newsletter: boolean;
-    cv?: CVData;
-    created_at: string;
-    nda_status?: {
-        status: 'not_sent' | 'sent' | 'submitted';
-        sent_on?: string;
-        submitted_on?: string;
-        compliance_notes?: string;
-        resend_count: number;
-        created_at: string;
-        updated_at: string;
-    };
-}
 
 interface FreelancerData {
     id: string;
@@ -156,27 +120,14 @@ const TalentPool = () => {
                 throw new Error('No authentication token found');
             }
 
-            // First, try to get users with CVs from a dedicated endpoint
-            let response;
-            try {
-                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users-with-cvs`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            } catch {
-                // If the dedicated endpoint doesn't exist, fall back to getting all users and filtering
-                console.log('Dedicated endpoint not available, using fallback method');
-                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            }
+            // Fetch from talent pool endpoint
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -184,30 +135,61 @@ const TalentPool = () => {
 
             const data = await response.json();
 
-            // Transform the data to match our frontend interface, filtering only users with CVs
-            const usersWithCvs = (data.users || data.data || []).filter((user: User) => user.cv);
+            // Check if the response is successful
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to fetch talent pool');
+            }
 
-            const transformedData: FreelancerData[] = usersWithCvs.map((user: User) => {
+            // Transform the talent pool data to match our frontend interface
+            const talentPoolData = data.data || [];
+
+            interface TalentPoolMember {
+                _id?: string;
+                id?: string;
+                user_id?: string;
+                updated_at?: string;
+                user?: {
+                    _id?: string;
+                    id?: string;
+                    first_name?: string;
+                    last_name?: string;
+                    email?: string;
+                };
+                cv_data?: {
+                    work_function?: string;
+                    skills?: string[];
+                    cv_file_url?: string;
+                };
+            }
+
+            const transformedData: FreelancerData[] = talentPoolData.map((member: TalentPoolMember) => {
+                const user = member.user || {};
+                const cvData = member.cv_data || {};
+
                 return {
-                    id: user.id,
-                    userId: user.id,
-                    name: `${user.first_name} ${user.last_name}`,
-                    email: user.email,
-                    title: user.cv?.work_function || 'Not specified',
-                    skills: user.cv?.skills || [],
-                    lastUpdated: user.cv?.updated_at ? new Date(user.cv.updated_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    }) : 'N/A',
-                    cvFileUrl: user.cv?.cv_file_url
+                    id: member._id || member.id || '',
+                    userId: member.user_id || user._id || user.id || '',
+                    name: user.first_name && user.last_name
+                        ? `${user.first_name} ${user.last_name}`
+                        : user.email || 'Unknown',
+                    email: user.email || 'N/A',
+                    title: cvData.work_function || 'Not specified',
+                    skills: cvData.skills || [],
+                    lastUpdated: member.updated_at
+                        ? new Date(member.updated_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        })
+                        : 'N/A',
+                    cvFileUrl: cvData.cv_file_url
                 };
             });
 
             setFreelancers(transformedData);
         } catch (err) {
-            console.error('Error fetching freelancers:', err);
-            setError('Failed to load freelancers data');
+            console.error('Error fetching talent pool:', err);
+            setError('Failed to load talent pool data');
         } finally {
             setLoading(false);
         }
@@ -307,15 +289,15 @@ const TalentPool = () => {
             setAssigningJob(true);
             const token = localStorage.getItem('adminToken');
 
-            // Assign candidate to job
-            const assignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${selectedJob.id}/assign`, {
+            // Use the talent pool endpoint to move to job
+            const assignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin/${selectedFreelancer.userId}/move-to-job`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    candidate_id: selectedFreelancer.userId,
+                    job_id: selectedJob.id,
                     notes: `Assigned from talent pool${sendNDA ? ' - NDA request sent' : ''}`
                 })
             });
@@ -538,20 +520,6 @@ const TalentPool = () => {
                             )}
                         </div>
 
-                        {/* NDA Checkbox */}
-                        <div className="mb-8">
-                            <label className="flex items-center space-x-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={sendNDA}
-                                    onChange={(e) => setSendNDA(e.target.checked)}
-                                    className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA]"
-                                />
-                                <span className="text-[#6c6c6c] text-sm">
-                                    Send NDA Request Email Now
-                                </span>
-                            </label>
-                        </div>
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3">
@@ -809,7 +777,7 @@ const TalentPool = () => {
                                     ) : (
                                         <tr>
                                             <td colSpan={6} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                                {searchTerm ? 'No freelancers found matching your search.' : 'No freelancers found.'}
+                                                {searchTerm ? 'No freelancers found matching your search.' : 'No freelancers found in talent pool.'}
                                             </td>
                                         </tr>
                                     )}

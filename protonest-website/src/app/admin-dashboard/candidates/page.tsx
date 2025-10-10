@@ -951,66 +951,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Handle CV Download
-    const handleDownloadCV = async (cvFileUrl: string, candidateName: string) => {
-        if (!cvFileUrl) {
-            alert('CV file not available');
-            return;
-        }
-
-        try {
-            // Try to download via fetch with no-cors mode first
-            const response = await fetch(cvFileUrl, {
-                mode: 'no-cors',
-                method: 'GET'
-            });
-
-            // If fetch works, try to get the blob
-            if (response.ok) {
-                const blob = await response.blob();
-
-                // Create download link
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-
-                // Extract file extension from URL or default to .pdf
-                const fileExtension = cvFileUrl.split('.').pop()?.split('?')[0] || 'pdf';
-                link.download = `${candidateName.replace(/\s+/g, '_')}_CV.${fileExtension}`;
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } else {
-                throw new Error('Fetch failed');
-            }
-        } catch (error) {
-            console.log('Direct download failed, using alternative method:', error);
-
-            // Alternative approach: Create a hidden link and trigger download
-            try {
-                const link = document.createElement('a');
-                link.href = cvFileUrl;
-                link.target = '_blank';
-
-                // Extract file extension from URL or default to .pdf
-                const fileExtension = cvFileUrl.split('.').pop()?.split('?')[0] || 'pdf';
-                link.download = `${candidateName.replace(/\s+/g, '_')}_CV.${fileExtension}`;
-
-                // Add to DOM temporarily
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-            } catch (linkError) {
-                console.error('All download methods failed:', linkError);
-                alert('Unable to download CV directly. Opening in new tab...');
-                window.open(cvFileUrl, '_blank', 'noopener,noreferrer');
-            }
-        }
-    };
-
     // Function to handle details view
     const handleViewDetails = async (candidate: Candidate) => {
         setDetailsDialog(candidate);
@@ -2048,12 +1988,6 @@ const CandidateManagement = () => {
                                                                     className="px-3 py-1 text-xs bg-[#5530FA] text-white rounded hover:opacity-90"
                                                                 >
                                                                     Preview
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDownloadCV(candidateDetails.cv_file_url!, detailsDialog.user?.name || 'candidate')}
-                                                                    className="px-3 py-1 text-xs border border-gray-300 text-gray-600 rounded hover:bg-gray-50"
-                                                                >
-                                                                    Download
                                                                 </button>
                                                             </div>
                                                         </div>
