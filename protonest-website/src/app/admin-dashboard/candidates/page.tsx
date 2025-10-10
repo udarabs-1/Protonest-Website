@@ -592,11 +592,109 @@ const CandidateManagement = () => {
     // Set default NDA email content
     const setNdaDialogContent = (candidate: Candidate) => {
         const defaultSubject = `Protonest NDA for ${candidate.job?.title || '[Role Name]'} – Action Required`;
-        const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${candidate.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:\n\n1. Download and carefully read the attached NDA document\n2. Sign the document electronically or print, sign, and scan\n3. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached\n\nPlease complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.\n\nBest regards,\nProtonest Team`;
+        const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},
+
+We're excited to move forward with your application for the role of ${candidate.job?.title || '[Role Name]'} at Protonest.
+
+To proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:
+
+1. Click the NDA document link provided below to download
+2. Carefully read the NDA document
+3. Sign the document electronically or print, sign, and scan
+4. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached
+
+Please complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.
+
+Best regards,
+Protonest Team`;
 
         setNdaSubject(defaultSubject);
         setNdaBody(defaultBody);
         setNdaDialog(candidate);
+    };
+
+    const handleSendNda = async () => {
+        if (!ndaDialog) return;
+
+        let ndaDocumentUrl: string | null = null;
+        let ndaDocumentId: string | undefined = undefined;
+        let attachmentUrl: string | null = null;
+        let attachmentName: string = 'NDA_Document.pdf';
+
+        if (selectedNda === 'upload') {
+            if (!uploadedFile) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            // Upload the file first
+            ndaDocumentUrl = await uploadNDADocument(uploadedFile);
+            if (!ndaDocumentUrl) {
+                return; // Upload failed
+            }
+            attachmentUrl = ndaDocumentUrl;
+            attachmentName = uploadedFile.name;
+        } else {
+            // Using template
+            if (!selectedTemplate) {
+                alert('Please select an NDA template');
+                return;
+            }
+            ndaDocumentId = selectedTemplate;
+
+            // Get the selected template's download URL
+            const selectedDoc = ndaDocuments.find(doc => doc.id === selectedTemplate);
+            if (selectedDoc) {
+                attachmentUrl = selectedDoc.download_url;
+                attachmentName = selectedDoc.file_name;
+            }
+        }
+
+        if (!attachmentUrl) {
+            alert('Unable to get NDA document URL');
+            return;
+        }
+
+        // Create email body with NDA link (document name as clickable text)
+        const linkSection = `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📎 NDA DOCUMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Click to download: ${attachmentName}
+${attachmentUrl}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+        const finalEmailBody = ndaBody + linkSection;
+
+        // Open email client with NDA link
+        openEmailClient(
+            ndaDialog.user?.email || '',
+            ndaSubject,
+            finalEmailBody
+        );
+
+        // Send NDA via API
+        const success = await sendNDA(
+            ndaDialog.id,
+            ndaDocumentId,
+            ndaDocumentUrl || undefined
+        );
+
+        if (success) {
+            // Update status to hired
+            await updateStatus(ndaDialog.id, 'hired');
+
+            // Close dialog and reset
+            setNdaDialog(null);
+            setNdaSubject('');
+            setNdaBody('');
+            setUploadedFile(null);
+            setSelectedNda('template');
+            setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
+        }
     };
 
     // Function to handle delete confirmation
@@ -885,61 +983,6 @@ const CandidateManagement = () => {
         setInterviewDialog(null);
         setInterviewSubject('');
         setInterviewBody('');
-    };
-
-    // Handle NDA sending
-    const handleSendNda = async () => {
-        if (!ndaDialog) return;
-
-        let ndaDocumentUrl: string | null = null;
-        let ndaDocumentId: string | undefined = undefined;
-
-        if (selectedNda === 'upload') {
-            if (!uploadedFile) {
-                alert('Please select a file to upload');
-                return;
-            }
-
-            // Upload the file first
-            ndaDocumentUrl = await uploadNDADocument(uploadedFile);
-            if (!ndaDocumentUrl) {
-                return; // Upload failed
-            }
-        } else {
-            // Using template
-            if (!selectedTemplate) {
-                alert('Please select an NDA template');
-                return;
-            }
-            ndaDocumentId = selectedTemplate;
-        }
-
-        // Open email client first
-        openEmailClient(
-            ndaDialog.user?.email || '',
-            ndaSubject,
-            ndaBody
-        );
-
-        // Send NDA via API
-        const success = await sendNDA(
-            ndaDialog.id,
-            ndaDocumentId,
-            ndaDocumentUrl || undefined
-        );
-
-        if (success) {
-            // Update status to hired
-            await updateStatus(ndaDialog.id, 'hired');
-
-            // Close dialog and reset
-            setNdaDialog(null);
-            setNdaSubject('');
-            setNdaBody('');
-            setUploadedFile(null);
-            setSelectedNda('template');
-            setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
-        }
     };
 
     // Handle CV Preview

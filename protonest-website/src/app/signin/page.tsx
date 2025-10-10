@@ -117,6 +117,31 @@ export default function ResponsiveSignIn() {
         setModalMessage('');
     }, []);
 
+    // Helper function to handle redirect after sign in
+    const handlePostSignInRedirect = useCallback(() => {
+        // Check for pending job application
+        const pendingApplication = localStorage.getItem('pendingJobApplication');
+
+        if (pendingApplication) {
+            try {
+                const pending = JSON.parse(pendingApplication);
+                // Check if it's within 10 minutes (increased from 5 for better UX)
+                if (Date.now() - pending.timestamp < 10 * 60 * 1000) {
+                    // Redirect to the job detail page
+                    const jobUrl = pending.jobUrl || `/jobs/${pending.role || 'all'}/${pending.jobId}`;
+                    window.location.href = jobUrl;
+                    return;
+                }
+            } catch (error) {
+                console.error('Error processing pending application:', error);
+                localStorage.removeItem('pendingJobApplication');
+            }
+        }
+
+        // Default redirect to dashboard
+        window.location.href = '/dashboard';
+    }, []);
+
     // Handle Google OAuth response for sign-in with improved error handling
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         setIsLoading(true);
@@ -149,7 +174,8 @@ export default function ResponsiveSignIn() {
                     const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
                     localStorage.setItem('tokenExpiration', expirationTime.toString());
 
-                    window.location.href = '/dashboard';
+                    // Handle redirect based on pending application
+                    handlePostSignInRedirect();
                 } else {
                     setError('Sign in successful but no token received');
                 }
@@ -169,7 +195,7 @@ export default function ResponsiveSignIn() {
         } finally {
             setIsLoading(false);
         }
-    }, [apiConfig.apiUrl]);
+    }, [apiConfig.apiUrl, handlePostSignInRedirect]);
 
     // Initialize Google OAuth with improved error handling
     useEffect(() => {
@@ -329,7 +355,8 @@ export default function ResponsiveSignIn() {
                     const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
                     localStorage.setItem('tokenExpiration', expirationTime.toString());
 
-                    window.location.href = '/dashboard';
+                    // Handle redirect based on pending application
+                    handlePostSignInRedirect();
                 } else {
                     setError('Login successful but no token received');
                 }
@@ -346,7 +373,7 @@ export default function ResponsiveSignIn() {
         } finally {
             setIsLoading(false);
         }
-    }, [email, password, apiConfig.apiUrl]);
+    }, [email, password, apiConfig.apiUrl, handlePostSignInRedirect]);
 
     // Memoized form validation
     const isFormValid = useMemo(() => {
@@ -359,7 +386,6 @@ export default function ResponsiveSignIn() {
 
             {/* Mobile/Tablet Layout (sm to md) */}
             <div className="block lg:hidden">
-                {/* ... rest of the mobile layout remains the same ... */}
                 <div className="relative w-full min-h-screen bg-white">
                     {/* Background Gradients */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
