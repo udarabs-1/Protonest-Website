@@ -277,7 +277,7 @@ const SuggestedJobs = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     // Helper function to format time difference as "X days ago"

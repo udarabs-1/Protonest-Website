@@ -338,7 +338,7 @@ const SavedJobs = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     // Remove a saved job

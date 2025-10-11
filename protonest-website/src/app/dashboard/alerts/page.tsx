@@ -104,7 +104,7 @@ const ManageAlertsPage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     const showSuccessMessage = (message: string) => {
