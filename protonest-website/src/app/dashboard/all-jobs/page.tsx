@@ -292,7 +292,7 @@ const AllJobsPage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)));

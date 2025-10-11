@@ -251,7 +251,7 @@ const ResubmitCVPage = () => {
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
         localStorage.removeItem('userData');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     const validateForm = (): boolean => {

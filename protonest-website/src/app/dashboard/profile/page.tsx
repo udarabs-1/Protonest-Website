@@ -172,7 +172,7 @@ const ProfilePage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
-        router.push('/signin');
+        router.push('/find-jobs');
     };
 
     const handleInputChange = (field: string, value: string | boolean) => {
