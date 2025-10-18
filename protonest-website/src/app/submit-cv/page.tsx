@@ -1,5 +1,6 @@
 'use client';
 
+import { Icon } from '@iconify/react';
 import { ChevronDown, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -11,7 +12,6 @@ interface FormData {
     fullName: string;
     email: string;
     phoneNumber: string;
-    country: string;
     city: string;
     workFunction: string;
     ndaAcknowledged: boolean;
@@ -23,13 +23,6 @@ interface FormErrors {
 
 interface DropdownState {
     [key: string]: boolean;
-}
-
-interface CountryCode {
-    code: string;
-    dialCode: string;
-    flag: string;
-    name: string;
 }
 
 interface ExpertiseArea {
@@ -61,28 +54,52 @@ interface PendingJobApplication {
     timestamp: number;
 }
 
-// Memoized static data
-const cities: { [key: string]: string[] } = {
-    'Sri Lanka': ['Colombo', 'Negombo', 'Kandy', 'Galle', 'Jaffna'],
-    'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
-    'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Glasgow', 'Liverpool'],
-    'Canada': ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa'],
-    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
-    'Singapore': ['Singapore'],
-    'India': ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata']
-};
+// All districts in Sri Lanka
+const sriLankaDistricts: string[] = [
+    'Ampara',
+    'Anuradhapura',
+    'Badulla',
+    'Batticaloa',
+    'Colombo',
+    'Galle',
+    'Gampaha',
+    'Hambantota',
+    'Jaffna',
+    'Kalutara',
+    'Kandy',
+    'Kegalle',
+    'Kilinochchi',
+    'Kurunegala',
+    'Mannar',
+    'Matale',
+    'Matara',
+    'Monaragala',
+    'Mullaitivu',
+    'Nuwara Eliya',
+    'Polonnaruwa',
+    'Puttalam',
+    'Ratnapura',
+    'Trincomalee',
+    'Vavuniya'
+];
 
-const countryCodes: CountryCode[] = [
-    { code: 'LK', dialCode: '+94', flag: '🇱🇰', name: 'Sri Lanka' },
-    { code: 'US', dialCode: '+1', flag: '🇺🇸', name: 'United States' },
-    { code: 'GB', dialCode: '+44', flag: '🇬🇧', name: 'United Kingdom' },
-    { code: 'CA', dialCode: '+1', flag: '🇨🇦', name: 'Canada' },
-    { code: 'AU', dialCode: '+61', flag: '🇦🇺', name: 'Australia' },
-    { code: 'SG', dialCode: '+65', flag: '🇸🇬', name: 'Singapore' },
-    { code: 'IN', dialCode: '+91', flag: '🇮🇳', name: 'India' },
-    { code: 'DE', dialCode: '+49', flag: '🇩🇪', name: 'Germany' },
-    { code: 'FR', dialCode: '+33', flag: '🇫🇷', name: 'France' },
-    { code: 'JP', dialCode: '+81', flag: '🇯🇵', name: 'Japan' },
+// Work functions list
+const workFunctionsList: string[] = [
+    'Engineering',
+    'Design',
+    'Marketing',
+    'Sales',
+    'Finance',
+    'HR',
+    'Operations',
+    'Product Management',
+    'Customer Support',
+    'Business Development',
+    'Data Analytics',
+    'Quality Assurance',
+    'Research & Development',
+    'Legal',
+    'Administration'
 ];
 
 // Optimized Background Component
@@ -129,11 +146,76 @@ const ModalWrapper = ({
         className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
         onClick={onBackdropClick}
     >
-        <div className={`${className} bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden`}>
+        <div className={`${className} bg-white rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] overflow-hidden`}>
             {children}
         </div>
     </div>
 );
+
+// Error Dialog Component
+interface ErrorDialogProps {
+    message: string;
+    onClose: () => void;
+    onResubmitCV?: () => void;
+}
+
+const ErrorDialog = ({ message, onClose, onResubmitCV }: ErrorDialogProps) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const isCVExistsError = message.toLowerCase().includes('already submitted') || message.toLowerCase().includes('duplicate');
+
+    return (
+        <div
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm px-4"
+            onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                        <Icon icon="solar:danger-circle-bold-duotone" className="w-10 h-10" />
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
+                    {isCVExistsError ? 'CV Already Submitted' : 'Error'}
+                </h3>
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6 text-center">
+                    {message}
+                </p>
+                <div className="flex flex-col gap-3">
+                    {isCVExistsError && onResubmitCV ? (
+                        <>
+                            <button
+                                onClick={onResubmitCV}
+                                className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                            >
+                                Go to Dashboard to Resubmit CV
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="w-full px-6 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={onClose}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                        >
+                            Close
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -143,7 +225,6 @@ export default function OnboardingPage() {
         fullName: '',
         email: '',
         phoneNumber: '',
-        country: '',
         city: '',
         workFunction: '',
         ndaAcknowledged: false
@@ -156,43 +237,23 @@ export default function OnboardingPage() {
     const [suggestedJobs, setSuggestedJobs] = useState<SuggestedJob[]>([]);
     const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedCountryCode, setSelectedCountryCode] = useState<CountryCode>(countryCodes[0]);
-    const [workFunctionSearch, setWorkFunctionSearch] = useState('');
+    const [, setWorkFunctionSearch] = useState('');
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [showJobApplicationSuccessModal, setShowJobApplicationSuccessModal] = useState(false);
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
+    const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
+    const [redirectAfterSubmit, setRedirectAfterSubmit] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Memoized dropdown refs
     const dropdownRefs = useMemo(() => ({
-        countryCode: { current: null as HTMLDivElement | null },
-        country: { current: null as HTMLDivElement | null },
         city: { current: null as HTMLDivElement | null },
+        workFunction: { current: null as HTMLDivElement | null },
     }), []);
-
-    // Memoized static arrays
-    const countries = useMemo(() =>
-        ['Sri Lanka', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Singapore', 'India'],
-        []
-    );
-
-    const workFunctions = useMemo(() =>
-        ['Engineering', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations', 'Product Management'],
-        []
-    );
-
-    // Optimized work functions filtering
-    const filteredWorkFunctions = useMemo(() =>
-        workFunctions.filter(func =>
-            func.toLowerCase().includes(workFunctionSearch.toLowerCase()) &&
-            !formData.workFunction.split(',').includes(func)
-        ),
-        [workFunctions, workFunctionSearch, formData.workFunction]
-    );
 
     // Debounced screen size check
     const checkIsMobile = useCallback(() => {
@@ -234,7 +295,6 @@ export default function OnboardingPage() {
         };
     }, [checkIsMobile]);
 
-    // Check for pending job application and populate user data on mount
     useEffect(() => {
         if (typeof window !== 'undefined' && !isAuthChecking) {
             // Check for pending job application
@@ -246,6 +306,8 @@ export default function OnboardingPage() {
                     const isValid = Date.now() - jobData.timestamp < 24 * 60 * 60 * 1000;
                     if (isValid) {
                         setPendingJob(jobData);
+                        // Store the redirect URL
+                        setRedirectAfterSubmit(jobData.jobUrl || `/jobs/${jobData.role}/${jobData.jobId}`);
                     } else {
                         // Remove expired job application
                         localStorage.removeItem('pendingJobApplication');
@@ -304,7 +366,6 @@ export default function OnboardingPage() {
         }
 
         if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-        if (!formData.country) newErrors.country = 'Country is required';
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.workFunction.trim()) newErrors.workFunction = 'At least one work function is required';
         if (!uploadedCV) newErrors.cv = 'CV upload is required';
@@ -323,22 +384,16 @@ export default function OnboardingPage() {
                 ...prev,
                 [field]: uniqueFunctions
             }));
-            return;
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value
+            }));
         }
-
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
 
         // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
-        }
-
-        // Reset city when country changes
-        if (field === 'country') {
-            setFormData(prev => ({ ...prev, city: '' }));
         }
     }, [errors]);
 
@@ -432,7 +487,7 @@ export default function OnboardingPage() {
             submitData.append('fullName', formData.fullName);
             submitData.append('email', formData.email);
             submitData.append('phoneNumber', formData.phoneNumber);
-            submitData.append('country', formData.country);
+            submitData.append('country', 'Sri Lanka'); // Always Sri Lanka
             submitData.append('city', formData.city);
             submitData.append('workFunction', formData.workFunction);
             submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
@@ -440,11 +495,12 @@ export default function OnboardingPage() {
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
             submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
 
-            // Add talent pool logic parameters
+            // IMPORTANT: For job applications, we DON'T apply yet - just upload CV
+            // The actual application will happen after user confirms on the job details page
             if (pendingJob) {
-                // User is uploading CV to apply for a specific job - skip talent pool
-                submitData.append('skip_talent_pool', 'true');
-                submitData.append('pending_job_id', pendingJob.jobId);
+                // User is uploading CV for a specific job - DON'T skip talent pool or apply yet
+                submitData.append('skip_talent_pool', 'false'); // Add them to talent pool
+                // Don't include pending_job_id here - application happens later
             } else {
                 // User is just uploading CV to join talent pool
                 submitData.append('skip_talent_pool', 'false');
@@ -470,31 +526,31 @@ export default function OnboardingPage() {
                 body: submitData,
             });
 
+            // Parse response
+            const responseData = await response.json().catch(() => ({}));
+
             if (response.ok) {
-                const responseData = await response.json();
                 console.log('CV upload successful:', responseData);
-
-                // Check if this was a job application scenario
-                if (pendingJob) {
-                    // Clear the pending job application from localStorage
-                    localStorage.removeItem('pendingJobApplication');
-                    console.log('Job application processed successfully');
-
-                    // Set a flag to show job application success message
-                    sessionStorage.setItem('jobApplicationSuccess', JSON.stringify({
-                        jobTitle: pendingJob.jobTitle,
-                        jobId: pendingJob.jobId,
-                        timestamp: Date.now()
-                    }));
-                }
 
                 // Simulate processing time
                 setTimeout(() => {
                     setShowSubmissionModal(false);
 
-                    if (pendingJob) {
-                        // For job applications, show specific success modal or redirect
-                        setShowJobApplicationSuccessModal(true);
+                    // Check if this was a job application scenario
+                    if (pendingJob && redirectAfterSubmit) {
+                        // DON'T clear the pending job application yet - it's still needed
+                        // The job details page will use it to show the apply confirmation
+                        console.log('CV uploaded successfully, redirecting to job page for application');
+
+                        // Set a flag to indicate CV has been uploaded and they can now apply
+                        sessionStorage.setItem('cvUploadedForJob', JSON.stringify({
+                            jobTitle: pendingJob.jobTitle,
+                            jobId: pendingJob.jobId,
+                            timestamp: Date.now()
+                        }));
+
+                        // Redirect to the job details page where they can confirm the application
+                        window.location.href = redirectAfterSubmit;
                     } else if (suggestedJobs.length > 0) {
                         // For talent pool, show suggested jobs
                         setShowJobsModal(true);
@@ -504,29 +560,55 @@ export default function OnboardingPage() {
                     }
                 }, 3000);
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Failed to submit application. Status: ${response.status}`);
+                // Handle error responses
+                setShowSubmissionModal(false);
+
+                // Check for duplicate CV error - check both status code and error message
+                const errorMessage = responseData.message || responseData.error || 'Unknown error';
+                const isDuplicateError =
+                    response.status === 409 ||
+                    response.status === 400 ||
+                    response.status === 500 && (
+                        errorMessage.toLowerCase().includes('duplicate') ||
+                        errorMessage.toLowerCase().includes('e11000') ||
+                        errorMessage.toLowerCase().includes('already exists') ||
+                        errorMessage.toLowerCase().includes('duplicate key error')
+                    );
+
+                if (isDuplicateError) {
+                    setShowErrorDialog('You have already submitted a CV. If you wish to update your CV, please use the "Resubmit CV" option in the Dashboard.');
+                } else {
+                    setShowErrorDialog(errorMessage || `Failed to submit application. Status: ${response.status}`);
+                }
             }
 
         } catch (error) {
             console.error('Submission error:', error);
-            setErrors({
-                submit: error instanceof Error
-                    ? error.message
-                    : 'Failed to submit application. Please try again.'
-            });
             setShowSubmissionModal(false);
+
+            // Check if it's a duplicate error in the catch block as well
+            const errorMessage = error instanceof Error ? error.message : 'Failed to submit application. Please try again.';
+            const isDuplicateError =
+                errorMessage.toLowerCase().includes('duplicate') ||
+                errorMessage.toLowerCase().includes('e11000') ||
+                errorMessage.toLowerCase().includes('already exists') ||
+                errorMessage.toLowerCase().includes('duplicate key error');
+
+            if (isDuplicateError) {
+                setShowErrorDialog('You have already submitted a CV. If you wish to update your CV, please use the "Resubmit CV" option in the Dashboard.');
+            } else {
+                setShowErrorDialog(errorMessage);
+            }
         } finally {
             setIsSubmitting(false);
         }
-    }, [validateForm, formData, extractedSkills, expertiseAreas, suggestedJobs, pendingJob, uploadedCV]);
+    }, [validateForm, formData, extractedSkills, expertiseAreas, suggestedJobs, pendingJob, redirectAfterSubmit, uploadedCV]);
 
     const handleReset = useCallback((): void => {
         setFormData({
             fullName: '',
             email: '',
             phoneNumber: '',
-            country: '',
             city: '',
             workFunction: '',
             ndaAcknowledged: false
@@ -536,7 +618,6 @@ export default function OnboardingPage() {
         setExpertiseAreas({});
         setSuggestedJobs([]);
         setErrors({});
-        setSelectedCountryCode(countryCodes[0]);
         setWorkFunctionSearch('');
     }, []);
 
@@ -555,6 +636,29 @@ export default function OnboardingPage() {
             return 'Submit CV and Join Talent Pool';
         }
     }, [pendingJob]);
+
+    // Check if all required fields are filled
+    const isFormValid = useMemo(() => {
+        return !!(
+            formData.fullName.trim() &&
+            formData.email.trim() &&
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
+            formData.phoneNumber.trim() &&
+            formData.city &&
+            formData.workFunction.trim() &&
+            uploadedCV &&
+            formData.ndaAcknowledged
+        );
+    }, [formData, uploadedCV]);
+
+    const handleResubmitCV = useCallback(() => {
+        setShowErrorDialog(null);
+        router.push('/dashboard/resubmit-cv');
+    }, [router]);
+
+    const closeErrorDialog = useCallback(() => {
+        setShowErrorDialog(null);
+    }, []);
 
     // Analysis Modal Component
     const AnalysisModal = () => (
@@ -737,10 +841,8 @@ export default function OnboardingPage() {
                 <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
                         {/* Success Icon */}
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center gradient-icon">
+                            <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
                         </div>
 
                         {/* Success Message */}
@@ -806,6 +908,43 @@ export default function OnboardingPage() {
 
     return (
         <div>
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+
+                .gradient-border {
+                    border-image: linear-gradient(to bottom, #4520E0, #D01888) 1;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             <Navbar />
 
             {/* Optimized Header Section */}
@@ -897,40 +1036,10 @@ export default function OnboardingPage() {
                                         Phone Number
                                     </label>
                                     <div className="flex items-center">
-                                        {/* Country Code Dropdown */}
-                                        <div className="relative mr-2 flex-shrink-0" ref={dropdownRefs.countryCode}>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleDropdown('countryCode');
-                                                }}
-                                                className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                            >
-                                                <span className="mr-1">{selectedCountryCode.flag}</span>
-                                                <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">{selectedCountryCode.dialCode}</span>
-                                                <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${dropdownOpen.countryCode ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            {dropdownOpen.countryCode && (
-                                                <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto w-48">
-                                                    {countryCodes.map((country) => (
-                                                        <button
-                                                            key={country.code}
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedCountryCode(country);
-                                                                toggleDropdown('countryCode');
-                                                            }}
-                                                            className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                        >
-                                                            <span className="mr-2">{country.flag}</span>
-                                                            <span className="text-gray-700">{country.name}</span>
-                                                            <span className="ml-auto text-gray-500">{country.dialCode}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
+                                        {/* Country Code - Fixed for Sri Lanka */}
+                                        <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
+                                            <span className="mr-1">🇱🇰</span>
+                                            <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
                                         </div>
 
                                         <input
@@ -945,134 +1054,87 @@ export default function OnboardingPage() {
                                 </div>
                             </div>
 
-                            {/* Location - Country and City side by side on large screens */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Country Dropdown */}
-                                <div>
-                                    <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                        Country
-                                    </label>
-                                    <div className="relative" ref={dropdownRefs.country}>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleDropdown('country');
-                                            }}
-                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                        >
-                                            <span className={formData.country ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                                {formData.country || 'Select country'}
-                                            </span>
-                                            <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.country ? 'rotate-180' : ''}`} />
-                                        </button>
-                                        {dropdownOpen.country && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                {countries.map(country => (
-                                                    <button
-                                                        key={country}
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleInputChange('country', country);
-                                                            toggleDropdown('country');
-                                                        }}
-                                                        className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                    >
-                                                        {country}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    {errors.country && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.country}</p>}
+                            {/* City Dropdown */}
+                            <div>
+                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                    District
+                                </label>
+                                <div className="relative" ref={dropdownRefs.city}>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleDropdown('city');
+                                        }}
+                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
+                                    >
+                                        <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
+                                            {formData.city || 'Select district'}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {dropdownOpen.city && (
+                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                            {sriLankaDistricts.map(district => (
+                                                <button
+                                                    key={district}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleInputChange('city', district);
+                                                        toggleDropdown('city');
+                                                    }}
+                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
+                                                >
+                                                    {district}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-
-                                {/* City Dropdown */}
-                                <div>
-                                    <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                        City
-                                    </label>
-                                    <div className="relative" ref={dropdownRefs.city}>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (formData.country) toggleDropdown('city');
-                                            }}
-                                            disabled={!formData.country}
-                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] disabled:opacity-50"
-                                        >
-                                            <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                                {formData.city || 'Select city'}
-                                            </span>
-                                            <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
-                                        </button>
-                                        {!formData.country && <p className="text-red-500 text-sm mt-1 font-['Poppins']">Select the country first</p>}
-                                        {dropdownOpen.city && formData.country && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                {cities[formData.country]?.map(city => (
-                                                    <button
-                                                        key={city}
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleInputChange('city', city);
-                                                            toggleDropdown('city');
-                                                        }}
-                                                        className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                    >
-                                                        {city}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
-                                </div>
+                                {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
                             </div>
 
-                            {/* Work Function - Typeable with autocomplete */}
+                            {/* Work Function - Dropdown */}
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     What functions do you prefer to work in?
                                 </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={workFunctionSearch}
-                                        onChange={(e) => setWorkFunctionSearch(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && workFunctionSearch.trim() && !formData.workFunction.includes(workFunctionSearch.trim())) {
-                                                e.preventDefault();
-                                                handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${workFunctionSearch.trim()}` : workFunctionSearch.trim());
-                                                setWorkFunctionSearch('');
-                                            }
+                                <div className="relative" ref={dropdownRefs.workFunction}>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleDropdown('workFunction');
                                         }}
-                                        placeholder="Type and press Enter to add functions"
-                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                    />
+                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
+                                    >
+                                        <span className={formData.workFunction ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
+                                            {formData.workFunction ? 'Functions selected' : 'Select work functions'}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                    {/* Autocomplete suggestions */}
-                                    {workFunctionSearch && (
+                                    {dropdownOpen.workFunction && (
                                         <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                            {filteredWorkFunctions.map(func => (
-                                                <button
-                                                    key={func}
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
-                                                        setWorkFunctionSearch('');
-                                                    }}
-                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                >
-                                                    {func}
-                                                </button>
-                                            ))}
-                                            {filteredWorkFunctions.length === 0 && (
+                                            {workFunctionsList
+                                                .filter(func => !formData.workFunction.split(',').includes(func))
+                                                .map(func => (
+                                                    <button
+                                                        key={func}
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
+                                                        }}
+                                                        className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
+                                                    >
+                                                        {func}
+                                                    </button>
+                                                ))}
+                                            {workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func)).length === 0 && (
                                                 <div className="p-3 text-gray-500 text-sm text-center font-['Poppins']">
-                                                    No matching functions found
+                                                    All functions selected
                                                 </div>
                                             )}
                                         </div>
@@ -1140,10 +1202,8 @@ export default function OnboardingPage() {
                                 ) : (
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-center space-x-2">
-                                            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
+                                            <div className="w-6 h-6 lg:w-8 lg:h-8 gradient-icon flex items-center justify-center">
+                                                <Icon icon="solar:check-circle-bold" className="w-full h-full" />
                                             </div>
                                             <span className="text-gray-700 font-medium text-sm sm:text-base font-['Poppins']">{uploadedCV.name}</span>
                                         </div>
@@ -1213,10 +1273,17 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* Error Summary */}
-                        {(Object.keys(errors).length > 0 || errors.submit) && (
-                            <div className="text-red-500 text-sm font-['Poppins']">
-                                {errors.submit || 'Please complete all required fields before submitting.'}
+                        {/* Error Summary - Only show if form is not valid and has been submitted */}
+                        {!isFormValid && Object.keys(errors).length > 0 && (
+                            <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3">
+                                <div className="flex-shrink-0">
+                                    <Icon icon="solar:danger-circle-bold" className="w-6 h-6 text-red-500" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-red-600 text-sm font-['Poppins']">
+                                        {errors.submit || 'Please complete all required fields before submitting.'}
+                                    </p>
+                                </div>
                             </div>
                         )}
 
@@ -1249,6 +1316,15 @@ export default function OnboardingPage() {
             {showJobApplicationSuccessModal && <JobApplicationSuccessModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
+
+            {/* Error Dialog */}
+            {showErrorDialog && (
+                <ErrorDialog
+                    message={showErrorDialog}
+                    onClose={closeErrorDialog}
+                    onResubmitCV={showErrorDialog.toLowerCase().includes('already submitted') ? handleResubmitCV : undefined}
+                />
+            )}
 
             <Footer />
         </div>

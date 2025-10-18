@@ -2,6 +2,7 @@
 
 import Footer from '@/app/components/footer';
 import Navbar from '@/app/components/navbar';
+import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -30,13 +31,13 @@ type User = {
 };
 
 type SuccessPopupProps = {
-    type: 'apply' | 'save';
+    type: 'apply' | 'save' | 'withdraw';
     onClose: () => void;
     onViewSavedJobs?: () => void;
 };
 
 type ConfirmDialogProps = {
-    type: 'apply' | 'save' | 'unsave';
+    type: 'apply' | 'save' | 'unsave' | 'withdraw';
     jobTitle: string;
     onConfirm: () => void;
     onCancel: () => void;
@@ -79,6 +80,13 @@ const ConfirmDialog = ({ type, jobTitle, onConfirm, onCancel }: ConfirmDialogPro
                     confirmText: 'Yes, Remove',
                     cancelText: 'Cancel'
                 };
+            case 'withdraw':
+                return {
+                    title: 'Withdraw Application',
+                    message: `Are you sure you want to withdraw your application for "${jobTitle}"? This action cannot be undone.`,
+                    confirmText: 'Yes, Withdraw',
+                    cancelText: 'Cancel'
+                };
         }
     };
 
@@ -92,22 +100,27 @@ const ConfirmDialog = ({ type, jobTitle, onConfirm, onCancel }: ConfirmDialogPro
             aria-modal="true"
         >
             <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
-                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                        <Icon icon="solar:danger-circle-bold-duotone" className="w-10 h-10" />
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
                     {content.title}
                 </h3>
-                <p className="text-base text-[#6c6c6c] font-poppins mb-6">
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6 text-center">
                     {content.message}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
                     <button
                         onClick={onCancel}
-                        className="px-6 py-3 rounded-[57px] border border-gray-300 text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                        className="px-6 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
                     >
                         {content.cancelText}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                        className="px-6 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] text-white text-base font-semibold font-montserrat transition-all"
                     >
                         {content.confirmText}
                     </button>
@@ -136,8 +149,8 @@ const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
         >
             <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
                 <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                        <span className="text-3xl">⚠️</span>
+                    <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                        <Icon icon="solar:danger-circle-bold-duotone" className="w-10 h-10" />
                     </div>
                 </div>
                 <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
@@ -157,7 +170,7 @@ const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
                             </button>
                             <button
                                 onClick={onClose}
-                                className="w-full px-6 py-3 rounded-[57px] border border-gray-300 text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                                className="w-full px-6 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
                             >
                                 Close
                             </button>
@@ -176,7 +189,7 @@ const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
     );
 };
 
-// Memoized Success Popup Component
+// Success Popup Component
 const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -198,38 +211,102 @@ const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => 
         }
     }, [onViewSavedJobs]);
 
+    const getContent = () => {
+        switch (type) {
+            case 'apply':
+                return {
+                    title: 'Applied Successfully!',
+                    message: 'The CV that was uploaded to your account has been submitted. If you wish to add a new CV, you can do so through the "Resubmit CV" option in the Dashboard.',
+                    showButton: true,
+                    buttonText: 'OK',
+                    buttonAction: onClose
+                };
+            case 'save':
+                return {
+                    title: 'Job Saved Successfully!',
+                    message: null,
+                    showButton: true,
+                    buttonText: 'View Saved Jobs',
+                    buttonAction: handleViewSavedJobs
+                };
+            case 'withdraw':
+                return {
+                    title: 'Application Withdrawn',
+                    message: 'Your application has been withdrawn successfully.',
+                    showButton: true,
+                    buttonText: 'OK',
+                    buttonAction: onClose
+                };
+        }
+    };
+
+    const content = getContent();
+
     return (
         <div
-            className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 backdrop-blur-sm px-4"
             onClick={handleBackgroundClick}
             role="dialog"
             aria-modal="true"
             aria-labelledby="success-title"
         >
-            <div className="w-[359px] h-[365px] relative bg-white/90 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] backdrop-blur-[20px] overflow-hidden">
-                <div className="w-[117px] h-[281px] left-[120px] top-[28px] absolute">
-                    <div className="w-[120px] h-[138.89px] left-[-2px] top-[29.35px] absolute text-center justify-center text-white text-[120px] font-semibold font-['Montserrat']">
-                        {type === 'apply' ? '👍' : '🙌'}
+            <style jsx global>{`
+                .gradient-icon-success svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon-success svg path {
+                    fill: url(#icon-gradient-success) !important;
+                }
+                
+                .gradient-icon-success svg circle {
+                    fill: url(#icon-gradient-success) !important;
+                }
+                
+                .gradient-icon-success svg rect {
+                    fill: url(#icon-gradient-success) !important;
+                }
+                
+                .gradient-icon-success svg polygon {
+                    fill: url(#icon-gradient-success) !important;
+                }
+            `}</style>
+
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient-success" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
+            <div className="w-full max-w-[359px] bg-white/90 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] backdrop-blur-[20px] p-8">
+                <div className="flex flex-col items-center justify-center gap-6">
+                    <div className="w-[120px] h-[120px] gradient-icon-success flex items-center justify-center">
+                        <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
                     </div>
-                </div>
-                <h2
-                    id="success-title"
-                    className="w-[357px] h-[26px] left-[1px] top-[214px] absolute text-center justify-start text-[#6c6c6c] text-[25px] font-normal font-['Poppins'] leading-[30px]"
-                >
-                    {type === 'apply' ? 'Applied Successfully!' : 'Job Saved Successfully!'}
-                </h2>
-                {type === 'apply' ? (
-                    <p className="w-[285px] h-[26px] left-[37px] top-[270px] absolute text-center justify-start text-[#6c6c6c] text-base font-normal font-['Poppins'] leading-[30px]">
-                        Stay tuned for further updates.
-                    </p>
-                ) : (
-                    <button
-                        className="w-[295px] h-[51px] px-6 py-4 left-[32px] top-[281px] absolute bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer hover:from-[#f51da5] hover:to-[#5530fa] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                        onClick={handleViewSavedJobs}
+                    <h2
+                        id="success-title"
+                        className="text-center text-[#6c6c6c] text-[25px] font-normal font-poppins leading-[30px]"
                     >
-                        <span className="text-center justify-start text-white text-base font-semibold font-['Montserrat']">View Saved Jobs</span>
-                    </button>
-                )}
+                        {content.title}
+                    </h2>
+                    {content.message && (
+                        <p className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[24px]">
+                            {content.message}
+                        </p>
+                    )}
+                    {content.showButton && (
+                        <button
+                            className="w-full max-w-[295px] h-[51px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] inline-flex justify-center items-center gap-1 cursor-pointer hover:from-[#f51da5] hover:to-[#5530fa] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                            onClick={content.buttonAction}
+                        >
+                            <span className="text-center text-white text-base font-semibold font-montserrat">{content.buttonText}</span>
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -297,7 +374,7 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
     </Link>
 );
 
-// Helper functions - memoized
+// Helper functions
 const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -340,24 +417,23 @@ export default function JobDetailPage() {
 
     const [job, setJob] = useState<Job | null>(null);
     const [similarJobs, setSimilarJobs] = useState<Job[]>([]);
-    const [showMenu, setShowMenu] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [isJobSaved, setIsJobSaved] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
-    const [showSuccessPopup, setShowSuccessPopup] = useState<'apply' | 'save' | null>(null);
+    const [canWithdraw, setCanWithdraw] = useState(false);
+    const [showSuccessPopup, setShowSuccessPopup] = useState<'apply' | 'save' | 'withdraw' | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
-    const [showConfirmDialog, setShowConfirmDialog] = useState<'apply' | 'save' | 'unsave' | null>(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState<'apply' | 'save' | 'unsave' | 'withdraw' | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
 
-    // Memoized user authentication check - NOW LISTENS TO STORAGE CHANGES
+    // User authentication check - listens to storage changes
     useEffect(() => {
         const updateUser = () => {
             const currentUser = getUser();
             const token = getAuthToken();
 
-            // Only set user if both user data and token exist
             if (currentUser && token) {
                 setUser(currentUser);
             } else {
@@ -365,10 +441,8 @@ export default function JobDetailPage() {
             }
         };
 
-        // Initial check
         updateUser();
 
-        // Listen for storage changes (logout/login from other tabs or dashboard)
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'userData' || e.key === 'jwtToken' || e.key === null) {
                 updateUser();
@@ -377,14 +451,12 @@ export default function JobDetailPage() {
 
         window.addEventListener('storage', handleStorageChange);
 
-        // Also listen for custom logout event (same-tab logout)
         const handleLogout = () => {
             updateUser();
         };
 
         window.addEventListener('userLoggedOut', handleLogout);
 
-        // Listen for focus to check auth status when user returns to tab
         const handleFocus = () => {
             updateUser();
         };
@@ -398,7 +470,38 @@ export default function JobDetailPage() {
         };
     }, []);
 
-    // Check for pending application after sign in
+    // NEW: Check if user just uploaded CV and should see apply confirmation
+    useEffect(() => {
+        if (typeof window !== 'undefined' && job && user) {
+            const cvUploadedStr = sessionStorage.getItem('cvUploadedForJob');
+            if (cvUploadedStr) {
+                try {
+                    const uploadData = JSON.parse(cvUploadedStr);
+                    // Check if this is for the current job and is recent (within 5 minutes)
+                    const isRecent = Date.now() - uploadData.timestamp < 5 * 60 * 1000;
+                    if (uploadData.jobId === job.id && isRecent) {
+                        // Clear the flag
+                        sessionStorage.removeItem('cvUploadedForJob');
+
+                        // Show the apply confirmation dialog after a brief delay
+                        setTimeout(() => {
+                            if (!hasApplied) {
+                                setShowConfirmDialog('apply');
+                            }
+                        }, 500);
+                    } else {
+                        // Remove expired or irrelevant data
+                        sessionStorage.removeItem('cvUploadedForJob');
+                    }
+                } catch (error) {
+                    console.error('Error processing CV upload confirmation:', error);
+                    sessionStorage.removeItem('cvUploadedForJob');
+                }
+            }
+        }
+    }, [job, user, hasApplied]);
+
+    // Check for pending application after sign in (existing logic - kept as is)
     useEffect(() => {
         const processPendingApplication = () => {
             if (user && job) {
@@ -406,18 +509,14 @@ export default function JobDetailPage() {
                 if (pendingApplication) {
                     try {
                         const pending = JSON.parse(pendingApplication);
-                        // Check if it's the same job and within 10 minutes
                         if (pending.jobId === job.id && Date.now() - pending.timestamp < 10 * 60 * 1000) {
-                            // Clear the pending application
-                            localStorage.removeItem('pendingJobApplication');
-
-                            // Check if already applied
-                            if (!hasApplied) {
-                                // Automatically trigger application confirmation dialog
-                                setShowConfirmDialog('apply');
+                            // Check if CV has been uploaded
+                            const cvUploadedStr = sessionStorage.getItem('cvUploadedForJob');
+                            if (!cvUploadedStr) {
+                                // CV not uploaded yet, don't show confirmation
+                                localStorage.removeItem('pendingJobApplication');
                             }
                         } else {
-                            // Clear expired or different job application
                             localStorage.removeItem('pendingJobApplication');
                         }
                     } catch (error) {
@@ -431,7 +530,7 @@ export default function JobDetailPage() {
         processPendingApplication();
     }, [user, job, hasApplied]);
 
-    // Optimized API calls with useCallback
+    // Check job saved status
     const checkJobSavedStatus = useCallback(async () => {
         if (!user || !job) {
             setIsJobSaved(false);
@@ -464,9 +563,11 @@ export default function JobDetailPage() {
         }
     }, [user, job]);
 
+    // Check application status
     const checkApplicationStatus = useCallback(async () => {
         if (!user || !job) {
             setHasApplied(false);
+            setCanWithdraw(false);
             return;
         }
 
@@ -474,6 +575,7 @@ export default function JobDetailPage() {
             const token = getAuthToken();
             if (!token) {
                 setHasApplied(false);
+                setCanWithdraw(false);
                 return;
             }
 
@@ -487,12 +589,15 @@ export default function JobDetailPage() {
             if (response.ok) {
                 const data = await response.json();
                 setHasApplied(data.data?.applied || false);
+                setCanWithdraw(data.data?.can_withdraw || false);
             } else {
                 setHasApplied(false);
+                setCanWithdraw(false);
             }
         } catch (error) {
             console.error('Error checking application status:', error);
             setHasApplied(false);
+            setCanWithdraw(false);
         }
     }, [user, job]);
 
@@ -502,9 +607,9 @@ export default function JobDetailPage() {
             checkJobSavedStatus();
             checkApplicationStatus();
         } else {
-            // Reset states when user logs out
             setIsJobSaved(false);
             setHasApplied(false);
+            setCanWithdraw(false);
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
 
@@ -534,7 +639,7 @@ export default function JobDetailPage() {
         }
     }, [user]);
 
-    // Handle save job confirmation
+    // Handle save job click (heart icon)
     const handleSaveJobClick = useCallback(() => {
         if (!user) {
             router.push('/signin');
@@ -544,7 +649,6 @@ export default function JobDetailPage() {
         if (!job) return;
 
         setShowConfirmDialog(isJobSaved ? 'unsave' : 'save');
-        setShowMenu(false);
     }, [user, job, isJobSaved, router]);
 
     // Confirm save/unsave job
@@ -611,13 +715,12 @@ export default function JobDetailPage() {
         setShowConfirmDialog('apply');
     }, [user, job, hasApplied, role, router]);
 
-    // Confirm apply job
+    // Confirm apply job - THIS IS WHERE THE APPLICATION ACTUALLY HAPPENS
     const confirmApplyJob = useCallback(async () => {
         if (!job) return;
 
         setShowConfirmDialog(null);
 
-        // Check if user has CV
         const hasCV = await checkUserCV();
 
         if (!hasCV) {
@@ -640,8 +743,10 @@ export default function JobDetailPage() {
 
             if (response.ok) {
                 setHasApplied(true);
+                setCanWithdraw(true);
                 setShowSuccessPopup('apply');
-                // Clear any pending application after successful application
+
+                // Clear the pending job application from localStorage after successful application
                 localStorage.removeItem('pendingJobApplication');
             } else {
                 const errorData = await response.json();
@@ -654,6 +759,45 @@ export default function JobDetailPage() {
             setActionLoading(false);
         }
     }, [job, checkUserCV]);
+
+    // Handle withdraw application click
+    const handleWithdrawClick = useCallback(() => {
+        if (!job) return;
+        setShowConfirmDialog('withdraw');
+    }, [job]);
+
+    // Confirm withdraw application
+    const confirmWithdrawApplication = useCallback(async () => {
+        if (!job) return;
+
+        setShowConfirmDialog(null);
+        setActionLoading(true);
+
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/withdraw/${job.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                setHasApplied(false);
+                setCanWithdraw(false);
+                setShowSuccessPopup('withdraw');
+            } else {
+                const errorData = await response.json();
+                setShowErrorDialog(errorData.message || 'Failed to withdraw application');
+            }
+        } catch (error) {
+            console.error('Error withdrawing application:', error);
+            setShowErrorDialog('Failed to withdraw application. Please try again.');
+        } finally {
+            setActionLoading(false);
+        }
+    }, [job]);
 
     const handleViewSavedJobs = useCallback(() => {
         setShowSuccessPopup(null);
@@ -679,13 +823,13 @@ export default function JobDetailPage() {
         router.push('/dashboard/resubmit-cv');
     }, [router]);
 
-    const toggleMenu = useCallback(() => {
-        setShowMenu(prev => !prev);
-    }, []);
-
     const closePopup = useCallback(() => {
         setShowSuccessPopup(null);
-    }, []);
+        // If it was an apply success, redirect to dashboard
+        if (showSuccessPopup === 'apply') {
+            router.push('/dashboard');
+        }
+    }, [showSuccessPopup, router]);
 
     const closeConfirmDialog = useCallback(() => {
         setShowConfirmDialog(null);
@@ -775,12 +919,12 @@ export default function JobDetailPage() {
         fetchJobDetails();
     }, [id]);
 
-    // Memoized job details sections
+    // Memoized job details sections with Iconify icons
     const jobDetailItems = useMemo(() => [
-        { emoji: '✍️', value: job?.type.replace('-', ' '), label: 'Job Type' },
-        { emoji: '📍', value: job?.location, label: 'Location' },
-        { emoji: '⏳', value: job?.deadline, label: 'Application Deadline' },
-        { emoji: '📝', value: job?.experience, label: 'Experience Level' }
+        { icon: 'solar:document-outline', value: job?.type.replace('-', ' '), label: 'Job Type' },
+        { icon: 'solar:map-point-wave-outline', value: job?.location, label: 'Location' },
+        { icon: 'solar:calendar-outline', value: job?.deadline, label: 'Application Deadline' },
+        { icon: 'solar:graph-new-up-outline', value: job?.experience, label: 'Experience Level' }
     ], [job]);
 
     if (loading) {
@@ -818,38 +962,76 @@ export default function JobDetailPage() {
 
     return (
         <div className="min-h-screen relative bg-white overflow-x-hidden">
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+
+                .gradient-border {
+                    border-image: linear-gradient(to bottom, #4520E0, #D01888) 1;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             <Navbar />
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
-                {/* Job Title and Menu */}
+                {/* Job Title and Save Heart Icon */}
                 <div className="flex justify-between items-start mb-6">
                     <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat">
                         {job.title}
                     </h1>
 
-                    {/* Three dots menu */}
-                    <div className="relative">
+                    {/* Heart Icon for Save Job */}
+                    {user && (
                         <button
-                            onClick={toggleMenu}
-                            className="text-[#6c6c6c] text-2xl md:p-2 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded"
-                            aria-label="Job options menu"
-                            aria-expanded={showMenu}
+                            onClick={handleSaveJobClick}
+                            disabled={actionLoading}
+                            className="text-3xl md:text-4xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded disabled:opacity-50"
+                            aria-label={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
+                            title={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
                         >
-                            &#8942;
+                            {actionLoading ? (
+                                <div className="w-8 h-8 gradient-icon animate-pulse">
+                                    <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                </div>
+                            ) : isJobSaved ? (
+                                <div className="w-8 h-8 gradient-icon hover:scale-110 transition-transform">
+                                    <Icon icon="solar:heart-bold" className="w-full h-full" />
+                                </div>
+                            ) : (
+                                <div className="w-8 h-8 text-gray-400 hover:text-transparent hover:scale-110 transition-all">
+                                    <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                </div>
+                            )}
                         </button>
-
-                        {showMenu && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-1 z-10">
-                                <button
-                                    className="block w-full text-left px-4 py-2 text-sm text-[#6c6c6c] hover:bg-gray-100 font-poppins disabled:opacity-50 focus:outline-none focus:bg-gray-100"
-                                    onClick={handleSaveJobClick}
-                                    disabled={actionLoading}
-                                >
-                                    {actionLoading ? 'Loading...' : (isJobSaved ? 'Remove from Saved' : 'Save Job')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
 
                 {/* Category and Posted Date */}
@@ -867,7 +1049,12 @@ export default function JobDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {jobDetailItems.map((item, index) => (
                         <div key={index} className="flex items-center gap-4">
-                            <div className="text-4xl">{item.emoji}</div>
+                            <div className="flex items-center justify-center w-12 h-12 gradient-icon">
+                                <Icon
+                                    icon={item.icon}
+                                    className="w-8 h-8 text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
+                                />
+                            </div>
                             <div>
                                 <div className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] text-lg font-medium font-poppins capitalize">
                                     {item.value}
@@ -909,17 +1096,31 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                {/* Apply Button */}
-                <div className="mb-6">
+                {/* Apply/Withdraw Buttons */}
+                <div className="mb-6 flex flex-wrap gap-4">
                     {hasApplied ? (
-                        <div className="bg-green-500 rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat text-center inline-block">
-                            Applied
-                        </div>
+                        <>
+                            <button
+                                disabled
+                                className="px-8 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-base font-semibold font-montserrat inline-block opacity-70 cursor-not-allowed"
+                            >
+                                Applied ✓
+                            </button>
+                            {canWithdraw && (
+                                <button
+                                    onClick={handleWithdrawClick}
+                                    disabled={actionLoading}
+                                    className="px-8 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-semibold font-montserrat hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                                >
+                                    {actionLoading ? 'Processing...' : 'Withdraw Application'}
+                                </button>
+                            )}
+                        </>
                     ) : (
                         <button
                             onClick={handleApplyJobClick}
                             disabled={actionLoading}
-                            className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                            className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
                         >
                             {actionLoading ? 'Applying...' : (user ? 'Apply' : 'Sign in & Apply')}
                         </button>
@@ -972,7 +1173,13 @@ export default function JobDetailPage() {
                 <ConfirmDialog
                     type={showConfirmDialog}
                     jobTitle={job.title}
-                    onConfirm={showConfirmDialog === 'apply' ? confirmApplyJob : confirmSaveJob}
+                    onConfirm={
+                        showConfirmDialog === 'apply'
+                            ? confirmApplyJob
+                            : showConfirmDialog === 'withdraw'
+                                ? confirmWithdrawApplication
+                                : confirmSaveJob
+                    }
                     onCancel={closeConfirmDialog}
                 />
             )}

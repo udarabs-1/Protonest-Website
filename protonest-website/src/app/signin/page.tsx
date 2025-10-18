@@ -60,6 +60,27 @@ const setWindowGoogleInitialized = (value: boolean): void => {
     (window as Record<string, unknown>).googleInitialized = value;
 };
 
+// Token management functions
+const clearExpiredTokens = (): void => {
+    if (typeof window === 'undefined') return;
+
+    const tokenExpiration = localStorage.getItem('tokenExpiration');
+    if (tokenExpiration) {
+        const expirationTime = parseInt(tokenExpiration, 10);
+        if (Date.now() > expirationTime) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+        }
+    }
+};
+
+const setTokenWithExpiration = (token: string): void => {
+    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours
+    localStorage.setItem('jwtToken', token);
+    localStorage.setItem('tokenExpiration', expirationTime.toString());
+};
+
 // Modal Component
 const MessageModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -97,6 +118,11 @@ export default function ResponsiveSignIn() {
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
         googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     }), []);
+
+    // Clear expired tokens on component mount
+    useEffect(() => {
+        clearExpiredTokens();
+    }, []);
 
     // Optimized event handlers with useCallback
     const togglePasswordVisibility = useCallback(() => {
@@ -168,11 +194,8 @@ export default function ResponsiveSignIn() {
 
             if (signInResponse.ok) {
                 if (signInData.data && signInData.data.token) {
-                    localStorage.setItem('jwtToken', signInData.data.token);
+                    setTokenWithExpiration(signInData.data.token);
                     localStorage.setItem('userData', JSON.stringify(signInData.data.user));
-
-                    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-                    localStorage.setItem('tokenExpiration', expirationTime.toString());
 
                     // Handle redirect based on pending application
                     handlePostSignInRedirect();
@@ -346,14 +369,11 @@ export default function ResponsiveSignIn() {
 
             if (response.ok) {
                 if (data.data && data.data.token) {
-                    localStorage.setItem('jwtToken', data.data.token);
+                    setTokenWithExpiration(data.data.token);
 
                     if (data.data.user) {
                         localStorage.setItem('userData', JSON.stringify(data.data.user));
                     }
-
-                    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-                    localStorage.setItem('tokenExpiration', expirationTime.toString());
 
                     // Handle redirect based on pending application
                     handlePostSignInRedirect();
@@ -510,6 +530,19 @@ export default function ResponsiveSignIn() {
                                 >
                                     {isLoading ? 'Signing in...' : 'Sign in'}
                                 </button>
+
+                                {/* Sign Up Link */}
+                                <div className="w-full mt-6 text-center">
+                                    <div className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">
+                                        If you don&apos;t already have an account,{' '}
+                                        <Link
+                                            href="/signup"
+                                            className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300"
+                                        >
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                </div>
                             </form>
                         </main>
                     </div>
@@ -639,6 +672,19 @@ export default function ResponsiveSignIn() {
                                     >
                                         {isLoading ? 'Signing In...' : 'Sign In'}
                                     </button>
+
+                                    {/* Sign Up Link */}
+                                    <div className="w-full text-center pt-4">
+                                        <div className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                            If you don&apos;t already have an account,{' '}
+                                            <Link
+                                                href="/signup"
+                                                className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300"
+                                            >
+                                                Sign Up
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>

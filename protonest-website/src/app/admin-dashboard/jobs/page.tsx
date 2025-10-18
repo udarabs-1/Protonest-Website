@@ -1,10 +1,10 @@
 "use client";
 
+import { Icon } from '@iconify/react';
 import {
     ChevronRight,
     Edit,
     Eye,
-    LogOut,
     Menu,
     Search,
     Settings,
@@ -25,8 +25,8 @@ interface Job {
     publication_status: 'draft' | 'published' | 'scheduled';
     assignment_status: 'open' | 'closed' | 'hired';
     location: string;
-    type: 'full-time' | 'part-time' | 'contract' | 'temporary';
-    experience: 'junior' | 'intermediate' | 'senior' | 'expert';
+    type: 'full-time' | 'project-based' | 'hourly' | 'internship';
+    experience: 'beginner' | 'intermediate' | 'experienced';
     description: string;
     responsibilities: string[];
     requirements: string[];
@@ -88,17 +88,17 @@ const JobPostings = () => {
     };
 
     const sidebarItems = [
-        { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: '🔬', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: '👥', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: '📥', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
+        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
+        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
+        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
+        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
+        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
+        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
+        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
+        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
+        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
+        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
+        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
     useEffect(() => {
@@ -282,6 +282,39 @@ const JobPostings = () => {
 
     return (
         <div className="font-poppins min-h-screen bg-white relative">
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition - Darker colors */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
@@ -377,7 +410,12 @@ const JobPostings = () => {
                                             : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
-                                        <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                            <Icon
+                                                icon={item.icon}
+                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                            />
+                                        </div>
                                         <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                     </Link>
                                 ))}
@@ -388,7 +426,12 @@ const JobPostings = () => {
                                     onClick={() => setShowLogoutDialog(true)}
                                     className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
-                                    <LogOut className="w-5 h-5 mr-4" />
+                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                        <Icon
+                                            icon="solar:login-3-bold-duotone"
+                                            className="w-5 h-5"
+                                        />
+                                    </div>
                                     <span className="font-normal">Logout</span>
                                 </button>
                             </div>
@@ -407,7 +450,12 @@ const JobPostings = () => {
                                             : 'text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
-                                        <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                            <Icon
+                                                icon={item.icon}
+                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                            />
+                                        </div>
                                         <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                     </Link>
                                 ))}
@@ -418,7 +466,12 @@ const JobPostings = () => {
                                     onClick={() => setShowLogoutDialog(true)}
                                     className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
-                                    <LogOut className="w-5 h-5 mr-4" />
+                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                        <Icon
+                                            icon="solar:login-3-bold-duotone"
+                                            className="w-5 h-5"
+                                        />
+                                    </div>
                                     <span className="font-normal">Logout</span>
                                 </button>
                             </div>
@@ -442,9 +495,17 @@ const JobPostings = () => {
 
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
                             <div className="flex-1">
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] mb-1 font-montserrat">
-                                    📄 Job Postings
-                                </h1>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                        <Icon
+                                            icon="solar:document-bold-duotone"
+                                            className="w-7 h-7"
+                                        />
+                                    </div>
+                                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                        Job Postings
+                                    </h1>
+                                </div>
                                 <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
                                     View, create, and manage all open freelance roles at Protonest. You can edit, publish or delete postings at any time.
                                 </p>

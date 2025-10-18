@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@next/third-parties": "^15.4.6",
     "@phosphor-icons/react": "^2.1.10",
     "@splidejs/react-splide": "^0.7.12",
@@ -41,6 +42,7 @@
     "react-slick": "^0.30.3",
     "resend": "^6.0.0",
     "slick-carousel": "^1.8.1",
+    "solar-icon-set": "^2.0.1",
     "swiper": "^11.2.8"
   },
   "devDependencies": {

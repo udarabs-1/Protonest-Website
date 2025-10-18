@@ -45,6 +45,8 @@ interface SignUpPromptMomentNotification {
 interface PendingJobApplication {
     jobId: string;
     jobTitle: string;
+    jobUrl: string;
+    role: string;
     timestamp: number;
 }
 
@@ -73,6 +75,27 @@ const getWindowGoogleInitialized = (): boolean => {
 
 const setWindowGoogleInitialized = (value: boolean): void => {
     (window as Record<string, unknown>).googleInitialized = value;
+};
+
+// Token management functions
+const clearExpiredTokens = (): void => {
+    if (typeof window === 'undefined') return;
+
+    const tokenExpiration = localStorage.getItem('tokenExpiration');
+    if (tokenExpiration) {
+        const expirationTime = parseInt(tokenExpiration, 10);
+        if (Date.now() > expirationTime) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+        }
+    }
+};
+
+const setTokenWithExpiration = (token: string): void => {
+    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours
+    localStorage.setItem('jwtToken', token);
+    localStorage.setItem('tokenExpiration', expirationTime.toString());
 };
 
 // Modal Component
@@ -147,6 +170,11 @@ export default function SignUp() {
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
         googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     }), []);
+
+    // Clear expired tokens on component mount
+    useEffect(() => {
+        clearExpiredTokens();
+    }, []);
 
     // Optimized event handlers with useCallback
     const togglePassword = useCallback(() => {
@@ -249,7 +277,6 @@ export default function SignUp() {
             const signupData = await signupResponse.json();
 
             if (!signupResponse.ok) {
-                // Check for conflict status (409) - account already exists
                 if (signupResponse.status === 409) {
                     setModalMessage(signupData.message || 'An account with this email already exists.');
                 } else {
@@ -260,7 +287,7 @@ export default function SignUp() {
             }
 
             if (signupData.data && signupData.data.token) {
-                localStorage.setItem('jwtToken', signupData.data.token);
+                setTokenWithExpiration(signupData.data.token);
                 localStorage.setItem('userData', JSON.stringify(signupData.data.user));
             }
 
@@ -288,11 +315,8 @@ export default function SignUp() {
                 console.warn('Subscription error:', subscriptionError);
             }
 
-            if (pendingJobStr && jobId) {
-                window.location.href = '/dashboard';
-            } else {
-                window.location.href = '/submit-cv';
-            }
+            // Always redirect to submit-cv page after successful signup
+            window.location.href = '/submit-cv';
 
         } catch (error) {
             console.error('Google signup error:', error);
@@ -499,7 +523,6 @@ export default function SignUp() {
             const signupData = await signupResponse.json();
 
             if (!signupResponse.ok) {
-                // Check for conflict status (409) - account already exists
                 if (signupResponse.status === 409) {
                     setModalMessage(signupData.message || 'An account with this email already exists.');
                 } else {
@@ -510,7 +533,7 @@ export default function SignUp() {
             }
 
             if (signupData.data && signupData.data.token) {
-                localStorage.setItem('jwtToken', signupData.data.token);
+                setTokenWithExpiration(signupData.data.token);
                 localStorage.setItem('userData', JSON.stringify(signupData.data.user));
             }
 
@@ -539,11 +562,8 @@ export default function SignUp() {
                 }
             }
 
-            if (pendingJobStr && jobId) {
-                window.location.href = '/dashboard';
-            } else {
-                window.location.href = '/submit-cv';
-            }
+            // Always redirect to submit-cv page after successful signup
+            window.location.href = '/submit-cv';
 
         } catch (error) {
             console.error('Signup error:', error);
@@ -971,7 +991,7 @@ export default function SignUp() {
                                     {/* Job Updates Subscription */}
                                     <div className="space-y-2">
                                         <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Would you like to subscribe to our careers page and receive updates of future job postings via email? You can change this any time.
+                                            Would you like to subscribe to our careers page and receive updates of future job postings?
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <CustomCheckbox
@@ -990,7 +1010,7 @@ export default function SignUp() {
                                     {/* Newsletter Subscription */}
                                     <div className="space-y-2">
                                         <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Would you like to subscribe to the Protonest Newsletter and receive updates on recent news and blog posts on our site? You can change this anytime.
+                                            Would you like to subscribe to our Newsletter and receive updates?
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <CustomCheckbox

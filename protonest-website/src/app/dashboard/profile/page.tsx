@@ -1,6 +1,7 @@
 "use client";
 
 import Footer from '@/app/components/footer';
+import { Icon } from '@iconify/react';
 import {
     Camera,
     ChevronRight,
@@ -8,12 +9,21 @@ import {
     LogOut,
     Menu,
     Save,
+    Trash2,
+    User,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+interface CVData {
+    id?: string;
+    phone_number: string;
+    city: string;
+    work_function: string;
+}
 
 interface ProfileData {
     id?: string;
@@ -27,6 +37,7 @@ interface ProfileData {
     jobUpdates: boolean;
     newsletter: boolean;
     isGoogleUser?: boolean;
+    cvData?: CVData;
 }
 
 const ProfilePage = () => {
@@ -43,6 +54,10 @@ const ProfilePage = () => {
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
     const [sendingResetLink, setSendingResetLink] = useState(false);
     const [showPasswordSuccess, setShowPasswordSuccess] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deletingAccount, setDeletingAccount] = useState(false);
 
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
@@ -54,23 +69,25 @@ const ProfilePage = () => {
         profileImage: '/profile-1.svg',
         jobUpdates: true,
         newsletter: false,
-        isGoogleUser: false
+        isGoogleUser: false,
+        cvData: undefined
     });
     const [editedData, setEditedData] = useState<ProfileData>({ ...profileData });
 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const profileDropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const sidebarItems = [
-        { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
-        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
-        { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
-        { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
-        { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-        { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
-        { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
+        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
+        { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
+        { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
+        { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
+        { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
+        { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
+        { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
     useEffect(() => {
@@ -129,7 +146,13 @@ const ProfilePage = () => {
                     profileImage: userData.profile_image || '/profile-1.svg',
                     jobUpdates: userData.job_updates || false,
                     newsletter: userData.newsletter || false,
-                    isGoogleUser: userData.is_oauth_user || false
+                    isGoogleUser: userData.is_oauth_user || false,
+                    cvData: userData.cv ? {
+                        id: userData.cv.id,
+                        phone_number: userData.cv.phone_number || '',
+                        city: userData.cv.city || '',
+                        work_function: userData.cv.work_function || ''
+                    } : undefined
                 };
 
                 setProfileData(mappedData);
@@ -152,13 +175,16 @@ const ProfilePage = () => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
                 setSidebarOpen(false);
             }
+            if (showProfileDropdown && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+                setShowProfileDropdown(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen]);
+    }, [sidebarOpen, showProfileDropdown]);
 
     useEffect(() => {
         if (error || success) {
@@ -172,6 +198,8 @@ const ProfilePage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
+        setShowProfileDropdown(false);
+        setShowLogoutDialog(false);
         router.push('/find-jobs');
     };
 
@@ -182,15 +210,25 @@ const ProfilePage = () => {
         }));
     };
 
+    const handleCVInputChange = (field: string, value: string) => {
+        setEditedData(prev => ({
+            ...prev,
+            cvData: {
+                ...prev.cvData!,
+                [field]: value
+            }
+        }));
+    };
+
     const handleSaveProfile = async () => {
         try {
             setSaving(true);
             setError(null);
 
+            // Update user profile (excluding email)
             const updateData = {
                 first_name: editedData.firstName,
                 last_name: editedData.lastName,
-                email: editedData.email,
                 job_title: editedData.jobTitle,
                 location: editedData.location,
                 bio: editedData.bio,
@@ -204,23 +242,27 @@ const ProfilePage = () => {
             });
 
             if (response.success && response.user) {
-                const userData = response.user;
-                const mappedData: ProfileData = {
-                    id: userData.id,
-                    firstName: userData.first_name || '',
-                    lastName: userData.last_name || '',
-                    email: userData.email || '',
-                    jobTitle: userData.job_title || '',
-                    location: userData.location || '',
-                    bio: userData.bio || '',
-                    profileImage: userData.profile_image || '/profile-1.svg',
-                    jobUpdates: userData.job_updates || false,
-                    newsletter: userData.newsletter || false,
-                    isGoogleUser: userData.is_google_user || userData.google_id || userData.auth_provider === 'google' || false
-                };
+                // Update CV profile if CV data exists and has been modified
+                if (editedData.cvData && profileData.cvData) {
+                    const cvUpdateData = {
+                        phone_number: editedData.cvData.phone_number,
+                        city: editedData.cvData.city,
+                        work_function: editedData.cvData.work_function,
+                    };
 
-                setProfileData(mappedData);
-                setEditedData(mappedData);
+                    try {
+                        await apiCall('/cv/update-profile', {
+                            method: 'PUT',
+                            body: JSON.stringify(cvUpdateData),
+                        });
+                    } catch (cvErr) {
+                        console.error('Failed to update CV profile:', cvErr);
+                        // Continue even if CV update fails
+                    }
+                }
+
+                // Reload profile to get updated data
+                await loadProfile();
                 setIsEditing(false);
                 setSuccess('Profile updated successfully!');
             }
@@ -317,6 +359,34 @@ const ProfilePage = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== 'DELETE') {
+            setError('Please type DELETE to confirm');
+            return;
+        }
+
+        try {
+            setDeletingAccount(true);
+            setError(null);
+
+            const response = await apiCall('/auth/user/account', {
+                method: 'DELETE',
+            });
+
+            if (response.success) {
+                // Clear token and redirect
+                localStorage.removeItem('jwtToken');
+                setShowDeleteDialog(false);
+                router.push('/find-jobs');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete account');
+            console.error('Error deleting account');
+        } finally {
+            setDeletingAccount(false);
+        }
+    };
+
     const handlePreviewCV = async () => {
         try {
             setLoadingCV(true);
@@ -356,6 +426,76 @@ const ProfilePage = () => {
 
     return (
         <div>
+            {/* Delete Account Confirmation Dialog */}
+            {showDeleteDialog && (
+                <div
+                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => !deletingAccount && setShowDeleteDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <Trash2 className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800">Delete Account</h3>
+                        </div>
+                        <p className="text-gray-600 mb-4">
+                            This action cannot be undone. This will permanently delete your account and remove all your data including:
+                        </p>
+                        <ul className="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                            <li>Profile information</li>
+                            <li>Uploaded CV</li>
+                            <li>Saved jobs</li>
+                            <li>Job applications</li>
+                            <li>Subscription preferences</li>
+                        </ul>
+                        <p className="text-gray-600 mb-4">
+                            Please type <strong className="text-red-600">DELETE</strong> to confirm:
+                        </p>
+                        <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="Type DELETE to confirm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 mb-6"
+                            disabled={deletingAccount}
+                        />
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteDialog(false);
+                                    setDeleteConfirmText('');
+                                }}
+                                disabled={deletingAccount}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deletingAccount || deleteConfirmText !== 'DELETE'}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {deletingAccount ? (
+                                    <>
+                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Account
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showPasswordSuccess && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -471,6 +611,39 @@ const ProfilePage = () => {
                     </div>
                 )}
 
+                <style jsx global>{`
+                    .gradient-icon svg {
+                        width: 100%;
+                        height: 100%;
+                    }
+                    
+                    .gradient-icon svg path {
+                        fill: url(#icon-gradient) !important;
+                    }
+                    
+                    .gradient-icon svg circle {
+                        fill: url(#icon-gradient) !important;
+                    }
+                    
+                    .gradient-icon svg rect {
+                        fill: url(#icon-gradient) !important;
+                    }
+                    
+                    .gradient-icon svg polygon {
+                        fill: url(#icon-gradient) !important;
+                    }
+                `}</style>
+
+                {/* SVG Gradient Definition - Darker colors */}
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <defs>
+                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#4520E0" />
+                            <stop offset="100%" stopColor="#D01888" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
@@ -486,8 +659,11 @@ const ProfilePage = () => {
                                 </Link>
                             </div>
 
-                            <div className="flex items-center">
-                                <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="flex items-center relative" ref={profileDropdownRef}>
+                                <button
+                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                    className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-offset-2"
+                                >
                                     <Image
                                         src={profileData.profileImage}
                                         alt="User Avatar"
@@ -495,7 +671,30 @@ const ProfilePage = () => {
                                         height={40}
                                         className="w-full h-full object-cover"
                                     />
-                                </Link>
+                                </button>
+
+                                {showProfileDropdown && (
+                                    <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                        <Link
+                                            href="/dashboard/profile"
+                                            onClick={() => setShowProfileDropdown(false)}
+                                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Profile</span>
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                setShowProfileDropdown(false);
+                                                setShowLogoutDialog(true);
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Logout</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -537,7 +736,12 @@ const ProfilePage = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -548,7 +752,12 @@ const ProfilePage = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -567,7 +776,12 @@ const ProfilePage = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -578,7 +792,12 @@ const ProfilePage = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -601,10 +820,15 @@ const ProfilePage = () => {
                             </div>
 
                             <div className="mb-8">
-                                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[20px] sm:text-[25px]">👤</span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                                <Icon
+                                                    icon="solar:user-bold-duotone"
+                                                    className="w-7 h-7"
+                                                />
+                                            </div>
                                             <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
                                                 Profile
                                             </h1>
@@ -614,13 +838,13 @@ const ProfilePage = () => {
                                         </p>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                         {isEditing ? (
                                             <>
                                                 <button
                                                     onClick={handleSaveProfile}
                                                     disabled={saving}
-                                                    className="px-6 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white rounded-full font-medium flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                                                    className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white rounded-full font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 text-sm whitespace-nowrap"
                                                 >
                                                     <Save className="w-4 h-4" />
                                                     {saving ? 'Saving...' : 'Save Changes'}
@@ -628,7 +852,7 @@ const ProfilePage = () => {
                                                 <button
                                                     onClick={handleCancelEdit}
                                                     disabled={saving}
-                                                    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-full font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                                    className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-gray-200 text-gray-700 rounded-full font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 text-sm"
                                                 >
                                                     Cancel
                                                 </button>
@@ -636,7 +860,7 @@ const ProfilePage = () => {
                                         ) : (
                                             <button
                                                 onClick={() => setIsEditing(true)}
-                                                className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-full font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                                                className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors text-sm"
                                             >
                                                 <Edit className="w-4 h-4" />
                                                 Edit Profile
@@ -646,7 +870,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-8 mb-8">
+                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-8">
                                 <div className="flex flex-col sm:flex-row gap-6 mb-8 pb-8 border-b border-gray-100">
                                     <div className="flex flex-col items-center sm:items-start">
                                         <div className="relative">
@@ -684,49 +908,113 @@ const ProfilePage = () => {
                                         />
                                     </div>
 
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                         <div className="mb-2">
                                             {isEditing ? (
-                                                <div className="flex gap-2">
+                                                <div className="flex flex-col gap-2">
                                                     <input
                                                         type="text"
                                                         value={editedData.firstName}
                                                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                                                        className="flex-1 text-[#6c6c6c] text-[22px] font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
+                                                        className="w-full text-[#6c6c6c] text-lg sm:text-[22px] font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
                                                         placeholder="First Name"
                                                     />
                                                     <input
                                                         type="text"
                                                         value={editedData.lastName}
                                                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                                                        className="flex-1 text-[#6c6c6c] text-[22px] font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
+                                                        className="w-full text-[#6c6c6c] text-lg sm:text-[22px] font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
                                                         placeholder="Last Name"
                                                     />
                                                 </div>
                                             ) : (
-                                                <h2 className="text-[#6c6c6c] text-[22px] font-medium font-['Poppins']">
+                                                <h2 className="text-[#6c6c6c] text-lg sm:text-[22px] font-medium font-['Poppins'] break-words">
                                                     {profileData.firstName} {profileData.lastName}
                                                 </h2>
                                             )}
                                         </div>
 
                                         <div>
-                                            {isEditing ? (
-                                                <input
-                                                    type="email"
-                                                    value={editedData.email}
-                                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                                    className="w-full text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
-                                                    placeholder="Email"
-                                                />
-                                            ) : (
-                                                <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins']">
-                                                    {profileData.email}
-                                                </p>
-                                            )}
+                                            {/* Email is always read-only */}
+                                            <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] break-words">
+                                                {profileData.email}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* CV Information Section */}
+                                {profileData.cvData && (
+                                    <div className="mb-8 pb-8 border-b border-gray-100">
+                                        <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins'] mb-4 flex items-center gap-3">
+                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                                <Icon
+                                                    icon="solar:document-add-bold-duotone"
+                                                    className="w-7 h-7"
+                                                />
+                                            </div>
+                                            CV Information
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Phone Number
+                                                </label>
+                                                {isEditing && editedData.cvData ? (
+                                                    <input
+                                                        type="tel"
+                                                        value={editedData.cvData.phone_number}
+                                                        onChange={(e) => handleCVInputChange('phone_number', e.target.value)}
+                                                        className="w-full text-[#6c6c6c] text-sm font-normal font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5530fa]"
+                                                        placeholder="Phone Number"
+                                                    />
+                                                ) : (
+                                                    <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] bg-gray-50 rounded-lg px-3 py-2 break-words">
+                                                        {profileData.cvData.phone_number || 'Not provided'}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    City
+                                                </label>
+                                                {isEditing && editedData.cvData ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editedData.cvData.city}
+                                                        onChange={(e) => handleCVInputChange('city', e.target.value)}
+                                                        className="w-full text-[#6c6c6c] text-sm font-normal font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5530fa]"
+                                                        placeholder="City"
+                                                    />
+                                                ) : (
+                                                    <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] bg-gray-50 rounded-lg px-3 py-2 break-words">
+                                                        {profileData.cvData.city || 'Not provided'}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="sm:col-span-2 lg:col-span-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Preferred Function
+                                                </label>
+                                                {isEditing && editedData.cvData ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editedData.cvData.work_function}
+                                                        onChange={(e) => handleCVInputChange('work_function', e.target.value)}
+                                                        className="w-full text-[#6c6c6c] text-sm font-normal font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#5530fa]"
+                                                        placeholder="Preferred Function"
+                                                    />
+                                                ) : (
+                                                    <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] bg-gray-50 rounded-lg px-3 py-2 break-words">
+                                                        {profileData.cvData.work_function || 'Not provided'}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {isEditing && (
                                     <div className="mb-8 pb-8 border-b border-gray-100">
@@ -759,11 +1047,11 @@ const ProfilePage = () => {
                                 )}
 
                                 <div className="mb-8">
-                                    <h3 className="text-xl font-medium text-[#6c6c6c] font-['Poppins'] mb-4">Current CV</h3>
+                                    <h3 className="text-lg sm:text-xl font-medium text-[#6c6c6c] font-['Poppins'] mb-4">Current CV</h3>
                                     <button
                                         onClick={handlePreviewCV}
                                         disabled={loadingCV}
-                                        className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Montserrat'] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                                        className="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Montserrat'] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         {loadingCV ? (
                                             <>
@@ -777,12 +1065,19 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {!profileData.isGoogleUser && (
-                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-8">
-                                    <h3 className="text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-2">
-                                        <span className="text-xl">🔐</span>
-                                        Account Security
-                                    </h3>
+                            {/* Account Security Section */}
+                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
+                                <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
+                                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                        <Icon
+                                            icon="solar:shield-keyhole-bold-duotone"
+                                            className="w-7 h-7"
+                                        />
+                                    </div>
+                                    Account Security
+                                </h3>
+
+                                {!profileData.isGoogleUser && (
                                     <button
                                         onClick={handleChangePassword}
                                         className="group inline-block w-full text-left cursor-pointer py-4 border-b border-gray-100"
@@ -791,8 +1086,18 @@ const ProfilePage = () => {
                                             Change Password
                                         </span>
                                     </button>
-                                </div>
-                            )}
+                                )}
+
+                                <button
+                                    onClick={() => setShowDeleteDialog(true)}
+                                    className="group inline-block w-full text-left cursor-pointer py-4"
+                                >
+                                    <span className="text-red-600 group-hover:text-red-700 text-base font-normal font-['Poppins'] flex items-center gap-2">
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Account
+                                    </span>
+                                </button>
+                            </div>
                         </main>
                     </div>
                 </div>
