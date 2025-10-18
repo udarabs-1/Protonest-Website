@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from '@iconify/react';
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +13,7 @@ import { useOnScreen } from "../components/use-on-screen";
 // Value Card Component with mobile-friendly hover effects
 type ValueType = {
   title: string;
-  emoji: string;
+  icon: string;
   description: string;
 };
 
@@ -30,10 +31,15 @@ const ValueCard = ({ value }: { value: ValueType }) => {
       className={`group w-[280px] sm:w-[200px] md:w-[220px] lg:w-64 h-[280px] sm:h-[320px] md:h-[340px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[30px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] flex flex-col items-center relative transition-all duration-300 md:hover:shadow-xl ${shouldShowEffects ? 'shadow-xl' : ''
         }`}
     >
-      {/* Emoji Section with hover effects */}
+      {/* Icon Section with hover effects */}
       <div className={`h-[180px] lg:h-[240px] flex items-center justify-center transition-transform duration-300 md:group-hover:-rotate-7 md:group-hover:scale-115 ${shouldShowEffects ? '-rotate-7 scale-115' : ''
         }`}>
-        <span className="text-[80px] md:text-[100px] lg:text-[110px] leading-none">{value.emoji}</span>
+        <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
+          <Icon
+            icon={value.icon}
+            className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
+          />
+        </div>
       </div>
 
       {/* Content Section with hover effects */}
@@ -57,22 +63,22 @@ export default function About() {
   const values = [
     {
       title: "Innovation",
-      emoji: "🚀",
+      icon: "solar:rocket-2-bold",
       description: "We push the edge of what's possible in connected tech."
     },
     {
       title: "Collaboration",
-      emoji: "🤝",
+      icon: "solar:users-group-two-rounded-bold",
       description: "Working side-by-side with our clients to co-create."
     },
     {
       title: "Excellence",
-      emoji: "🎯",
+      icon: "solar:target-bold",
       description: "Every detail matters, from concept to final delivery."
     },
     {
       title: "Integrity",
-      emoji: "🛡️",
+      icon: "solar:shield-check-bold",
       description: "Transparent, honest, and always accountable."
     }
   ];

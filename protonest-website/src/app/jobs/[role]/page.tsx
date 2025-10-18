@@ -72,9 +72,10 @@ const roleTitles: { [key: string]: string } = {
     'other-roles': 'Other Roles'
 };
 
-// Memoized filter options
 const FILTER_OPTIONS = {
-    experience: ['junior', 'intermediate', 'senior', 'expert'],
+    experience: ['beginner', 'intermediate', 'experienced'],
+    location: ['Remote', 'On-site', 'Hybrid'],
+    jobType: ['full-time', 'project-based', 'hourly', 'internship'],
     datePosted: ['Newest', 'Oldest']
 } as const;
 
@@ -147,7 +148,13 @@ const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
 
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div>
-                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
+                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
+                        {job.type === 'project-based' ? 'Project Based' :
+                            job.type === 'full-time' ? 'Full Time' :
+                                job.type === 'hourly' ? 'Hourly' :
+                                    job.type === 'internship' ? 'Internship' :
+                                        job.type}
+                    </p>
                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
                 </div>
                 <div>
@@ -373,11 +380,7 @@ export default function RolePage() {
     }, []);
 
     // Memoized filter calculations
-    const { filteredJobs, uniqueLocations, uniqueJobTypes } = useMemo(() => {
-        // Get unique values for filters
-        const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)));
-        const uniqueJobTypes = Array.from(new Set(jobs.map(job => job.type)));
-
+    const filteredJobs = useMemo(() => {
         // Filter jobs
         const filtered = jobs.filter(job => {
             if (filters.experience.length > 0 && !filters.experience.includes(job.experience)) {
@@ -409,7 +412,7 @@ export default function RolePage() {
             });
         }
 
-        return { filteredJobs: filtered, uniqueLocations, uniqueJobTypes };
+        return filtered;
     }, [jobs, filters, searchQuery]);
 
     // Reset visible jobs count when filters change
@@ -533,19 +536,17 @@ export default function RolePage() {
                             </div>
 
                             {/* Location Filter */}
-                            {uniqueLocations.length > 0 && (
-                                <div className="mb-8">
-                                    <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
-                                    {uniqueLocations.map(location => (
-                                        <FilterCheckbox
-                                            key={location}
-                                            isSelected={filters.location.includes(location)}
-                                            onClick={() => handleFilterToggle('location', location)}
-                                            label={location}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            <div className="mb-8">
+                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
+                                {FILTER_OPTIONS.location.map(location => (
+                                    <FilterCheckbox
+                                        key={location}
+                                        isSelected={filters.location.includes(location)}
+                                        onClick={() => handleFilterToggle('location', location)}
+                                        label={location}
+                                    />
+                                ))}
+                            </div>
 
                             {/* Date Posted Filter */}
                             <div className="mb-8">
@@ -561,19 +562,21 @@ export default function RolePage() {
                             </div>
 
                             {/* Job Type Filter */}
-                            {uniqueJobTypes.length > 0 && (
-                                <div>
-                                    <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
-                                    {uniqueJobTypes.map(type => (
-                                        <FilterCheckbox
-                                            key={type}
-                                            isSelected={filters.jobType.includes(type)}
-                                            onClick={() => handleFilterToggle('jobType', type)}
-                                            label={type.replace('-', ' ')}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            <div>
+                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
+                                {FILTER_OPTIONS.jobType.map(type => (
+                                    <FilterCheckbox
+                                        key={type}
+                                        isSelected={filters.jobType.includes(type)}
+                                        onClick={() => handleFilterToggle('jobType', type)}
+                                        label={type === 'project-based' ? 'Project Based' :
+                                            type === 'full-time' ? 'Full Time' :
+                                                type === 'hourly' ? 'Hourly' :
+                                                    type === 'internship' ? 'Internship' :
+                                                        type}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </aside>
 
@@ -673,19 +676,17 @@ export default function RolePage() {
                                         </div>
 
                                         {/* Location Filter */}
-                                        {uniqueLocations.length > 0 && (
-                                            <div>
-                                                <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h5>
-                                                {uniqueLocations.map(location => (
-                                                    <FilterCheckbox
-                                                        key={location}
-                                                        isSelected={filters.location.includes(location)}
-                                                        onClick={() => handleFilterToggle('location', location)}
-                                                        label={location}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div>
+                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h5>
+                                            {FILTER_OPTIONS.location.map(location => (
+                                                <FilterCheckbox
+                                                    key={location}
+                                                    isSelected={filters.location.includes(location)}
+                                                    onClick={() => handleFilterToggle('location', location)}
+                                                    label={location}
+                                                />
+                                            ))}
+                                        </div>
 
                                         {/* Date Posted Filter */}
                                         <div>
@@ -701,19 +702,21 @@ export default function RolePage() {
                                         </div>
 
                                         {/* Job Type Filter */}
-                                        {uniqueJobTypes.length > 0 && (
-                                            <div>
-                                                <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h5>
-                                                {uniqueJobTypes.map(type => (
-                                                    <FilterCheckbox
-                                                        key={type}
-                                                        isSelected={filters.jobType.includes(type)}
-                                                        onClick={() => handleFilterToggle('jobType', type)}
-                                                        label={type.replace('-', ' ')}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div>
+                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h5>
+                                            {FILTER_OPTIONS.jobType.map(type => (
+                                                <FilterCheckbox
+                                                    key={type}
+                                                    isSelected={filters.jobType.includes(type)}
+                                                    onClick={() => handleFilterToggle('jobType', type)}
+                                                    label={type === 'project-based' ? 'Project Based' :
+                                                        type === 'full-time' ? 'Full Time' :
+                                                            type === 'hourly' ? 'Hourly' :
+                                                                type === 'internship' ? 'Internship' :
+                                                                    type}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
 
                                     <div className="mt-8 flex justify-between">

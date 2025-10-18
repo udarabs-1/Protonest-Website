@@ -1,11 +1,13 @@
 "use client";
 
 import Footer from '@/app/components/footer';
+import { Icon } from '@iconify/react';
 import {
     ChevronRight,
     LogOut,
     Menu,
     RefreshCw,
+    User,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -69,6 +71,20 @@ interface CVInfoResponse {
     };
 }
 
+interface ProfileData {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    jobTitle: string;
+    location: string;
+    bio: string;
+    profileImage: string;
+    jobUpdates: boolean;
+    newsletter: boolean;
+    isGoogleUser?: boolean;
+}
+
 // Add category to slug mapping
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
@@ -130,18 +146,32 @@ const SuggestedJobs = () => {
     const [showUpdateErrorModal, setShowUpdateErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [profileData, setProfileData] = useState<ProfileData>({
+        firstName: '',
+        lastName: '',
+        email: '',
+        jobTitle: '',
+        location: '',
+        bio: '',
+        profileImage: '/profile-1.svg',
+        jobUpdates: true,
+        newsletter: false,
+        isGoogleUser: false,
+    });
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const profileDropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
     const sidebarItems = [
-        { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
-        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
-        { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
-        { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
-        { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-        { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
-        { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
+        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
+        { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
+        { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
+        { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
+        { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
+        { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
+        { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
     // Authentication check
@@ -152,11 +182,50 @@ const SuggestedJobs = () => {
         }
     }, [router]);
 
+    // Fetch user profile data
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.user) {
+                    const userData = data.user;
+                    setProfileData({
+                        id: userData.id,
+                        firstName: userData.first_name || '',
+                        lastName: userData.last_name || '',
+                        email: userData.email || '',
+                        jobTitle: userData.job_title || '',
+                        location: userData.location || '',
+                        bio: userData.bio || '',
+                        profileImage: userData.profile_image || '/profile-1.svg',
+                        jobUpdates: userData.job_updates || false,
+                        newsletter: userData.newsletter || false,
+                        isGoogleUser: userData.is_oauth_user || false,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        }
+    };
+
     // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
                 setSidebarOpen(false);
+            }
+            if (showProfileDropdown && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+                setShowProfileDropdown(false);
             }
         };
 
@@ -164,7 +233,7 @@ const SuggestedJobs = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen]);
+    }, [sidebarOpen, showProfileDropdown]);
 
     // Fetch suggested jobs data
     const fetchSuggestedJobs = async () => {
@@ -228,6 +297,7 @@ const SuggestedJobs = () => {
 
     useEffect(() => {
         fetchSuggestedJobs();
+        fetchUserProfile();
     }, []);
 
     // Handle search functionality
@@ -277,6 +347,8 @@ const SuggestedJobs = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
+        setShowProfileDropdown(false);
+        setShowLogoutDialog(false);
         router.push('/find-jobs');
     };
 
@@ -641,6 +713,39 @@ const SuggestedJobs = () => {
 
     return (
         <div>
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
@@ -694,17 +799,42 @@ const SuggestedJobs = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions - Only Profile Icon */}
-                            <div className="flex items-center">
-                                <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="flex items-center relative" ref={profileDropdownRef}>
+                                <button
+                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                    className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-offset-2"
+                                >
                                     <Image
-                                        src="/profile-1.svg"
+                                        src={profileData.profileImage}
                                         alt="User Avatar"
                                         width={40}
                                         height={40}
                                         className="w-full h-full object-cover"
                                     />
-                                </Link>
+                                </button>
+
+                                {showProfileDropdown && (
+                                    <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                        <Link
+                                            href="/dashboard/profile"
+                                            onClick={() => setShowProfileDropdown(false)}
+                                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Profile</span>
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                setShowProfileDropdown(false);
+                                                setShowLogoutDialog(true);
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Logout</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -749,19 +879,29 @@ const SuggestedJobs = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
                                 </nav>
 
                                 {/* Logout Button */}
-                                <div className="pt-8">
+                                <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -781,7 +921,12 @@ const SuggestedJobs = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -793,7 +938,12 @@ const SuggestedJobs = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -819,13 +969,20 @@ const SuggestedJobs = () => {
 
                             {/* Suggested Jobs Section */}
                             <div className="mb-8">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[25px]">🔎</span>
-                                            <h2 className="text-2xl font-medium text-gray-700">Suggested Jobs</h2>
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                    <div className="flex flex-col justify-start items-start gap-2.5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                                <Icon
+                                                    icon="solar:minimalistic-magnifer-bold-duotone"
+                                                    className="w-7 h-7"
+                                                />
+                                            </div>
+                                            <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
+                                                Suggested Jobs
+                                            </h1>
                                         </div>
-                                        <p className="text-gray-600 text-sm">
+                                        <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
                                             These jobs are matched based on your profile, CV, and skills.
                                         </p>
                                     </div>

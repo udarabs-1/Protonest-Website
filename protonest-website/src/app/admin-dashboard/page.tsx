@@ -1,8 +1,8 @@
 "use client";
 
+import { Icon } from '@iconify/react';
 import {
     ChevronRight,
-    LogOut,
     Menu,
     Settings,
     X
@@ -70,7 +70,7 @@ interface DashboardStats {
 interface RecentSubmission {
     name: string;
     stage: string;
-    expertise: string;
+    appliedFor: string;
     date: string;
     _id: string;
 }
@@ -124,6 +124,64 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
+// Token management functions
+const clearExpiredTokens = (): void => {
+    if (typeof window === 'undefined') return;
+
+    const tokenExpiration = localStorage.getItem('tokenExpiration');
+    if (tokenExpiration) {
+        const expirationTime = parseInt(tokenExpiration, 10);
+        if (Date.now() > expirationTime) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+        }
+    }
+};
+
+// Helper functions moved outside component to fix ESLint warning
+const formatDate = (dateString: string) => {
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    } catch {
+        return '-';
+    }
+};
+
+const formatRelativeDate = (dateString: string) => {
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+
+        // Reset time components to compare only dates
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        const diffTime = today.getTime() - inputDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            return 'Today';
+        } else if (diffDays === 1) {
+            return '1 day ago';
+        } else if (diffDays < 7) {
+            return `${diffDays} days ago`;
+        } else if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+        } else {
+            return formatDate(dateString);
+        }
+    } catch {
+        return 'Recently';
+    }
+};
+
 const AdminDashboard = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -145,17 +203,24 @@ const AdminDashboard = () => {
     const pathname = usePathname();
 
     const sidebarItems = [
-        { icon: '📊', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: '👤', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: '📄', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: '🔄', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: '✍️', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: '🔔', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: '📝', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: '🔬', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: '👥', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: '📥', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: '⚙️', label: 'Settings', path: '/admin-dashboard/settings' },
+        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
+        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
+        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
+        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
+        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
+        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
+        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
+        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
+        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
+        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
+        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
+    ];
+
+    const quickActions = [
+        { icon: 'solar:magnifer-bold-duotone', label: 'Review New Candidates', path: '/admin-dashboard/candidates' },
+        { icon: 'solar:document-add-bold-duotone', label: 'Post a New Job', path: '/admin-dashboard/jobs/create' },
+        { icon: 'solar:bell-bold-duotone', label: 'Manage Subscriptions', path: '/admin-dashboard/subscriptions' },
+        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'View Talent Pool', path: '/admin-dashboard/talent-pool' }
     ];
 
     // Authentication check and data fetching in the same useEffect
@@ -165,6 +230,9 @@ const AdminDashboard = () => {
             router.push('/admin-signin');
             return;
         }
+
+        // Clear expired user tokens on admin dashboard load
+        clearExpiredTokens();
 
         const getDisplayStatus = (status: string) => {
             const statusMap: { [key: string]: string } = {
@@ -206,22 +274,6 @@ const AdminDashboard = () => {
                 return formatDate(candidate.nda_status.sent_on);
             }
             return '-';
-        };
-
-        const formatRelativeDate = (dateString: string) => {
-            try {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffTime = Math.abs(now.getTime() - date.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays === 1) return '1 day ago';
-                if (diffDays < 7) return `${diffDays} days ago`;
-                if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-                return formatDate(dateString);
-            } catch {
-                return 'Recently';
-            }
         };
 
         const fetchDashboardData = async () => {
@@ -384,7 +436,7 @@ const AdminDashboard = () => {
                 const recentData: RecentSubmission[] = sortedApplications.map(app => ({
                     name: app.user_id?.name || 'Unknown',
                     stage: getDisplayStatus(app.status),
-                    expertise: app.job_id?.category || 'General',
+                    appliedFor: app.job_id?.title || 'Unknown Position',
                     date: formatRelativeDate(app.applied_at),
                     _id: app._id
                 }));
@@ -449,19 +501,6 @@ const AdminDashboard = () => {
         window.location.reload();
     };
 
-    const formatDate = (dateString: string) => {
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-        } catch {
-            return '-';
-        }
-    };
-
     const statsCards = [
         {
             title: 'Total Applicants',
@@ -489,13 +528,6 @@ const AdminDashboard = () => {
         }
     ];
 
-    const quickActions = [
-        { icon: '🔍', label: 'Review New Candidates', path: '/admin-dashboard/candidates' },
-        { icon: '📝', label: 'Post a New Job', path: '/admin-dashboard/jobs/create' },
-        { icon: '📨', label: 'Manage Subscriptions', path: '/admin-dashboard/subscriptions' },
-        { icon: '👥', label: 'View Talent Pool', path: '/admin-dashboard/talent-pool' }
-    ];
-
     if (loading) {
         return (
             <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
@@ -509,6 +541,39 @@ const AdminDashboard = () => {
 
     return (
         <div>
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition - Darker colors */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
@@ -606,7 +671,12 @@ const AdminDashboard = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -617,7 +687,12 @@ const AdminDashboard = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -637,7 +712,12 @@ const AdminDashboard = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -648,7 +728,12 @@ const AdminDashboard = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -684,9 +769,17 @@ const AdminDashboard = () => {
                             )}
 
                             <div className="font-montserrat mb-8">
-                                <h1 className="text-2xl font-semibold text-gray-700 mb-2">
-                                    Welcome
-                                </h1>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                        <Icon
+                                            icon="solar:chart-square-bold-duotone"
+                                            className="w-7 h-7"
+                                        />
+                                    </div>
+                                    <h1 className="text-2xl font-semibold text-gray-700">
+                                        Welcome
+                                    </h1>
+                                </div>
                             </div>
 
                             <div className="mb-8">
@@ -748,7 +841,7 @@ const AdminDashboard = () => {
                                                     </th>
                                                     <th className="px-4 py-3 bg-Neutral-200 text-left">
                                                         <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                                            Expertise
+                                                            Applied For
                                                         </div>
                                                     </th>
                                                     <th className="px-4 py-3 bg-Neutral-200 text-left">
@@ -773,7 +866,7 @@ const AdminDashboard = () => {
                                                         </td>
                                                         <td className="px-4 py-3 bg-Surface-Default text-left">
                                                             <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                                {submission.expertise}
+                                                                {submission.appliedFor}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 bg-Surface-Default text-left">
@@ -807,9 +900,12 @@ const AdminDashboard = () => {
                                             className="bg-white rounded-lg shadow-md p-2 flex flex-col justify-center items-center text-center hover:shadow-lg transition-shadow h-36"
                                         >
                                             <div className="mb-4 flex items-center justify-center">
-                                                <span className="w-12 h-12 text-4xl flex items-center justify-center">
-                                                    {action.icon}
-                                                </span>
+                                                <div className="w-12 h-12 flex items-center justify-center gradient-icon">
+                                                    <Icon
+                                                        icon={action.icon}
+                                                        className="w-8 h-8"
+                                                    />
+                                                </div>
                                             </div>
                                             <h3 className="text-[15px] text-gray-600">{action.label}</h3>
                                         </Link>

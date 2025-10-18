@@ -1,21 +1,22 @@
-"use client";
+'use client';
 
 import Footer from '@/app/components/footer';
+import { Icon } from '@iconify/react';
 import {
     ChevronDown,
     ChevronRight,
     Download,
     Eye,
-    FileText,
     LogOut,
     Menu,
     Upload,
+    User,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface CVInfoResponse {
     status: string;
@@ -44,7 +45,6 @@ interface FormData {
     fullName: string;
     email: string;
     phoneNumber: string;
-    country: string;
     city: string;
     workFunction: string;
     ndaAcknowledged: boolean;
@@ -58,43 +58,72 @@ interface DropdownState {
     [key: string]: boolean;
 }
 
-interface CountryCode {
-    code: string;
-    dialCode: string;
-    flag: string;
-    name: string;
+interface ProfileData {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    jobTitle: string;
+    location: string;
+    bio: string;
+    profileImage: string;
+    jobUpdates: boolean;
+    newsletter: boolean;
+    isGoogleUser?: boolean;
 }
 
-// Static data
-const cities: { [key: string]: string[] } = {
-    'Sri Lanka': ['Colombo', 'Negombo', 'Kandy', 'Galle', 'Jaffna'],
-    'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'],
-    'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Glasgow', 'Liverpool'],
-    'Canada': ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa'],
-    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
-    'Singapore': ['Singapore'],
-    'India': ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata']
-};
-
-const countryCodes: CountryCode[] = [
-    { code: 'LK', dialCode: '+94', flag: '🇱🇰', name: 'Sri Lanka' },
-    { code: 'US', dialCode: '+1', flag: '🇺🇸', name: 'United States' },
-    { code: 'GB', dialCode: '+44', flag: '🇬🇧', name: 'United Kingdom' },
-    { code: 'CA', dialCode: '+1', flag: '🇨🇦', name: 'Canada' },
-    { code: 'AU', dialCode: '+61', flag: '🇦🇺', name: 'Australia' },
-    { code: 'SG', dialCode: '+65', flag: '🇸🇬', name: 'Singapore' },
-    { code: 'IN', dialCode: '+91', flag: '🇮🇳', name: 'India' },
-    { code: 'DE', dialCode: '+49', flag: '🇩🇪', name: 'Germany' },
-    { code: 'FR', dialCode: '+33', flag: '🇫🇷', name: 'France' },
-    { code: 'JP', dialCode: '+81', flag: '🇯🇵', name: 'Japan' },
+// All districts in Sri Lanka
+const sriLankaDistricts: string[] = [
+    'Ampara',
+    'Anuradhapura',
+    'Badulla',
+    'Batticaloa',
+    'Colombo',
+    'Galle',
+    'Gampaha',
+    'Hambantota',
+    'Jaffna',
+    'Kalutara',
+    'Kandy',
+    'Kegalle',
+    'Kilinochchi',
+    'Kurunegala',
+    'Mannar',
+    'Matale',
+    'Matara',
+    'Monaragala',
+    'Mullaitivu',
+    'Nuwara Eliya',
+    'Polonnaruwa',
+    'Puttalam',
+    'Ratnapura',
+    'Trincomalee',
+    'Vavuniya'
 ];
 
-const countries = ['Sri Lanka', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Singapore', 'India'];
-
-const workFunctions = ['Engineering', 'Design', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations', 'Product Management'];
+// Work functions list
+const workFunctionsList: string[] = [
+    'Engineering',
+    'Design',
+    'Marketing',
+    'Sales',
+    'Finance',
+    'HR',
+    'Operations',
+    'Product Management',
+    'Customer Support',
+    'Business Development',
+    'Data Analytics',
+    'Quality Assurance',
+    'Research & Development',
+    'Legal',
+    'Administration'
+];
 
 const ResubmitCVPage = () => {
     const router = useRouter();
+    const pathname = usePathname();
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -112,33 +141,54 @@ const ResubmitCVPage = () => {
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+    const [profileData, setProfileData] = useState<ProfileData>({
+        firstName: '',
+        lastName: '',
+        email: '',
+        jobTitle: '',
+        location: '',
+        bio: '',
+        profileImage: '/profile-1.svg',
+        jobUpdates: true,
+        newsletter: false,
+        isGoogleUser: false,
+    });
 
     // Form data states
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
         email: '',
         phoneNumber: '',
-        country: '',
         city: '',
         workFunction: '',
         ndaAcknowledged: false
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
-    const [selectedCountryCode, setSelectedCountryCode] = useState<CountryCode>(countryCodes[0]);
-    const [workFunctionSearch, setWorkFunctionSearch] = useState('');
 
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const profileDropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const countryCodeRef = useRef<HTMLDivElement>(null);
-    const countryRef = useRef<HTMLDivElement>(null);
     const cityRef = useRef<HTMLDivElement>(null);
+    const workFunctionRef = useRef<HTMLDivElement>(null);
+
     const dropdownRefs = useMemo(() => ({
-        countryCode: countryCodeRef,
-        country: countryRef,
         city: cityRef,
-    }), [countryCodeRef, countryRef, cityRef]);
-    const pathname = usePathname();
+        workFunction: workFunctionRef,
+    }), []);
+
+    const sidebarItems = [
+        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
+        { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
+        { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
+        { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
+        { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
+        { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
+        { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
+        { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
+    ];
 
     // Authentication check
     useEffect(() => {
@@ -148,7 +198,43 @@ const ResubmitCVPage = () => {
         }
     }, [router]);
 
-    const resetPage = () => {
+    // Fetch user profile data
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.user) {
+                    const userData = data.user;
+                    setProfileData({
+                        id: userData.id,
+                        firstName: userData.first_name || '',
+                        lastName: userData.last_name || '',
+                        email: userData.email || '',
+                        jobTitle: userData.job_title || '',
+                        location: userData.location || '',
+                        bio: userData.bio || '',
+                        profileImage: userData.profile_image || '/profile-1.svg',
+                        jobUpdates: userData.job_updates || false,
+                        newsletter: userData.newsletter || false,
+                        isGoogleUser: userData.is_oauth_user || false,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        }
+    };
+
+    const resetPage = useCallback(() => {
         setShowJobsModal(false);
         setShowNoMatchModal(false);
         setSelectedFile(null);
@@ -156,22 +242,13 @@ const ResubmitCVPage = () => {
         setSuggestedJobs([]);
         setError('');
         setSuccess('');
-    };
-
-    const sidebarItems = [
-        { icon: '📊', label: 'Dashboard Overview', path: '/dashboard' },
-        { icon: '💼', label: 'All Jobs', path: '/dashboard/all-jobs' },
-        { icon: '🔎', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
-        { icon: '👀', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
-        { icon: '🎯', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: '📨', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-        { icon: '📣', label: 'Manage Alerts', path: '/dashboard/alerts' },
-        { icon: '👤', label: 'View/Edit Profile', path: '/dashboard/profile' },
-    ];
+        setHasAttemptedSubmit(false);
+    }, []);
 
     useEffect(() => {
         fetchCVInfo();
         populateUserData();
+        fetchUserProfile();
     }, []);
 
     const populateUserData = () => {
@@ -233,6 +310,10 @@ const ResubmitCVPage = () => {
                 setSidebarOpen(false);
             }
 
+            if (showProfileDropdown && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+                setShowProfileDropdown(false);
+            }
+
             const isOutsideDropdown = Object.values(dropdownRefs).every(ref =>
                 ref.current && !ref.current.contains(event.target as Node)
             );
@@ -246,15 +327,17 @@ const ResubmitCVPage = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, dropdownOpen, dropdownRefs]);
+    }, [sidebarOpen, showProfileDropdown, dropdownOpen, dropdownRefs]);
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
         localStorage.removeItem('userData');
+        setShowProfileDropdown(false);
+        setShowLogoutDialog(false);
         router.push('/find-jobs');
     };
 
-    const validateForm = (): boolean => {
+    const validateForm = useCallback((): boolean => {
         const newErrors: FormErrors = {};
 
         if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
@@ -267,17 +350,16 @@ const ResubmitCVPage = () => {
         }
 
         if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-        if (!formData.country) newErrors.country = 'Country is required';
-        if (!formData.city) newErrors.city = 'City is required';
+        if (!formData.city) newErrors.city = 'District is required';
         if (!formData.workFunction.trim()) newErrors.workFunction = 'At least one work function is required';
         if (!selectedFile) newErrors.cv = 'CV upload is required';
         if (!formData.ndaAcknowledged) newErrors.nda = 'NDA acknowledgment is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
+    }, [formData, selectedFile]);
 
-    const handleInputChange = (field: keyof FormData, value: string | boolean): void => {
+    const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
         if (field === 'workFunction') {
             const functionsArray = (value as string).split(',').filter(Boolean);
             const uniqueFunctions = [...new Set(functionsArray)].join(',');
@@ -285,34 +367,25 @@ const ResubmitCVPage = () => {
                 ...prev,
                 [field]: uniqueFunctions
             }));
-            return;
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value
+            }));
         }
 
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-
+        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
+    }, [errors]);
 
-        if (field === 'country') {
-            setFormData(prev => ({ ...prev, city: '' }));
-        }
-    };
-
-    const toggleDropdown = (field: string): void => {
+    const toggleDropdown = useCallback((field: string): void => {
         setDropdownOpen(prev => ({
             ...prev,
             [field]: !prev[field]
         }));
-    };
-
-    const filteredWorkFunctions = workFunctions.filter(func =>
-        func.toLowerCase().includes(workFunctionSearch.toLowerCase()) &&
-        !formData.workFunction.split(',').includes(func)
-    );
+    }, []);
 
     const handleFileSelect = async (file: File) => {
         if (file.type === 'application/pdf') {
@@ -401,6 +474,8 @@ const ResubmitCVPage = () => {
     };
 
     const handleSubmit = async () => {
+        setHasAttemptedSubmit(true);
+
         // If user hasn't uploaded CV before, validate full form
         if (!hasCVUploaded) {
             if (!validateForm()) return;
@@ -431,7 +506,7 @@ const ResubmitCVPage = () => {
                 submitData.append('fullName', formData.fullName);
                 submitData.append('email', formData.email);
                 submitData.append('phoneNumber', formData.phoneNumber);
-                submitData.append('country', formData.country);
+                submitData.append('country', 'Sri Lanka'); // Always Sri Lanka
                 submitData.append('city', formData.city);
                 submitData.append('workFunction', formData.workFunction);
                 submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
@@ -510,6 +585,23 @@ const ResubmitCVPage = () => {
         setExtractedSkills(prev => prev.filter(skill => skill !== skillToRemove));
     };
 
+    // Check if form is valid (for first time upload)
+    const isFormValid = useMemo(() => {
+        if (hasCVUploaded) {
+            return !!selectedFile;
+        }
+        return !!(
+            formData.fullName.trim() &&
+            formData.email.trim() &&
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
+            formData.phoneNumber.trim() &&
+            formData.city &&
+            formData.workFunction.trim() &&
+            selectedFile &&
+            formData.ndaAcknowledged
+        );
+    }, [formData, selectedFile, hasCVUploaded]);
+
     // Loading Spinner Component
     const LoadingSpinner = () => (
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
@@ -539,7 +631,7 @@ const ResubmitCVPage = () => {
             className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4"
             onClick={onBackdropClick}
         >
-            <div className={`${className} bg-white/5 rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden`}>
+            <div className={`${className} bg-white rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] overflow-hidden`}>
                 {children}
             </div>
         </div>
@@ -579,11 +671,24 @@ const ResubmitCVPage = () => {
 
     // Jobs Modal Component
     const JobsModal = () => {
+        const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+            if (e.target === e.currentTarget) {
+                resetPage();
+            }
+        };
+
         return (
             <ModalWrapper
+                onBackdropClick={handleBackdropClick}
                 className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[640px] lg:max-w-[800px] xl:max-w-[1117px] max-h-[90vh] overflow-y-auto"
             >
                 <div className="p-4 sm:p-6 md:p-8">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center gradient-icon">
+                            <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
+                        </div>
+                    </div>
+
                     <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-6 sm:mb-8 md:mb-10">
                         {hasCVUploaded ? (
                             <>Your CV has been updated successfully!<br />Here are recommended roles based on your updated CV</>
@@ -608,7 +713,10 @@ const ResubmitCVPage = () => {
                                     <div className="w-full max-w-[261px]">
                                         <button
                                             className="w-full h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                                            onClick={() => router.push(`/jobs/view/${job.job_id}`)}
+                                            onClick={() => {
+                                                resetPage();
+                                                router.push(`/jobs/view/${job.job_id}`);
+                                            }}
                                         >
                                             <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</span>
                                         </button>
@@ -622,12 +730,18 @@ const ResubmitCVPage = () => {
                         </div>
                     )}
 
-                    <div className="flex justify-center mt-6 sm:mt-8">
+                    <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
+                        Check all available jobs for you!
+                    </div>
+                    <div className="flex justify-center mt-4 gap-3">
                         <button
-                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                            onClick={resetPage}
+                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                            onClick={() => {
+                                resetPage();
+                                router.push('/dashboard');
+                            }}
                         >
-                            <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Close</span>
+                            <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Available Jobs</span>
                         </button>
                     </div>
                 </div>
@@ -637,12 +751,25 @@ const ResubmitCVPage = () => {
 
     // No Match Modal Component
     const NoMatchModal = () => {
+        const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+            if (e.target === e.currentTarget) {
+                resetPage();
+            }
+        };
+
         return (
             <ModalWrapper
+                onBackdropClick={handleBackdropClick}
                 className="w-full max-w-[320px] sm:max-w-[480px] md:max-w-[600px] lg:max-w-[700px] xl:max-w-[833px]"
             >
                 <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
+                        <div className="flex justify-center">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center gradient-icon">
+                                <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
+                            </div>
+                        </div>
+
                         <div className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px]">
                             {hasCVUploaded ? 'Your CV has been updated successfully!' : 'Welcome to our talent pool!'}
                         </div>
@@ -651,12 +778,26 @@ const ResubmitCVPage = () => {
                             We&apos;ll contact you when something opens up that fits your profile.
                         </div>
 
-                        <div className="flex justify-center w-full max-w-[500px] mt-4">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
                             <button
-                                className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                                onClick={resetPage}
+                                className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
+                                onClick={() => {
+                                    resetPage();
+                                    router.push('/dashboard');
+                                }}
                             >
-                                <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Close</span>
+                                <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Go to Dashboard</span>
+                            </button>
+                            <button
+                                className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                                onClick={() => {
+                                    setShowNoMatchModal(false);
+                                    setSelectedFile(null);
+                                    setExtractedSkills([]);
+                                    if (fileInputRef.current) fileInputRef.current.click();
+                                }}
+                            >
+                                <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Re-Upload CV</span>
                             </button>
                         </div>
                     </div>
@@ -667,6 +808,43 @@ const ResubmitCVPage = () => {
 
     return (
         <div>
+            <style jsx global>{`
+                .gradient-icon svg {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .gradient-icon svg path {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg circle {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg rect {
+                    fill: url(#icon-gradient) !important;
+                }
+                
+                .gradient-icon svg polygon {
+                    fill: url(#icon-gradient) !important;
+                }
+
+                .gradient-border {
+                    border-image: linear-gradient(to bottom, #4520E0, #D01888) 1;
+                }
+            `}</style>
+
+            {/* SVG Gradient Definition */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
@@ -717,16 +895,42 @@ const ResubmitCVPage = () => {
                                 </Link>
                             </div>
 
-                            <div className="flex items-center space-x-4">
-                                <Link href="/dashboard/profile" className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="flex items-center relative" ref={profileDropdownRef}>
+                                <button
+                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                    className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-offset-2"
+                                >
                                     <Image
-                                        src="/profile-1.svg"
+                                        src={profileData.profileImage}
                                         alt="User Avatar"
                                         width={40}
                                         height={40}
                                         className="w-full h-full object-cover"
                                     />
-                                </Link>
+                                </button>
+
+                                {showProfileDropdown && (
+                                    <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                        <Link
+                                            href="/dashboard/profile"
+                                            onClick={() => setShowProfileDropdown(false)}
+                                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Profile</span>
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                setShowProfileDropdown(false);
+                                                setShowLogoutDialog(true);
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span className="text-sm font-medium">Logout</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -768,18 +972,28 @@ const ResubmitCVPage = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
                                 </nav>
 
-                                <div className="pt-8">
+                                <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -798,7 +1012,12 @@ const ResubmitCVPage = () => {
                                                 : 'text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
-                                            <span className="w-5 h-5 mr-4 text-lg flex items-center justify-center">{item.icon}</span>
+                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
+                                                <Icon
+                                                    icon={item.icon}
+                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                                />
+                                            </div>
                                             <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                                         </Link>
                                     ))}
@@ -809,7 +1028,12 @@ const ResubmitCVPage = () => {
                                         onClick={() => setShowLogoutDialog(true)}
                                         className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                                     >
-                                        <LogOut className="w-5 h-5 mr-4" />
+                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
+                                            <Icon
+                                                icon="solar:login-3-bold-duotone"
+                                                className="w-5 h-5"
+                                            />
+                                        </div>
                                         <span className="font-normal">Logout</span>
                                     </button>
                                 </div>
@@ -832,18 +1056,27 @@ const ResubmitCVPage = () => {
                             </div>
 
                             <div className="mb-8">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-[25px]">📨</span>
-                                    <h2 className="text-2xl font-medium text-gray-700">
-                                        {hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
-                                    </h2>
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div className="flex flex-col justify-start items-start gap-2.5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                                <Icon
+                                                    icon="solar:cloud-upload-bold-duotone"
+                                                    className="w-7 h-7"
+                                                />
+                                            </div>
+                                            <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
+                                                {hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
+                                            </h1>
+                                        </div>
+                                        <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
+                                            {hasCVUploaded
+                                                ? 'Keep your CV up to date so we can better match you with the right freelance projects at Protonest.'
+                                                : 'Upload your CV to join our talent pool and get matched with the right freelance projects at Protonest.'
+                                            }
+                                        </p>
+                                    </div>
                                 </div>
-                                <p className="text-gray-600 text-sm">
-                                    {hasCVUploaded
-                                        ? 'Keep your CV up to date so we can better match you with the right freelance projects at Protonest.'
-                                        : 'Upload your CV to join our talent pool and get matched with the right freelance projects at Protonest.'
-                                    }
-                                </p>
                             </div>
 
                             {error && (
@@ -858,7 +1091,7 @@ const ResubmitCVPage = () => {
                             )}
 
                             {hasCVUploaded && (
-                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
+                                <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12 mb-8">
                                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                         <div className="flex-1">
                                             <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">Current CV Status</h3>
@@ -897,7 +1130,7 @@ const ResubmitCVPage = () => {
                                 <div className="space-y-8 mb-8">
                                     <div className="grid grid-cols-1 gap-6">
                                         <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                                 Full Name
                                             </label>
                                             <input
@@ -905,14 +1138,14 @@ const ResubmitCVPage = () => {
                                                 value={formData.fullName}
                                                 onChange={(e) => handleInputChange('fullName', e.target.value)}
                                                 placeholder="Your Full Name"
-                                                className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400"
+                                                className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                             />
                                             {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                                         </div>
 
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
+                                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                                     Email
                                                 </label>
                                                 <input
@@ -920,49 +1153,19 @@ const ResubmitCVPage = () => {
                                                     value={formData.email}
                                                     onChange={(e) => handleInputChange('email', e.target.value)}
                                                     placeholder="you@company.com"
-                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400"
+                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                                 />
                                                 {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
                                             </div>
 
                                             <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
+                                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                                     Phone Number
                                                 </label>
                                                 <div className="flex items-center">
-                                                    <div className="relative mr-2 flex-shrink-0" ref={dropdownRefs.countryCode}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleDropdown('countryCode');
-                                                            }}
-                                                            className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                                        >
-                                                            <span className="mr-1">{selectedCountryCode.flag}</span>
-                                                            <span className="text-gray-700">{selectedCountryCode.dialCode}</span>
-                                                            <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${dropdownOpen.countryCode ? 'rotate-180' : ''}`} />
-                                                        </button>
-                                                        {dropdownOpen.countryCode && (
-                                                            <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto w-48">
-                                                                {countryCodes.map((country) => (
-                                                                    <button
-                                                                        key={country.code}
-                                                                        type="button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setSelectedCountryCode(country);
-                                                                            toggleDropdown('countryCode');
-                                                                        }}
-                                                                        className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins']"
-                                                                    >
-                                                                        <span className="mr-2">{country.flag}</span>
-                                                                        <span className="text-gray-700">{country.name}</span>
-                                                                        <span className="ml-auto text-gray-500">{country.dialCode}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        )}
+                                                    <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
+                                                        <span className="mr-1">🇱🇰</span>
+                                                        <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
                                                     </div>
 
                                                     <input
@@ -970,148 +1173,105 @@ const ResubmitCVPage = () => {
                                                         value={formData.phoneNumber}
                                                         onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                                                         placeholder="For faster communication"
-                                                        className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400"
+                                                        className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                                     />
                                                 </div>
                                                 {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
-                                                    Country
-                                                </label>
-                                                <div className="relative" ref={dropdownRefs.country}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleDropdown('country');
-                                                        }}
-                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                                    >
-                                                        <span className={formData.country ? 'text-gray-700' : 'text-gray-400'}>
-                                                            {formData.country || 'Select country'}
-                                                        </span>
-                                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.country ? 'rotate-180' : ''}`} />
-                                                    </button>
-                                                    {dropdownOpen.country && (
-                                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                            {countries.map(country => (
-                                                                <button
-                                                                    key={country}
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleInputChange('country', country);
-                                                                        toggleDropdown('country');
-                                                                    }}
-                                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins']"
-                                                                >
-                                                                    {country}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {errors.country && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.country}</p>}
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
-                                                    City
-                                                </label>
-                                                <div className="relative" ref={dropdownRefs.city}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            if (formData.country) toggleDropdown('city');
-                                                        }}
-                                                        disabled={!formData.country}
-                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] disabled:opacity-50"
-                                                    >
-                                                        <span className={formData.city ? 'text-gray-700' : 'text-gray-400'}>
-                                                            {formData.city || 'Select city'}
-                                                        </span>
-                                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
-                                                    </button>
-                                                    {!formData.country && <p className="text-red-500 text-sm mt-1 font-['Poppins']">Select the country first</p>}
-                                                    {dropdownOpen.city && formData.country && (
-                                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                            {cities[formData.country]?.map(city => (
-                                                                <button
-                                                                    key={city}
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleInputChange('city', city);
-                                                                        toggleDropdown('city');
-                                                                    }}
-                                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins']"
-                                                                >
-                                                                    {city}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
-                                            </div>
-                                        </div>
-
                                         <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-2 font-['Poppins']">
-                                                What functions do you prefer to work in?
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                                District
                                             </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={workFunctionSearch}
-                                                    onChange={(e) => setWorkFunctionSearch(e.target.value)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter' && workFunctionSearch.trim() && !formData.workFunction.includes(workFunctionSearch.trim())) {
-                                                            e.preventDefault();
-                                                            handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${workFunctionSearch.trim()}` : workFunctionSearch.trim());
-                                                            setWorkFunctionSearch('');
-                                                        }
+                                            <div className="relative" ref={dropdownRefs.city}>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleDropdown('city');
                                                     }}
-                                                    placeholder="Type and press Enter to add functions"
-                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400"
-                                                />
-
-                                                {workFunctionSearch && (
+                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
+                                                >
+                                                    <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
+                                                        {formData.city || 'Select district'}
+                                                    </span>
+                                                    <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
+                                                </button>
+                                                {dropdownOpen.city && (
                                                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                        {filteredWorkFunctions.map(func => (
+                                                        {sriLankaDistricts.map(district => (
                                                             <button
-                                                                key={func}
+                                                                key={district}
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
-                                                                    setWorkFunctionSearch('');
+                                                                    handleInputChange('city', district);
+                                                                    toggleDropdown('city');
                                                                 }}
-                                                                className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins']"
+                                                                className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
                                                             >
-                                                                {func}
+                                                                {district}
                                                             </button>
                                                         ))}
-                                                        {filteredWorkFunctions.length === 0 && (
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                                What functions do you prefer to work in?
+                                            </label>
+                                            <div className="relative" ref={dropdownRefs.workFunction}>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleDropdown('workFunction');
+                                                    }}
+                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
+                                                >
+                                                    <span className={formData.workFunction ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
+                                                        {formData.workFunction ? 'Functions selected' : 'Select work functions'}
+                                                    </span>
+                                                    <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                {dropdownOpen.workFunction && (
+                                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                                        {workFunctionsList
+                                                            .filter(func => !formData.workFunction.split(',').includes(func))
+                                                            .map(func => (
+                                                                <button
+                                                                    key={func}
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
+                                                                    }}
+                                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
+                                                                >
+                                                                    {func}
+                                                                </button>
+                                                            ))}
+                                                        {workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func)).length === 0 && (
                                                             <div className="p-3 text-gray-500 text-sm text-center font-['Poppins']">
-                                                                No matching functions found
+                                                                All functions selected
                                                             </div>
                                                         )}
                                                     </div>
                                                 )}
                                             </div>
 
+                                            {/* Display selected functions as tags */}
                                             {formData.workFunction && (
                                                 <div className="mt-3 flex flex-wrap gap-2">
                                                     {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
                                                         <div
                                                             key={index}
-                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 border-[#5530fa] text-gray-600 font-medium text-sm font-['Poppins']"
+                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
                                                         >
                                                             <span>{func}</span>
                                                             <button
@@ -1137,7 +1297,7 @@ const ResubmitCVPage = () => {
                                 </div>
                             )}
 
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12">
+                            <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12">
                                 <div className="mb-6">
                                     <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">
                                         {hasCVUploaded ? 'Upload a New Version' : 'Upload Your CV'}
@@ -1152,7 +1312,7 @@ const ResubmitCVPage = () => {
 
                                 <div className="mb-6">
                                     <div
-                                        className={`relative rounded-[35px] border-2 border-dashed transition-all duration-300 ${isDragging
+                                        className={`relative rounded-[20px] border-2 border-dashed transition-all duration-300 ${isDragging
                                             ? 'border-[#5530fa] bg-[#5530fa]/5'
                                             : selectedFile
                                                 ? 'border-green-500 bg-green-50'
@@ -1165,11 +1325,11 @@ const ResubmitCVPage = () => {
                                         <div className="flex flex-col items-center justify-center py-12 px-6">
                                             {selectedFile ? (
                                                 <div className="space-y-4 text-center">
-                                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                                                        <FileText className="w-8 h-8 text-green-600" />
+                                                    <div className="w-16 h-16 gradient-icon rounded-full flex items-center justify-center mx-auto">
+                                                        <Icon icon="solar:file-check-bold-duotone" className="w-10 h-10" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-[#6c6c6c] font-medium">{selectedFile.name}</p>
+                                                        <p className="text-[#6c6c6c] font-medium text-base">{selectedFile.name}</p>
                                                         <p className="text-sm text-gray-500">
                                                             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                                         </p>
@@ -1177,16 +1337,12 @@ const ResubmitCVPage = () => {
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4 text-center">
-                                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                                                        <Upload className="w-8 h-8 text-gray-400" />
-                                                    </div>
+                                                    <Upload className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-4 text-gray-400" />
                                                     <div>
-                                                        <p className="text-[#6c6c6c] text-base">
-                                                            Upload the file by drag and drop here or
-                                                            <br />
-                                                            click on the browse button.
+                                                        <p className="text-[#6c6c6c] text-xs sm:text-sm lg:text-base mb-4">
+                                                            Click the Upload button to upload your CV.<br />
+                                                            You can add an updated CV at any time.
                                                         </p>
-                                                        <p className="text-sm text-gray-500 mt-2">Supported format: .pdf</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -1196,9 +1352,9 @@ const ResubmitCVPage = () => {
                                     <div className="flex justify-center mt-6">
                                         <button
                                             onClick={handleBrowseClick}
-                                            className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow"
+                                            className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins'] transition-all duration-300"
                                         >
-                                            Browse Files
+                                            Browse
                                         </button>
                                     </div>
 
@@ -1213,14 +1369,14 @@ const ResubmitCVPage = () => {
 
                                 {extractedSkills.length > 0 && (
                                     <div className="mb-6">
-                                        <h3 className="text-lg font-medium text-[#6c6c6c] mb-3">
-                                            Extracted Skills from Your CV
+                                        <h3 className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            Expertise Areas According To Your CV
                                         </h3>
                                         <div className="flex flex-wrap gap-2">
                                             {extractedSkills.map((skill, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 border-[#5530fa] text-gray-600 font-medium text-sm font-['Poppins']"
+                                                    className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
                                                 >
                                                     <span>{skill}</span>
                                                     <button
@@ -1253,7 +1409,7 @@ const ResubmitCVPage = () => {
                                             )}
                                         </button>
                                         <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg font-semibold mb-1 font-['Poppins']">
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-1 font-['Poppins']">
                                                 NDA Acknowledgment
                                             </label>
                                             <p className="text-gray-500 text-xs sm:text-sm font-['Poppins'] leading-relaxed">
@@ -1264,19 +1420,49 @@ const ResubmitCVPage = () => {
                                     </div>
                                 )}
 
-                                {(Object.keys(errors).length > 0 || errors.submit) && (
-                                    <div className="text-red-500 text-sm font-['Poppins'] mb-6">
-                                        {errors.submit || 'Please complete all required fields before submitting.'}
+                                {!hasCVUploaded && !isFormValid && hasAttemptedSubmit && (
+                                    <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3 mb-6">
+                                        <div className="flex-shrink-0">
+                                            <Icon icon="solar:danger-circle-bold" className="w-6 h-6 text-red-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-red-600 text-sm font-['Poppins']">
+                                                Please complete all required fields before submitting.
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
 
-                                <div className="flex justify-center lg:justify-end">
+                                <div className="flex flex-col sm:flex-row gap-4 pt-8 justify-end">
+                                    {!hasCVUploaded && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData({
+                                                    fullName: '',
+                                                    email: '',
+                                                    phoneNumber: '',
+                                                    city: '',
+                                                    workFunction: '',
+                                                    ndaAcknowledged: false
+                                                });
+                                                setSelectedFile(null);
+                                                setExtractedSkills([]);
+                                                setErrors({});
+                                                setHasAttemptedSubmit(false);
+                                            }}
+                                            disabled={isSubmitting}
+                                            className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
+                                        >
+                                            Reset
+                                        </button>
+                                    )}
                                     <button
                                         onClick={handleSubmit}
-                                        disabled={!selectedFile || isSubmitting}
-                                        className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={isSubmitting}
+                                        className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
                                     >
-                                        {isSubmitting ? 'Submitting...' : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV'}
+                                        {isSubmitting ? 'Submitting...' : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV and Join Talent Pool'}
                                     </button>
                                 </div>
                             </div>
