@@ -665,7 +665,7 @@ export default function JobDetailPage() {
     // Handle save job click (heart icon)
     const handleSaveJobClick = useCallback(() => {
         if (!user) {
-            router.push('/signin');
+            router.replace('/signin');
             return;
         }
 
@@ -729,7 +729,7 @@ export default function JobDetailPage() {
                     timestamp: Date.now()
                 }));
             }
-            router.push('/signin');
+            router.replace('/signin');
             return;
         }
 
@@ -837,7 +837,7 @@ export default function JobDetailPage() {
                 timestamp: Date.now()
             }));
         }
-        router.push('/signup');
+        router.replace('/signup');
     }, [job, role, router]);
 
     const handleUploadCV = useCallback(() => {

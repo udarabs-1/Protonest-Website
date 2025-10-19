@@ -3,7 +3,7 @@
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Google OAuth types - completely isolated to avoid conflicts
 interface SignUpGoogleOAuthConfig {
@@ -69,12 +69,12 @@ const getWindowGoogle = (): SignUpGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignUpGoogleAPI | undefined;
 };
 
-const getWindowGoogleInitialized = (): boolean => {
-    return ((window as Record<string, unknown>)?.googleInitialized as boolean) || false;
+const getWindowGoogleSignUpInitialized = (): boolean => {
+    return ((window as Record<string, unknown>)?.googleSignUpInitialized as boolean) || false;
 };
 
-const setWindowGoogleInitialized = (value: boolean): void => {
-    (window as Record<string, unknown>).googleInitialized = value;
+const setWindowGoogleSignUpInitialized = (value: boolean): void => {
+    (window as Record<string, unknown>).googleSignUpInitialized = value;
 };
 
 // Token management functions
@@ -178,10 +178,8 @@ export default function SignUp() {
 
     // Prevent back navigation
     useEffect(() => {
-        // Replace history entry to prevent back navigation
         window.history.replaceState(null, '', window.location.href);
 
-        // Handle back button
         const handlePopState = (e: PopStateEvent) => {
             e.preventDefault();
             window.history.replaceState(null, '', window.location.href);
@@ -238,6 +236,7 @@ export default function SignUp() {
 
     // Handle Google OAuth response with improved error handling
     const handleGoogleSignUp = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
+        console.log('handleGoogleSignUp called - SIGNUP flow');
         setIsLoading(true);
         setError('');
 
@@ -246,11 +245,15 @@ export default function SignUp() {
 
             const googleUserData = {
                 email: payload.email,
-                firstName: payload.given_name,
-                lastName: payload.family_name,
+                firstName: payload.given_name || '',
+                lastName: payload.family_name || '', // Handle missing last name
                 googleId: payload.sub,
                 verified: payload.email_verified
             };
+
+            console.log('Google user data:', googleUserData);
+
+            console.log('Calling SIGNUP API:', `${apiConfig.apiUrl}/api/v1/auth/google-signup`);
 
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
             let skipTalentPool = false;
@@ -293,6 +296,7 @@ export default function SignUp() {
             });
 
             const signupData = await signupResponse.json();
+            console.log('SIGNUP API Response:', signupData);
 
             if (!signupResponse.ok) {
                 if (signupResponse.status === 409) {
@@ -311,13 +315,18 @@ export default function SignUp() {
 
             // Create subscription
             try {
+                // Build full name, handling missing last name
+                const fullName = googleUserData.lastName
+                    ? `${googleUserData.firstName} ${googleUserData.lastName}`.trim()
+                    : googleUserData.firstName;
+
                 const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        name: `${googleUserData.firstName} ${googleUserData.lastName}`,
+                        name: fullName,
                         email: googleUserData.email,
                         career_updates: true,
                         newsletter: true
@@ -333,7 +342,6 @@ export default function SignUp() {
                 console.warn('Subscription error:', subscriptionError);
             }
 
-            // Always redirect to submit-cv page after successful signup using replace
             window.location.replace('/submit-cv');
 
         } catch (error) {
@@ -344,15 +352,21 @@ export default function SignUp() {
         }
     }, [apiConfig.apiUrl]);
 
+    // Use ref to store the latest callback
+    const handleGoogleSignUpRef = useRef(handleGoogleSignUp);
+
+    useEffect(() => {
+        handleGoogleSignUpRef.current = handleGoogleSignUp;
+    }, [handleGoogleSignUp]);
+
     // Initialize Google OAuth with improved error handling
     useEffect(() => {
-        if (typeof window !== 'undefined' && !getWindowGoogleInitialized()) {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
+        if (typeof window !== 'undefined' && !getWindowGoogleSignUpInitialized()) {
+            console.log('Initializing Google OAuth for SIGNUP');
 
-            script.onload = () => {
+            const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+
+            const initializeGoogle = () => {
                 try {
                     const google = getWindowGoogle();
                     if (google && google.accounts) {
@@ -362,9 +376,14 @@ export default function SignUp() {
                             return;
                         }
 
+                        console.log('Initializing Google with context: signup');
+
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
-                            callback: handleGoogleSignUp,
+                            callback: (response: GoogleCredentialResponse) => {
+                                console.log('Google callback triggered for SIGNUP');
+                                handleGoogleSignUpRef.current(response);
+                            },
                             auto_select: false,
                             cancel_on_tap_outside: true,
                             use_fedcm_for_prompt: false,
@@ -373,8 +392,9 @@ export default function SignUp() {
                             context: 'signup'
                         });
 
-                        setWindowGoogleInitialized(true);
+                        setWindowGoogleSignUpInitialized(true);
                         setGoogleLoadError(false);
+                        console.log('Google OAuth initialized successfully for SIGNUP');
                     } else {
                         console.error('Google accounts library not loaded properly');
                         setGoogleLoadError(true);
@@ -385,20 +405,35 @@ export default function SignUp() {
                 }
             };
 
-            script.onerror = () => {
-                console.error('Failed to load Google accounts script');
-                setGoogleLoadError(true);
-            };
+            if (existingScript) {
+                console.log('Google script already exists, initializing...');
+                initializeGoogle();
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.async = true;
+                script.defer = true;
 
-            document.head.appendChild(script);
+                script.onload = () => {
+                    console.log('Google script loaded');
+                    initializeGoogle();
+                };
 
-            return () => {
-                if (document.head.contains(script)) {
-                    document.head.removeChild(script);
-                }
-            };
+                script.onerror = () => {
+                    console.error('Failed to load Google accounts script');
+                    setGoogleLoadError(true);
+                };
+
+                document.head.appendChild(script);
+
+                return () => {
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
+                };
+            }
         }
-    }, [apiConfig.googleClientId, handleGoogleSignUp]);
+    }, [apiConfig.googleClientId]);
 
     // Check for pending job application on mount
     useEffect(() => {
@@ -421,6 +456,8 @@ export default function SignUp() {
     }, []);
 
     const handleGoogleSignUpClick = useCallback((): void => {
+        console.log('Google Sign Up button clicked');
+
         if (googleLoadError) {
             setError('Google Sign-Up is not available. Please use manual sign-up.');
             return;
@@ -449,6 +486,7 @@ export default function SignUp() {
                 setTimeout(() => {
                     const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
                     if (button) {
+                        console.log('Clicking Google button for SIGNUP');
                         button.click();
                     }
                     if (document.body.contains(buttonContainer)) {
@@ -583,7 +621,6 @@ export default function SignUp() {
                 }
             }
 
-            // Always redirect to submit-cv page after successful signup using replace
             window.location.replace('/submit-cv');
 
         } catch (error) {

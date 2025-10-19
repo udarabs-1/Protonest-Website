@@ -499,10 +499,6 @@ export default function OnboardingPage() {
         }
     }, [analyzeCV]);
 
-    const removeSkill = useCallback((skillToRemove: string): void => {
-        setExtractedSkills(prev => prev.filter(skill => skill !== skillToRemove));
-    }, []);
-
     const handleSubmit = useCallback(async (): Promise<void> => {
         if (!validateForm()) return;
 
@@ -1246,32 +1242,6 @@ export default function OnboardingPage() {
                             </div>
                             {errors.cv && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.cv}</p>}
                         </div>
-
-                        {/* Extracted Skills - Only show expertise areas */}
-                        {extractedSkills.length > 0 && (
-                            <div className="space-y-4">
-                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold font-['Poppins']">
-                                    Expertise Areas According To Your CV
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {extractedSkills.map((skill, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                        >
-                                            <span>{skill}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSkill(skill)}
-                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {/* NDA Acknowledgment */}
                         <div className="flex items-start space-x-3">
