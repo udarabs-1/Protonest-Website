@@ -189,16 +189,46 @@ const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
     );
 };
 
-// Success Popup Component
-const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
-    useEffect(() => {
-        const timer = setTimeout(() => {
+// Info Dialog Component (for already applied message)
+const InfoDialog = ({ message, onClose }: { message: string; onClose: () => void }) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
             onClose();
-        }, 10000);
-
-        return () => clearTimeout(timer);
+        }
     }, [onClose]);
 
+    return (
+        <div
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm px-4"
+            onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                        <Icon icon="solar:info-circle-bold-duotone" className="w-10 h-10" />
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
+                    Already Applied
+                </h3>
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6 text-center">
+                    {message}
+                </p>
+                <button
+                    onClick={onClose}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Success Popup Component
+const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
@@ -424,9 +454,13 @@ export default function JobDetailPage() {
     const [hasApplied, setHasApplied] = useState(false);
     const [canWithdraw, setCanWithdraw] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState<'apply' | 'save' | 'withdraw' | null>(null);
-    const [actionLoading, setActionLoading] = useState(false);
+    const [saveLoading, setSaveLoading] = useState(false);
+    const [applyLoading, setApplyLoading] = useState(false);
+    const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState<'apply' | 'save' | 'unsave' | 'withdraw' | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
+    const [showInfoDialog, setShowInfoDialog] = useState<string | null>(null);
+    const [hasCheckedPendingApplication, setHasCheckedPendingApplication] = useState(false);
 
     // User authentication check - listens to storage changes
     useEffect(() => {
@@ -469,66 +503,6 @@ export default function JobDetailPage() {
             window.removeEventListener('focus', handleFocus);
         };
     }, []);
-
-    // NEW: Check if user just uploaded CV and should see apply confirmation
-    useEffect(() => {
-        if (typeof window !== 'undefined' && job && user) {
-            const cvUploadedStr = sessionStorage.getItem('cvUploadedForJob');
-            if (cvUploadedStr) {
-                try {
-                    const uploadData = JSON.parse(cvUploadedStr);
-                    // Check if this is for the current job and is recent (within 5 minutes)
-                    const isRecent = Date.now() - uploadData.timestamp < 5 * 60 * 1000;
-                    if (uploadData.jobId === job.id && isRecent) {
-                        // Clear the flag
-                        sessionStorage.removeItem('cvUploadedForJob');
-
-                        // Show the apply confirmation dialog after a brief delay
-                        setTimeout(() => {
-                            if (!hasApplied) {
-                                setShowConfirmDialog('apply');
-                            }
-                        }, 500);
-                    } else {
-                        // Remove expired or irrelevant data
-                        sessionStorage.removeItem('cvUploadedForJob');
-                    }
-                } catch (error) {
-                    console.error('Error processing CV upload confirmation:', error);
-                    sessionStorage.removeItem('cvUploadedForJob');
-                }
-            }
-        }
-    }, [job, user, hasApplied]);
-
-    // Check for pending application after sign in (existing logic - kept as is)
-    useEffect(() => {
-        const processPendingApplication = () => {
-            if (user && job) {
-                const pendingApplication = localStorage.getItem('pendingJobApplication');
-                if (pendingApplication) {
-                    try {
-                        const pending = JSON.parse(pendingApplication);
-                        if (pending.jobId === job.id && Date.now() - pending.timestamp < 10 * 60 * 1000) {
-                            // Check if CV has been uploaded
-                            const cvUploadedStr = sessionStorage.getItem('cvUploadedForJob');
-                            if (!cvUploadedStr) {
-                                // CV not uploaded yet, don't show confirmation
-                                localStorage.removeItem('pendingJobApplication');
-                            }
-                        } else {
-                            localStorage.removeItem('pendingJobApplication');
-                        }
-                    } catch (error) {
-                        console.error('Error processing pending application:', error);
-                        localStorage.removeItem('pendingJobApplication');
-                    }
-                }
-            }
-        };
-
-        processPendingApplication();
-    }, [user, job, hasApplied]);
 
     // Check job saved status
     const checkJobSavedStatus = useCallback(async () => {
@@ -590,14 +564,18 @@ export default function JobDetailPage() {
                 const data = await response.json();
                 setHasApplied(data.data?.applied || false);
                 setCanWithdraw(data.data?.can_withdraw || false);
+
+                return data.data?.applied || false;
             } else {
                 setHasApplied(false);
                 setCanWithdraw(false);
+                return false;
             }
         } catch (error) {
             console.error('Error checking application status:', error);
             setHasApplied(false);
             setCanWithdraw(false);
+            return false;
         }
     }, [user, job]);
 
@@ -612,6 +590,51 @@ export default function JobDetailPage() {
             setCanWithdraw(false);
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
+
+    // Check for pending application after sign in - handles both signup and signin flows
+    useEffect(() => {
+        const processPendingApplication = async () => {
+            // Only run once per page load and only when we have both user and job
+            if (!user || !job || hasCheckedPendingApplication) {
+                return;
+            }
+
+            setHasCheckedPendingApplication(true);
+
+            const pendingApplication = localStorage.getItem('pendingJobApplication');
+            if (pendingApplication) {
+                try {
+                    const pending = JSON.parse(pendingApplication);
+                    const isForThisJob = pending.jobId === job.id;
+                    const isRecent = Date.now() - pending.timestamp < 10 * 60 * 1000;
+
+                    if (isForThisJob && isRecent) {
+                        // Check if user has already applied
+                        const alreadyApplied = await checkApplicationStatus();
+
+                        if (alreadyApplied) {
+                            // User already applied to this job
+                            setShowInfoDialog(`You have already applied for "${job.title}". Your application is under review.`);
+                            localStorage.removeItem('pendingJobApplication');
+                        } else {
+                            // User hasn't applied yet - show confirmation dialog
+                            setTimeout(() => {
+                                setShowConfirmDialog('apply');
+                            }, 500);
+                        }
+                    } else {
+                        // Expired or different job
+                        localStorage.removeItem('pendingJobApplication');
+                    }
+                } catch (error) {
+                    console.error('Error processing pending application:', error);
+                    localStorage.removeItem('pendingJobApplication');
+                }
+            }
+        };
+
+        processPendingApplication();
+    }, [user, job, hasCheckedPendingApplication, checkApplicationStatus]);
 
     // Check if user has uploaded CV
     const checkUserCV = useCallback(async (): Promise<boolean> => {
@@ -655,7 +678,7 @@ export default function JobDetailPage() {
     const confirmSaveJob = useCallback(async () => {
         if (!job) return;
 
-        setActionLoading(true);
+        setSaveLoading(true);
         setShowConfirmDialog(null);
 
         try {
@@ -689,7 +712,7 @@ export default function JobDetailPage() {
             console.error('Error saving job:', error);
             setShowErrorDialog('Failed to save job. Please try again.');
         } finally {
-            setActionLoading(false);
+            setSaveLoading(false);
         }
     }, [job, isJobSaved]);
 
@@ -715,7 +738,7 @@ export default function JobDetailPage() {
         setShowConfirmDialog('apply');
     }, [user, job, hasApplied, role, router]);
 
-    // Confirm apply job - THIS IS WHERE THE APPLICATION ACTUALLY HAPPENS
+    // Confirm apply job
     const confirmApplyJob = useCallback(async () => {
         if (!job) return;
 
@@ -728,15 +751,14 @@ export default function JobDetailPage() {
             return;
         }
 
-        setActionLoading(true);
+        setApplyLoading(true);
 
         try {
             const token = getAuthToken();
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ job_id: job.id }),
             });
@@ -756,7 +778,7 @@ export default function JobDetailPage() {
             console.error('Error applying for job:', error);
             setShowErrorDialog('Failed to apply for job. Please try again.');
         } finally {
-            setActionLoading(false);
+            setApplyLoading(false);
         }
     }, [job, checkUserCV]);
 
@@ -771,7 +793,7 @@ export default function JobDetailPage() {
         if (!job) return;
 
         setShowConfirmDialog(null);
-        setActionLoading(true);
+        setWithdrawLoading(true);
 
         try {
             const token = getAuthToken();
@@ -795,7 +817,7 @@ export default function JobDetailPage() {
             console.error('Error withdrawing application:', error);
             setShowErrorDialog('Failed to withdraw application. Please try again.');
         } finally {
-            setActionLoading(false);
+            setWithdrawLoading(false);
         }
     }, [job]);
 
@@ -825,11 +847,7 @@ export default function JobDetailPage() {
 
     const closePopup = useCallback(() => {
         setShowSuccessPopup(null);
-        // If it was an apply success, redirect to dashboard
-        if (showSuccessPopup === 'apply') {
-            router.push('/dashboard');
-        }
-    }, [showSuccessPopup, router]);
+    }, []);
 
     const closeConfirmDialog = useCallback(() => {
         setShowConfirmDialog(null);
@@ -837,6 +855,10 @@ export default function JobDetailPage() {
 
     const closeErrorDialog = useCallback(() => {
         setShowErrorDialog(null);
+    }, []);
+
+    const closeInfoDialog = useCallback(() => {
+        setShowInfoDialog(null);
     }, []);
 
     // Fetch job details
@@ -1002,35 +1024,87 @@ export default function JobDetailPage() {
             <Navbar />
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
-                {/* Job Title and Save Heart Icon */}
+                {/* Job Title with Action Icons */}
                 <div className="flex justify-between items-start mb-6">
-                    <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat">
+                    <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat flex-1 pr-4">
                         {job.title}
                     </h1>
 
-                    {/* Heart Icon for Save Job */}
+                    {/* Action Icons - Different layout based on application status */}
                     {user && (
-                        <button
-                            onClick={handleSaveJobClick}
-                            disabled={actionLoading}
-                            className="text-3xl md:text-4xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded disabled:opacity-50"
-                            aria-label={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
-                            title={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
-                        >
-                            {actionLoading ? (
-                                <div className="w-8 h-8 gradient-icon animate-pulse">
-                                    <Icon icon="solar:heart-outline" className="w-full h-full" />
-                                </div>
-                            ) : isJobSaved ? (
-                                <div className="w-8 h-8 gradient-icon hover:scale-110 transition-transform">
-                                    <Icon icon="solar:heart-bold" className="w-full h-full" />
-                                </div>
+                        <div className="flex gap-3 items-center">
+                            {/* Show horizontal layout only when user has applied */}
+                            {hasApplied ? (
+                                <>
+                                    {/* Applied Button */}
+                                    <button
+                                        disabled
+                                        className="px-6 py-2 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-sm font-semibold font-montserrat whitespace-nowrap"
+                                        title="Already applied to this job"
+                                    >
+                                        Applied ✓
+                                    </button>
+
+                                    {/* Withdraw Button */}
+                                    {canWithdraw && (
+                                        <button
+                                            onClick={handleWithdrawClick}
+                                            disabled={withdrawLoading}
+                                            className="px-6 py-2 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-sm font-semibold font-montserrat hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all whitespace-nowrap"
+                                            title="Withdraw your application"
+                                        >
+                                            {withdrawLoading ? 'Processing...' : 'Withdraw Application'}
+                                        </button>
+                                    )}
+
+                                    {/* Heart Icon */}
+                                    <button
+                                        onClick={handleSaveJobClick}
+                                        disabled={saveLoading}
+                                        className="text-3xl md:text-4xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded disabled:opacity-50"
+                                        aria-label={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
+                                        title={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
+                                    >
+                                        {saveLoading ? (
+                                            <div className="w-8 h-8 gradient-icon animate-pulse">
+                                                <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                            </div>
+                                        ) : isJobSaved ? (
+                                            <div className="w-8 h-8 gradient-icon cursor-pointer hover:scale-110 transition-transform">
+                                                <Icon icon="solar:heart-bold" className="w-full h-full" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-8 h-8 text-gray-400 cursor-pointer hover:scale-110 transition-all">
+                                                <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                            </div>
+                                        )}
+                                    </button>
+                                </>
                             ) : (
-                                <div className="w-8 h-8 text-gray-400 hover:text-transparent hover:scale-110 transition-all">
-                                    <Icon icon="solar:heart-outline" className="w-full h-full" />
-                                </div>
+                                /* Show only heart icon when user hasn't applied */
+                                <button
+                                    onClick={handleSaveJobClick}
+                                    disabled={saveLoading}
+                                    className="text-3xl md:text-4xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded disabled:opacity-50"
+                                    aria-label={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
+                                    title={isJobSaved ? 'Remove from saved jobs' : 'Save job'}
+                                >
+                                    {saveLoading ? (
+                                        <div className="w-8 h-8 gradient-icon animate-pulse">
+                                            <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                        </div>
+                                    ) : isJobSaved ? (
+                                        <div className="w-8 h-8 gradient-icon hover:scale-110 transition-transform">
+                                            <Icon icon="solar:heart-bold" className="w-full h-full" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-8 h-8 text-gray-400 hover:text-transparent hover:scale-110 transition-all">
+                                            <Icon icon="solar:heart-outline" className="w-full h-full" />
+                                        </div>
+                                    )}
+                                </button>
                             )}
-                        </button>
+                        </div>
                     )}
                 </div>
 
@@ -1096,50 +1170,64 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                {/* Apply/Withdraw Buttons */}
-                <div className="mb-6 flex flex-wrap gap-4">
-                    {hasApplied ? (
-                        <>
-                            <button
-                                disabled
-                                className="px-8 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-base font-semibold font-montserrat inline-block opacity-70 cursor-not-allowed"
-                            >
-                                Applied ✓
-                            </button>
-                            {canWithdraw && (
+                {/* Apply/Withdraw Buttons - Bottom Section */}
+                <div className="mb-6">
+                    {user ? (
+                        <div className="flex flex-wrap gap-4">
+                            {hasApplied ? (
+                                <>
+                                    <button
+                                        disabled
+                                        className="px-8 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-base font-semibold font-montserrat inline-block"
+                                    >
+                                        Applied ✓
+                                    </button>
+                                    {canWithdraw && (
+                                        <button
+                                            onClick={handleWithdrawClick}
+                                            disabled={withdrawLoading}
+                                            className="px-8 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-semibold font-montserrat hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                                        >
+                                            {withdrawLoading ? 'Processing...' : 'Withdraw Application'}
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
                                 <button
-                                    onClick={handleWithdrawClick}
-                                    disabled={actionLoading}
-                                    className="px-8 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-semibold font-montserrat hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                                    onClick={handleApplyJobClick}
+                                    disabled={applyLoading}
+                                    className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
                                 >
-                                    {actionLoading ? 'Processing...' : 'Withdraw Application'}
+                                    {applyLoading ? 'Applying...' : 'Apply'}
                                 </button>
                             )}
-                        </>
+                        </div>
                     ) : (
-                        <button
-                            onClick={handleApplyJobClick}
-                            disabled={actionLoading}
-                            className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
-                        >
-                            {actionLoading ? 'Applying...' : (user ? 'Apply' : 'Sign in & Apply')}
-                        </button>
+                        <>
+                            <div className="flex flex-wrap gap-4">
+                                <button
+                                    onClick={handleApplyJobClick}
+                                    disabled={applyLoading}
+                                    className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                                >
+                                    {applyLoading ? 'Applying...' : 'Sign in & Apply'}
+                                </button>
+                            </div>
+
+                            <div className="mt-6">
+                                <p className="text-[#6c6c6c] text-base font-normal font-poppins">
+                                    If you do not already have an account,{' '}
+                                    <button
+                                        onClick={handleSignupClick}
+                                        className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
+                                    >
+                                        Sign up to apply
+                                    </button>
+                                </p>
+                            </div>
+                        </>
                     )}
                 </div>
-
-                {!user && (
-                    <div className="mb-12">
-                        <p className="text-[#6c6c6c] text-base font-normal font-poppins">
-                            If you do not already have an account,{' '}
-                            <button
-                                onClick={handleSignupClick}
-                                className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
-                            >
-                                Sign up to apply
-                            </button>
-                        </p>
-                    </div>
-                )}
 
                 {/* Similar Jobs Section */}
                 {similarJobs.length > 0 && (
@@ -1190,6 +1278,14 @@ export default function JobDetailPage() {
                     message={showErrorDialog}
                     onClose={closeErrorDialog}
                     onUploadCV={showErrorDialog.toLowerCase().includes('cv') ? handleUploadCV : undefined}
+                />
+            )}
+
+            {/* Info Dialog - for already applied message */}
+            {showInfoDialog && (
+                <InfoDialog
+                    message={showInfoDialog}
+                    onClose={closeInfoDialog}
                 />
             )}
 

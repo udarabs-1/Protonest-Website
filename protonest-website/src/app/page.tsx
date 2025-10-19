@@ -16,10 +16,25 @@ import WhyChooseProtonest from "./components/why-choose";
 
 // Large Screen Component (lg, xl, 2xl)
 function LargeScreenHome() {
+  const scrollToTestimonials = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const testimonialSection = document.getElementById('testimonials-section');
+    if (testimonialSection) {
+      const navbarHeight = 100; // Adjust this value based on your navbar height
+      const elementPosition = testimonialSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="hidden lg:block">
       {/* Hero Section */}
-      <div className="mt-[150px] h-full relative">
+      <div className="mt-[100px] h-full relative">
         {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
@@ -48,22 +63,22 @@ function LargeScreenHome() {
               </span>
             </div>
           </div>
-          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-12 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
+          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-8 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
             <span>
               At Protonest, we design, build, and connect scalable IoT solutions.
             </span>
             <br />
-            <span className="mt-6 block">
+            <span className="mt-4 block">
               Built fast. Built right.
             </span>
           </div>
-          <div className="flex justify-center space-x-[33px] mt-12 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
+          <div className="flex justify-center space-x-[33px] mt-8 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
             <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer" className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center">
               Get Your Free Quote Now
             </Link>
-            <Link href="/find-jobs" className="w-[240px] gradient-button font-medium flex items-center justify-center">
-              Work With Us
-            </Link>
+            <a href="#testimonials-section" onClick={scrollToTestimonials} className="w-[240px] gradient-button font-medium flex items-center justify-center cursor-pointer">
+              Client Reviews
+            </a>
           </div>
         </div>
       </div>
@@ -221,10 +236,25 @@ function SmallScreenHome() {
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useOnScreen(ref);
 
+  const scrollToTestimonials = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const testimonialSection = document.getElementById('testimonials-section');
+    if (testimonialSection) {
+      const navbarHeight = 80; // Adjust this value based on your mobile navbar height
+      const elementPosition = testimonialSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="lg:hidden">
       {/* Hero Section */}
-      <div className="mt-18 sm:mt-8 h-[400px] sm:h-[500px] relative">
+      <div className="mt-12 sm:mt-6 h-[450px] sm:h-[520px] relative">
         {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
@@ -253,26 +283,26 @@ function SmallScreenHome() {
               </span>
             </div>
           </div>
-          <div className="text-center text-[14px] font-normal font-poppins mt-6 sm:mt-8 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
+          <div className="text-center text-[14px] font-normal font-poppins mt-5 sm:mt-6 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
             <span>
               At Protonest, we design, build, and connect scalable IoT solutions.
             </span>
             <br />
-            <span className="mt-4 block">
+            <span className="mt-3 block">
               Built fast. Built right.
             </span>
           </div>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-8 font-poppins font-medium text-[14px]">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-6 font-poppins font-medium text-[14px]">
             <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">
               <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
                 Get Your Free Quote Now
               </button>
             </Link>
-            <Link href="/find-jobs">
+            <a href="#testimonials-section" onClick={scrollToTestimonials}>
               <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
-                Work With Us
+                Client Reviews
               </button>
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -487,7 +517,9 @@ export default function Home() {
 
       {/* Shared Components - These remain the same for all screen sizes */}
       <ProjectSlider />
-      <TestimonialSection />
+      <div id="testimonials-section">
+        <TestimonialSection />
+      </div>
       <WhyChooseProtonest />
       <NewsAndBlogs />
       <Footer />

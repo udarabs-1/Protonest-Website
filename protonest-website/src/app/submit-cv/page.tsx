@@ -271,13 +271,41 @@ export default function OnboardingPage() {
                 if (currentPath !== '/signin') {
                     sessionStorage.setItem('redirectAfterSignIn', currentPath);
                 }
-                router.push('/signin');
+                router.replace('/signin');
                 return;
             }
 
             setIsAuthChecking(false);
         }
     }, [router]);
+
+    // Prevent back navigation - IMPORTANT: Only after auth check
+    useEffect(() => {
+        if (!isAuthChecking) {
+            // Replace history entry to prevent back navigation
+            window.history.replaceState(null, '', window.location.href);
+
+            // Handle back button
+            const handlePopState = (e: PopStateEvent) => {
+                e.preventDefault();
+                window.history.replaceState(null, '', window.location.href);
+
+                // Optional: Show a warning if they have unsaved changes
+                if (uploadedCV || formData.fullName || formData.email || formData.phoneNumber) {
+                    const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+                    if (confirmLeave) {
+                        router.replace('/dashboard');
+                    }
+                }
+            };
+
+            window.addEventListener('popstate', handlePopState);
+
+            return () => {
+                window.removeEventListener('popstate', handlePopState);
+            };
+        }
+    }, [isAuthChecking, uploadedCV, formData, router]);
 
     useEffect(() => {
         checkIsMobile();
@@ -549,8 +577,8 @@ export default function OnboardingPage() {
                             timestamp: Date.now()
                         }));
 
-                        // Redirect to the job details page where they can confirm the application
-                        window.location.href = redirectAfterSubmit;
+                        // Redirect to the job details page where they can confirm the application using replace
+                        window.location.replace(redirectAfterSubmit);
                     } else if (suggestedJobs.length > 0) {
                         // For talent pool, show suggested jobs
                         setShowJobsModal(true);
@@ -653,7 +681,7 @@ export default function OnboardingPage() {
 
     const handleResubmitCV = useCallback(() => {
         setShowErrorDialog(null);
-        router.push('/dashboard/resubmit-cv');
+        router.replace('/dashboard/resubmit-cv');
     }, [router]);
 
     const closeErrorDialog = useCallback(() => {
@@ -730,7 +758,7 @@ export default function OnboardingPage() {
                                     <div className="w-full max-w-[261px]">
                                         <button
                                             className="w-full h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                                            onClick={() => router.push(`/jobs/view/${job.job_id}`)}
+                                            onClick={() => router.replace(`/jobs/view/${job.job_id}`)}
                                         >
                                             <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">View Suggested Job</span>
                                         </button>
@@ -754,7 +782,7 @@ export default function OnboardingPage() {
                     <div className="flex justify-center mt-4">
                         <button
                             className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
-                            onClick={() => router.push('/dashboard')}
+                            onClick={() => router.replace('/dashboard')}
                         >
                             <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Available Jobs</span>
                         </button>
@@ -802,7 +830,7 @@ export default function OnboardingPage() {
                                     if (pendingJob) {
                                         localStorage.removeItem('pendingJobApplication');
                                     }
-                                    router.push('/');
+                                    router.replace('/');
                                 }}
                             >
                                 <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Return to Homepage</span>
@@ -878,7 +906,7 @@ export default function OnboardingPage() {
                                     </button>
                                     <button
                                         className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
-                                        onClick={() => router.push('/dashboard')}
+                                        onClick={() => router.replace('/dashboard')}
                                     >
                                         <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Go to Dashboard</span>
                                     </button>
@@ -887,13 +915,13 @@ export default function OnboardingPage() {
                                 <>
                                     <button
                                         className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
-                                        onClick={() => router.push('/dashboard')}
+                                        onClick={() => router.replace('/dashboard')}
                                     >
                                         <span className="text-center text-white text-sm sm:text-base font-semibold font-montserrat">Go to Dashboard</span>
                                     </button>
                                     <button
                                         className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
-                                        onClick={() => router.push('/jobs')}
+                                        onClick={() => router.replace('/jobs')}
                                     >
                                         <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">Browse All Jobs</span>
                                     </button>
@@ -1014,7 +1042,7 @@ export default function OnboardingPage() {
                             </div>
 
                             {/* Email and Phone - Side by side on large screens */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6">
                                 {/* Email */}
                                 <div>
                                     <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
@@ -1095,11 +1123,36 @@ export default function OnboardingPage() {
                                 {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
                             </div>
 
-                            {/* Work Function - Dropdown */}
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     What functions do you prefer to work in?
                                 </label>
+
+                                {formData.workFunction && (
+                                    <div className="mb-3 flex flex-wrap gap-2">
+                                        {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
+                                            >
+                                                <span>{func}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updatedFunctions = formData.workFunction.split(',')
+                                                            .filter(f => f !== func)
+                                                            .join(',');
+                                                        handleInputChange('workFunction', updatedFunctions);
+                                                    }}
+                                                    className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <div className="relative" ref={dropdownRefs.workFunction}>
                                     <button
                                         type="button"
@@ -1110,7 +1163,7 @@ export default function OnboardingPage() {
                                         className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
                                     >
                                         <span className={formData.workFunction ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                            {formData.workFunction ? 'Functions selected' : 'Select work functions'}
+                                            Select preferred work functions
                                         </span>
                                         <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
                                     </button>
@@ -1140,32 +1193,6 @@ export default function OnboardingPage() {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Display selected functions as tags */}
-                                {formData.workFunction && (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                            >
-                                                <span>{func}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const updatedFunctions = formData.workFunction.split(',')
-                                                            .filter(f => f !== func)
-                                                            .join(',');
-                                                        handleInputChange('workFunction', updatedFunctions);
-                                                    }}
-                                                    className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                                >
-                                                    <X className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
 
                                 {errors.workFunction && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.workFunction}</p>}
                             </div>

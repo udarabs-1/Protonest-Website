@@ -176,6 +176,24 @@ export default function SignUp() {
         clearExpiredTokens();
     }, []);
 
+    // Prevent back navigation
+    useEffect(() => {
+        // Replace history entry to prevent back navigation
+        window.history.replaceState(null, '', window.location.href);
+
+        // Handle back button
+        const handlePopState = (e: PopStateEvent) => {
+            e.preventDefault();
+            window.history.replaceState(null, '', window.location.href);
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
+
     // Optimized event handlers with useCallback
     const togglePassword = useCallback(() => {
         setShowPassword(prev => !prev);
@@ -315,8 +333,8 @@ export default function SignUp() {
                 console.warn('Subscription error:', subscriptionError);
             }
 
-            // Always redirect to submit-cv page after successful signup
-            window.location.href = '/submit-cv';
+            // Always redirect to submit-cv page after successful signup using replace
+            window.location.replace('/submit-cv');
 
         } catch (error) {
             console.error('Google signup error:', error);
@@ -402,8 +420,7 @@ export default function SignUp() {
         }
     }, []);
 
-    // Handle Google Sign-In button click with improved error handling
-    const handleGoogleSignInClick = useCallback((): void => {
+    const handleGoogleSignUpClick = useCallback((): void => {
         if (googleLoadError) {
             setError('Google Sign-Up is not available. Please use manual sign-up.');
             return;
@@ -411,55 +428,59 @@ export default function SignUp() {
 
         try {
             const google = getWindowGoogle();
-            if (google && google.accounts && google.accounts.id) {
-                const buttonContainer = document.createElement('div');
-                buttonContainer.style.position = 'fixed';
-                buttonContainer.style.top = '-9999px';
-                buttonContainer.style.left = '-9999px';
-                document.body.appendChild(buttonContainer);
+            if (!google || !google.accounts || !google.accounts.id) {
+                setError('Google Sign-Up is still loading. Please try again in a moment.');
+                return;
+            }
 
-                try {
-                    google.accounts.id.renderButton(buttonContainer, {
-                        theme: 'outline',
-                        size: 'large',
-                        width: 250
-                    });
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.position = 'fixed';
+            buttonContainer.style.top = '-9999px';
+            buttonContainer.style.left = '-9999px';
+            document.body.appendChild(buttonContainer);
 
-                    setTimeout(() => {
-                        const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
-                        if (button) {
-                            button.click();
-                        }
+            try {
+                google.accounts.id.renderButton(buttonContainer, {
+                    theme: 'outline',
+                    size: 'large',
+                    width: 250
+                });
+
+                setTimeout(() => {
+                    const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
+                    if (button) {
+                        button.click();
+                    }
+                    if (document.body.contains(buttonContainer)) {
                         document.body.removeChild(buttonContainer);
-                    }, 100);
-                } catch (renderError) {
-                    console.warn('renderButton failed, falling back to prompt method:', renderError);
+                    }
+                }, 100);
+            } catch (renderError) {
+                console.warn('renderButton failed, falling back to prompt method:', renderError);
+                if (document.body.contains(buttonContainer)) {
                     document.body.removeChild(buttonContainer);
-
-                    google.accounts.id.prompt((notification: SignUpPromptMomentNotification) => {
-                        if (notification.isNotDisplayed()) {
-                            const reason = notification.getNotDisplayedReason();
-                            console.warn('Google sign-in prompt not displayed:', reason);
-
-                            if (reason === 'browser_not_supported' || reason === 'invalid_client') {
-                                setError('Google sign-in not supported. Please use manual sign-up.');
-                            } else {
-                                setError('Google sign-in unavailable. Please try manual sign-up.');
-                            }
-                        } else if (notification.isSkippedMoment()) {
-                            console.warn('Google sign-in prompt skipped:', notification.getSkippedReason());
-                        } else if (notification.isDismissedMoment()) {
-                            console.log('Google sign-in prompt dismissed:', notification.getDismissedReason());
-                        }
-                    });
                 }
-            } else {
-                console.error('Google accounts API not available');
-                setError('Google Sign-Up is not available. Please try manual sign-up.');
+
+                google.accounts.id.prompt((notification: SignUpPromptMomentNotification) => {
+                    if (notification.isNotDisplayed()) {
+                        const reason = notification.getNotDisplayedReason();
+                        console.warn('Google sign-up prompt not displayed:', reason);
+
+                        if (reason === 'browser_not_supported' || reason === 'invalid_client') {
+                            setError('Google sign-up not supported. Please use manual sign-up.');
+                        } else {
+                            setError('Google sign-up unavailable. Please try manual sign-up.');
+                        }
+                    } else if (notification.isSkippedMoment()) {
+                        console.warn('Google sign-up prompt skipped:', notification.getSkippedReason());
+                    } else if (notification.isDismissedMoment()) {
+                        console.log('Google sign-up prompt dismissed:', notification.getDismissedReason());
+                    }
+                });
             }
         } catch (error) {
-            console.error('Error triggering Google sign-in:', error);
-            setError('Google sign-in failed. Please try manual sign-up.');
+            console.error('Error triggering Google sign-up:', error);
+            setError('Google sign-up failed. Please try manual sign-up.');
         }
     }, [googleLoadError]);
 
@@ -562,8 +583,8 @@ export default function SignUp() {
                 }
             }
 
-            // Always redirect to submit-cv page after successful signup
-            window.location.href = '/submit-cv';
+            // Always redirect to submit-cv page after successful signup using replace
+            window.location.replace('/submit-cv');
 
         } catch (error) {
             console.error('Signup error:', error);
@@ -650,7 +671,7 @@ export default function SignUp() {
                                 {/* Google Sign In */}
                                 <button
                                     type="button"
-                                    onClick={handleGoogleSignInClick}
+                                    onClick={handleGoogleSignUpClick}
                                     disabled={isLoading || googleLoadError}
                                     className="w-full h-14 sm:h-16 md:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 sm:gap-5 md:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                     aria-label="Sign up with Google"
@@ -883,7 +904,7 @@ export default function SignUp() {
                                     {/* Google Sign In */}
                                     <button
                                         type="button"
-                                        onClick={handleGoogleSignInClick}
+                                        onClick={handleGoogleSignUpClick}
                                         disabled={isLoading || googleLoadError}
                                         className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 lg:gap-3 xl:gap-4 2xl:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                         aria-label="Sign up with Google"
