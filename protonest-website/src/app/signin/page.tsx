@@ -3,7 +3,7 @@
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Google OAuth types - isolated to avoid conflicts
 interface SignInGoogleOAuthConfig {
@@ -52,12 +52,12 @@ const getWindowGoogle = (): SignInGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignInGoogleAPI | undefined;
 };
 
-const getWindowGoogleInitialized = (): boolean => {
-    return ((window as Record<string, unknown>)?.googleInitialized as boolean) || false;
+const getWindowGoogleSignInInitialized = (): boolean => {
+    return ((window as Record<string, unknown>)?.googleSignInInitialized as boolean) || false;
 };
 
-const setWindowGoogleInitialized = (value: boolean): void => {
-    (window as Record<string, unknown>).googleInitialized = value;
+const setWindowGoogleSignInInitialized = (value: boolean): void => {
+    (window as Record<string, unknown>).googleSignInInitialized = value;
 };
 
 // Token management functions
@@ -126,10 +126,8 @@ export default function ResponsiveSignIn() {
 
     // Prevent back navigation
     useEffect(() => {
-        // Replace history entry to prevent back navigation
         window.history.replaceState(null, '', window.location.href);
 
-        // Handle back button
         const handlePopState = (e: PopStateEvent) => {
             e.preventDefault();
             window.history.replaceState(null, '', window.location.href);
@@ -163,17 +161,14 @@ export default function ResponsiveSignIn() {
 
     // Helper function to handle redirect after sign in
     const handlePostSignInRedirect = useCallback(() => {
-        // Check for pending job application
         const pendingApplication = localStorage.getItem('pendingJobApplication');
 
         if (pendingApplication) {
             try {
                 const pending = JSON.parse(pendingApplication);
-                // Check if it's within 10 minutes (increased from 5 for better UX)
                 if (Date.now() - pending.timestamp < 10 * 60 * 1000) {
-                    // Redirect to the job detail page
                     const jobUrl = pending.jobUrl || `/jobs/${pending.role || 'all'}/${pending.jobId}`;
-                    window.location.replace(jobUrl); // Use replace instead of href
+                    window.location.replace(jobUrl);
                     return;
                 }
             } catch (error) {
@@ -182,12 +177,12 @@ export default function ResponsiveSignIn() {
             }
         }
 
-        // Default redirect to dashboard
-        window.location.replace('/dashboard'); // Use replace instead of href
+        window.location.replace('/dashboard');
     }, []);
 
     // Handle Google OAuth response for sign-in with improved error handling
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
+        console.log('handleGoogleSignIn called - SIGNIN flow');
         setIsLoading(true);
         setError('');
 
@@ -197,6 +192,8 @@ export default function ResponsiveSignIn() {
                 setIsLoading(false);
                 return;
             }
+
+            console.log('Calling SIGNIN API:', `${apiConfig.apiUrl}/api/v1/auth/google-signin`);
 
             const signInResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/google-signin`, {
                 method: 'POST',
@@ -209,13 +206,13 @@ export default function ResponsiveSignIn() {
             });
 
             const signInData = await signInResponse.json();
+            console.log('SIGNIN API Response:', signInData);
 
             if (signInResponse.ok) {
                 if (signInData.data && signInData.data.token) {
                     setTokenWithExpiration(signInData.data.token);
                     localStorage.setItem('userData', JSON.stringify(signInData.data.user));
 
-                    // Handle redirect based on pending application
                     handlePostSignInRedirect();
                 } else {
                     setError('Sign in successful but no token received');
@@ -238,15 +235,21 @@ export default function ResponsiveSignIn() {
         }
     }, [apiConfig.apiUrl, handlePostSignInRedirect]);
 
+    // Use ref to store the latest callback
+    const handleGoogleSignInRef = useRef(handleGoogleSignIn);
+
+    useEffect(() => {
+        handleGoogleSignInRef.current = handleGoogleSignIn;
+    }, [handleGoogleSignIn]);
+
     // Initialize Google OAuth with improved error handling
     useEffect(() => {
-        if (typeof window !== 'undefined' && !getWindowGoogleInitialized()) {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
+        if (typeof window !== 'undefined' && !getWindowGoogleSignInInitialized()) {
+            console.log('Initializing Google OAuth for SIGNIN');
 
-            script.onload = () => {
+            const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+
+            const initializeGoogle = () => {
                 try {
                     const google = getWindowGoogle();
                     if (google && google.accounts) {
@@ -256,9 +259,14 @@ export default function ResponsiveSignIn() {
                             return;
                         }
 
+                        console.log('Initializing Google with context: signin');
+
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
-                            callback: handleGoogleSignIn,
+                            callback: (response: GoogleCredentialResponse) => {
+                                console.log('Google callback triggered for SIGNIN');
+                                handleGoogleSignInRef.current(response);
+                            },
                             auto_select: false,
                             cancel_on_tap_outside: true,
                             use_fedcm_for_prompt: false,
@@ -267,8 +275,9 @@ export default function ResponsiveSignIn() {
                             context: 'signin'
                         });
 
-                        setWindowGoogleInitialized(true);
+                        setWindowGoogleSignInInitialized(true);
                         setGoogleLoadError(false);
+                        console.log('Google OAuth initialized successfully for SIGNIN');
                     } else {
                         console.error('Google accounts library not loaded properly');
                         setGoogleLoadError(true);
@@ -279,22 +288,39 @@ export default function ResponsiveSignIn() {
                 }
             };
 
-            script.onerror = () => {
-                console.error('Failed to load Google accounts script');
-                setGoogleLoadError(true);
-            };
+            if (existingScript) {
+                console.log('Google script already exists, initializing...');
+                initializeGoogle();
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.async = true;
+                script.defer = true;
 
-            document.head.appendChild(script);
+                script.onload = () => {
+                    console.log('Google script loaded');
+                    initializeGoogle();
+                };
 
-            return () => {
-                if (document.head.contains(script)) {
-                    document.head.removeChild(script);
-                }
-            };
+                script.onerror = () => {
+                    console.error('Failed to load Google accounts script');
+                    setGoogleLoadError(true);
+                };
+
+                document.head.appendChild(script);
+
+                return () => {
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
+                };
+            }
         }
-    }, [apiConfig.googleClientId, handleGoogleSignIn]);
+    }, [apiConfig.googleClientId]);
 
     const handleGoogleSignInClick = useCallback((): void => {
+        console.log('Google Sign In button clicked');
+
         if (googleLoadError) {
             setError('Google Sign-In is not available. Please use manual sign-in.');
             return;
@@ -323,6 +349,7 @@ export default function ResponsiveSignIn() {
                 setTimeout(() => {
                     const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
                     if (button) {
+                        console.log('Clicking Google button for SIGNIN');
                         button.click();
                     }
                     if (document.body.contains(buttonContainer)) {
@@ -396,7 +423,6 @@ export default function ResponsiveSignIn() {
                         localStorage.setItem('userData', JSON.stringify(data.data.user));
                     }
 
-                    // Handle redirect based on pending application
                     handlePostSignInRedirect();
                 } else {
                     setError('Login successful but no token received');
@@ -428,20 +454,16 @@ export default function ResponsiveSignIn() {
             {/* Mobile/Tablet Layout (sm to md) */}
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
-                    {/* Background Gradients */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
                             <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
                         </div>
                     </div>
 
-                    {/* Side Gradients for Visual Effect */}
                     <div className="absolute left-0 top-64 w-10 h-72 bg-gradient-to-r from-white/0 to-white sm:hidden pointer-events-none" />
                     <div className="absolute left-0 top-96 w-10 h-60 bg-gradient-to-r from-white/0 to-white hidden sm:block md:hidden pointer-events-none" />
 
-                    {/* Main Container */}
                     <div className="relative z-10 pb-8">
-                        {/* Header with Logo */}
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
                             <Image
                                 src="/logo.png"
@@ -453,18 +475,14 @@ export default function ResponsiveSignIn() {
                             />
                         </header>
 
-                        {/* Content Area */}
                         <main className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
-                            {/* Title */}
                             <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-4 sm:mb-6 md:mb-8">
                                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
                                     <span className="text-gray-400">Sign In</span>
                                 </h1>
                             </div>
 
-                            {/* Form Container */}
                             <form className="w-full space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
-                                {/* Google Sign In */}
                                 <button
                                     type="button"
                                     onClick={handleGoogleSignInClick}
@@ -484,14 +502,12 @@ export default function ResponsiveSignIn() {
                                     </span>
                                 </button>
 
-                                {/* Divider */}
                                 <div className="flex items-center space-x-4 my-6 sm:my-8">
                                     <div className="flex-1 h-px bg-gray-300"></div>
                                     <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">or continue</span>
                                     <div className="flex-1 h-px bg-gray-300"></div>
                                 </div>
 
-                                {/* Email Input */}
                                 <div className="relative">
                                     <input
                                         type="email"
@@ -504,7 +520,6 @@ export default function ResponsiveSignIn() {
                                     />
                                 </div>
 
-                                {/* Password Input */}
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
@@ -525,7 +540,6 @@ export default function ResponsiveSignIn() {
                                     </button>
                                 </div>
 
-                                {/* Error Message & Forgot Password */}
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
                                     {error && (
                                         <div className="text-red-500 text-sm sm:text-base font-medium font-['Poppins']" role="alert">
@@ -540,7 +554,6 @@ export default function ResponsiveSignIn() {
                                     </Link>
                                 </div>
 
-                                {/* Sign In Button */}
                                 <button
                                     type="submit"
                                     disabled={isLoading || !isFormValid}
@@ -549,7 +562,6 @@ export default function ResponsiveSignIn() {
                                     {isLoading ? 'Signing in...' : 'Sign in'}
                                 </button>
 
-                                {/* Sign Up Link */}
                                 <div className="w-full mt-6 text-center">
                                     <div className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">
                                         If you don&apos;t already have an account,{' '}
@@ -570,19 +582,15 @@ export default function ResponsiveSignIn() {
             {/* Desktop Layout (lg and above) */}
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
-                    {/* Background Gradients */}
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
                             <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
                         </div>
                     </div>
 
-                    {/* Main Grid Container */}
                     <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
-                        {/* Left Side - Form */}
                         <div className="flex flex-col justify-center min-h-screen">
                             <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
-                                {/* Logo */}
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Image
                                         src="/logo.png"
@@ -594,16 +602,13 @@ export default function ResponsiveSignIn() {
                                     />
                                 </header>
 
-                                {/* Title */}
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
                                         <span className="text-gray-400">Sign In</span>
                                     </h1>
                                 </div>
 
-                                {/* Form Container */}
                                 <form className="max-w-2xl space-y-5 lg:space-y-4 xl:space-y-5 2xl:space-y-8" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
-                                    {/* Google Sign In */}
                                     <button
                                         type="button"
                                         onClick={handleGoogleSignInClick}
@@ -623,14 +628,12 @@ export default function ResponsiveSignIn() {
                                         </span>
                                     </button>
 
-                                    {/* Divider */}
                                     <div className="flex items-center space-x-4 my-8 lg:my-6 xl:my-8 2xl:my-12">
                                         <div className="flex-1 h-px bg-gray-300"></div>
                                         <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">or continue</span>
                                         <div className="flex-1 h-px bg-gray-300"></div>
                                     </div>
 
-                                    {/* Email Input */}
                                     <div className="relative">
                                         <input
                                             type="email"
@@ -643,7 +646,6 @@ export default function ResponsiveSignIn() {
                                         />
                                     </div>
 
-                                    {/* Password Input */}
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -664,7 +666,6 @@ export default function ResponsiveSignIn() {
                                         </button>
                                     </div>
 
-                                    {/* Error Message & Forgot Password */}
                                     <div className="flex justify-between items-center">
                                         {error && (
                                             <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']" role="alert">
@@ -678,7 +679,7 @@ export default function ResponsiveSignIn() {
                                             Forgot Password?
                                         </Link>
                                     </div>
-                                    {/* Sign In Button */}
+
                                     <button
                                         type="submit"
                                         disabled={isLoading || !isFormValid}
@@ -687,7 +688,6 @@ export default function ResponsiveSignIn() {
                                         {isLoading ? 'Signing In...' : 'Sign In'}
                                     </button>
 
-                                    {/* Sign Up Link */}
                                     <div className="w-full text-center pt-4">
                                         <div className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             If you don&apos;t already have an account,{' '}
@@ -703,7 +703,6 @@ export default function ResponsiveSignIn() {
                             </div>
                         </div>
 
-                        {/* Right Side - Image */}
                         <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 2xl:p-6 flex">
                                 <Image

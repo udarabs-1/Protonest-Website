@@ -581,10 +581,6 @@ const ResubmitCVPage = () => {
         }
     };
 
-    const removeSkill = (skillToRemove: string) => {
-        setExtractedSkills(prev => prev.filter(skill => skill !== skillToRemove));
-    };
-
     // Check if form is valid (for first time upload)
     const isFormValid = useMemo(() => {
         if (hasCVUploaded) {
@@ -1367,30 +1363,6 @@ const ResubmitCVPage = () => {
                                     />
                                 </div>
 
-                                {extractedSkills.length > 0 && (
-                                    <div className="mb-6">
-                                        <h3 className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                            Expertise Areas According To Your CV
-                                        </h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {extractedSkills.map((skill, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                                >
-                                                    <span>{skill}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSkill(skill)}
-                                                        className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
                                 {!hasCVUploaded && (
                                     <div className="flex items-start space-x-3 mb-6">
