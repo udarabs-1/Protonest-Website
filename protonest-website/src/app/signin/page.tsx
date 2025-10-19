@@ -124,6 +124,24 @@ export default function ResponsiveSignIn() {
         clearExpiredTokens();
     }, []);
 
+    // Prevent back navigation
+    useEffect(() => {
+        // Replace history entry to prevent back navigation
+        window.history.replaceState(null, '', window.location.href);
+
+        // Handle back button
+        const handlePopState = (e: PopStateEvent) => {
+            e.preventDefault();
+            window.history.replaceState(null, '', window.location.href);
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
+
     // Optimized event handlers with useCallback
     const togglePasswordVisibility = useCallback(() => {
         setShowPassword(prev => !prev);
@@ -155,7 +173,7 @@ export default function ResponsiveSignIn() {
                 if (Date.now() - pending.timestamp < 10 * 60 * 1000) {
                     // Redirect to the job detail page
                     const jobUrl = pending.jobUrl || `/jobs/${pending.role || 'all'}/${pending.jobId}`;
-                    window.location.href = jobUrl;
+                    window.location.replace(jobUrl); // Use replace instead of href
                     return;
                 }
             } catch (error) {
@@ -165,7 +183,7 @@ export default function ResponsiveSignIn() {
         }
 
         // Default redirect to dashboard
-        window.location.href = '/dashboard';
+        window.location.replace('/dashboard'); // Use replace instead of href
     }, []);
 
     // Handle Google OAuth response for sign-in with improved error handling
@@ -276,7 +294,6 @@ export default function ResponsiveSignIn() {
         }
     }, [apiConfig.googleClientId, handleGoogleSignIn]);
 
-    // Handle Google Sign-In button click with improved error handling
     const handleGoogleSignInClick = useCallback((): void => {
         if (googleLoadError) {
             setError('Google Sign-In is not available. Please use manual sign-in.');
@@ -285,51 +302,55 @@ export default function ResponsiveSignIn() {
 
         try {
             const google = getWindowGoogle();
-            if (google && google.accounts && google.accounts.id) {
-                const buttonContainer = document.createElement('div');
-                buttonContainer.style.position = 'fixed';
-                buttonContainer.style.top = '-9999px';
-                buttonContainer.style.left = '-9999px';
-                document.body.appendChild(buttonContainer);
+            if (!google || !google.accounts || !google.accounts.id) {
+                setError('Google Sign-In is still loading. Please try again in a moment.');
+                return;
+            }
 
-                try {
-                    google.accounts.id.renderButton(buttonContainer, {
-                        theme: 'outline',
-                        size: 'large',
-                        width: 250
-                    });
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.position = 'fixed';
+            buttonContainer.style.top = '-9999px';
+            buttonContainer.style.left = '-9999px';
+            document.body.appendChild(buttonContainer);
 
-                    setTimeout(() => {
-                        const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
-                        if (button) {
-                            button.click();
-                        }
+            try {
+                google.accounts.id.renderButton(buttonContainer, {
+                    theme: 'outline',
+                    size: 'large',
+                    width: 250
+                });
+
+                setTimeout(() => {
+                    const button = buttonContainer.querySelector('[role="button"]') as HTMLElement;
+                    if (button) {
+                        button.click();
+                    }
+                    if (document.body.contains(buttonContainer)) {
                         document.body.removeChild(buttonContainer);
-                    }, 100);
-                } catch (renderError) {
-                    console.warn('renderButton failed, falling back to prompt method:', renderError);
+                    }
+                }, 100);
+            } catch (renderError) {
+                console.warn('renderButton failed, falling back to prompt method:', renderError);
+                if (document.body.contains(buttonContainer)) {
                     document.body.removeChild(buttonContainer);
-
-                    google.accounts.id.prompt((notification: SignInPromptMomentNotification) => {
-                        if (notification.isNotDisplayed()) {
-                            const reason = notification.getNotDisplayedReason();
-                            console.warn('Google sign-in prompt not displayed:', reason);
-
-                            if (reason === 'browser_not_supported' || reason === 'invalid_client') {
-                                setError('Google sign-in not supported. Please use manual sign-in.');
-                            } else {
-                                setError('Google sign-in unavailable. Please try manual sign-in.');
-                            }
-                        } else if (notification.isSkippedMoment()) {
-                            console.warn('Google sign-in prompt skipped:', notification.getSkippedReason());
-                        } else if (notification.isDismissedMoment()) {
-                            console.log('Google sign-in prompt dismissed:', notification.getDismissedReason());
-                        }
-                    });
                 }
-            } else {
-                console.error('Google accounts API not available');
-                setError('Google Sign-In is not available. Please try manual sign-in.');
+
+                google.accounts.id.prompt((notification: SignInPromptMomentNotification) => {
+                    if (notification.isNotDisplayed()) {
+                        const reason = notification.getNotDisplayedReason();
+                        console.warn('Google sign-in prompt not displayed:', reason);
+
+                        if (reason === 'browser_not_supported' || reason === 'invalid_client') {
+                            setError('Google sign-in not supported. Please use manual sign-in.');
+                        } else {
+                            setError('Google sign-in unavailable. Please try manual sign-in.');
+                        }
+                    } else if (notification.isSkippedMoment()) {
+                        console.warn('Google sign-in prompt skipped:', notification.getSkippedReason());
+                    } else if (notification.isDismissedMoment()) {
+                        console.log('Google sign-in prompt dismissed:', notification.getDismissedReason());
+                    }
+                });
             }
         } catch (error) {
             console.error('Error triggering Google sign-in:', error);
@@ -439,9 +460,6 @@ export default function ResponsiveSignIn() {
                                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
                                     <span className="text-gray-400">Sign In</span>
                                 </h1>
-                                <p className="w-full justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-sm sm:text-base font-medium font-['Poppins'] mt-4">
-                                    To sign up, you have to either submit your CV to our talent pool or apply for a job
-                                </p>
                             </div>
 
                             {/* Form Container */}
@@ -581,9 +599,6 @@ export default function ResponsiveSignIn() {
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
                                         <span className="text-gray-400">Sign In</span>
                                     </h1>
-                                    <p className="w-[579px] justify-start text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-base lg:text-sm xl:text-base 2xl:text-lg font-medium font-['Poppins'] mt-4">
-                                        To sign up, you have to either submit your CV to our talent pool or apply for a job
-                                    </p>
                                 </div>
 
                                 {/* Form Container */}
@@ -663,7 +678,6 @@ export default function ResponsiveSignIn() {
                                             Forgot Password?
                                         </Link>
                                     </div>
-
                                     {/* Sign In Button */}
                                     <button
                                         type="submit"

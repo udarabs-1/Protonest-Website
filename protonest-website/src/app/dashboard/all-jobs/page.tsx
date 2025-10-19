@@ -6,14 +6,13 @@ import {
     ChevronRight,
     LogOut,
     Menu,
-    Search,
     User,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface Job {
     id: string;
@@ -49,6 +48,13 @@ type Filters = {
     category: string[];
 };
 
+const FILTER_OPTIONS = {
+    experience: ['beginner', 'intermediate', 'experienced'],
+    location: ['Remote', 'On-site', 'Hybrid'],
+    jobType: ['full-time', 'project-based', 'hourly', 'internship'],
+    datePosted: ['Newest', 'Oldest']
+} as const;
+
 const FilterCheckbox = ({
     isSelected,
     onClick,
@@ -65,6 +71,7 @@ const FilterCheckbox = ({
             onClick={onClick}
             aria-checked={isSelected}
             role="checkbox"
+            aria-label={`Filter by ${label}`}
         >
             {isSelected && (
                 <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
@@ -111,62 +118,70 @@ const JobCard = ({ job }: { job: Job }) => {
     return (
         <Link
             href={`/jobs/${roleSlug}/${job.id}`}
-            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
+            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
         >
-            <div className="flex justify-between">
-                <div className="w-3/4">
-                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
-                        {job.title}
-                    </h3>
-                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
-                        {job.location} ‐ Posted {formatTimeAgo(job.created_at)}
-                    </p>
+            <article>
+                <div className="flex justify-between">
+                    <div className="w-3/4">
+                        <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
+                            {job.title}
+                        </h3>
+                        <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
+                            {job.location} ‐ Posted {formatTimeAgo(job.created_at)}
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <div>
-                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
-                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
+                            {job.type === 'project-based' ? 'Project Based' :
+                                job.type === 'full-time' ? 'Full Time' :
+                                    job.type === 'hourly' ? 'Hourly' :
+                                        job.type === 'internship' ? 'Internship' :
+                                            job.type}
+                        </p>
+                        <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
+                            {formatDate(job.deadline)}
+                        </p>
+                        <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
+                            {job.experience}
+                        </p>
+                        <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
-                        {formatDate(job.deadline)}
-                    </p>
-                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
-                </div>
-                <div>
-                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
-                        {job.experience}
-                    </p>
-                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
-                </div>
-            </div>
 
-            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
-                <div className="w-full h-full group-hover:hidden">
-                    <Image
-                        src="/upleft.svg"
-                        alt="Arrow"
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-contain"
-                    />
+                <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
+                    <div className="w-full h-full group-hover:hidden">
+                        <Image
+                            src="/upleft.svg"
+                            alt=""
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
+                    <div className="hidden w-full h-full group-hover:block">
+                        <Image
+                            src="/upleft-hover.svg"
+                            alt=""
+                            width={50}
+                            height={50}
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
                 </div>
-                <div className="hidden w-full h-full group-hover:block">
-                    <Image
-                        src="/upleft-hover.svg"
-                        alt="Hover Arrow"
-                        width={50}
-                        height={50}
-                        className="w-full h-full object-contain"
-                    />
-                </div>
-            </div>
 
-            <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                View Details
-            </button>
+                <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                    View Details
+                </button>
+            </article>
         </Link>
     );
 };
@@ -175,12 +190,14 @@ const AllJobsPage = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
-    const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [visibleJobsCount, setVisibleJobsCount] = useState(3);
+    const [isMobile, setIsMobile] = useState(false);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -214,6 +231,27 @@ const AllJobsPage = () => {
         { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
+
+    // Debounced screen size check
+    const checkIsMobile = useCallback(() => {
+        setIsMobile(window.innerWidth < 1024);
+    }, []);
+
+    useEffect(() => {
+        checkIsMobile();
+
+        let timeoutId: NodeJS.Timeout;
+        const debouncedResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkIsMobile, 150);
+        };
+
+        window.addEventListener('resize', debouncedResize);
+        return () => {
+            window.removeEventListener('resize', debouncedResize);
+            clearTimeout(timeoutId);
+        };
+    }, [checkIsMobile]);
 
     // Authentication check
     useEffect(() => {
@@ -275,20 +313,39 @@ const AllJobsPage = () => {
         };
     }, [sidebarOpen, showProfileDropdown]);
 
+    // Fetch jobs from API
     useEffect(() => {
         const fetchAllJobs = async () => {
+            setLoading(true);
+            setError(null);
+
             try {
-                setLoading(true);
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const jobsData = data.data || [];
-                    setJobs(jobsData);
-                    setFilteredJobs(jobsData);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch jobs: ${response.status} ${response.statusText}`);
                 }
-            } catch {
-                console.error('Error fetching jobs');
+
+                const data = await response.json();
+                const jobsData = data.data || [];
+                setJobs(jobsData);
+            } catch (error) {
+                console.error('Error fetching jobs:', error);
+
+                let errorMessage = 'Failed to load jobs';
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    errorMessage = 'Network error: Unable to connect to the server';
+                } else if (error instanceof Error) {
+                    if (error.message.includes('404')) {
+                        errorMessage = 'Jobs endpoint not found (404)';
+                    } else if (error.message.includes('500')) {
+                        errorMessage = 'Server error (500)';
+                    } else {
+                        errorMessage = error.message;
+                    }
+                }
+
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -298,7 +355,49 @@ const AllJobsPage = () => {
         fetchUserProfile();
     }, []);
 
-    useEffect(() => {
+    // Optimized filter handlers
+    const handleFilterToggle = useCallback((filterType: FilterType, value: string) => {
+        setFilters(prev => {
+            const currentFilters = [...prev[filterType]];
+            const index = currentFilters.indexOf(value);
+
+            if (index > -1) {
+                currentFilters.splice(index, 1);
+            } else {
+                currentFilters.push(value);
+            }
+
+            return {
+                ...prev,
+                [filterType]: currentFilters
+            };
+        });
+    }, []);
+
+    const clearAllFilters = useCallback(() => {
+        setFilters({
+            experience: [],
+            location: [],
+            datePosted: [],
+            jobType: [],
+            category: []
+        });
+    }, []);
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    }, []);
+
+    const toggleMobileFilters = useCallback(() => {
+        setShowMobileFilters(prev => !prev);
+    }, []);
+
+    const loadMoreJobs = useCallback(() => {
+        setVisibleJobsCount(prev => prev + 3);
+    }, []);
+
+    // Memoized filter calculations
+    const filteredJobs = useMemo(() => {
         let filtered = jobs;
 
         if (filters.experience.length > 0) {
@@ -329,36 +428,22 @@ const AllJobsPage = () => {
             });
         }
 
-        setFilteredJobs(filtered);
-    }, [filters, searchQuery, jobs]);
+        return filtered;
+    }, [jobs, filters, searchQuery]);
 
-    const handleFilterToggle = (filterType: FilterType, value: string) => {
-        setFilters(prev => {
-            const currentFilters = [...prev[filterType]];
-            const index = currentFilters.indexOf(value);
+    // Reset visible jobs count when filters change
+    useEffect(() => {
+        setVisibleJobsCount(3);
+    }, [filters, searchQuery]);
 
-            if (index > -1) {
-                currentFilters.splice(index, 1);
-            } else {
-                currentFilters.push(value);
-            }
+    // Determine which jobs to display
+    const jobsToShow = isMobile ? filteredJobs.slice(0, visibleJobsCount) : filteredJobs;
+    const hasMoreJobs = isMobile && visibleJobsCount < filteredJobs.length;
 
-            return {
-                ...prev,
-                [filterType]: currentFilters
-            };
-        });
-    };
-
-    const clearAllFilters = () => {
-        setFilters({
-            experience: [],
-            location: [],
-            datePosted: [],
-            jobType: [],
-            category: []
-        });
-    };
+    // Get unique categories from jobs
+    const uniqueCategories = useMemo(() => {
+        return Array.from(new Set(jobs.map(job => job.category)));
+    }, [jobs]);
 
     const handleLogout = () => {
         localStorage.removeItem('jwtToken');
@@ -367,14 +452,33 @@ const AllJobsPage = () => {
         router.push('/find-jobs');
     };
 
-    const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)));
-    const uniqueJobTypes = Array.from(new Set(jobs.map(job => job.type)));
-    const uniqueCategories = Array.from(new Set(jobs.map(job => job.category)));
-
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="min-h-screen bg-white">
+                <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading jobs...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-white">
+                <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                        <p className="text-red-600 mb-4">Error: {error}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -429,13 +533,13 @@ const AllJobsPage = () => {
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                             >
                                 Logout
                             </button>
@@ -507,6 +611,7 @@ const AllJobsPage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Mobile Sidebar */}
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -569,6 +674,7 @@ const AllJobsPage = () => {
                             </div>
                         </div>
 
+                        {/* Desktop Sidebar */}
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -609,6 +715,7 @@ const AllJobsPage = () => {
                             </div>
                         </aside>
 
+                        {/* Main Content Area */}
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                             <div className="flex items-center mb-6">
                                 <button
@@ -646,20 +753,22 @@ const AllJobsPage = () => {
                             </div>
 
                             <div className="flex flex-col lg:flex-row gap-8">
+                                {/* Desktop Filters Sidebar */}
                                 <aside className="w-full lg:w-1/4 hidden lg:block">
                                     <div className="bg-white rounded-xl p-6 shadow-lg">
-                                        <h3 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h3>
+                                        <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
 
                                         <button
                                             onClick={clearAllFilters}
-                                            className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa] transition-colors"
+                                            className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa] transition-colors focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
                                         >
                                             Clear All Filters
                                         </button>
 
+                                        {/* Experience Level Filter */}
                                         <div className="mb-8">
-                                            <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h4>
-                                            {['junior', 'intermediate', 'senior', 'expert'].map(level => (
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
+                                            {FILTER_OPTIONS.experience.map(level => (
                                                 <FilterCheckbox
                                                     key={level}
                                                     isSelected={filters.experience.includes(level)}
@@ -669,9 +778,10 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
+                                        {/* Category Filter */}
                                         {uniqueCategories.length > 0 && (
                                             <div className="mb-8">
-                                                <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h4>
+                                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h3>
                                                 {uniqueCategories.map(category => (
                                                     <FilterCheckbox
                                                         key={category}
@@ -683,23 +793,23 @@ const AllJobsPage = () => {
                                             </div>
                                         )}
 
-                                        {uniqueLocations.length > 0 && (
-                                            <div className="mb-8">
-                                                <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h4>
-                                                {uniqueLocations.map(location => (
-                                                    <FilterCheckbox
-                                                        key={location}
-                                                        isSelected={filters.location.includes(location)}
-                                                        onClick={() => handleFilterToggle('location', location)}
-                                                        label={location}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-
+                                        {/* Location Filter */}
                                         <div className="mb-8">
-                                            <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h4>
-                                            {['Newest', 'Oldest'].map(date => (
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
+                                            {FILTER_OPTIONS.location.map(location => (
+                                                <FilterCheckbox
+                                                    key={location}
+                                                    isSelected={filters.location.includes(location)}
+                                                    onClick={() => handleFilterToggle('location', location)}
+                                                    label={location}
+                                                />
+                                            ))}
+                                        </div>
+
+                                        {/* Date Posted Filter */}
+                                        <div className="mb-8">
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h3>
+                                            {FILTER_OPTIONS.datePosted.map(date => (
                                                 <FilterCheckbox
                                                     key={date}
                                                     isSelected={filters.datePosted.includes(date)}
@@ -709,90 +819,138 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        {uniqueJobTypes.length > 0 && (
-                                            <div>
-                                                <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h4>
-                                                {uniqueJobTypes.map(type => (
-                                                    <FilterCheckbox
-                                                        key={type}
-                                                        isSelected={filters.jobType.includes(type)}
-                                                        onClick={() => handleFilterToggle('jobType', type)}
-                                                        label={type.replace('-', ' ')}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        {/* Job Type Filter */}
+                                        <div>
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
+                                            {FILTER_OPTIONS.jobType.map(type => (
+                                                <FilterCheckbox
+                                                    key={type}
+                                                    isSelected={filters.jobType.includes(type)}
+                                                    onClick={() => handleFilterToggle('jobType', type)}
+                                                    label={type === 'project-based' ? 'Project Based' :
+                                                        type === 'full-time' ? 'Full Time' :
+                                                            type === 'hourly' ? 'Hourly' :
+                                                                type === 'internship' ? 'Internship' :
+                                                                    type}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 </aside>
 
+                                {/* Jobs Content */}
                                 <div className="w-full lg:w-3/4">
-                                    <div className="relative mb-6 flex items-center gap-3">
-                                        <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
+                                    <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
+                                        Explore Variety of Jobs
+                                    </h2>
+
+                                    {/* Search Bar */}
+                                    <div className="relative w-full mb-8 lg:mb-12">
+                                        <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
                                             <input
                                                 type="text"
-                                                placeholder="Search for jobs..."
+                                                placeholder="Search for the job role you are looking for"
+                                                className="w-full bg-transparent border-none outline-none text-sm text-[#6c6c6c] font-poppins"
                                                 value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="w-full py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                                onChange={handleSearchChange}
+                                                aria-label="Search jobs"
                                             />
-                                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
+                                                <Image
+                                                    src="/search.svg"
+                                                    alt=""
+                                                    width={24}
+                                                    height={24}
+                                                    className="w-full h-full text-[#6c6c6c]"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
+                                    {/* Mobile Filter Section */}
                                     <div className="lg:hidden mb-6">
-                                        <button
-                                            onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                            className="w-full bg-white rounded-[20px] shadow-sm py-3 px-4 text-gray-600 flex items-center justify-between"
-                                        >
-                                            <span>Filters</span>
-                                            <Image
-                                                src="/down-arrow.svg"
-                                                width={24}
-                                                height={24}
-                                                alt=""
-                                                className={`transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
-                                            />
-                                        </button>
+                                        <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
+                                            Filter Your Fit
+                                        </h3>
 
-                                        {showMobileFilters && (
-                                            <div className="mt-4 bg-white rounded-[20px] shadow-lg p-6">
+                                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                                            <div className="relative h-12 w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden">
+                                                <input
+                                                    type="text"
+                                                    className="w-full h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins focus:outline-none"
+                                                    readOnly
+                                                    placeholder="Filter options"
+                                                />
                                                 <button
-                                                    onClick={clearAllFilters}
-                                                    className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa]"
+                                                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                                    onClick={toggleMobileFilters}
+                                                    aria-label="Toggle filters"
                                                 >
-                                                    Clear All
+                                                    <Image
+                                                        src="/down-arrow.svg"
+                                                        width={24}
+                                                        height={24}
+                                                        alt=""
+                                                        className={`cursor-pointer transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
+                                                    />
                                                 </button>
+                                            </div>
+                                        </div>
 
-                                                <div className="mb-8">
-                                                    <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h4>
-                                                    {['junior', 'intermediate', 'senior', 'expert'].map(level => (
-                                                        <FilterCheckbox
-                                                            key={level}
-                                                            isSelected={filters.experience.includes(level)}
-                                                            onClick={() => handleFilterToggle('experience', level)}
-                                                            label={level}
+                                        {/* Mobile Filter Popup */}
+                                        {showMobileFilters && (
+                                            <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <h4 className="text-[#6c6c6c] text-xl font-medium font-poppins">
+                                                        Filter
+                                                    </h4>
+                                                    <button
+                                                        className="text-[#6c6c6c] text-sm font-normal font-poppins"
+                                                        onClick={toggleMobileFilters}
+                                                        aria-label="Close filters"
+                                                    >
+                                                        <Image
+                                                            src="/close.svg"
+                                                            width={24}
+                                                            height={24}
+                                                            alt=""
                                                         />
-                                                    ))}
+                                                    </button>
                                                 </div>
 
-                                                {uniqueCategories.length > 0 && (
-                                                    <div className="mb-8">
-                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h4>
-                                                        {uniqueCategories.map(category => (
+                                                <div className="space-y-8">
+                                                    {/* Experience Level Filter */}
+                                                    <div>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h5>
+                                                        {FILTER_OPTIONS.experience.map(level => (
                                                             <FilterCheckbox
-                                                                key={category}
-                                                                isSelected={filters.category.includes(category)}
-                                                                onClick={() => handleFilterToggle('category', category)}
-                                                                label={category}
+                                                                key={level}
+                                                                isSelected={filters.experience.includes(level)}
+                                                                onClick={() => handleFilterToggle('experience', level)}
+                                                                label={level}
                                                             />
                                                         ))}
                                                     </div>
-                                                )}
 
-                                                {uniqueLocations.length > 0 && (
-                                                    <div className="mb-8">
-                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h4>
-                                                        {uniqueLocations.map(location => (
+                                                    {/* Category Filter */}
+                                                    {uniqueCategories.length > 0 && (
+                                                        <div>
+                                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h5>
+                                                            {uniqueCategories.map(category => (
+                                                                <FilterCheckbox
+                                                                    key={category}
+                                                                    isSelected={filters.category.includes(category)}
+                                                                    onClick={() => handleFilterToggle('category', category)}
+                                                                    label={category}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Location Filter */}
+                                                    <div>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h5>
+                                                        {FILTER_OPTIONS.location.map(location => (
                                                             <FilterCheckbox
                                                                 key={location}
                                                                 isSelected={filters.location.includes(location)}
@@ -801,49 +959,86 @@ const AllJobsPage = () => {
                                                             />
                                                         ))}
                                                     </div>
-                                                )}
 
-                                                <div className="mb-8">
-                                                    <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h4>
-                                                    {['Newest', 'Oldest'].map(date => (
-                                                        <FilterCheckbox
-                                                            key={date}
-                                                            isSelected={filters.datePosted.includes(date)}
-                                                            onClick={() => handleFilterToggle('datePosted', date)}
-                                                            label={date}
-                                                        />
-                                                    ))}
-                                                </div>
-
-                                                {uniqueJobTypes.length > 0 && (
+                                                    {/* Date Posted Filter */}
                                                     <div>
-                                                        <h4 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h4>
-                                                        {uniqueJobTypes.map(type => (
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h5>
+                                                        {FILTER_OPTIONS.datePosted.map(date => (
+                                                            <FilterCheckbox
+                                                                key={date}
+                                                                isSelected={filters.datePosted.includes(date)}
+                                                                onClick={() => handleFilterToggle('datePosted', date)}
+                                                                label={date}
+                                                            />
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Job Type Filter */}
+                                                    <div>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h5>
+                                                        {FILTER_OPTIONS.jobType.map(type => (
                                                             <FilterCheckbox
                                                                 key={type}
                                                                 isSelected={filters.jobType.includes(type)}
                                                                 onClick={() => handleFilterToggle('jobType', type)}
-                                                                label={type.replace('-', ' ')}
+                                                                label={type === 'project-based' ? 'Project Based' :
+                                                                    type === 'full-time' ? 'Full Time' :
+                                                                        type === 'hourly' ? 'Hourly' :
+                                                                            type === 'internship' ? 'Internship' :
+                                                                                type}
                                                             />
                                                         ))}
                                                     </div>
-                                                )}
+                                                </div>
+
+                                                <div className="mt-8 flex justify-between">
+                                                    <button
+                                                        className="text-[#6c6c6c] text-sm font-normal font-poppins focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                                                        onClick={clearAllFilters}
+                                                    >
+                                                        Clear All
+                                                    </button>
+                                                    <button
+                                                        className="h-[40px] px-6 font-semibold text-sm font-montserrat text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                                                        onClick={toggleMobileFilters}
+                                                    >
+                                                        Apply
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
 
-                                    {filteredJobs.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {filteredJobs.map(job => (
-                                                <JobCard key={job.id} job={job} />
-                                            ))}
-                                        </div>
+                                    {/* Job Listings */}
+                                    {jobsToShow.length > 0 ? (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {jobsToShow.map(job => (
+                                                    <JobCard
+                                                        key={job.id}
+                                                        job={job}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {/* Load More Button for Mobile */}
+                                            {hasMoreJobs && (
+                                                <div className="mt-8 flex justify-center">
+                                                    <button
+                                                        onClick={loadMoreJobs}
+                                                        className="w-full md:w-auto bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 px-8 text-white text-sm font-semibold font-montserrat text-center hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+                                                    >
+                                                        Load More Jobs
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="text-center py-12">
                                             <p className="text-gray-600 text-lg font-poppins">
                                                 {searchQuery || Object.values(filters).some(arr => arr.length > 0)
                                                     ? 'No jobs match your filters. Try adjusting your search criteria.'
-                                                    : 'No jobs available at the moment.'}
+                                                    : 'Currently no open positions available. Check back later!'}
                                             </p>
                                         </div>
                                     )}
