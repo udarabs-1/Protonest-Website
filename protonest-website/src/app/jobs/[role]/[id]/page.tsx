@@ -461,6 +461,7 @@ export default function JobDetailPage() {
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
     const [showInfoDialog, setShowInfoDialog] = useState<string | null>(null);
     const [hasCheckedPendingApplication, setHasCheckedPendingApplication] = useState(false);
+    const [hasCheckedCVUpload, setHasCheckedCVUpload] = useState(false);
 
     // User authentication check - listens to storage changes
     useEffect(() => {
@@ -542,7 +543,7 @@ export default function JobDetailPage() {
         if (!user || !job) {
             setHasApplied(false);
             setCanWithdraw(false);
-            return;
+            return false;
         }
 
         try {
@@ -550,7 +551,7 @@ export default function JobDetailPage() {
             if (!token) {
                 setHasApplied(false);
                 setCanWithdraw(false);
-                return;
+                return false;
             }
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/status/${job.id}`, {
@@ -590,6 +591,51 @@ export default function JobDetailPage() {
             setCanWithdraw(false);
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
+
+    // NEW: Check if user just uploaded CV for this job
+    useEffect(() => {
+        const checkCVUpload = async () => {
+            // Only run once and only when we have user and job
+            if (!user || !job || hasCheckedCVUpload) {
+                return;
+            }
+
+            setHasCheckedCVUpload(true);
+
+            const cvUploadedStr = sessionStorage.getItem('cvUploadedForJob');
+            if (cvUploadedStr) {
+                try {
+                    const cvUploadData = JSON.parse(cvUploadedStr);
+                    // Check if it's for this job and within 5 minutes
+                    const isForThisJob = cvUploadData.jobId === job.id;
+                    const isRecent = Date.now() - cvUploadData.timestamp < 5 * 60 * 1000;
+
+                    if (isForThisJob && isRecent) {
+                        // Clear the flag
+                        sessionStorage.removeItem('cvUploadedForJob');
+
+                        // Check if already applied
+                        const alreadyApplied = await checkApplicationStatus();
+
+                        if (!alreadyApplied) {
+                            // Show apply confirmation dialog
+                            setTimeout(() => {
+                                setShowConfirmDialog('apply');
+                            }, 500);
+                        }
+                    } else {
+                        // Clear expired flag
+                        sessionStorage.removeItem('cvUploadedForJob');
+                    }
+                } catch (error) {
+                    console.error('Error processing CV upload data:', error);
+                    sessionStorage.removeItem('cvUploadedForJob');
+                }
+            }
+        };
+
+        checkCVUpload();
+    }, [user, job, hasCheckedCVUpload, checkApplicationStatus]);
 
     // Check for pending application after sign in - handles both signup and signin flows
     useEffect(() => {
@@ -758,7 +804,8 @@ export default function JobDetailPage() {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ job_id: job.id }),
             });
@@ -842,16 +889,38 @@ export default function JobDetailPage() {
 
     const handleUploadCV = useCallback(() => {
         setShowErrorDialog(null);
-        router.push('/dashboard/resubmit-cv');
-    }, [router]);
+
+        // Keep the pending job application when redirecting to CV upload
+        if (job && role) {
+            const currentUrl = `/jobs/${Array.isArray(role) ? role[0] : role}/${job.id}`;
+            localStorage.setItem('pendingJobApplication', JSON.stringify({
+                jobId: job.id,
+                jobTitle: job.title,
+                jobUrl: currentUrl,
+                role: Array.isArray(role) ? role[0] : role,
+                timestamp: Date.now()
+            }));
+        }
+
+        router.replace('/dashboard/resubmit-cv');
+    }, [router, job, role]);
+
+    const clearPendingApplication = useCallback(() => {
+        localStorage.removeItem('pendingJobApplication');
+    }, []);
 
     const closePopup = useCallback(() => {
         setShowSuccessPopup(null);
     }, []);
 
     const closeConfirmDialog = useCallback(() => {
+        // Clear pending job application when user cancels apply confirmation
+        if (showConfirmDialog === 'apply') {
+            clearPendingApplication();
+        }
+
         setShowConfirmDialog(null);
-    }, []);
+    }, [showConfirmDialog, clearPendingApplication]);
 
     const closeErrorDialog = useCallback(() => {
         setShowErrorDialog(null);

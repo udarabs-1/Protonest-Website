@@ -64,17 +64,9 @@ interface DecodedGooglePayload {
     [key: string]: unknown;
 }
 
-// Helper functions to safely access window properties - memoized
+// Helper functions to safely access window properties
 const getWindowGoogle = (): SignUpGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignUpGoogleAPI | undefined;
-};
-
-const getWindowGoogleSignUpInitialized = (): boolean => {
-    return ((window as Record<string, unknown>)?.googleSignUpInitialized as boolean) || false;
-};
-
-const setWindowGoogleSignUpInitialized = (value: boolean): void => {
-    (window as Record<string, unknown>).googleSignUpInitialized = value;
 };
 
 // Token management functions
@@ -361,7 +353,7 @@ export default function SignUp() {
 
     // Initialize Google OAuth with improved error handling
     useEffect(() => {
-        if (typeof window !== 'undefined' && !getWindowGoogleSignUpInitialized()) {
+        if (typeof window !== 'undefined') {
             console.log('Initializing Google OAuth for SIGNUP');
 
             const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
@@ -378,6 +370,7 @@ export default function SignUp() {
 
                         console.log('Initializing Google with context: signup');
 
+                        // Always reinitialize to ensure correct callback
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
                             callback: (response: GoogleCredentialResponse) => {
@@ -392,7 +385,6 @@ export default function SignUp() {
                             context: 'signup'
                         });
 
-                        setWindowGoogleSignUpInitialized(true);
                         setGoogleLoadError(false);
                         console.log('Google OAuth initialized successfully for SIGNUP');
                     } else {
@@ -406,8 +398,9 @@ export default function SignUp() {
             };
 
             if (existingScript) {
-                console.log('Google script already exists, initializing...');
-                initializeGoogle();
+                console.log('Google script already exists, reinitializing for SIGNUP...');
+                // Wait a bit to ensure previous initialization is complete
+                setTimeout(initializeGoogle, 100);
             } else {
                 const script = document.createElement('script');
                 script.src = 'https://accounts.google.com/gsi/client';
@@ -416,7 +409,7 @@ export default function SignUp() {
 
                 script.onload = () => {
                     console.log('Google script loaded');
-                    initializeGoogle();
+                    setTimeout(initializeGoogle, 100);
                 };
 
                 script.onerror = () => {
