@@ -72,6 +72,14 @@ interface ProfileData {
     isGoogleUser?: boolean;
 }
 
+interface PendingJobApplication {
+    jobId: string;
+    jobTitle: string;
+    jobUrl: string;
+    role: string;
+    timestamp: number;
+}
+
 // All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
@@ -143,6 +151,7 @@ const ResubmitCVPage = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+    const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -249,6 +258,24 @@ const ResubmitCVPage = () => {
         fetchCVInfo();
         populateUserData();
         fetchUserProfile();
+
+        // Check for pending job application
+        const pendingJobStr = localStorage.getItem('pendingJobApplication');
+        if (pendingJobStr) {
+            try {
+                const jobData = JSON.parse(pendingJobStr);
+                // Check if the job application is still valid (within 10 minutes)
+                const isValid = Date.now() - jobData.timestamp < 10 * 60 * 1000;
+                if (isValid) {
+                    setPendingJob(jobData);
+                } else {
+                    // Remove expired job application
+                    localStorage.removeItem('pendingJobApplication');
+                }
+            } catch {
+                localStorage.removeItem('pendingJobApplication');
+            }
+        }
     }, []);
 
     const populateUserData = () => {
@@ -506,7 +533,7 @@ const ResubmitCVPage = () => {
                 submitData.append('fullName', formData.fullName);
                 submitData.append('email', formData.email);
                 submitData.append('phoneNumber', formData.phoneNumber);
-                submitData.append('country', 'Sri Lanka'); // Always Sri Lanka
+                submitData.append('country', 'Sri Lanka');
                 submitData.append('city', formData.city);
                 submitData.append('workFunction', formData.workFunction);
                 submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
@@ -544,7 +571,18 @@ const ResubmitCVPage = () => {
                 setTimeout(() => {
                     setShowSubmissionModal(false);
 
-                    if (cvData.suggested_jobs && cvData.suggested_jobs.length > 0) {
+                    // Check if this was for a pending job application
+                    if (pendingJob && pendingJob.jobUrl) {
+                        // Set flag that CV has been uploaded
+                        sessionStorage.setItem('cvUploadedForJob', JSON.stringify({
+                            jobTitle: pendingJob.jobTitle,
+                            jobId: pendingJob.jobId,
+                            timestamp: Date.now()
+                        }));
+
+                        // Redirect to job details page to continue application
+                        window.location.replace(pendingJob.jobUrl);
+                    } else if (cvData.suggested_jobs && cvData.suggested_jobs.length > 0) {
                         setShowJobsModal(true);
                     } else {
                         setShowNoMatchModal(true);
@@ -655,7 +693,9 @@ const ResubmitCVPage = () => {
                     <LoadingSpinner />
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
-                    {hasCVUploaded ? (
+                    {pendingJob ? (
+                        <>Thanks for submitting your updated CV!<br />Processing your submission for {pendingJob.jobTitle}...</>
+                    ) : hasCVUploaded ? (
                         <>Thanks for submitting your updated CV!<br />Processing your submission and finding matching roles…</>
                     ) : (
                         <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles…</>
@@ -1062,11 +1102,13 @@ const ResubmitCVPage = () => {
                                                 />
                                             </div>
                                             <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
-                                                {hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
+                                                {pendingJob ? `Upload CV to Apply for ${pendingJob.jobTitle}` : hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
                                             </h1>
                                         </div>
                                         <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
-                                            {hasCVUploaded
+                                            {pendingJob ? (
+                                                `Complete your application for ${pendingJob.jobTitle} by uploading your CV. After upload, you'll be redirected to continue the application process.`
+                                            ) : hasCVUploaded
                                                 ? 'Keep your CV up to date so we can better match you with the right freelance projects at Protonest.'
                                                 : 'Upload your CV to join our talent pool and get matched with the right freelance projects at Protonest.'
                                             }
@@ -1086,7 +1128,7 @@ const ResubmitCVPage = () => {
                                 </div>
                             )}
 
-                            {hasCVUploaded && (
+                            {hasCVUploaded && !pendingJob && (
                                 <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12 mb-8">
                                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                         <div className="flex-1">
@@ -1139,41 +1181,39 @@ const ResubmitCVPage = () => {
                                             {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                    Email
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    value={formData.email}
-                                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                                    placeholder="you@company.com"
-                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                                />
-                                                {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
-                                            </div>
+                                        <div>
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                                Email
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                                placeholder="you@company.com"
+                                                className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                            />
+                                            {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
+                                        </div>
 
-                                            <div>
-                                                <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                    Phone Number
-                                                </label>
-                                                <div className="flex items-center">
-                                                    <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
-                                                        <span className="mr-1">🇱🇰</span>
-                                                        <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
-                                                    </div>
-
-                                                    <input
-                                                        type="tel"
-                                                        value={formData.phoneNumber}
-                                                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                                                        placeholder="For faster communication"
-                                                        className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                                    />
+                                        <div>
+                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                                Phone Number
+                                            </label>
+                                            <div className="flex items-center">
+                                                <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
+                                                    <span className="mr-1">🇱🇰</span>
+                                                    <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
                                                 </div>
-                                                {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
+
+                                                <input
+                                                    type="tel"
+                                                    value={formData.phoneNumber}
+                                                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                                    placeholder="For faster communication"
+                                                    className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                                />
                                             </div>
+                                            {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
                                         </div>
 
                                         <div>
@@ -1220,6 +1260,33 @@ const ResubmitCVPage = () => {
                                             <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                                 What functions do you prefer to work in?
                                             </label>
+
+                                            {/* Display selected functions as tags ABOVE the dropdown */}
+                                            {formData.workFunction && (
+                                                <div className="mb-3 flex flex-wrap gap-2">
+                                                    {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
+                                                        >
+                                                            <span>{func}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const updatedFunctions = formData.workFunction.split(',')
+                                                                        .filter(f => f !== func)
+                                                                        .join(',');
+                                                                    handleInputChange('workFunction', updatedFunctions);
+                                                                }}
+                                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
                                             <div className="relative" ref={dropdownRefs.workFunction}>
                                                 <button
                                                     type="button"
@@ -1261,32 +1328,6 @@ const ResubmitCVPage = () => {
                                                 )}
                                             </div>
 
-                                            {/* Display selected functions as tags */}
-                                            {formData.workFunction && (
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                                        >
-                                                            <span>{func}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const updatedFunctions = formData.workFunction.split(',')
-                                                                        .filter(f => f !== func)
-                                                                        .join(',');
-                                                                    handleInputChange('workFunction', updatedFunctions);
-                                                                }}
-                                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-
                                             {errors.workFunction && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.workFunction}</p>}
                                         </div>
                                     </div>
@@ -1299,7 +1340,9 @@ const ResubmitCVPage = () => {
                                         {hasCVUploaded ? 'Upload a New Version' : 'Upload Your CV'}
                                     </h3>
                                     <p className="text-base text-[#6c6c6c] leading-[30px]">
-                                        {hasCVUploaded
+                                        {pendingJob ? (
+                                            `Upload your CV to complete your application for ${pendingJob.jobTitle}. Your CV should be in PDF format and highlight your relevant skills and experience.`
+                                        ) : hasCVUploaded
                                             ? 'Upload your latest resume in PDF format. Include any new skills, experience, or portfolio links that reflect your current expertise.'
                                             : 'Upload your resume in PDF format. Include your skills, experience, and portfolio links that reflect your expertise.'
                                         }
@@ -1363,7 +1406,6 @@ const ResubmitCVPage = () => {
                                     />
                                 </div>
 
-
                                 {!hasCVUploaded && (
                                     <div className="flex items-start space-x-3 mb-6">
                                         <button
@@ -1406,7 +1448,7 @@ const ResubmitCVPage = () => {
                                 )}
 
                                 <div className="flex flex-col sm:flex-row gap-4 pt-8 justify-end">
-                                    {!hasCVUploaded && (
+                                    {!hasCVUploaded && !pendingJob && (
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -1434,7 +1476,7 @@ const ResubmitCVPage = () => {
                                         disabled={isSubmitting}
                                         className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
                                     >
-                                        {isSubmitting ? 'Submitting...' : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV and Join Talent Pool'}
+                                        {isSubmitting ? 'Submitting...' : pendingJob ? `Submit CV and Continue Application` : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV and Join Talent Pool'}
                                     </button>
                                 </div>
                             </div>

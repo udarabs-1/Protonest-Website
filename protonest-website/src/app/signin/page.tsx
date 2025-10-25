@@ -47,17 +47,9 @@ interface GoogleCredentialResponse {
     select_by: string;
 }
 
-// Helper functions to safely access window properties - memoized
+// Helper functions to safely access window properties
 const getWindowGoogle = (): SignInGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignInGoogleAPI | undefined;
-};
-
-const getWindowGoogleSignInInitialized = (): boolean => {
-    return ((window as Record<string, unknown>)?.googleSignInInitialized as boolean) || false;
-};
-
-const setWindowGoogleSignInInitialized = (value: boolean): void => {
-    (window as Record<string, unknown>).googleSignInInitialized = value;
 };
 
 // Token management functions
@@ -160,16 +152,23 @@ export default function ResponsiveSignIn() {
     }, []);
 
     // Helper function to handle redirect after sign in
-    const handlePostSignInRedirect = useCallback(() => {
+    const handlePostSignInRedirect = useCallback(async () => {
         const pendingApplication = localStorage.getItem('pendingJobApplication');
 
         if (pendingApplication) {
             try {
                 const pending = JSON.parse(pendingApplication);
-                if (Date.now() - pending.timestamp < 10 * 60 * 1000) {
+                const isRecent = Date.now() - pending.timestamp < 10 * 60 * 1000;
+
+                if (isRecent) {
+                    // User has a pending job application - redirect to job details page
+                    // The job details page will handle CV check and show error dialog
                     const jobUrl = pending.jobUrl || `/jobs/${pending.role || 'all'}/${pending.jobId}`;
                     window.location.replace(jobUrl);
                     return;
+                } else {
+                    // Expired pending application
+                    localStorage.removeItem('pendingJobApplication');
                 }
             } catch (error) {
                 console.error('Error processing pending application:', error);
@@ -177,9 +176,9 @@ export default function ResponsiveSignIn() {
             }
         }
 
+        // No pending application, go to dashboard
         window.location.replace('/dashboard');
     }, []);
-
     // Handle Google OAuth response for sign-in with improved error handling
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignIn called - SIGNIN flow');
@@ -213,7 +212,7 @@ export default function ResponsiveSignIn() {
                     setTokenWithExpiration(signInData.data.token);
                     localStorage.setItem('userData', JSON.stringify(signInData.data.user));
 
-                    handlePostSignInRedirect();
+                    await handlePostSignInRedirect();
                 } else {
                     setError('Sign in successful but no token received');
                 }
@@ -244,7 +243,7 @@ export default function ResponsiveSignIn() {
 
     // Initialize Google OAuth with improved error handling
     useEffect(() => {
-        if (typeof window !== 'undefined' && !getWindowGoogleSignInInitialized()) {
+        if (typeof window !== 'undefined') {
             console.log('Initializing Google OAuth for SIGNIN');
 
             const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
@@ -261,6 +260,7 @@ export default function ResponsiveSignIn() {
 
                         console.log('Initializing Google with context: signin');
 
+                        // Always reinitialize to ensure correct callback
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
                             callback: (response: GoogleCredentialResponse) => {
@@ -275,7 +275,6 @@ export default function ResponsiveSignIn() {
                             context: 'signin'
                         });
 
-                        setWindowGoogleSignInInitialized(true);
                         setGoogleLoadError(false);
                         console.log('Google OAuth initialized successfully for SIGNIN');
                     } else {
@@ -289,8 +288,9 @@ export default function ResponsiveSignIn() {
             };
 
             if (existingScript) {
-                console.log('Google script already exists, initializing...');
-                initializeGoogle();
+                console.log('Google script already exists, reinitializing for SIGNIN...');
+                // Wait a bit to ensure previous initialization is complete
+                setTimeout(initializeGoogle, 100);
             } else {
                 const script = document.createElement('script');
                 script.src = 'https://accounts.google.com/gsi/client';
@@ -299,7 +299,7 @@ export default function ResponsiveSignIn() {
 
                 script.onload = () => {
                     console.log('Google script loaded');
-                    initializeGoogle();
+                    setTimeout(initializeGoogle, 100);
                 };
 
                 script.onerror = () => {
@@ -423,7 +423,7 @@ export default function ResponsiveSignIn() {
                         localStorage.setItem('userData', JSON.stringify(data.data.user));
                     }
 
-                    handlePostSignInRedirect();
+                    await handlePostSignInRedirect();
                 } else {
                     setError('Login successful but no token received');
                 }
