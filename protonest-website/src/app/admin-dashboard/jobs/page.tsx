@@ -41,10 +41,27 @@ interface Job {
     status: string;
 }
 
+// Updated API Response interface to match new endpoint structure
 interface ApiResponse {
     status: string;
     message: string;
-    data: Job[];
+    data: {
+        jobs: Job[];
+        total: number;
+        summary: {
+            by_publication_status: {
+                draft: number;
+                published: number;
+                scheduled: number;
+            };
+            by_assignment_status: {
+                open: number;
+                closed: number;
+                hired: number;
+            };
+        };
+    };
+    timestamp: string;
 }
 
 // Add category to slug mapping
@@ -117,7 +134,7 @@ const JobPostings = () => {
     // Fetch application counts for each job
     const fetchApplicationCounts = useCallback(async (jobs: Job[]) => {
         const token = localStorage.getItem('adminToken');
-        if (!token) return;
+        if (!token || !jobs || jobs.length === 0) return;
 
         setLoadingCounts(true);
         const counts: { [key: string]: number } = {};
@@ -161,7 +178,7 @@ const JobPostings = () => {
                 throw new Error('Admin authentication required');
             }
 
-            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`;
+            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/all`;
 
             const response = await fetch(url, {
                 headers: {
@@ -171,30 +188,47 @@ const JobPostings = () => {
             });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    router.push('/admin-signin');
+                    return;
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data: ApiResponse = await response.json();
+            const result: ApiResponse = await response.json();
+            console.log('API Response:', result); // Debug log
 
-            if (data.status === 'success') {
-                const jobs = data.data || [];
+            if (result.status === 'success') {
+                // Extract jobs array from the nested data structure
+                const jobs = result.data?.jobs || [];
+
+                console.log('Extracted jobs:', jobs); // Debug log
+
                 setJobPostings(jobs);
+
                 // Fetch application counts after loading jobs
-                await fetchApplicationCounts(jobs);
+                if (jobs.length > 0) {
+                    await fetchApplicationCounts(jobs);
+                }
             } else {
-                setError(data.message || 'Failed to fetch job postings');
+                setError(result.message || 'Failed to fetch job postings');
             }
         } catch (err: unknown) {
             console.error('Error fetching job postings:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch job postings';
             setError(errorMessage);
+            // Set empty array on error to prevent crashes
+            setJobPostings([]);
         } finally {
             setLoading(false);
         }
-    }, [fetchApplicationCounts]);
+    }, [fetchApplicationCounts, router]);
 
     const applyFilters = useCallback(() => {
-        let filtered = [...jobPostings];
+        // Ensure jobPostings is always an array
+        const jobsArray = Array.isArray(jobPostings) ? jobPostings : [];
+        let filtered = [...jobsArray];
 
         if (activeFilter !== 'all') {
             filtered = filtered.filter(job => job.publication_status === activeFilter);
@@ -242,6 +276,10 @@ const JobPostings = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            // Show success message
+            alert('Job posting deleted successfully!');
+
+            // Refresh the job list
             fetchJobPostings();
         } catch (err: unknown) {
             console.error('Error deleting job:', err);

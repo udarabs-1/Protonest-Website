@@ -97,9 +97,9 @@ export default function Footer() {
                                         Home
                                     </Link>
                                     <Link
-                                        href="/find-jobs"
-                                        className={getNavLinkClass('/find-jobs', true)}
-                                        onMouseEnter={() => handleMouseEnter('/find-jobs')}
+                                        href="/careers"
+                                        className={getNavLinkClass('/careers', true)}
+                                        onMouseEnter={() => handleMouseEnter('/careers')}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         Careers
@@ -266,8 +266,8 @@ export default function Footer() {
                             <Link href="/" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/', false)}`}>Home</div>
                             </Link>
-                            <Link href="/find-jobs" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/find-jobs', false)}`}>Careers</div>
+                            <Link href="/careers" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/careers', false)}`}>Careers</div>
                             </Link>
                             <Link href="/research-and-project" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>

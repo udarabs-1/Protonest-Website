@@ -60,13 +60,13 @@ export default function Navbar() {
         setMobileMenuOpen(false);
     };
 
-    // Handle conditional navigation for Find Jobs
-    const handleFindJobsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Handle conditional navigation for Careers
+    const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (isUserSignedIn) {
             router.push('/dashboard/all-jobs');
         } else {
-            router.push('/find-jobs');
+            router.push('/careers');
         }
         handleNavigation();
     };
@@ -75,7 +75,7 @@ export default function Navbar() {
         { href: "/", label: "Home" },
         { href: "/about-us", label: "About Us" },
         { href: "/whats-new", label: "What's New", hasDropdown: true, key: "whats-new" },
-        { href: "/find-jobs", label: "Find Jobs", isConditional: true },
+        { href: "/careers", label: "Careers", isConditional: true },
         { href: "/contact-us", label: "Contact Us" }
     ];
 
@@ -135,8 +135,8 @@ export default function Navbar() {
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
 
-    // Show the account button on find-jobs or jobs routes
-    const showAccountButton = pathname === "/find-jobs" ||
+    // Show the account button on careers or jobs routes
+    const showAccountButton = pathname === "/careers" ||
         pathname.startsWith('/jobs');
 
     return (
@@ -182,7 +182,7 @@ export default function Navbar() {
                                                                 e.preventDefault();
                                                                 toggleDropdown(item.key);
                                                             } else if (isConditional) {
-                                                                handleFindJobsClick(e);
+                                                                handleCareersClick(e);
                                                             } else {
                                                                 handleNavigation();
                                                             }
@@ -477,7 +477,7 @@ export default function Navbar() {
                                                         className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full hover:scale-105 transition-transform origin-left"
                                                         onClick={(e) => {
                                                             if (isConditional) {
-                                                                handleFindJobsClick(e);
+                                                                handleCareersClick(e);
                                                             } else {
                                                                 handleNavigation();
                                                             }

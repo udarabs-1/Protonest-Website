@@ -361,7 +361,7 @@ const ResubmitCVPage = () => {
         localStorage.removeItem('userData');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     const validateForm = useCallback((): boolean => {

@@ -328,7 +328,7 @@ const Dashboard = () => {
         localStorage.removeItem('jwtToken');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     const statsCards = [

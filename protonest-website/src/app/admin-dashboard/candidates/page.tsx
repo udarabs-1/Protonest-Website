@@ -7,21 +7,24 @@ import {
     Calendar,
     ChevronDown,
     ChevronRight,
+    ChevronUp,
     Mail,
     MapPin,
     Menu,
     Search,
     Settings,
+    Sparkles,
     Trash2,
     TrendingUp,
     Upload,
     User,
+    Users,
     X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Candidate {
     id: string;
@@ -51,6 +54,33 @@ interface Candidate {
     interview_date?: string;
     interview_notes?: string;
     rejection_reason?: string;
+}
+
+interface JobGroup {
+    job_id: string;
+    job_title: string;
+    total_candidates: number;
+    candidates: Candidate[];
+    isExpanded: boolean;
+    isAnalyzing: boolean;
+    hasRankings: boolean;
+    rankings?: CandidateRanking[];
+}
+
+interface CandidateRanking {
+    rank_position: number;
+    candidate_id: string;
+    candidate_name: string;
+    candidate_email: string;
+    user_id: string;
+    overall_score: number;
+    experience_match_score: number;
+    skills_match_score: number;
+    question_scores: Array<{
+        question_index: number;
+        score: number;
+    }>;
+    evaluated_at: string;
 }
 
 interface ExpertiseArea {
@@ -99,7 +129,7 @@ interface NDADocument {
 
 const CandidateManagement = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [jobGroups, setJobGroups] = useState<JobGroup[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [deleteCandidate, setDeleteCandidate] = useState<{ id: string; name: string } | null>(null);
@@ -118,11 +148,8 @@ const CandidateManagement = () => {
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-    // New states for role-based filtering with autocomplete
-    const [searchInput, setSearchInput] = useState('');
-    const [activeFilters, setActiveFilters] = useState<string[]>([]);
-    const [showAutocomplete, setShowAutocomplete] = useState(false);
-    const [autocompleteRoles, setAutocompleteRoles] = useState<string[]>([]);
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Editable email states
     const [interviewSubject, setInterviewSubject] = useState('');
@@ -133,7 +160,6 @@ const CandidateManagement = () => {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const autocompleteRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -189,10 +215,8 @@ const CandidateManagement = () => {
             }
 
             const data = await response.json();
-            // Change this part:
             if (data.documents && Array.isArray(data.documents)) {
                 setNdaDocuments(data.documents);
-                // Set the first active document as default
                 const activeDoc = data.documents.find((doc: NDADocument) => doc.is_active);
                 if (activeDoc) {
                     setSelectedTemplate(activeDoc.id);
@@ -203,14 +227,13 @@ const CandidateManagement = () => {
         }
     };
 
-    // Fetch candidates data from job candidates endpoint
+    // Fetch candidates and group by job
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Fetch all job candidates with NDA status
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
@@ -224,7 +247,11 @@ const CandidateManagement = () => {
                 const data = await response.json();
                 if (data.status === 'success') {
                     const candidatesData = data.data?.nda_logs || data.data || [];
-                    setCandidates(Array.isArray(candidatesData) ? candidatesData : []);
+                    const candidates = Array.isArray(candidatesData) ? candidatesData : [];
+
+                    // Group candidates by job
+                    const grouped = groupCandidatesByJob(candidates);
+                    setJobGroups(grouped);
                 }
                 else {
                     throw new Error(data.message || 'Failed to fetch candidates');
@@ -236,7 +263,7 @@ const CandidateManagement = () => {
                     setError('An error occurred while fetching candidates');
                 }
                 console.error('Error fetching candidates:', err);
-                setCandidates([]);
+                setJobGroups([]);
             } finally {
                 setLoading(false);
             }
@@ -246,7 +273,126 @@ const CandidateManagement = () => {
         fetchNDADocuments();
     }, []);
 
-    // Close sidebar, dropdown, and autocomplete when clicking outside
+    // Group candidates by job
+    const groupCandidatesByJob = (candidates: Candidate[]): JobGroup[] => {
+        const jobMap = new Map<string, JobGroup>();
+
+        candidates.forEach(candidate => {
+            const jobId = candidate.job?._id;
+            const jobTitle = candidate.job?.title || 'Unknown Job';
+
+            if (!jobMap.has(jobId)) {
+                jobMap.set(jobId, {
+                    job_id: jobId,
+                    job_title: jobTitle,
+                    total_candidates: 0,
+                    candidates: [],
+                    isExpanded: false,
+                    isAnalyzing: false,
+                    hasRankings: false,
+                    rankings: []
+                });
+            }
+
+            const group = jobMap.get(jobId)!;
+            group.candidates.push(candidate);
+            group.total_candidates = group.candidates.length;
+        });
+
+        // Convert to array and sort by total candidates (descending)
+        return Array.from(jobMap.values()).sort((a, b) => b.total_candidates - a.total_candidates);
+    };
+
+    // Toggle job expansion
+    const toggleJobExpansion = (jobId: string) => {
+        setJobGroups(prev => prev.map(group =>
+            group.job_id === jobId
+                ? { ...group, isExpanded: !group.isExpanded }
+                : group
+        ));
+    };
+
+    // Trigger AI ranking for a job
+    const handleAnalyzeJob = async (jobId: string) => {
+        try {
+            // Set analyzing state
+            setJobGroups(prev => prev.map(group =>
+                group.job_id === jobId
+                    ? { ...group, isAnalyzing: true }
+                    : group
+            ));
+
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}/rank-candidates`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to analyze candidates');
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success' && data.data?.rankings) {
+                // Update job group with rankings
+                setJobGroups(prev => prev.map(group => {
+                    if (group.job_id === jobId) {
+                        // Sort candidates by ranking - UPDATED to match by user_id
+                        const rankedCandidates = [...group.candidates].sort((a, b) => {
+                            const rankA = data.data.rankings.find((r: CandidateRanking) => r.user_id === a.user._id);
+                            const rankB = data.data.rankings.find((r: CandidateRanking) => r.user_id === b.user._id);
+
+                            if (rankA && rankB) {
+                                return rankA.rank_position - rankB.rank_position;
+                            }
+                            // If only one has ranking, prioritize it
+                            if (rankA) return -1;
+                            if (rankB) return 1;
+                            return 0;
+                        });
+
+                        return {
+                            ...group,
+                            isAnalyzing: false,
+                            hasRankings: true,
+                            rankings: data.data.rankings,
+                            candidates: rankedCandidates,
+                            isExpanded: true // Auto-expand after analysis
+                        };
+                    }
+                    return group;
+                }));
+
+                alert(`Successfully analyzed ${data.data.evaluated_candidates} candidates!`);
+            }
+        } catch (error) {
+            console.error('Error analyzing job:', error);
+            alert('Failed to analyze candidates. Please try again.');
+
+            // Reset analyzing state on error
+            setJobGroups(prev => prev.map(group =>
+                group.job_id === jobId
+                    ? { ...group, isAnalyzing: false }
+                    : group
+            ));
+        }
+    };
+
+    // Get ranking for a candidate - UPDATED to match by user_id instead of candidate_id
+    const getCandidateRanking = (jobGroup: JobGroup, candidate: Candidate): CandidateRanking | null => {
+        if (!jobGroup.hasRankings || !jobGroup.rankings) return null;
+        // Match by user_id instead of candidate_id for more reliable matching
+        return jobGroup.rankings.find(r => r.user_id === candidate.user._id) || null;
+    };
+
+    // Close sidebar and dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -256,41 +402,13 @@ const CandidateManagement = () => {
             if (statusDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setStatusDropdown(null);
             }
-
-            if (showAutocomplete && autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
-                setShowAutocomplete(false);
-            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, statusDropdown, showAutocomplete]);
-
-    // Get unique roles from candidates for autocomplete
-    const getUniqueRoles = useCallback((): string[] => {
-        const roles = candidates
-            .filter(candidate => candidate?.job?.title)
-            .map(candidate => candidate.job.title);
-        return Array.from(new Set(roles)).sort();
-    }, [candidates]);
-
-    // Update autocomplete suggestions based on search input
-    useEffect(() => {
-        if (searchInput.trim()) {
-            const uniqueRoles = getUniqueRoles();
-            const filtered = uniqueRoles.filter(role =>
-                role.toLowerCase().includes(searchInput.toLowerCase()) &&
-                !activeFilters.includes(role)
-            );
-            setAutocompleteRoles(filtered);
-            setShowAutocomplete(filtered.length > 0);
-        } else {
-            setAutocompleteRoles([]);
-            setShowAutocomplete(false);
-        }
-    }, [searchInput, candidates, activeFilters, getUniqueRoles]);
+    }, [sidebarOpen, statusDropdown]);
 
     // Fetch candidate details
     const fetchCandidateDetails = async (candidate: Candidate) => {
@@ -301,52 +419,26 @@ const CandidateManagement = () => {
             const adminToken = localStorage.getItem('adminToken');
             const userId = candidate.user._id;
 
-            // Fetch expertise areas
-            const expertiseResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/expertise-areas/${userId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
-                    }
-                }
-            );
-
-            // Fetch job matches
-            const jobMatchesResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/job-matches/${userId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
-                    }
-                }
-            );
-
-            // Fetch skills summary
-            const skillsSummaryResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/skills-summary/${userId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
-                    }
-                }
-            );
-
-            // Fetch CV file info
-            const cvInfoResponse = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/${userId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
-                    }
-                }
-            );
+            const [expertiseResponse, jobMatchesResponse, skillsSummaryResponse, cvInfoResponse] = await Promise.all([
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/expertise-areas/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/job-matches/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/skills-summary/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                })
+            ]);
 
             const expertiseData = await expertiseResponse.json();
             const jobMatchesData = await jobMatchesResponse.json();
             const skillsSummaryData = await skillsSummaryResponse.json();
             const cvInfoData = await cvInfoResponse.json();
 
-            // Find match for the applied job
             let jobMatch = null;
             if (jobMatchesData.success && jobMatchesData.data.job_matches) {
                 jobMatch = jobMatchesData.data.job_matches.find(
@@ -354,7 +446,6 @@ const CandidateManagement = () => {
                 );
             }
 
-            // Extract CV file URL from user data
             let cvFileUrl = null;
             if (cvInfoData.success && cvInfoData.user && cvInfoData.user.cv && cvInfoData.user.cv.cv_file_url) {
                 cvFileUrl = cvInfoData.user.cv.cv_file_url;
@@ -393,66 +484,10 @@ const CandidateManagement = () => {
         }
     };
 
-    // Handle search input change
-    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
-    };
-
-    // Handle selecting a role from autocomplete
-    const handleSelectRole = (role: string) => {
-        if (!activeFilters.includes(role)) {
-            setActiveFilters([...activeFilters, role]);
-        }
-        setSearchInput('');
-        setShowAutocomplete(false);
-    };
-
-    // Handle adding a filter by pressing Enter
-    const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && searchInput.trim()) {
-            const trimmedInput = searchInput.trim();
-            // Check if the input matches any existing role
-            const uniqueRoles = getUniqueRoles();
-            const matchingRole = uniqueRoles.find(role =>
-                role.toLowerCase() === trimmedInput.toLowerCase()
-            );
-
-            if (matchingRole && !activeFilters.includes(matchingRole)) {
-                setActiveFilters([...activeFilters, matchingRole]);
-                setSearchInput('');
-                setShowAutocomplete(false);
-            } else if (!matchingRole) {
-                // If no exact match, still allow custom filter
-                if (!activeFilters.includes(trimmedInput)) {
-                    setActiveFilters([...activeFilters, trimmedInput]);
-                }
-                setSearchInput('');
-                setShowAutocomplete(false);
-            }
-        }
-    };
-
-    // Handle removing a filter
-    const handleRemoveFilter = (filterToRemove: string) => {
-        setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
-    };
-
-    // Filter candidates based on active role filters
-    const filteredCandidates = Array.isArray(candidates)
-        ? candidates.filter(candidate => {
-            if (!candidate) return false;
-
-            // If no filters, show all candidates
-            if (activeFilters.length === 0) return true;
-
-            // Check if candidate's role matches ANY of the active filters
-            return activeFilters.some(filter => {
-                const lowerFilter = filter.toLowerCase();
-                const jobTitle = candidate.job?.title?.toLowerCase() || '';
-                return jobTitle.includes(lowerFilter);
-            });
-        })
-        : [];
+    // Filter job groups based on search query
+    const filteredJobGroups = jobGroups.filter(group =>
+        group.job_title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     // Function to get status color based on status
     const getStatusColor = (status: string) => {
@@ -533,14 +568,14 @@ const CandidateManagement = () => {
             }
 
             // Update local state
-            setCandidates(prev => Array.isArray(prev)
-                ? prev.map(candidate =>
-                    candidate && candidate.id === candidateId
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.map(candidate =>
+                    candidate.id === candidateId
                         ? { ...candidate, status: newStatus, updated_at: new Date().toISOString() }
                         : candidate
                 )
-                : []
-            );
+            })));
 
         } catch (err) {
             console.error('Error updating status:', err);
@@ -557,7 +592,6 @@ const CandidateManagement = () => {
             case 'admin_moved': return 'Proceed';
             case 'shortlisted': return 'Call For Interview';
             case 'interviewed':
-                // Check NDA status for interviewed candidates
                 if (!candidate.nda_status || candidate.nda_status.status === 'not_sent') {
                     return 'Send NDA';
                 } else if (candidate.nda_status.status === 'sent') {
@@ -627,22 +661,19 @@ Protonest Team`;
                 return;
             }
 
-            // Upload the file first
             ndaDocumentUrl = await uploadNDADocument(uploadedFile);
             if (!ndaDocumentUrl) {
-                return; // Upload failed
+                return;
             }
             attachmentUrl = ndaDocumentUrl;
             attachmentName = uploadedFile.name;
         } else {
-            // Using template
             if (!selectedTemplate) {
                 alert('Please select an NDA template');
                 return;
             }
             ndaDocumentId = selectedTemplate;
 
-            // Get the selected template's download URL
             const selectedDoc = ndaDocuments.find(doc => doc.id === selectedTemplate);
             if (selectedDoc) {
                 attachmentUrl = selectedDoc.download_url;
@@ -655,7 +686,6 @@ Protonest Team`;
             return;
         }
 
-        // Create email body with NDA link (document name as clickable text)
         const linkSection = `
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -669,14 +699,12 @@ ${attachmentUrl}
 
         const finalEmailBody = ndaBody + linkSection;
 
-        // Open email client with NDA link
         openEmailClient(
             ndaDialog.user?.email || '',
             ndaSubject,
             finalEmailBody
         );
 
-        // Send NDA via API
         const success = await sendNDA(
             ndaDialog.id,
             ndaDocumentId,
@@ -684,10 +712,8 @@ ${attachmentUrl}
         );
 
         if (success) {
-            // Update status to hired
             await updateStatus(ndaDialog.id, 'hired');
 
-            // Close dialog and reset
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
@@ -713,7 +739,12 @@ ${attachmentUrl}
                 throw new Error('Failed to delete candidate');
             }
 
-            setCandidates(prev => prev.filter(c => c.id !== candidate.id));
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.filter(c => c.id !== candidate.id),
+                total_candidates: group.candidates.filter(c => c.id !== candidate.id).length
+            })).filter(group => group.total_candidates > 0));
+
             setDeleteCandidate(null);
         } catch (err) {
             console.error('Error deleting candidate:', err);
@@ -740,21 +771,21 @@ ${attachmentUrl}
                 throw new Error('Failed to update status');
             }
 
-            setCandidates(prev => Array.isArray(prev)
-                ? prev.map(candidate =>
-                    candidate && candidate.id === candidateId
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.map(candidate =>
+                    candidate.id === candidateId
                         ? { ...candidate, status: newStatus, updated_at: new Date().toISOString() }
                         : candidate
                 )
-                : []
-            );
+            })));
         } catch (err) {
             console.error('Error updating status:', err);
             alert('Failed to update status');
         }
     };
 
-    // Function to send NDA with template or uploaded file
+    // Function to send NDA
     const sendNDA = async (candidateId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -792,22 +823,24 @@ ${attachmentUrl}
 
             await response.json();
 
-            // Update local state
-            setCandidates(prev => prev.map(candidate =>
-                candidate.id === candidateId
-                    ? {
-                        ...candidate,
-                        nda_status: {
-                            status: 'sent',
-                            sent_on: new Date().toISOString(),
-                            compliance_notes: ndaBody || '',
-                            resend_count: candidate.nda_status?.resend_count || 0,
-                            created_at: candidate.nda_status?.created_at || new Date().toISOString(),
-                            updated_at: new Date().toISOString()
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.map(candidate =>
+                    candidate.id === candidateId
+                        ? {
+                            ...candidate,
+                            nda_status: {
+                                status: 'sent',
+                                sent_on: new Date().toISOString(),
+                                compliance_notes: ndaBody || '',
+                                resend_count: candidate.nda_status?.resend_count || 0,
+                                created_at: candidate.nda_status?.created_at || new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            }
                         }
-                    }
-                    : candidate
-            ));
+                        : candidate
+                )
+            })));
 
             alert('NDA sent successfully!');
             return true;
@@ -838,21 +871,23 @@ ${attachmentUrl}
                 throw new Error('Failed to resend NDA');
             }
 
-            // Update local state
-            setCandidates(prev => prev.map(candidate =>
-                candidate.id === candidateId && candidate.nda_status
-                    ? {
-                        ...candidate,
-                        nda_status: {
-                            ...candidate.nda_status,
-                            sent_on: new Date().toISOString(),
-                            compliance_notes: notes || candidate.nda_status.compliance_notes || '',
-                            resend_count: (candidate.nda_status.resend_count || 0) + 1,
-                            updated_at: new Date().toISOString()
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.map(candidate =>
+                    candidate.id === candidateId && candidate.nda_status
+                        ? {
+                            ...candidate,
+                            nda_status: {
+                                ...candidate.nda_status,
+                                sent_on: new Date().toISOString(),
+                                compliance_notes: notes || candidate.nda_status.compliance_notes || '',
+                                resend_count: (candidate.nda_status.resend_count || 0) + 1,
+                                updated_at: new Date().toISOString()
+                            }
                         }
-                    }
-                    : candidate
-            ));
+                        : candidate
+                )
+            })));
 
             alert('NDA resent successfully!');
         } catch (error) {
@@ -900,7 +935,6 @@ ${attachmentUrl}
             const data = await response.json();
 
             if (data.success && data.data?.document_url) {
-                // Refresh NDA documents list
                 await fetchNDADocuments();
                 return data.data.document_url;
             }
@@ -935,12 +969,10 @@ ${attachmentUrl}
                         resendNDA(candidate.id);
                     }
                 } else {
-                    // View NDA Log - redirect to NDA page
                     window.location.href = '/admin-dashboard/nda';
                 }
                 break;
             case 'hired':
-                // View NDA Log - redirect to NDA page
                 window.location.href = '/admin-dashboard/nda';
                 break;
             default:
@@ -969,17 +1001,14 @@ ${attachmentUrl}
     const handleSendInterview = () => {
         if (!interviewDialog) return;
 
-        // Open email client
         openEmailClient(
             interviewDialog.user?.email || '',
             interviewSubject,
             interviewBody
         );
 
-        // Update status to interviewed
         updateStatus(interviewDialog.id, 'interviewed');
 
-        // Close dialog
         setInterviewDialog(null);
         setInterviewSubject('');
         setInterviewBody('');
@@ -1052,7 +1081,7 @@ ${attachmentUrl}
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+            {/* SVG Gradient Definition */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1061,6 +1090,7 @@ ${attachmentUrl}
                     </linearGradient>
                 </defs>
             </svg>
+
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
@@ -1112,7 +1142,6 @@ ${attachmentUrl}
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -1257,208 +1286,251 @@ ${attachmentUrl}
                                 </h1>
                             </div>
                             <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                                View and manage freelancers who have applied or been shortlisted for job roles.
+                                View and manage candidates grouped by job roles. Use AI ranking to analyze and sort candidates.
                             </p>
                         </div>
 
-                        {/* Search Bar with Autocomplete */}
+                        {/* Search Bar */}
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="relative flex-1" ref={autocompleteRef}>
+                            <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    value={searchInput}
-                                    onChange={handleSearchInputChange}
-                                    onKeyDown={handleAddFilter}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Search by role and press Enter to add filter..."
+                                    placeholder="Search by job title..."
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
-
-                                {/* Autocomplete Dropdown */}
-                                {showAutocomplete && autocompleteRoles.length > 0 && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                                        {autocompleteRoles.map((role, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => handleSelectRole(role)}
-                                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-sm text-gray-700"
-                                            >
-                                                <div className="flex items-center">
-                                                    <Briefcase className="w-4 h-4 mr-2 text-[#5530FA]" />
-                                                    {role}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
                         </div>
 
-                        {/* Active Filters Display */}
-                        {activeFilters.length > 0 && (
-                            <div className="mb-6">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm font-medium text-gray-600">Filtering by Role:</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {activeFilters.map((filter, index) => (
-                                        <div
-                                            key={index}
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
-                                        >
-                                            <Briefcase className="w-4 h-4" />
-                                            <span>{filter}</span>
-                                            <button
-                                                onClick={() => handleRemoveFilter(filter)}
-                                                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                                                aria-label={`Remove filter: ${filter}`}
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        {/* Job Groups List */}
+                        <div className="space-y-4">
+                            {filteredJobGroups.length > 0 ? (
+                                filteredJobGroups.map((jobGroup) => (
+                                    <div
+                                        key={jobGroup.job_id}
+                                        className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden"
+                                    >
+                                        {/* Job Header */}
+                                        <div className="bg-gradient-to-r from-[#5530FA]/10 to-[#F51DA5]/10 px-6 py-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4 flex-1">
+                                                    <button
+                                                        onClick={() => toggleJobExpansion(jobGroup.job_id)}
+                                                        className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                                                    >
+                                                        {jobGroup.isExpanded ? (
+                                                            <ChevronUp className="w-5 h-5 text-[#5530FA]" />
+                                                        ) : (
+                                                            <ChevronDown className="w-5 h-5 text-[#5530FA]" />
+                                                        )}
+                                                    </button>
 
-                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto overflow-y-visible min-h-[400px]">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Freelancer Name
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Applied For
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            NDA Status
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Added On
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredCandidates.length > 0 ? (
-                                        filteredCandidates.map((candidate) => {
-                                            const ndaStatusDisplay = getNDAStatusDisplay(candidate);
-
-                                            return (
-                                                <tr key={candidate.id} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {candidate.user?.name || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                        <Link href={`/admin-dashboard/jobs/${candidate.job?._id}`}>
-                                                            {candidate.job?.title || 'N/A'}
+                                                    <div className="flex-1">
+                                                        <Link
+                                                            href={`/jobs/${encodeURIComponent(jobGroup.job_title.toLowerCase().replace(/\s+/g, '-'))}/${jobGroup.job_id}`}
+                                                            className="text-lg font-semibold text-[#4e4e4e] hover:text-[#5530FA] transition-colors"
+                                                        >
+                                                            {jobGroup.job_title}
                                                         </Link>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {candidate.user?.email || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap relative">
-                                                        <div ref={statusDropdown?.candidateId === candidate.id ? dropdownRef : null}>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (statusDropdown?.candidateId === candidate.id) {
-                                                                        setStatusDropdown(null);
-                                                                    } else {
-                                                                        setStatusDropdown({ candidateId: candidate.id, isOpen: true });
-                                                                    }
-                                                                }}
-                                                                disabled={updatingStatus === candidate.id}
-                                                                className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
-                                                            >
-                                                                {updatingStatus === candidate.id ? (
-                                                                    <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-600"></div>
-                                                                ) : (
-                                                                    <>
-                                                                        {getDisplayStatus(candidate.status)}
-                                                                        <ChevronDown className="w-3 h-3" />
-                                                                    </>
-                                                                )}
-                                                            </button>
-
-                                                            {/* Status Dropdown */}
-                                                            {statusDropdown?.candidateId === candidate.id && statusDropdown.isOpen && (
-                                                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] flex flex-col">
-                                                                    {statusOptions.map((option) => (
-                                                                        <button
-                                                                            key={option.value}
-                                                                            onClick={() => handleStatusChange(candidate.id, option.value)}
-                                                                            className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 transition-colors block ${option.value === statusOptions[0].value ? 'rounded-t-lg' : ''
-                                                                                } ${option.value === statusOptions[statusOptions.length - 1].value ? 'rounded-b-lg' : ''
-                                                                                } ${candidate.status === option.value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                                                                }`}
-                                                                        >
-                                                                            <span className={`inline-block w-3 h-3 rounded-full mr-2 ${option.color}`}></span>
-                                                                            {option.label}
-                                                                        </button>
-                                                                    ))}
+                                                        <div className="flex items-center gap-4 mt-1">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                                <Users className="w-4 h-4" />
+                                                                <span>{jobGroup.total_candidates} {jobGroup.total_candidates === 1 ? 'Candidate' : 'Candidates'}</span>
+                                                            </div>
+                                                            {jobGroup.hasRankings && (
+                                                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                                                    <Sparkles className="w-4 h-4" />
+                                                                    <span>AI Ranked</span>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    </td>
-                                                    <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${ndaStatusDisplay.color}`}>
-                                                        {ndaStatusDisplay.icon} {ndaStatusDisplay.text}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {formatDate(candidate.added_at)}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            {getActionText(candidate) && (
-                                                                <button
-                                                                    className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
-                                                                    onClick={() => handleActionClick(candidate)}
-                                                                >
-                                                                    {getActionText(candidate)}
-                                                                </button>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleAnalyzeJob(jobGroup.job_id)}
+                                                    disabled={jobGroup.isAnalyzing || jobGroup.total_candidates === 0}
+                                                    className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${jobGroup.isAnalyzing
+                                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                        : 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
+                                                        }`}
+                                                >
+                                                    {jobGroup.isAnalyzing ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                            <span>Analyzing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="w-4 h-4" />
+                                                            <span>{jobGroup.hasRankings ? 'Re-analyze' : 'Analyze'}</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Candidates Table - Expanded */}
+                                        {jobGroup.isExpanded && (
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full divide-y divide-gray-200">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider w-16">
+                                                                #
+                                                            </th>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                Candidate Name
+                                                            </th>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                Email
+                                                            </th>
+                                                            {jobGroup.hasRankings && (
+                                                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                    AI Score
+                                                                </th>
                                                             )}
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                Status
+                                                            </th>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                NDA Status
+                                                            </th>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                Applied On
+                                                            </th>
+                                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                        {jobGroup.candidates.map((candidate, index) => {
+                                                            const ranking = getCandidateRanking(jobGroup, candidate);
+                                                            const ndaStatusDisplay = getNDAStatusDisplay(candidate);
 
-                                                            <button
-                                                                className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
-                                                                onClick={() => handleViewDetails(candidate)}
-                                                            >
-                                                                Details
-                                                            </button>
+                                                            return (
+                                                                <tr key={candidate.id} className="hover:bg-gray-50">
+                                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-bold font-poppins text-[#5530FA]">
+                                                                        {index + 1}
+                                                                    </td>
 
-                                                            <button
-                                                                className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                                onClick={() => setDeleteCandidate({ id: candidate.id, name: candidate.user?.name || 'Unknown' })}
-                                                                title="Delete candidate"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                                {activeFilters.length > 0
-                                                    ? `No candidates found for role(s): ${activeFilters.join(', ')}`
-                                                    : 'No candidates found.'
-                                                }
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                                        {candidate.user?.name || 'N/A'}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                                        {candidate.user?.email || 'N/A'}
+                                                                    </td>
+
+                                                                    {jobGroup.hasRankings && (
+                                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                                            {ranking ? (
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="text-xs text-gray-500">
+                                                                                        {ranking.overall_score}%
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <span className="text-xs text-gray-400">N/A</span>
+                                                                            )}
+                                                                        </td>
+                                                                    )}
+
+                                                                    <td className="px-4 py-3 whitespace-nowrap relative">
+                                                                        <div ref={statusDropdown?.candidateId === candidate.id ? dropdownRef : null}>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    if (statusDropdown?.candidateId === candidate.id) {
+                                                                                        setStatusDropdown(null);
+                                                                                    } else {
+                                                                                        setStatusDropdown({ candidateId: candidate.id, isOpen: true });
+                                                                                    }
+                                                                                }}
+                                                                                disabled={updatingStatus === candidate.id}
+                                                                                className={`${getStatusColor(candidate.status)} px-2 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] inline-flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                                            >
+                                                                                {updatingStatus === candidate.id ? (
+                                                                                    <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-600"></div>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        {getDisplayStatus(candidate.status)}
+                                                                                        <ChevronDown className="w-3 h-3" />
+                                                                                    </>
+                                                                                )}
+                                                                            </button>
+
+                                                                            {statusDropdown?.candidateId === candidate.id && statusDropdown.isOpen && (
+                                                                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px] flex flex-col">
+                                                                                    {statusOptions.map((option) => (
+                                                                                        <button
+                                                                                            key={option.value}
+                                                                                            onClick={() => handleStatusChange(candidate.id, option.value)}
+                                                                                            className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 transition-colors block ${option.value === statusOptions[0].value ? 'rounded-t-lg' : ''
+                                                                                                } ${option.value === statusOptions[statusOptions.length - 1].value ? 'rounded-b-lg' : ''
+                                                                                                } ${candidate.status === option.value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                                                                                }`}
+                                                                                        >
+                                                                                            <span className={`inline-block w-3 h-3 rounded-full mr-2 ${option.color}`}></span>
+                                                                                            {option.label}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${ndaStatusDisplay.color}`}>
+                                                                        {ndaStatusDisplay.icon} {ndaStatusDisplay.text}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                                        {formatDate(candidate.added_at)}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                                                                        <div className="flex items-center justify-center gap-2">
+                                                                            {getActionText(candidate) && (
+                                                                                <button
+                                                                                    className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
+                                                                                    onClick={() => handleActionClick(candidate)}
+                                                                                >
+                                                                                    {getActionText(candidate)}
+                                                                                </button>
+                                                                            )}
+
+                                                                            <button
+                                                                                className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
+                                                                                onClick={() => handleViewDetails(candidate)}
+                                                                            >
+                                                                                Details
+                                                                            </button>
+
+                                                                            <button
+                                                                                className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                                                                onClick={() => setDeleteCandidate({ id: candidate.id, name: candidate.user?.name || 'Unknown' })}
+                                                                                title="Delete candidate"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
+                                    <p className="text-[#676767] text-sm font-poppins">
+                                        {searchQuery ? `No jobs found matching "${searchQuery}"` : 'No candidates found.'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </main>
                 </div>
@@ -1488,8 +1560,13 @@ ${attachmentUrl}
                             </button>
                             <button
                                 onClick={() => {
-                                    const candidate = candidates.find(c => c.id === deleteCandidate.id);
-                                    if (candidate) handleDelete(candidate);
+                                    for (const group of jobGroups) {
+                                        const candidate = group.candidates.find(c => c.id === deleteCandidate.id);
+                                        if (candidate) {
+                                            handleDelete(candidate);
+                                            break;
+                                        }
+                                    }
                                 }}
                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
@@ -1551,7 +1628,6 @@ ${attachmentUrl}
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setInterviewDialog(null)}></div>
                     <div className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[1137px] max-h-[95vh] overflow-hidden">
                         <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh]">
-                            {/* Subject Section */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Subject</h3>
                                 <input
@@ -1563,7 +1639,6 @@ ${attachmentUrl}
                                 />
                             </div>
 
-                            {/* Email Body Section */}
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6 sm:mb-8">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">Email Body</h3>
                                 <p className="text-xs font-light font-poppins text-[#6c6c6c]/80 mb-4">
@@ -1586,7 +1661,6 @@ ${attachmentUrl}
                                 <p className="text-xs text-gray-500 mt-2 text-right">{interviewBody.length}/1000</p>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                                 <button
                                     onClick={handleSendInterview}
@@ -1610,13 +1684,12 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* NDA Dialog */}
+            {/* NDA Dialog - Keeping the same structure as before */}
             {ndaDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setNdaDialog(null)}></div>
                     <div className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto">
                         <div className="p-4 sm:p-6 lg:p-8">
-                            {/* Header */}
                             <div className="mb-6">
                                 <h2 className="text-lg sm:text-[22px] font-medium font-poppins text-[#6c6c6c] mb-2">
                                     Send NDA to Freelancer
@@ -1626,7 +1699,6 @@ ${attachmentUrl}
                                 </p>
                             </div>
 
-                            {/* Candidate Info */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-8 text-center">
                                 <div>
                                     <div className="text-sm sm:text-base font-medium font-poppins text-[#6c6c6c] mb-1">
@@ -1648,7 +1720,6 @@ ${attachmentUrl}
                                 </div>
                             </div>
 
-                            {/* NDA File Section */}
                             <div className="mb-6">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">NDA File</h3>
 
@@ -1736,7 +1807,6 @@ ${attachmentUrl}
                                 </div>
                             </div>
 
-                            {/* Email Title */}
                             <div className="mb-4">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Title</h3>
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -1751,7 +1821,6 @@ ${attachmentUrl}
                                 </div>
                             </div>
 
-                            {/* Email Body */}
                             <div className="mb-6 sm:mb-8">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Body</h3>
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -1766,7 +1835,6 @@ ${attachmentUrl}
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
                                 <button
                                     onClick={handleSendNda}
@@ -1795,13 +1863,12 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Enhanced Candidate Details Dialog - Same as before */}
+            {/* Candidate Details Dialog - Simplified version */}
             {detailsDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
                         <div className="overflow-y-auto max-h-[95vh]">
-                            {/* Header */}
                             <div className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] px-6 py-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-4">
@@ -1826,7 +1893,6 @@ ${attachmentUrl}
                                 </div>
                             </div>
 
-                            {/* Content */}
                             <div className="p-6">
                                 {detailsLoading ? (
                                     <div className="flex items-center justify-center py-12">
@@ -1835,9 +1901,7 @@ ${attachmentUrl}
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        {/* Left Column - Basic Info */}
                                         <div className="space-y-6">
-                                            {/* Contact Information */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                                                     <Mail className="w-5 h-5 mr-2 text-[#5530FA]" />
@@ -1855,7 +1919,6 @@ ${attachmentUrl}
                                                 </div>
                                             </div>
 
-                                            {/* Application Details */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                                                     <Briefcase className="w-5 h-5 mr-2 text-[#5530FA]" />
@@ -1894,7 +1957,6 @@ ${attachmentUrl}
                                                 </div>
                                             </div>
 
-                                            {/* Match Score */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                                                     <TrendingUp className="w-5 h-5 mr-2 text-[#5530FA]" />
@@ -1952,9 +2014,7 @@ ${attachmentUrl}
                                             </div>
                                         </div>
 
-                                        {/* Middle Column - Skills & Expertise */}
                                         <div className="space-y-6">
-                                            {/* Skills Summary */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                                                     <Award className="w-5 h-5 mr-2 text-[#5530FA]" />
@@ -2001,7 +2061,6 @@ ${attachmentUrl}
                                                 )}
                                             </div>
 
-                                            {/* Expertise Areas */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3">Expertise Areas</h3>
                                                 {candidateDetails?.expertise_areas && Object.keys(candidateDetails.expertise_areas).length > 0 ? (
@@ -2027,9 +2086,7 @@ ${attachmentUrl}
                                             </div>
                                         </div>
 
-                                        {/* Right Column - Actions & CV */}
                                         <div className="space-y-6">
-                                            {/* Quick Actions */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
                                                 <div className="space-y-2">
@@ -2070,7 +2127,6 @@ ${attachmentUrl}
                                                 </div>
                                             </div>
 
-                                            {/* CV Section */}
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <h3 className="font-semibold text-gray-900 mb-3">CV & Documents</h3>
                                                 <div className="space-y-3">
@@ -2108,7 +2164,6 @@ ${attachmentUrl}
                                                 </div>
                                             </div>
 
-                                            {/* Performance Stats */}
                                             {candidateDetails?.skills_summary && (
                                                 <div className="bg-gray-50 rounded-lg p-4">
                                                     <h3 className="font-semibold text-gray-900 mb-3">Performance Overview</h3>
@@ -2137,7 +2192,6 @@ ${attachmentUrl}
                                 )}
                             </div>
 
-                            {/* Footer */}
                             <div className="border-t bg-gray-50 px-6 py-4">
                                 <div className="flex justify-between items-center">
                                     <div className="text-sm text-gray-500">
