@@ -409,7 +409,7 @@ const SavedJobs = () => {
         localStorage.removeItem('jwtToken');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     // Remove a saved job

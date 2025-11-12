@@ -2,8 +2,12 @@
 
 import { Icon } from '@iconify/react';
 import {
+    Briefcase,
     ChevronDown,
     ChevronRight,
+    Clock,
+    FileText,
+    History,
     Menu,
     Search,
     Settings,
@@ -40,6 +44,46 @@ interface Job {
     description?: string;
 }
 
+interface JobSnapshot {
+    title: string;
+    location: string;
+    type: string;
+    experience: string;
+    category: string;
+    description: string;
+    responsibilities: string[];
+    requirements: string[];
+    required_skills: string[];
+    deadline: string;
+    posted_at: string;
+}
+
+interface ApplicationHistory {
+    id: string;
+    job_id: string;
+    job_details: JobSnapshot;
+    status: string;
+    status_display: string;
+    applied_at: string;
+    updated_at: string;
+    job_deleted: boolean;
+}
+
+interface ApplicationHistoryResponse {
+    user: {
+        id: string;
+        name: string;
+        email: string;
+    };
+    applications: ApplicationHistory[];
+    summary: {
+        total_applications: number;
+        deleted_jobs_count: number;
+        active_jobs_count: number;
+        status_breakdown: Record<string, number>;
+    };
+}
+
 const TalentPool = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,6 +100,14 @@ const TalentPool = () => {
     const [sendNDA, setSendNDA] = useState(false);
     const [assigningJob, setAssigningJob] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+    // Application History States
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [applicationHistory, setApplicationHistory] = useState<ApplicationHistoryResponse | null>(null);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [historyError, setHistoryError] = useState<string | null>(null);
+    const [historyStatusFilter, setHistoryStatusFilter] = useState<string>('');
+
     const sidebarRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
@@ -89,7 +141,6 @@ const TalentPool = () => {
                 setSidebarOpen(false);
             }
 
-            // Close dropdown when clicking outside
             if (showJobDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowJobDropdown(false);
             }
@@ -119,7 +170,6 @@ const TalentPool = () => {
                 throw new Error('No authentication token found');
             }
 
-            // Fetch from talent pool endpoint
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin`, {
                 method: 'GET',
                 headers: {
@@ -134,12 +184,10 @@ const TalentPool = () => {
 
             const data = await response.json();
 
-            // Check if the response is successful
             if (!data.success) {
                 throw new Error(data.message || 'Failed to fetch talent pool');
             }
 
-            // Transform the talent pool data to match our frontend interface
             const talentPoolData = data.data || [];
 
             interface TalentPoolMember {
@@ -215,6 +263,77 @@ const TalentPool = () => {
         }
     };
 
+    const fetchApplicationHistory = async (userId: string) => {
+        try {
+            setLoadingHistory(true);
+            setHistoryError(null);
+            const token = localStorage.getItem('adminToken');
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const url = historyStatusFilter
+                ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/user/${userId}/history?status=${historyStatusFilter}`
+                : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/user/${userId}/history`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Check if response has the expected structure
+            if (data.status === 'success' && data.data) {
+                setApplicationHistory(data.data);
+            } else {
+                throw new Error(data.message || 'Invalid response format');
+            }
+        } catch (err) {
+            console.error('Error fetching application history:', err);
+            setHistoryError(err instanceof Error ? err.message : 'Failed to load application history');
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const handleViewHistory = (freelancer: FreelancerData) => {
+        setSelectedFreelancer(freelancer);
+        setShowHistoryModal(true);
+        setHistoryStatusFilter('');
+        fetchApplicationHistory(freelancer.userId);
+    };
+
+    const handleHistoryFilterChange = (status: string) => {
+        setHistoryStatusFilter(status);
+        if (selectedFreelancer) {
+            fetchApplicationHistory(selectedFreelancer.userId);
+        }
+    };
+
+    const getStatusBadgeColor = (status: string) => {
+        const statusColors: Record<string, string> = {
+            'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            'reviewed': 'bg-blue-100 text-blue-800 border-blue-200',
+            'shortlisted': 'bg-purple-100 text-purple-800 border-purple-200',
+            'interviewed': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'offered': 'bg-green-100 text-green-800 border-green-200',
+            'rejected': 'bg-red-100 text-red-800 border-red-200',
+            'rejected-interview': 'bg-red-100 text-red-800 border-red-200',
+            'hired': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        };
+        return statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
         router.push('/admin-signin');
@@ -261,7 +380,6 @@ const TalentPool = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Remove from local state
             setFreelancers(prev => prev.filter(f => f.id !== freelancer.id));
             alert('Freelancer profile deleted successfully');
         } catch (err) {
@@ -273,8 +391,8 @@ const TalentPool = () => {
     const handleMoveToJob = (freelancer: FreelancerData) => {
         setSelectedFreelancer(freelancer);
         setShowAssignPopup(true);
-        setJobSearchTerm(''); // Reset search term
-        setSelectedJob(null); // Reset selected job
+        setJobSearchTerm('');
+        setSelectedJob(null);
         fetchAvailableJobs();
     };
 
@@ -288,7 +406,6 @@ const TalentPool = () => {
             setAssigningJob(true);
             const token = localStorage.getItem('adminToken');
 
-            // Use the talent pool endpoint to move to job
             const assignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin/${selectedFreelancer.userId}/move-to-job`, {
                 method: 'POST',
                 headers: {
@@ -306,23 +423,18 @@ const TalentPool = () => {
                 throw new Error(errorData.message || 'Failed to assign candidate to job');
             }
 
-            // If sendNDA is checked, we would send NDA here
-            // For now, we'll just show success message
             if (sendNDA) {
-                // TODO: Implement NDA sending logic if needed
                 console.log('NDA request would be sent here');
             }
 
             alert(`Successfully assigned ${selectedFreelancer.name} to ${selectedJob.title}`);
 
-            // Close popup and reset state
             setShowAssignPopup(false);
             setSelectedFreelancer(null);
             setSelectedJob(null);
             setSendNDA(false);
             setJobSearchTerm('');
 
-            // Refresh the freelancers list
             fetchFreelancers();
         } catch (err) {
             console.error('Error assigning candidate to job:', err);
@@ -347,7 +459,14 @@ const TalentPool = () => {
         setShowJobDropdown(false);
     };
 
-    // Filter freelancers based on search term
+    const resetHistoryModal = () => {
+        setShowHistoryModal(false);
+        setSelectedFreelancer(null);
+        setApplicationHistory(null);
+        setHistoryStatusFilter('');
+        setHistoryError(null);
+    };
+
     const filteredFreelancers = freelancers.filter(freelancer => {
         const matchesSearch =
             freelancer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -357,7 +476,6 @@ const TalentPool = () => {
         return matchesSearch;
     });
 
-    // Filter jobs for dropdown
     const filteredJobs = availableJobs.filter(job =>
         job.title.toLowerCase().includes(jobSearchTerm.toLowerCase())
     );
@@ -398,7 +516,6 @@ const TalentPool = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -441,6 +558,255 @@ const TalentPool = () => {
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
+            )}
+
+            {/* Application History Modal */}
+            {showHistoryModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
+                    <div className="w-full max-w-6xl bg-white rounded-[25px] shadow-xl my-8">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-white rounded-t-[25px] border-b border-gray-200 p-6 z-10">
+                            <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <History className="w-6 h-6 text-[#5530FA]" />
+                                        <h2 className="text-2xl font-semibold text-[#6c6c6c]">
+                                            Application History
+                                        </h2>
+                                    </div>
+                                    {applicationHistory && (
+                                        <div className="space-y-1">
+                                            <p className="text-[#6c6c6c] font-medium">
+                                                {applicationHistory.user.name}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                {applicationHistory.user.email}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={resetHistoryModal}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            {/* Summary Cards */}
+                            {applicationHistory && (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            {applicationHistory.summary.total_applications}
+                                        </div>
+                                        <div className="text-xs text-blue-600 font-medium mt-1">
+                                            Total Applications
+                                        </div>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                                        <div className="text-2xl font-bold text-green-600">
+                                            {applicationHistory.summary.active_jobs_count}
+                                        </div>
+                                        <div className="text-xs text-green-600 font-medium mt-1">
+                                            Active Jobs
+                                        </div>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                                        <div className="text-2xl font-bold text-red-600">
+                                            {applicationHistory.summary.deleted_jobs_count}
+                                        </div>
+                                        <div className="text-xs text-red-600 font-medium mt-1">
+                                            Deleted Jobs
+                                        </div>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                                        <div className="text-2xl font-bold text-purple-600">
+                                            {applicationHistory.summary.status_breakdown.hired || 0}
+                                        </div>
+                                        <div className="text-xs text-purple-600 font-medium mt-1">
+                                            Hired
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Filter */}
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Filter by Status
+                                </label>
+                                <select
+                                    value={historyStatusFilter}
+                                    onChange={(e) => handleHistoryFilterChange(e.target.value)}
+                                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="reviewed">Reviewed</option>
+                                    <option value="shortlisted">Shortlisted</option>
+                                    <option value="interviewed">Interviewed</option>
+                                    <option value="offered">Offered</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="rejected-interview">Rejected (Interview)</option>
+                                    <option value="hired">Hired</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6 max-h-[60vh] overflow-y-auto">
+                            {loadingHistory ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto mb-4"></div>
+                                        <p className="text-gray-600">Loading application history...</p>
+                                    </div>
+                                </div>
+                            ) : historyError ? (
+                                <div className="text-center py-12">
+                                    <div className="text-red-500 mb-4">
+                                        <X className="w-12 h-12 mx-auto" />
+                                    </div>
+                                    <p className="text-gray-600 mb-4">{historyError}</p>
+                                    <button
+                                        onClick={() => selectedFreelancer && fetchApplicationHistory(selectedFreelancer.userId)}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90"
+                                    >
+                                        Try Again
+                                    </button>
+                                </div>
+                            ) : applicationHistory && applicationHistory.applications.length > 0 ? (
+                                <div className="space-y-4">
+                                    {applicationHistory.applications.map((app) => (
+                                        <div
+                                            key={app.id}
+                                            className={`border rounded-lg p-5 hover:shadow-md transition-shadow ${app.job_deleted ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
+                                                }`}
+                                        >
+                                            {/* Application Header */}
+                                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-start gap-3">
+                                                        <Briefcase className="w-5 h-5 text-[#5530FA] mt-1 flex-shrink-0" />
+                                                        <div className="flex-1">
+                                                            <h3 className="text-lg font-semibold text-[#6c6c6c] flex items-center gap-2 flex-wrap">
+                                                                {app.job_details.title}
+                                                                {app.job_deleted && (
+                                                                    <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded border border-red-200">
+                                                                        Job Deleted
+                                                                    </span>
+                                                                )}
+                                                            </h3>
+                                                            <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-600">
+                                                                <span>{app.job_details.location}</span>
+                                                                <span>•</span>
+                                                                <span className="capitalize">{app.job_details.type.replace('-', ' ')}</span>
+                                                                <span>•</span>
+                                                                <span>{app.job_details.category}</span>
+                                                                <span>•</span>
+                                                                <span className="capitalize">{app.job_details.experience}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(app.status)}`}>
+                                                        {app.status_display}
+                                                    </span>
+                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span>Posted {app.job_details.posted_at}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Job Details */}
+                                            <div className="space-y-3 text-sm">
+                                                {/* Description */}
+                                                <div>
+                                                    <p className="text-gray-600 line-clamp-2">
+                                                        {app.job_details.description}
+                                                    </p>
+                                                </div>
+
+                                                {/* Skills */}
+                                                {app.job_details.required_skills && app.job_details.required_skills.length > 0 && (
+                                                    <div>
+                                                        <span className="font-medium text-gray-700">Required Skills: </span>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {app.job_details.required_skills.map((skill, idx) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs border border-blue-200"
+                                                                >
+                                                                    {skill}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Deadline */}
+                                                {app.job_details.deadline && (
+                                                    <div className="flex items-center gap-2 text-gray-600">
+                                                        <FileText className="w-4 h-4" />
+                                                        <span className="font-medium">Deadline:</span>
+                                                        <span>{app.job_details.deadline}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Application Timeline */}
+                                                <div className="pt-3 border-t border-gray-200">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
+                                                        <div>
+                                                            <span className="font-medium">Applied:</span>{' '}
+                                                            {new Date(app.applied_at).toLocaleString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">Last Updated:</span>{' '}
+                                                            {new Date(app.updated_at).toLocaleString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-600 text-lg mb-2">No Application History</p>
+                                    <p className="text-gray-500 text-sm">
+                                        This candidate hasn&apos;t applied to any jobs yet.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="sticky bottom-0 bg-white rounded-b-[25px] border-t border-gray-200 p-6">
+                            <button
+                                onClick={resetHistoryModal}
+                                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Assignment Popup */}
@@ -551,7 +917,6 @@ const TalentPool = () => {
                                 </div>
                             )}
                         </div>
-
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3">
@@ -807,13 +1172,22 @@ const TalentPool = () => {
                                                     {freelancer.lastUpdated}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-2">
+                                                    <div className="flex items-center justify-center gap-2 flex-wrap">
                                                         <button
                                                             onClick={() => handleViewCV(freelancer)}
                                                             className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
                                                             title="View CV"
                                                         >
                                                             View CV
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => handleViewHistory(freelancer)}
+                                                            className="px-3 py-1 rounded-[15px] bg-blue-500 text-white text-[10px] font-medium font-poppins hover:bg-blue-600 transition-colors flex items-center gap-1"
+                                                            title="View Application History"
+                                                        >
+                                                            <History className="w-3 h-3" />
+                                                            History
                                                         </button>
 
                                                         <button
@@ -836,7 +1210,7 @@ const TalentPool = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={6} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                            <td colSpan={5} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                 {searchTerm ? 'No freelancers found matching your search.' : 'No freelancers found in talent pool.'}
                                             </td>
                                         </tr>

@@ -200,7 +200,7 @@ const ProfilePage = () => {
         localStorage.removeItem('jwtToken');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     const handleInputChange = (field: string, value: string | boolean) => {
@@ -377,7 +377,7 @@ const ProfilePage = () => {
                 // Clear token and redirect
                 localStorage.removeItem('jwtToken');
                 setShowDeleteDialog(false);
-                router.push('/find-jobs');
+                router.push('/careers');
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to delete account');

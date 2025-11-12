@@ -449,7 +449,7 @@ const AllJobsPage = () => {
         localStorage.removeItem('jwtToken');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     if (loading) {
@@ -767,7 +767,7 @@ const AllJobsPage = () => {
 
                                         {/* Experience Level Filter */}
                                         <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h3>
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
                                             {FILTER_OPTIONS.experience.map(level => (
                                                 <FilterCheckbox
                                                     key={level}
@@ -781,7 +781,7 @@ const AllJobsPage = () => {
                                         {/* Category Filter */}
                                         {uniqueCategories.length > 0 && (
                                             <div className="mb-8">
-                                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h3>
+                                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h3>
                                                 {uniqueCategories.map(category => (
                                                     <FilterCheckbox
                                                         key={category}
@@ -795,7 +795,7 @@ const AllJobsPage = () => {
 
                                         {/* Location Filter */}
                                         <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h3>
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
                                             {FILTER_OPTIONS.location.map(location => (
                                                 <FilterCheckbox
                                                     key={location}
@@ -808,7 +808,7 @@ const AllJobsPage = () => {
 
                                         {/* Date Posted Filter */}
                                         <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h3>
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
                                             {FILTER_OPTIONS.datePosted.map(date => (
                                                 <FilterCheckbox
                                                     key={date}
@@ -821,7 +821,7 @@ const AllJobsPage = () => {
 
                                         {/* Job Type Filter */}
                                         <div>
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h3>
+                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
                                             {FILTER_OPTIONS.jobType.map(type => (
                                                 <FilterCheckbox
                                                     key={type}
@@ -921,7 +921,7 @@ const AllJobsPage = () => {
                                                 <div className="space-y-8">
                                                     {/* Experience Level Filter */}
                                                     <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level →</h5>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
                                                         {FILTER_OPTIONS.experience.map(level => (
                                                             <FilterCheckbox
                                                                 key={level}
@@ -935,7 +935,7 @@ const AllJobsPage = () => {
                                                     {/* Category Filter */}
                                                     {uniqueCategories.length > 0 && (
                                                         <div>
-                                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category →</h5>
+                                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h5>
                                                             {uniqueCategories.map(category => (
                                                                 <FilterCheckbox
                                                                     key={category}
@@ -949,7 +949,7 @@ const AllJobsPage = () => {
 
                                                     {/* Location Filter */}
                                                     <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location →</h5>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
                                                         {FILTER_OPTIONS.location.map(location => (
                                                             <FilterCheckbox
                                                                 key={location}
@@ -962,7 +962,7 @@ const AllJobsPage = () => {
 
                                                     {/* Date Posted Filter */}
                                                     <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted →</h5>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
                                                         {FILTER_OPTIONS.datePosted.map(date => (
                                                             <FilterCheckbox
                                                                 key={date}
@@ -975,7 +975,7 @@ const AllJobsPage = () => {
 
                                                     {/* Job Type Filter */}
                                                     <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type →</h5>
+                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
                                                         {FILTER_OPTIONS.jobType.map(type => (
                                                             <FilterCheckbox
                                                                 key={type}

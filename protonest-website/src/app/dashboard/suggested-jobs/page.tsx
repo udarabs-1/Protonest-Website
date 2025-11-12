@@ -349,7 +349,7 @@ const SuggestedJobs = () => {
         localStorage.removeItem('jwtToken');
         setShowProfileDropdown(false);
         setShowLogoutDialog(false);
-        router.push('/find-jobs');
+        router.push('/careers');
     };
 
     // Helper function to format time difference as "X days ago"
