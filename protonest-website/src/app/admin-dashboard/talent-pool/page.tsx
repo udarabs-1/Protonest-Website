@@ -1135,22 +1135,22 @@ const TalentPool = () => {
                         </div>
 
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
+                            <table className="w-full divide-y divide-gray-200">
                                 <thead>
                                     <tr>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Freelancer Name
                                         </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Email
                                         </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Preferred Role
                                         </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Last Updated
                                         </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                        <th className="px-4 py-2 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -1159,20 +1159,20 @@ const TalentPool = () => {
                                     {filteredFreelancers.length > 0 ? (
                                         filteredFreelancers.map((freelancer) => (
                                             <tr key={freelancer.id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {freelancer.name}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {freelancer.email}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {freelancer.title}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {freelancer.lastUpdated}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                                                <td className="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <button
                                                             onClick={() => handleViewCV(freelancer)}
                                                             className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
@@ -1199,7 +1199,7 @@ const TalentPool = () => {
 
                                                         <button
                                                             onClick={() => handleDeleteFreelancer(freelancer)}
-                                                            className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                                            className="p-1.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
                                                             title="Delete freelancer"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -1210,7 +1210,7 @@ const TalentPool = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={5} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                            <td colSpan={5} className="px-4 py-6 text-center text-[#676767] text-sm font-poppins">
                                                 {searchTerm ? 'No freelancers found matching your search.' : 'No freelancers found in talent pool.'}
                                             </td>
                                         </tr>
