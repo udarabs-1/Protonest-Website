@@ -242,6 +242,43 @@ const TalentPool = () => {
         }
     };
 
+    const handlePreviewCV = async (userId: string) => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                alert('Authentication required');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/download/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                // Open in new tab
+                const newWindow = window.open(url, '_blank');
+
+                // Clean up the URL after a delay
+                if (newWindow) {
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                } else {
+                    window.URL.revokeObjectURL(url);
+                    alert('Please allow pop-ups to preview CV');
+                }
+            } else {
+                alert('Failed to preview CV');
+            }
+        } catch (error) {
+            console.error('Error previewing CV:', error);
+            alert('Failed to preview CV');
+        }
+    };
+
     const fetchAvailableJobs = async () => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -344,16 +381,7 @@ const TalentPool = () => {
     };
 
     const handleViewCV = async (freelancer: FreelancerData) => {
-        try {
-            if (freelancer.cvFileUrl) {
-                window.open(freelancer.cvFileUrl, '_blank');
-            } else {
-                alert('CV file not available');
-            }
-        } catch (err) {
-            console.error('Error opening CV:', err);
-            alert('Failed to open CV file');
-        }
+        await handlePreviewCV(freelancer.userId);
     };
 
     const handleDeleteFreelancer = async (freelancer: FreelancerData) => {
@@ -562,7 +590,7 @@ const TalentPool = () => {
 
             {/* Application History Modal */}
             {showHistoryModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-3xl bg-opacity-50 p-4 overflow-y-auto">
                     <div className="w-full max-w-6xl bg-white rounded-[25px] shadow-xl my-8">
                         {/* Modal Header */}
                         <div className="sticky top-0 bg-white rounded-t-[25px] border-b border-gray-200 p-6 z-10">

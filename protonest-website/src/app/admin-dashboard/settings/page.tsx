@@ -2,17 +2,21 @@
 
 import { Icon } from '@iconify/react';
 import {
+    AlertCircle,
     CheckCircle,
     ChevronRight,
     Download,
     Edit2,
     FileText,
+    Info,
     Lock,
+    Mail,
     Menu,
     Settings,
     Shield,
     Trash2,
     Upload,
+    User,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -48,6 +52,7 @@ const AdminSettings = () => {
     const [admins, setAdmins] = useState<Admin[]>([]);
     const [newAdminEmail, setNewAdminEmail] = useState('');
     const [addingAdmin, setAddingAdmin] = useState(false);
+    const [addAdminDialog, setAddAdminDialog] = useState(false);
     const [ndaDocuments, setNdaDocuments] = useState<NDADocument[]>([]);
     const [activeNDA, setActiveNDA] = useState<NDADocument | null>(null);
     const [uploadingNDA, setUploadingNDA] = useState(false);
@@ -57,15 +62,14 @@ const AdminSettings = () => {
     const [activatingNDA, setActivatingNDA] = useState<string | null>(null);
     const [deletingNDA, setDeletingNDA] = useState<string | null>(null);
     const [ndaDescription, setNdaDescription] = useState('');
-    const [passwordDialog, setPasswordDialog] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        current_password: '',
-        new_password: '',
-        confirm_password: ''
-    });
+    const [passwordResetDialog, setPasswordResetDialog] = useState(false);
+    const [sendingResetLink, setSendingResetLink] = useState(false);
+    const [resetLinkError, setResetLinkError] = useState('');
     const [deleteAdmin, setDeleteAdmin] = useState<Admin | null>(null);
     const [deleteNDAConfirm, setDeleteNDAConfirm] = useState<NDADocument | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [newAdminFirstName, setNewAdminFirstName] = useState('');
+    const [newAdminLastName, setNewAdminLastName] = useState('');
 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const ndaFileInputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +114,7 @@ const AdminSettings = () => {
                     return;
                 }
 
-                const adminsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/all`, {
+                const adminsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/users/all`, {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
 
@@ -179,7 +183,7 @@ const AdminSettings = () => {
 
         try {
             const payload = JSON.parse(atob(adminToken.split('.')[1]));
-            return { id: payload.id, role: payload.role };
+            return { id: payload.id, role: payload.role, email: payload.email };
         } catch {
             return null;
         }
@@ -190,14 +194,43 @@ const AdminSettings = () => {
         return currentAdmin?.role === 'super_admin';
     };
 
+    const openAddAdminDialog = () => {
+        if (!isSuperAdmin()) {
+            alert('Only super admins can add new admins');
+            return;
+        }
+        setAddAdminDialog(true);
+        setNewAdminEmail('');
+        setNewAdminFirstName('');
+        setNewAdminLastName('');
+    };
+
+    const closeAddAdminDialog = () => {
+        setAddAdminDialog(false);
+        setNewAdminEmail('');
+        setNewAdminFirstName('');
+        setNewAdminLastName('');
+    };
+
     const handleAddAdmin = async () => {
         if (!newAdminEmail.trim()) {
             alert('Please enter an email address');
             return;
         }
 
-        if (!isSuperAdmin()) {
-            alert('Only super admins can add new admins');
+        if (!newAdminFirstName.trim()) {
+            alert('Please enter a first name');
+            return;
+        }
+
+        if (!newAdminLastName.trim()) {
+            alert('Please enter a last name');
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(newAdminEmail)) {
+            alert('Please enter a valid email address');
             return;
         }
 
@@ -205,24 +238,31 @@ const AdminSettings = () => {
             setAddingAdmin(true);
             const adminToken = localStorage.getItem('adminToken');
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/create`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/users/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${adminToken}`
                 },
-                body: JSON.stringify({ email: newAdminEmail.trim() })
+                body: JSON.stringify({
+                    email: newAdminEmail.trim(),
+                    first_name: newAdminFirstName.trim(),
+                    last_name: newAdminLastName.trim()
+                })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to add admin');
+                throw new Error(data.error || 'Failed to add admin');
             }
 
-            const data = await response.json();
             setAdmins([...admins, data.data]);
+            setAddAdminDialog(false);
             setNewAdminEmail('');
-            alert('Admin added successfully! A temporary password has been sent to their email.');
+            setNewAdminFirstName('');
+            setNewAdminLastName('');
+            alert('Admin added successfully! Login credentials have been sent to their email.');
         } catch (err) {
             console.error('Error adding admin:', err);
             alert(err instanceof Error ? err.message : 'Failed to add admin');
@@ -234,21 +274,18 @@ const AdminSettings = () => {
     const handleDeleteAdmin = async () => {
         if (!deleteAdmin) return;
 
-        if (!isSuperAdmin()) {
-            alert('Only super admins can delete admins');
-            return;
-        }
-
         try {
             const adminToken = localStorage.getItem('adminToken');
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users/${deleteAdmin.id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/users/${deleteAdmin.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${adminToken}` }
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Failed to delete admin');
+                throw new Error(data.error || 'Failed to delete admin');
             }
 
             setAdmins(admins.filter(a => a.id !== deleteAdmin.id));
@@ -256,7 +293,7 @@ const AdminSettings = () => {
             alert('Admin deleted successfully');
         } catch (err) {
             console.error('Error deleting admin:', err);
-            alert('Failed to delete admin');
+            alert(err instanceof Error ? err.message : 'Failed to delete admin');
         }
     };
 
@@ -429,44 +466,52 @@ const AdminSettings = () => {
         window.open(url, '_blank');
     };
 
-    const handleChangePassword = async () => {
-        if (passwordData.new_password !== passwordData.confirm_password) {
-            alert('New passwords do not match');
-            return;
-        }
+    const handleSendPasswordResetLink = async () => {
+        setResetLinkError('');
 
-        if (passwordData.new_password.length < 6) {
-            alert('Password must be at least 6 characters long');
+        const currentAdmin = getCurrentAdmin();
+        if (!currentAdmin || !currentAdmin.email) {
+            setResetLinkError('Unable to retrieve admin information. Please sign in again.');
             return;
         }
 
         try {
+            setSendingResetLink(true);
             const adminToken = localStorage.getItem('adminToken');
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/change-password`, {
-                method: 'PUT',
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/forgot-password`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${adminToken}`
                 },
                 body: JSON.stringify({
-                    current_password: passwordData.current_password,
-                    new_password: passwordData.new_password
+                    email: currentAdmin.email
                 })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to change password');
+                throw new Error(data.error || 'Failed to send password reset link');
             }
 
-            alert('Password changed successfully');
-            setPasswordDialog(false);
-            setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+            setPasswordResetDialog(false);
+            alert('Password reset link has been sent to your email address. You will now be logged out. Please check your email to reset your password.');
+
+            localStorage.removeItem('adminToken');
+            router.push('/admin-signin');
         } catch (err) {
-            console.error('Error changing password:', err);
-            alert(err instanceof Error ? err.message : 'Failed to change password');
+            console.error('Error sending reset link:', err);
+            setResetLinkError(err instanceof Error ? err.message : 'Failed to send reset link. Please try again.');
+        } finally {
+            setSendingResetLink(false);
         }
+    };
+
+    const resetPasswordResetDialog = () => {
+        setPasswordResetDialog(false);
+        setResetLinkError('');
     };
 
     if (loading) {
@@ -505,7 +550,6 @@ const AdminSettings = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -540,6 +584,302 @@ const AdminSettings = () => {
                             >
                                 Logout
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Admin Dialog */}
+            {addAdminDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                    <User className="w-6 h-6 text-[#5530FA]" />
+                                    Add New Admin
+                                </h2>
+                                <button
+                                    onClick={closeAddAdminDialog}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    disabled={addingAdmin}
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Info Box */}
+                                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-blue-900 mb-1">How it works</h4>
+                                            <p className="text-sm text-blue-800">
+                                                A temporary password will be automatically generated and sent to the admin&apos;s email address.
+                                                They will be able to sign in and change their password immediately.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* First Name Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        First Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newAdminFirstName}
+                                        onChange={(e) => setNewAdminFirstName(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
+                                        placeholder="First Name"
+                                        disabled={addingAdmin}
+                                        maxLength={50}
+                                    />
+                                </div>
+
+                                {/* Last Name Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Last Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newAdminLastName}
+                                        onChange={(e) => setNewAdminLastName(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
+                                        placeholder="Last Name"
+                                        disabled={addingAdmin}
+                                        maxLength={50}
+                                    />
+                                </div>
+
+                                {/* Email Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Admin Email Address *
+                                    </label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <input
+                                            type="email"
+                                            value={newAdminEmail}
+                                            onChange={(e) => setNewAdminEmail(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none"
+                                            placeholder="admin@example.com"
+                                            disabled={addingAdmin}
+                                            maxLength={100}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Warning Box */}
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-amber-900 mb-1">Important Notes</h4>
+                                            <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                                                <li>New admin will have standard admin privileges</li>
+                                                <li>They cannot create or delete other admins</li>
+                                                <li>Login credentials will be sent via email</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                                <button
+                                    onClick={closeAddAdminDialog}
+                                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={addingAdmin}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddAdmin}
+                                    disabled={addingAdmin || !newAdminEmail.trim() || !newAdminFirstName.trim() || !newAdminLastName.trim()}
+                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {addingAdmin ? 'Creating Admin...' : 'Create Admin'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Admin Confirmation Dialog */}
+            {deleteAdmin && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                    <AlertCircle className="w-6 h-6 text-red-500" />
+                                    Delete Admin User
+                                </h3>
+                                <button
+                                    onClick={() => setDeleteAdmin(null)}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Warning Box */}
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-semibold text-red-900 mb-1">Warning: Permanent Action</h4>
+                                        <p className="text-sm text-red-800">
+                                            This action cannot be undone. The admin user will immediately lose access to the system.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <p className="text-gray-600 text-sm sm:text-base">
+                                    Are you sure you want to delete the following admin user?
+                                </p>
+                                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                    <p className="text-sm text-gray-600">Name:</p>
+                                    <p className="font-semibold text-gray-900">{deleteAdmin.first_name} {deleteAdmin.last_name}</p>
+                                    <p className="text-sm text-gray-600 mt-2">Email:</p>
+                                    <p className="font-semibold text-gray-900">{deleteAdmin.email}</p>
+                                    <p className="text-sm text-gray-600 mt-2">Role:</p>
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${deleteAdmin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                        {deleteAdmin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => setDeleteAdmin(null)}
+                                    className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteAdmin}
+                                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Delete Admin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete NDA Confirmation Dialog */}
+            {deleteNDAConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteNDAConfirm(null)}></div>
+                    <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2" > Delete NDA Document </h3>
+                            <p className="text-gray-600 text-sm sm:text-base">Are you sure you want to delete <span className="font-medium">{deleteNDAConfirm.file_name}</span> (Version {deleteNDAConfirm.version})? This action cannot be undone.</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                            <button onClick={() => setDeleteNDAConfirm(null)} className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                            <button onClick={handleDeleteNDA} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Password Reset Link Dialog */}
+            {passwordResetDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                    <Shield className="w-6 h-6 text-[#5530FA]" />
+                                    Reset Password
+                                </h2>
+                                <button
+                                    onClick={resetPasswordResetDialog}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    disabled={sendingResetLink}
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Info Message */}
+                                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                            <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-blue-900 mb-1">Password Reset Via Email</h4>
+                                            <p className="text-sm text-blue-800">
+                                                A password reset link will be sent to your registered email address. After sending the link, you will be automatically logged out for security reasons.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Current Admin Email Display */}
+                                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <p className="text-sm text-gray-600 mb-1">Reset link will be sent to:</p>
+                                    <p className="text-base font-semibold text-gray-900">{getCurrentAdmin()?.email}</p>
+                                </div>
+
+                                {/* Warning Message */}
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                            <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-amber-900 mb-1">Important</h4>
+                                            <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                                                <li>You will be logged out immediately</li>
+                                                <li>Check your email for the reset link</li>
+                                                <li>The reset link expires in 1 hour</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Error Message */}
+                                {resetLinkError && (
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-red-600 text-sm">{resetLinkError}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                                <button
+                                    onClick={resetPasswordResetDialog}
+                                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={sendingResetLink}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSendPasswordResetLink}
+                                    disabled={sendingResetLink}
+                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {sendingResetLink ? 'Sending Link...' : 'Send Reset Link'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -669,7 +1009,36 @@ const AdminSettings = () => {
 
                         <div className="mb-8">
                             <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Admin Users & Access Control</h2>
+
+                            {/* Info Banner for Non-Super Admins */}
+                            {!isSuperAdmin() && (
+                                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-semibold text-amber-900 mb-1">Limited Access</h4>
+                                            <p className="text-sm text-amber-800">
+                                                Only super admins can create new admin users or delete existing admins. Contact your super admin if you need to manage admin users.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-base font-semibold text-[#6c6c6c]/80 font-poppins">Current Admin Users ({admins.length})</h3>
+                                    {isSuperAdmin() && (
+                                        <button
+                                            onClick={openAddAdminDialog}
+                                            className="px-4 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-montserrat hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            Add New Admin
+                                        </button>
+                                    )}
+                                </div>
+
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full">
                                         <thead>
@@ -687,17 +1056,27 @@ const AdminSettings = () => {
                                                     <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.first_name} {admin.last_name}</td>
                                                     <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.email}</td>
                                                     <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">
-                                                        <span className={`px-2 py-1 rounded-full ${admin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                        <span className={`px-2 py-1 rounded-full text-xs ${admin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                                                             {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{formatDate(admin.last_login || admin.created_at)}</td>
                                                     <td className="px-4 py-3 text-center">
                                                         <div className="flex items-center justify-center gap-2">
-                                                            {isSuperAdmin() && admin.role !== 'super_admin' && (
-                                                                <button onClick={() => setDeleteAdmin(admin)} className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete admin">
+                                                            {isSuperAdmin() && admin.role !== 'super_admin' && admin.id !== getCurrentAdmin()?.id && (
+                                                                <button
+                                                                    onClick={() => setDeleteAdmin(admin)}
+                                                                    className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                                    title="Delete admin"
+                                                                >
                                                                     <Trash2 className="w-4 h-4" />
                                                                 </button>
+                                                            )}
+                                                            {admin.role === 'super_admin' && (
+                                                                <span className="text-xs text-gray-400 italic">Protected</span>
+                                                            )}
+                                                            {admin.id === getCurrentAdmin()?.id && admin.role !== 'super_admin' && (
+                                                                <span className="text-xs text-gray-400 italic">You</span>
                                                             )}
                                                         </div>
                                                     </td>
@@ -705,22 +1084,6 @@ const AdminSettings = () => {
                                             ))}
                                         </tbody>
                                     </table>
-                                </div>
-                                {!isSuperAdmin() && (
-                                    <p className="text-right text-[9px] text-red-600 mt-4 font-medium">Only super admin can do these actions</p>
-                                )}
-                            </div>
-
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
-                                <h3 className="text-base font-semibold text-[#6c6c6c]/80 mb-4 font-poppins">Add New Admin</h3>
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <div className="flex-1">
-                                        <input type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} placeholder="Enter new admin email here" disabled={!isSuperAdmin()} className="w-full px-6 py-4 bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] text-[#6c6c6c]/80 text-base font-normal font-poppins disabled:opacity-50" />
-                                        <p className="text-right text-xs text-[#6c6c6c]/80 mt-1">{newAdminEmail.length}/50</p>
-                                    </div>
-                                    <button onClick={handleAddAdmin} disabled={addingAdmin || !isSuperAdmin()} className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                                        {addingAdmin ? 'Adding...' : 'Add New Admin'}
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -835,87 +1198,15 @@ const AdminSettings = () => {
                         <div className="mb-8">
                             <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Account & Security</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
-                                <button onClick={() => setPasswordDialog(true)} className="w-full text-left px-6 py-4 text-[#6c6c6c]/80 text-base font-normal font-poppins hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
+                                <button onClick={() => setPasswordResetDialog(true)} className="w-full text-left px-6 py-4 text-[#6c6c6c]/80 text-base font-normal font-poppins hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
                                     <Lock className="w-5 h-5" />
-                                    Change Password
+                                    Reset Password
                                 </button>
                             </div>
                         </div>
                     </main>
                 </div>
             </div>
-
-            {deleteAdmin && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteAdmin(null)}></div>
-                    <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Admin User</h3>
-                            <p className="text-gray-600 text-sm sm:text-base">Are you sure you want to delete <span className="font-medium">{deleteAdmin.first_name} {deleteAdmin.last_name}</span> ({deleteAdmin.email})? This action cannot be undone.</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                            <button onClick={() => setDeleteAdmin(null)} className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-                            <button onClick={handleDeleteAdmin} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {deleteNDAConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteNDAConfirm(null)}></div>
-                    <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete NDA Document</h3>
-                            <p className="text-gray-600 text-sm sm:text-base">Are you sure you want to delete <span className="font-medium">{deleteNDAConfirm.file_name}</span> (Version {deleteNDAConfirm.version})? This action cannot be undone.</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                            <button onClick={() => setDeleteNDAConfirm(null)} className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-                            <button onClick={handleDeleteNDA} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {passwordDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setPasswordDialog(false)}></div>
-                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                    <Shield className="w-6 h-6 text-[#5530FA]" />
-                                    Change Password
-                                </h2>
-                                <button onClick={() => setPasswordDialog(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                                    <input type="password" value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" placeholder="Enter current password" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                                    <input type="password" value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" placeholder="Enter new password (min 6 characters)" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                                    <input type="password" value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" placeholder="Confirm new password" />
-                                </div>
-                                {passwordData.new_password && passwordData.confirm_password && passwordData.new_password !== passwordData.confirm_password && (
-                                    <p className="text-red-500 text-sm">Passwords do not match</p>
-                                )}
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                                <button onClick={() => setPasswordDialog(false)} className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-                                <button onClick={handleChangePassword} disabled={!passwordData.current_password || !passwordData.new_password || passwordData.new_password !== passwordData.confirm_password} className="flex-1 px-4 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">Change Password</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

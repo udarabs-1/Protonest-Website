@@ -484,6 +484,43 @@ const CandidateManagement = () => {
         }
     };
 
+    const handlePreviewCVFromDialog = async (userId: string) => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                alert('Authentication required');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/download/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                // Open in new tab
+                const newWindow = window.open(url, '_blank');
+
+                // Clean up the URL after a delay
+                if (newWindow) {
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                } else {
+                    window.URL.revokeObjectURL(url);
+                    alert('Please allow pop-ups to preview CV');
+                }
+            } else {
+                alert('Failed to preview CV');
+            }
+        } catch (error) {
+            console.error('Error previewing CV:', error);
+            alert('Failed to preview CV');
+        }
+    };
+
     // Filter job groups based on search query
     const filteredJobGroups = jobGroups.filter(group =>
         group.job_title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -1012,15 +1049,6 @@ ${attachmentUrl}
         setInterviewDialog(null);
         setInterviewSubject('');
         setInterviewBody('');
-    };
-
-    // Handle CV Preview
-    const handlePreviewCV = (cvFileUrl: string) => {
-        if (cvFileUrl) {
-            window.open(cvFileUrl, '_blank', 'noopener,noreferrer');
-        } else {
-            alert('CV file not available');
-        }
     };
 
     // Function to handle details view
@@ -1866,7 +1894,7 @@ ${attachmentUrl}
             {/* Candidate Details Dialog - Simplified version */}
             {detailsDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
                         <div className="overflow-y-auto max-h-[95vh]">
                             <div className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] px-6 py-4">
@@ -2143,7 +2171,7 @@ ${attachmentUrl}
                                                             </div>
                                                             <div className="flex space-x-2">
                                                                 <button
-                                                                    onClick={() => handlePreviewCV(candidateDetails.cv_file_url!)}
+                                                                    onClick={() => handlePreviewCVFromDialog(detailsDialog.user._id)}
                                                                     className="px-3 py-1 text-xs bg-[#5530FA] text-white rounded hover:opacity-90"
                                                                 >
                                                                     Preview
