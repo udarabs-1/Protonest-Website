@@ -54,11 +54,11 @@ export default function ResponsiveSignIn() {
                 localStorage.setItem('adminInfo', JSON.stringify(data.data.admin));
 
                 // Redirect to admin dashboard or desired page
-                router.push('/admin-dashboard'); // Update this path as needed
+                router.push('/admin-dashboard');
 
             } else {
                 // Handle API error response
-                setError(data.message || 'Login failed. Please try again.');
+                setError(data.message || data.error || 'Login failed. Please try again.');
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -73,6 +73,10 @@ export default function ResponsiveSignIn() {
         if (e.key === 'Enter') {
             handleSignIn();
         }
+    };
+
+    const handleForgotPassword = () => {
+        router.push('/admin-forgot-password');
     };
 
     return (
@@ -146,6 +150,7 @@ export default function ResponsiveSignIn() {
                                         className="w-full h-12 sm:h-14 md:h-16 px-8 sm:px-10 md:px-12 pr-12 sm:pr-14 md:pr-16 bg-white rounded-full border border-gray-300 text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:border-transparent backdrop-blur-[50px] disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                     <button
+                                        type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         disabled={isLoading}
                                         className="absolute right-4 sm:right-5 md:right-6 top-1/2 transform -translate-y-1/2 text-gray-400 disabled:opacity-50"
@@ -162,6 +167,8 @@ export default function ResponsiveSignIn() {
                                         </div>
                                     )}
                                     <button
+                                        type="button"
+                                        onClick={handleForgotPassword}
                                         className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right"
                                         disabled={isLoading}
                                     >
@@ -171,6 +178,7 @@ export default function ResponsiveSignIn() {
 
                                 {/* Sign In Button */}
                                 <button
+                                    type="button"
                                     onClick={handleSignIn}
                                     disabled={isLoading}
                                     className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-base sm:text-lg font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
@@ -253,6 +261,7 @@ export default function ResponsiveSignIn() {
                                             className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 pr-14 lg:pr-12 xl:pr-14 2xl:pr-18 bg-white rounded-full border border-gray-300 text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:border-transparent backdrop-blur-[50px] disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
                                         <button
+                                            type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             disabled={isLoading}
                                             className="absolute right-5 lg:right-4 xl:right-5 2xl:right-7 top-1/2 transform -translate-y-1/2 text-gray-400 disabled:opacity-50"
@@ -269,6 +278,8 @@ export default function ResponsiveSignIn() {
                                             </div>
                                         )}
                                         <button
+                                            type="button"
+                                            onClick={handleForgotPassword}
                                             className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:text-gray-600 ml-auto"
                                             disabled={isLoading}
                                         >
@@ -278,6 +289,7 @@ export default function ResponsiveSignIn() {
 
                                     {/* Sign In Button */}
                                     <button
+                                        type="button"
                                         onClick={handleSignIn}
                                         disabled={isLoading}
                                         className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"

@@ -2,11 +2,13 @@
 
 import { Icon } from '@iconify/react';
 import {
+    Bell,
     ChevronRight,
     Edit,
     Eye,
     Menu,
     Search,
+    Send,
     Settings,
     SlidersHorizontal,
     Trash2,
@@ -87,6 +89,14 @@ const JobPostings = () => {
     const [applicationCounts, setApplicationCounts] = useState<{ [key: string]: number }>({});
     const [loadingCounts, setLoadingCounts] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+    // Job Suggestions Trigger States
+    const [showTriggerDialog, setShowTriggerDialog] = useState(false);
+    const [triggerLoading, setTriggerLoading] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [showErrorDialog, setShowErrorDialog] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
@@ -197,17 +207,13 @@ const JobPostings = () => {
             }
 
             const result: ApiResponse = await response.json();
-            console.log('API Response:', result); // Debug log
+            console.log('API Response:', result);
 
             if (result.status === 'success') {
-                // Extract jobs array from the nested data structure
                 const jobs = result.data?.jobs || [];
-
-                console.log('Extracted jobs:', jobs); // Debug log
-
+                console.log('Extracted jobs:', jobs);
                 setJobPostings(jobs);
 
-                // Fetch application counts after loading jobs
                 if (jobs.length > 0) {
                     await fetchApplicationCounts(jobs);
                 }
@@ -218,7 +224,6 @@ const JobPostings = () => {
             console.error('Error fetching job postings:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch job postings';
             setError(errorMessage);
-            // Set empty array on error to prevent crashes
             setJobPostings([]);
         } finally {
             setLoading(false);
@@ -226,7 +231,6 @@ const JobPostings = () => {
     }, [fetchApplicationCounts, router]);
 
     const applyFilters = useCallback(() => {
-        // Ensure jobPostings is always an array
         const jobsArray = Array.isArray(jobPostings) ? jobPostings : [];
         let filtered = [...jobsArray];
 
@@ -276,15 +280,53 @@ const JobPostings = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Show success message
             alert('Job posting deleted successfully!');
-
-            // Refresh the job list
             fetchJobPostings();
         } catch (err: unknown) {
             console.error('Error deleting job:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to delete job posting';
             alert('Failed to delete job posting: ' + errorMessage);
+        }
+    };
+
+    // Handle manual trigger of job suggestions
+    const handleTriggerJobSuggestions = async () => {
+        setShowTriggerDialog(false);
+        setTriggerLoading(true);
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                throw new Error('Admin authentication required');
+            }
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/trigger-job-suggestions`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Trigger response:', result);
+
+            setShowSuccessDialog(true);
+        } catch (err: unknown) {
+            console.error('Error triggering job suggestions:', err);
+            const errorMsg = err instanceof Error ? err.message : 'Failed to trigger job suggestions';
+            setErrorMessage(errorMsg);
+            setShowErrorDialog(true);
+        } finally {
+            setTriggerLoading(false);
         }
     };
 
@@ -343,7 +385,7 @@ const JobPostings = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+            {/* SVG Gradient Definition */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -352,6 +394,137 @@ const JobPostings = () => {
                     </linearGradient>
                 </defs>
             </svg>
+
+            {/* Loading Overlay for Trigger */}
+            {triggerLoading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 text-center">
+                        <div className="mb-4">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#5530FA] mx-auto"></div>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                            Sending Job Suggestions...
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                            This may take a few moments. Please wait while we process job suggestions for talent pool users.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Trigger Confirmation Dialog */}
+            {showTriggerDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowTriggerDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full">
+                                <Bell className="w-6 h-6 text-[#5530FA]" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                Send Job Suggestions Now?
+                            </h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            This will immediately send personalized job recommendations to all talent pool users with matching jobs created in the last 24 hours. Are you sure you want to proceed?
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowTriggerDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleTriggerJobSuggestions}
+                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+                            >
+                                <Send className="w-4 h-4" />
+                                Send Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Dialog */}
+            {showSuccessDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowSuccessDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                                <svg
+                                    className="h-8 w-8 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                Job Suggestions Triggered Successfully!
+                            </h3>
+                            <p className="text-gray-600 mb-6">
+                                Job suggestion emails are being processed in the background. Talent pool users with matching jobs will receive personalized recommendations shortly.
+                            </p>
+                            <button
+                                onClick={() => setShowSuccessDialog(false)}
+                                className="w-full px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Dialog */}
+            {showErrorDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowErrorDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                                <X className="h-8 w-8 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                Failed to Send Job Suggestions
+                            </h3>
+                            <p className="text-gray-600 mb-6">
+                                {errorMessage || 'An error occurred while triggering job suggestions. Please try again later.'}
+                            </p>
+                            <button
+                                onClick={() => setShowErrorDialog(false)}
+                                className="w-full px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
@@ -402,7 +575,6 @@ const JobPostings = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -548,8 +720,23 @@ const JobPostings = () => {
                                     View, create, and manage all open freelance roles at Protonest. You can edit, publish or delete postings at any time.
                                 </p>
                             </div>
-                            <div className="flex-shrink-0">
-                                <Link href="/admin-dashboard/jobs/create" className="w-full lg:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center">
+                            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                                {/* Send Job Suggestions Button */}
+                                <button
+                                    onClick={() => setShowTriggerDialog(true)}
+                                    disabled={triggerLoading}
+                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Send job suggestions to talent pool users"
+                                >
+                                    <Bell className="w-5 h-5" />
+                                    Send Job Suggestions
+                                </button>
+
+                                {/* Create New Job Button */}
+                                <Link
+                                    href="/admin-dashboard/jobs/create"
+                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
+                                >
                                     + Create New Job
                                 </Link>
                             </div>

@@ -138,7 +138,6 @@ const ResubmitCVPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [cvInfo, setCvInfo] = useState<CVInfo | null>(null);
     const [lastSubmitted, setLastSubmitted] = useState<string>('');
-    const [currentFileName, setCurrentFileName] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
     const [hasCVUploaded, setHasCVUploaded] = useState(false);
@@ -314,13 +313,11 @@ const ResubmitCVPage = () => {
                 if (data.status === 'success' && data.data) {
                     setCvInfo(data.data);
                     setLastSubmitted(new Date(data.data.uploaded_at).toLocaleDateString());
-                    setCurrentFileName(data.data.original_name);
                     setHasCVUploaded(true);
                 }
             } else if (response.status === 404) {
                 setCvInfo(null);
                 setLastSubmitted('Never');
-                setCurrentFileName('No file uploaded');
                 setHasCVUploaded(false);
             } else {
                 throw new Error('Failed to fetch CV info');
@@ -600,22 +597,101 @@ const ResubmitCVPage = () => {
         }
     };
 
-    const handlePreviewCV = () => {
-        if (cvInfo?.file_url) {
-            window.open(cvInfo.file_url, '_blank');
-        } else {
-            setError('No CV available for preview');
+    const handleDownloadCV = async () => {
+        try {
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                setError('Please log in to download your CV');
+                return;
+            }
+
+            // Fetch the CV file
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
+                headers: {
+                    'Authorization': `Bearer ${jwtToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                setError('Failed to download CV');
+                return;
+            }
+
+            const blob = await response.blob();
+
+            // Get file extension from CV info or default to .pdf
+            let extension = '.pdf';
+            if (cvInfo && cvInfo.file_type) {
+                extension = cvInfo.file_type.toLowerCase().startsWith('.')
+                    ? cvInfo.file_type.toLowerCase()
+                    : `.${cvInfo.file_type.toLowerCase()}`;
+            }
+
+            // Generate filename using profile data
+            let filename = 'CV.pdf';
+            const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
+
+            if (fullName) {
+                // Clean the name for filename - replace spaces with underscores
+                const cleanName = fullName.replace(/\s+/g, '_');
+                filename = `${cleanName}_CV${extension}`;
+            }
+
+            // Create blob URL and trigger download
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+            }, 100);
+
+        } catch (error) {
+            console.error('Error downloading CV:', error);
+            setError('Failed to download CV');
         }
     };
 
-    const handleDownloadCV = () => {
-        if (cvInfo?.file_url) {
-            const link = document.createElement('a');
-            link.href = cvInfo.file_url;
-            link.download = cvInfo.original_name || 'cv.pdf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    const handlePreviewCV = async () => {
+        try {
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                setError('Please log in to preview your CV');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
+                headers: {
+                    'Authorization': `Bearer ${jwtToken}`,
+                },
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                // Open in new tab
+                const newWindow = window.open(url, '_blank');
+
+                // Clean up the URL after a delay
+                if (newWindow) {
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                } else {
+                    window.URL.revokeObjectURL(url);
+                    setError('Please allow pop-ups to preview your CV');
+                }
+            } else {
+                setError('Failed to preview CV');
+            }
+        } catch (error) {
+            console.error('Error previewing CV:', error);
+            setError('Failed to preview CV');
         }
     };
 
@@ -765,7 +841,6 @@ const ResubmitCVPage = () => {
                             No matching jobs found at the moment.
                         </div>
                     )}
-
                     <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-6 sm:mt-8 md:mt-10">
                         Check all available jobs for you!
                     </div>
@@ -845,31 +920,31 @@ const ResubmitCVPage = () => {
     return (
         <div>
             <style jsx global>{`
-                .gradient-icon svg {
-                    width: 100%;
-                    height: 100%;
-                }
-                
-                .gradient-icon svg path {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg circle {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg rect {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg polygon {
-                    fill: url(#icon-gradient) !important;
-                }
+            .gradient-icon svg {
+                width: 100%;
+                height: 100%;
+            }
+            
+            .gradient-icon svg path {
+                fill: url(#icon-gradient) !important;
+            }
+            
+            .gradient-icon svg circle {
+                fill: url(#icon-gradient) !important;
+            }
+            
+            .gradient-icon svg rect {
+                fill: url(#icon-gradient) !important;
+            }
+            
+            .gradient-icon svg polygon {
+                fill: url(#icon-gradient) !important;
+            }
 
-                .gradient-border {
-                    border-image: linear-gradient(to bottom, #4520E0, #D01888) 1;
-                }
-            `}</style>
+            .gradient-border {
+                border-image: linear-gradient(to bottom, #4520E0, #D01888) 1;
+            }
+        `}</style>
 
             {/* SVG Gradient Definition */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
@@ -1137,16 +1212,13 @@ const ResubmitCVPage = () => {
                                                 <p className="text-base">
                                                     <span className="font-medium">Last Submitted:</span> {lastSubmitted}
                                                 </p>
-                                                <p className="text-base">
-                                                    <span className="font-medium">Current File:</span> {currentFileName}
-                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-3 justify-center max-w-[300px]">
                                             <button
                                                 onClick={handlePreviewCV}
                                                 disabled={!cvInfo}
-                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white cursor-pointer font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Eye className="w-4 h-4" />
                                                 Preview CV
@@ -1154,7 +1226,7 @@ const ResubmitCVPage = () => {
                                             <button
                                                 onClick={handleDownloadCV}
                                                 disabled={!cvInfo}
-                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 rounded-[57px] gradient-border text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Download className="w-4 h-4" />
                                                 Download CV
