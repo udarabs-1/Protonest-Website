@@ -170,6 +170,7 @@ const TalentPool = () => {
                 throw new Error('No authentication token found');
             }
 
+            // Remove pagination parameters
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin`, {
                 method: 'GET',
                 headers: {

@@ -891,11 +891,7 @@ const CreateBlogPost = () => {
                                     onChange={(e) => setTitle(e.target.value)}
                                     className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80"
                                     placeholder="Enter a clear and concise title for the blog post."
-                                    maxLength={50}
                                 />
-                                <div className="text-right text-xs text-[#6c6c6c]/80 mt-2">
-                                    {title.length}/50
-                                </div>
                             </div>
                         </div>
 
