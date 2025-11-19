@@ -425,19 +425,19 @@ export default function OnboardingPage() {
         }
     }, [errors]);
 
+    // One function handles everything - upload CV and get complete results
     const analyzeCV = useCallback(async (file: File): Promise<void> => {
         setShowAnalysisModal(true);
         try {
             const formData = new FormData();
             formData.append('file', file);
 
-            // Get user token from localStorage
             const userToken = localStorage.getItem('jwtToken');
-
             if (!userToken) {
                 throw new Error('User token not found. Please sign in first.');
             }
 
+            // Single endpoint call - gets EVERYTHING
             const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
                 method: 'POST',
                 headers: {
@@ -453,26 +453,24 @@ export default function OnboardingPage() {
             const data: AnalyzeResponse = await response.json();
 
             if (data.status === 'success') {
-                // Extract all skills from expertise areas
+                // Extract all skills
                 const allSkills: string[] = [];
                 Object.values(data.results.expertise_areas).forEach(skills => {
                     allSkills.push(...skills);
                 });
 
+                // Set everything from one response
                 setExtractedSkills(allSkills);
                 setExpertiseAreas(data.results.expertise_areas);
-                setSuggestedJobs(data.results.suggested_jobs);
+                setSuggestedJobs(data.results.suggested_jobs); // Already filtered to 70%+
+
+                console.log(`✅ CV analyzed: ${allSkills.length} skills, ${data.results.suggested_jobs.length} jobs (70%+ match)`);
             } else {
                 throw new Error('CV analysis failed');
             }
         } catch (error) {
             console.error('CV analysis error:', error);
             setErrors({ cv: 'Failed to analyze CV. Please try again.' });
-
-            // Fallback to mock skills if analysis fails
-            const mockSkills = ['Designing', 'UI/UX', 'Photoshop', 'JavaScript', 'React', 'Node.js', 'Python', 'Java'];
-            const randomSkills = mockSkills.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 4) + 2);
-            setExtractedSkills(randomSkills);
         } finally {
             setTimeout(() => {
                 setShowAnalysisModal(false);
@@ -480,25 +478,7 @@ export default function OnboardingPage() {
         }
     }, []);
 
-    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
-        const file = event.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setErrors(prev => ({ ...prev, cv: 'File must be smaller than 5MB' }));
-                return;
-            }
-
-            setUploadedCV(file);
-            setErrors(prev => ({ ...prev, cv: '' }));
-            setExtractedSkills([]);
-            setExpertiseAreas({});
-            setSuggestedJobs([]);
-
-            // Call the Python API to analyze the CV
-            analyzeCV(file);
-        }
-    }, [analyzeCV]);
-
+    // On form submit - data is already there from CV analysis, just submit to backend
     const handleSubmit = useCallback(async (): Promise<void> => {
         if (!validateForm()) return;
 
@@ -506,98 +486,77 @@ export default function OnboardingPage() {
         setShowSubmissionModal(true);
 
         try {
-            // Create FormData for file upload
+            // Use FormData to send both CV file and analysis results
             const submitData = new FormData();
             submitData.append('fullName', formData.fullName);
             submitData.append('email', formData.email);
             submitData.append('phoneNumber', formData.phoneNumber);
-            submitData.append('country', 'Sri Lanka'); // Always Sri Lanka
+            submitData.append('country', 'Sri Lanka');
             submitData.append('city', formData.city);
             submitData.append('workFunction', formData.workFunction);
             submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
             submitData.append('skills', JSON.stringify(extractedSkills));
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
-            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
+            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs)); // Already 70%+ matches
+            submitData.append('skip_talent_pool', 'false');
 
-            // IMPORTANT: For job applications, we DON'T apply yet - just upload CV
-            // The actual application will happen after user confirms on the job details page
-            if (pendingJob) {
-                // User is uploading CV for a specific job - DON'T skip talent pool or apply yet
-                submitData.append('skip_talent_pool', 'false'); // Add them to talent pool
-                // Don't include pending_job_id here - application happens later
-            } else {
-                // User is just uploading CV to join talent pool
-                submitData.append('skip_talent_pool', 'false');
-            }
+            // CRITICAL: Tell backend NOT to analyze again - we already have results
+            submitData.append('skip_analysis', 'true'); // ← NEW FLAG
+            submitData.append('already_analyzed', 'true'); // ← BACKUP FLAG
 
+            // Send the CV file for storage only
             if (uploadedCV) {
                 submitData.append('cv', uploadedCV);
             }
 
-            // Get JWT token
             const token = localStorage.getItem('jwtToken');
-
             if (!token) {
                 throw new Error('Authentication token not found. Please log in again.');
             }
 
-            // Upload CV using new endpoint
+            // Submit to Go backend with multipart/form-data
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    // Don't set Content-Type - browser will set it with boundary for FormData
                 },
                 body: submitData,
             });
 
-            // Parse response
             const responseData = await response.json().catch(() => ({}));
 
             if (response.ok) {
-                console.log('CV upload successful:', responseData);
+                console.log('✅ CV submission successful:', responseData);
 
-                // Simulate processing time
                 setTimeout(() => {
                     setShowSubmissionModal(false);
 
-                    // Check if this was a job application scenario
                     if (pendingJob && redirectAfterSubmit) {
-                        // DON'T clear the pending job application yet - it's still needed
-                        // The job details page will use it to show the apply confirmation
-                        console.log('CV uploaded successfully, redirecting to job page for application');
-
-                        // Set a flag to indicate CV has been uploaded and they can now apply
                         sessionStorage.setItem('cvUploadedForJob', JSON.stringify({
                             jobTitle: pendingJob.jobTitle,
                             jobId: pendingJob.jobId,
                             timestamp: Date.now()
                         }));
-
-                        // Redirect to the job details page where they can confirm the application using replace
                         window.location.replace(redirectAfterSubmit);
                     } else if (suggestedJobs.length > 0) {
-                        // For talent pool, show suggested jobs
                         setShowJobsModal(true);
                     } else {
-                        // For talent pool with no matches
                         setShowNoMatchModal(true);
                     }
                 }, 3000);
             } else {
-                // Handle error responses
                 setShowSubmissionModal(false);
-
-                // Check for duplicate CV error - check both status code and error message
                 const errorMessage = responseData.message || responseData.error || 'Unknown error';
                 const isDuplicateError =
                     response.status === 409 ||
                     response.status === 400 ||
-                    response.status === 500 && (
+                    (response.status === 500 && (
                         errorMessage.toLowerCase().includes('duplicate') ||
                         errorMessage.toLowerCase().includes('e11000') ||
                         errorMessage.toLowerCase().includes('already exists') ||
                         errorMessage.toLowerCase().includes('duplicate key error')
-                    );
+                    ));
 
                 if (isDuplicateError) {
                     setShowErrorDialog('You have already submitted a CV. If you wish to update your CV, please use the "Resubmit CV" option in the Dashboard.');
@@ -610,7 +569,6 @@ export default function OnboardingPage() {
             console.error('Submission error:', error);
             setShowSubmissionModal(false);
 
-            // Check if it's a duplicate error in the catch block as well
             const errorMessage = error instanceof Error ? error.message : 'Failed to submit application. Please try again.';
             const isDuplicateError =
                 errorMessage.toLowerCase().includes('duplicate') ||
@@ -627,6 +585,25 @@ export default function OnboardingPage() {
             setIsSubmitting(false);
         }
     }, [validateForm, formData, extractedSkills, expertiseAreas, suggestedJobs, pendingJob, redirectAfterSubmit, uploadedCV]);
+
+    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setErrors(prev => ({ ...prev, cv: 'File must be smaller than 5MB' }));
+                return;
+            }
+
+            setUploadedCV(file);
+            setErrors(prev => ({ ...prev, cv: '' }));
+            setExtractedSkills([]);
+            setExpertiseAreas({});
+            setSuggestedJobs([]);
+
+            // Call the Python API to analyze the CV - ONLY ONCE HERE
+            analyzeCV(file);
+        }
+    }, [analyzeCV]);
 
     const handleReset = useCallback((): void => {
         setFormData({
@@ -692,7 +669,7 @@ export default function OnboardingPage() {
                     <LoadingSpinner />
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
-                    Thanks for submitting your CV!<br />Parsing your CV to match your areas of expertise
+                    Thanks for uploading your CV!<br />Parsing your CV to match your areas of expertise
                 </div>
             </div>
         </ModalWrapper>
@@ -709,7 +686,7 @@ export default function OnboardingPage() {
                     {pendingJob ? (
                         <>Thanks for submitting your CV!<br />Processing your application for {pendingJob.jobTitle}...</>
                     ) : (
-                        <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles…</>
+                        <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles...</>
                     )}
                 </div>
             </div>
@@ -777,7 +754,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="flex justify-center mt-4">
                         <button
-                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] gradient-border flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
                             onClick={() => router.replace('/dashboard')}
                         >
                             <span className="text-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins">View All Available Jobs</span>

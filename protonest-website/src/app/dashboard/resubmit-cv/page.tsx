@@ -80,6 +80,10 @@ interface PendingJobApplication {
     timestamp: number;
 }
 
+interface ExpertiseArea {
+    [category: string]: string[];
+}
+
 // All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
@@ -149,6 +153,9 @@ const ResubmitCVPage = () => {
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [expertiseAreas, setExpertiseAreas] = useState<ExpertiseArea>({});
+    const [cvFullText, setCvFullText] = useState<string>('');
+    const [totalYearsExperience, setTotalYearsExperience] = useState<number>(0);
     const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [profileData, setProfileData] = useState<ProfileData>({
@@ -451,8 +458,14 @@ const ResubmitCVPage = () => {
                         }
                     });
 
+                    // STORE ALL ANALYSIS RESULTS
                     setExtractedSkills(allSkills);
+                    setExpertiseAreas(expertiseAreasData);
                     setSuggestedJobs(data.results.suggested_jobs || []);
+                    setCvFullText(data.results.cv_full_text || '');
+                    setTotalYearsExperience(data.results.total_years_experience || 0);
+
+                    console.log(`✅ CV analyzed: ${allSkills.length} skills, ${(data.results.suggested_jobs || []).length} jobs (70%+ match)`);
                 }
             } catch {
                 console.error('CV analysis error');
@@ -525,6 +538,17 @@ const ResubmitCVPage = () => {
             const submitData = new FormData();
             submitData.append('cv', selectedFile!);
 
+            // CRITICAL: Tell backend to skip analysis - we already have results
+            submitData.append('skip_analysis', 'true');
+            submitData.append('already_analyzed', 'true');
+
+            // Add pre-analyzed data
+            submitData.append('skills', JSON.stringify(extractedSkills));
+            submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
+            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
+            submitData.append('cvFullText', cvFullText);
+            submitData.append('totalYearsExperience', totalYearsExperience.toString());
+
             // Add form data only if it's first time upload
             if (!hasCVUploaded) {
                 submitData.append('fullName', formData.fullName);
@@ -534,7 +558,6 @@ const ResubmitCVPage = () => {
                 submitData.append('city', formData.city);
                 submitData.append('workFunction', formData.workFunction);
                 submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
-                submitData.append('skills', JSON.stringify(extractedSkills));
             }
 
             const endpoint = hasCVUploaded
@@ -772,9 +795,9 @@ const ResubmitCVPage = () => {
                     {pendingJob ? (
                         <>Thanks for submitting your updated CV!<br />Processing your submission for {pendingJob.jobTitle}...</>
                     ) : hasCVUploaded ? (
-                        <>Thanks for submitting your updated CV!<br />Processing your submission and finding matching roles…</>
+                        <>Thanks for submitting your updated CV!<br />Processing your submission and finding matching roles...</>
                     ) : (
-                        <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles…</>
+                        <>Thanks for submitting your CV!<br />Adding you to our talent pool and finding matching roles...</>
                     )}
                 </div>
             </div>
@@ -846,7 +869,7 @@ const ResubmitCVPage = () => {
                     </div>
                     <div className="flex justify-center mt-4 gap-3">
                         <button
-                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] border border-[#5530fa] flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
+                            className="w-full max-w-[264px] h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 rounded-[57px] gradient-border flex justify-center items-center cursor-pointer transition-all duration-200 hover:bg-[#5530fa]/10 active:scale-95"
                             onClick={() => {
                                 resetPage();
                                 router.push('/dashboard');

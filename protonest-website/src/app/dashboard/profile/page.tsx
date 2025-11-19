@@ -47,7 +47,6 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
-    const [loadingCV, setLoadingCV] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -220,6 +219,8 @@ const ProfilePage = () => {
         }));
     };
 
+
+
     const handleSaveProfile = async () => {
         try {
             setSaving(true);
@@ -389,30 +390,38 @@ const ProfilePage = () => {
 
     const handlePreviewCV = async () => {
         try {
-            setLoadingCV(true);
-            setError(null);
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                setError('Please log in to preview your CV');
+                return;
+            }
 
-            const response = await apiCall('/cv/info');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
+                headers: {
+                    'Authorization': `Bearer ${jwtToken}`,
+                },
+            });
 
-            if (response.status === 'success' && response.data) {
-                const cvInfo = response.data;
-                if (cvInfo.file_url) {
-                    window.open(cvInfo.file_url, '_blank');
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                // Open in new tab
+                const newWindow = window.open(url, '_blank');
+
+                // Clean up the URL after a delay
+                if (newWindow) {
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
-                    setError('CV file URL not available');
+                    window.URL.revokeObjectURL(url);
+                    setError('Please allow pop-ups to preview your CV');
                 }
             } else {
-                setError('No CV found. Please upload a CV first.');
+                setError('Failed to preview CV');
             }
-        } catch (err) {
-            if (err instanceof Error && err.message.includes('No CV found')) {
-                setError('No CV found. Please upload a CV first.');
-            } else {
-                setError(err instanceof Error ? err.message : 'Failed to load CV');
-            }
-            console.error('Error loading CV');
-        } finally {
-            setLoadingCV(false);
+        } catch (error) {
+            console.error('Error previewing CV:', error);
+            setError('Failed to preview CV');
         }
     };
 
@@ -1050,17 +1059,9 @@ const ProfilePage = () => {
                                     <h3 className="text-lg sm:text-xl font-medium text-[#6c6c6c] font-['Poppins'] mb-4">Current CV</h3>
                                     <button
                                         onClick={handlePreviewCV}
-                                        disabled={loadingCV}
                                         className="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Montserrat'] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {loadingCV ? (
-                                            <>
-                                                <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                                Loading...
-                                            </>
-                                        ) : (
-                                            'Preview CV'
-                                        )}
+                                        Preview CV
                                     </button>
                                 </div>
                             </div>

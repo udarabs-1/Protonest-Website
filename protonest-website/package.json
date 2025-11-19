@@ -29,6 +29,7 @@
     "embla-carousel-react": "^8.6.0",
     "embla-carousel-wheel-gestures": "^8.0.2",
     "framer-motion": "^12.15.0",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.511.0",
     "next": "^15.3.5",
     "next-sitemap": "^4.2.3",

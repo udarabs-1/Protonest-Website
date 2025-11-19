@@ -42,6 +42,7 @@ interface Candidate {
     interview_date?: string;
     interview_notes?: string;
     rejection_reason?: string;
+    job_match?: JobMatch;
 }
 
 interface JobMatch {
@@ -101,82 +102,66 @@ const ApplicationPipeline = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Updated to use the same API endpoint as CandidateManagement
+    // Replace the existing useEffect that fetches candidates
     useEffect(() => {
-        const fetchCandidates = async () => {
+        const fetchApplications = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Use the same endpoint as CandidateManagement page
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
+                // Single API call to get all applications with job matches
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/applications/all`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        }
                     }
-                });
+                );
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch candidates');
+                    throw new Error('Failed to fetch applications');
                 }
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    const candidatesData = data.data?.nda_logs || data.data || [];
-                    const candidatesList = Array.isArray(candidatesData) ? candidatesData : [];
-                    setCandidates(candidatesList);
+                    const applicationsData = data.data?.applications || [];
+                    setCandidates(applicationsData);
 
-                    // Fetch job matches for each candidate using the same structure
-                    const matchPromises = candidatesList.map(async (candidate: Candidate) => {
-                        try {
-                            const matchResponse = await fetch(
-                                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/job-matches/${candidate.user._id}`,
-                                {
-                                    headers: {
-                                        'Authorization': `Bearer ${adminToken}`
-                                    }
-                                }
-                            );
-
-                            if (matchResponse.ok) {
-                                const matchData = await matchResponse.json();
-                                if (matchData.success && matchData.data.job_matches) {
-                                    const jobMatch = matchData.data.job_matches.find(
-                                        (match: JobMatch) => match.job_id === candidate.job._id
-                                    );
-                                    return { userId: candidate.user._id, match: jobMatch || null };
-                                }
-                            }
-                            return { userId: candidate.user._id, match: null };
-                        } catch (error) {
-                            console.error(`Error fetching match for candidate ${candidate.user._id}:`, error);
-                            return { userId: candidate.user._id, match: null };
+                    // Extract job matches from the response
+                    const matchesMap: { [userId: string]: JobMatch | null } = {};
+                    applicationsData.forEach((app: Candidate) => {
+                        if (app.user?._id && app.job_match) {
+                            matchesMap[app.user._id] = {
+                                job_id: app.job_match.job_id || app.job._id,
+                                job_title: app.job_match.job_title || app.job.title,
+                                category: app.job_match.category || '',
+                                match_percentage: app.job_match.match_percentage || 0,
+                                matched_skills: app.job_match.matched_skills || [],
+                                missing_skills: app.job_match.missing_skills || []
+                            };
+                        } else if (app.user?._id) {
+                            matchesMap[app.user._id] = null;
                         }
                     });
-
-                    const matchResults = await Promise.all(matchPromises);
-                    const matchesMap = matchResults.reduce((acc, result) => {
-                        acc[result.userId] = result.match;
-                        return acc;
-                    }, {} as { [userId: string]: JobMatch | null });
-
                     setJobMatches(matchesMap);
                 } else {
-                    throw new Error(data.message || 'Failed to fetch candidates');
+                    throw new Error(data.message || 'Failed to fetch applications');
                 }
             } catch (err) {
                 if (err instanceof Error) {
                     setError(err.message);
                 } else {
-                    setError('An error occurred while fetching candidates');
+                    setError('An error occurred while fetching applications');
                 }
-                console.error('Error fetching candidates:', err);
+                console.error('Error fetching applications:', err);
                 setCandidates([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchCandidates();
+        fetchApplications();
     }, []);
 
     // Close sidebar when clicking outside

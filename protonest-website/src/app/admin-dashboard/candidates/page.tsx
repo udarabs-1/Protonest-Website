@@ -1,6 +1,6 @@
 "use client";
-
 import { Icon } from '@iconify/react';
+import JSZip from 'jszip';
 import {
     Award,
     Briefcase,
@@ -8,6 +8,7 @@ import {
     ChevronDown,
     ChevronRight,
     ChevronUp,
+    Download,
     Mail,
     MapPin,
     Menu,
@@ -25,7 +26,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-
 interface Candidate {
     id: string;
     user: {
@@ -55,7 +55,6 @@ interface Candidate {
     interview_notes?: string;
     rejection_reason?: string;
 }
-
 interface JobGroup {
     job_id: string;
     job_title: string;
@@ -65,8 +64,8 @@ interface JobGroup {
     isAnalyzing: boolean;
     hasRankings: boolean;
     rankings?: CandidateRanking[];
+    selectedCandidates?: Set<string>;
 }
-
 interface CandidateRanking {
     rank_position: number;
     candidate_id: string;
@@ -82,11 +81,9 @@ interface CandidateRanking {
     }>;
     evaluated_at: string;
 }
-
 interface ExpertiseArea {
     [category: string]: string[];
 }
-
 interface JobMatch {
     job_id: string;
     job_title: string;
@@ -95,7 +92,6 @@ interface JobMatch {
     matched_skills: string[];
     missing_skills: string[];
 }
-
 interface CandidateDetails {
     expertise_areas: ExpertiseArea;
     job_match: JobMatch | null;
@@ -109,12 +105,10 @@ interface CandidateDetails {
     };
     cv_file_url: string | null;
 }
-
 interface StatusDropdown {
     candidateId: string;
     isOpen: boolean;
 }
-
 interface NDADocument {
     id: string;
     download_url: string;
@@ -126,7 +120,6 @@ interface NDADocument {
     is_active: boolean;
     uploaded_at: string;
 }
-
 const CandidateManagement = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [jobGroups, setJobGroups] = useState<JobGroup[]>([]);
@@ -147,6 +140,8 @@ const CandidateManagement = () => {
     const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [bulkDownloadDialog, setBulkDownloadDialog] = useState<JobGroup | null>(null);
+    const [downloadingBulk, setDownloadingBulk] = useState(false);
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -200,6 +195,57 @@ const CandidateManagement = () => {
         { value: 'rejected', label: 'Rejected', color: 'bg-[#ff8686]' }
     ];
 
+    // Local Storage functions for rankings
+    const saveRankingsToLocalStorage = (jobId: string, rankings: CandidateRanking[]) => {
+        try {
+            const rankingsData = {
+                rankings,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(`job_rankings_${jobId}`, JSON.stringify(rankingsData));
+        } catch (error) {
+            console.error('Error saving rankings to localStorage:', error);
+        }
+    };
+
+    const loadRankingsFromLocalStorage = (jobId: string): CandidateRanking[] | null => {
+        try {
+            const stored = localStorage.getItem(`job_rankings_${jobId}`);
+            if (stored) {
+                const data = JSON.parse(stored);
+                return data.rankings;
+            }
+        } catch (error) {
+            console.error('Error loading rankings from localStorage:', error);
+        }
+        return null;
+    };
+
+    // Sort candidates based on rankings
+    const sortCandidatesByRankings = (candidates: Candidate[], rankings: CandidateRanking[]): Candidate[] => {
+        const rankedCandidates: Candidate[] = [];
+        const unrankedCandidates: Candidate[] = [];
+
+        candidates.forEach(candidate => {
+            const ranking = rankings.find(r => r.user_id === candidate.user._id);
+            if (ranking) {
+                rankedCandidates.push(candidate);
+            } else {
+                unrankedCandidates.push(candidate);
+            }
+        });
+
+        // Sort ranked candidates by rank_position
+        rankedCandidates.sort((a, b) => {
+            const rankA = rankings.find(r => r.user_id === a.user._id);
+            const rankB = rankings.find(r => r.user_id === b.user._id);
+            return (rankA?.rank_position || 0) - (rankB?.rank_position || 0);
+        });
+
+        // Return ranked candidates first, then unranked
+        return [...rankedCandidates, ...unrankedCandidates];
+    };
+
     // Fetch NDA documents
     const fetchNDADocuments = async () => {
         try {
@@ -251,7 +297,27 @@ const CandidateManagement = () => {
 
                     // Group candidates by job
                     const grouped = groupCandidatesByJob(candidates);
-                    setJobGroups(grouped);
+
+                    // Load rankings from localStorage and apply sorting
+                    const groupedWithRankings = grouped.map(group => {
+                        const storedRankings = loadRankingsFromLocalStorage(group.job_id);
+                        if (storedRankings && storedRankings.length > 0) {
+                            const sortedCandidates = sortCandidatesByRankings(group.candidates, storedRankings);
+                            return {
+                                ...group,
+                                candidates: sortedCandidates,
+                                hasRankings: true,
+                                rankings: storedRankings,
+                                selectedCandidates: new Set<string>()
+                            };
+                        }
+                        return {
+                            ...group,
+                            selectedCandidates: new Set<string>()
+                        };
+                    });
+
+                    setJobGroups(groupedWithRankings);
                 }
                 else {
                     throw new Error(data.message || 'Failed to fetch candidates');
@@ -290,7 +356,8 @@ const CandidateManagement = () => {
                     isExpanded: false,
                     isAnalyzing: false,
                     hasRankings: false,
-                    rankings: []
+                    rankings: [],
+                    selectedCandidates: new Set<string>()
                 });
             }
 
@@ -310,6 +377,90 @@ const CandidateManagement = () => {
                 ? { ...group, isExpanded: !group.isExpanded }
                 : group
         ));
+    };
+
+    const handleBulkDownload = async (jobGroup: JobGroup) => {
+        if (!jobGroup.selectedCandidates || jobGroup.selectedCandidates.size === 0) {
+            alert('Please select at least one candidate to download CVs');
+            return;
+        }
+
+        try {
+            setDownloadingBulk(true);
+            const adminToken = localStorage.getItem('adminToken');
+            const selectedUserIds = Array.from(jobGroup.selectedCandidates);
+
+            // Create a new JSZip instance
+            const zip = new JSZip();
+            let successCount = 0;
+
+            // Download and add CVs to zip
+            for (const userId of selectedUserIds) {
+                const candidate = jobGroup.candidates.find(c => c.user._id === userId);
+                if (!candidate) continue;
+
+                try {
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/download/${userId}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${adminToken}`
+                            }
+                        }
+                    );
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const cleanName = candidate.user.name.replace(/\s+/g, '_');
+                        const fileName = `${cleanName}_CV.pdf`;
+
+                        // Add file to zip
+                        zip.file(fileName, blob);
+                        successCount++;
+                    }
+                } catch (error) {
+                    console.error(`Error downloading CV for ${candidate.user.name}:`, error);
+                }
+            }
+
+            if (successCount > 0) {
+                // Generate zip file
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+                // Create download link for zip
+                const url = window.URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                // Create zip filename with job title and date
+                const jobTitle = jobGroup.job_title.replace(/\s+/g, '_');
+                const date = new Date().toISOString().split('T')[0];
+                a.download = `${jobTitle}_CVs_${date}.zip`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                alert(`Successfully downloaded ${successCount} CV(s) in a zip file`);
+            } else {
+                alert('Failed to download any CVs. Please try again.');
+            }
+
+            setBulkDownloadDialog(null);
+
+            // Clear selections
+            setJobGroups(prev => prev.map(group =>
+                group.job_id === jobGroup.job_id
+                    ? { ...group, selectedCandidates: new Set<string>() }
+                    : group
+            ));
+        } catch (error) {
+            console.error('Error creating zip file:', error);
+            alert('Failed to create zip file. Please try again.');
+        } finally {
+            setDownloadingBulk(false);
+        }
     };
 
     // Trigger AI ranking for a job
@@ -341,36 +492,28 @@ const CandidateManagement = () => {
             const data = await response.json();
 
             if (data.status === 'success' && data.data?.rankings) {
+                // Save rankings to localStorage
+                saveRankingsToLocalStorage(jobId, data.data.rankings);
+
                 // Update job group with rankings
                 setJobGroups(prev => prev.map(group => {
                     if (group.job_id === jobId) {
-                        // Sort candidates by ranking - UPDATED to match by user_id
-                        const rankedCandidates = [...group.candidates].sort((a, b) => {
-                            const rankA = data.data.rankings.find((r: CandidateRanking) => r.user_id === a.user._id);
-                            const rankB = data.data.rankings.find((r: CandidateRanking) => r.user_id === b.user._id);
-
-                            if (rankA && rankB) {
-                                return rankA.rank_position - rankB.rank_position;
-                            }
-                            // If only one has ranking, prioritize it
-                            if (rankA) return -1;
-                            if (rankB) return 1;
-                            return 0;
-                        });
+                        // Sort candidates by ranking
+                        const sortedCandidates = sortCandidatesByRankings(group.candidates, data.data.rankings);
 
                         return {
                             ...group,
                             isAnalyzing: false,
                             hasRankings: true,
                             rankings: data.data.rankings,
-                            candidates: rankedCandidates,
+                            candidates: sortedCandidates,
                             isExpanded: true // Auto-expand after analysis
                         };
                     }
                     return group;
                 }));
 
-                alert(`Successfully analyzed ${data.data.evaluated_candidates} candidates!`);
+                alert(`Successfully analyzed ${data.data.evaluated_candidates} candidates! Rankings saved.`);
             }
         } catch (error) {
             console.error('Error analyzing job:', error);
@@ -385,10 +528,9 @@ const CandidateManagement = () => {
         }
     };
 
-    // Get ranking for a candidate - UPDATED to match by user_id instead of candidate_id
+    // Get ranking for a candidate
     const getCandidateRanking = (jobGroup: JobGroup, candidate: Candidate): CandidateRanking | null => {
         if (!jobGroup.hasRankings || !jobGroup.rankings) return null;
-        // Match by user_id instead of candidate_id for more reliable matching
         return jobGroup.rankings.find(r => r.user_id === candidate.user._id) || null;
     };
 
@@ -481,6 +623,40 @@ const CandidateManagement = () => {
             });
         } finally {
             setDetailsLoading(false);
+        }
+    };
+
+    // Download CV from details dialog
+    const handleDownloadCVFromDialog = async (userId: string, userName: string) => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                alert('Authentication required');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/admin/download/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${userName.replace(/\s+/g, '_')}_CV.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } else {
+                alert('Failed to download CV');
+            }
+        } catch (error) {
+            console.error('Error downloading CV:', error);
+            alert('Failed to download CV');
         }
     };
 
@@ -954,7 +1130,7 @@ ${attachmentUrl}
             formData.append('description', `NDA for ${ndaDialog?.user?.name || 'candidate'}`);
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/nda/upload`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/nda/admin/upload`,
                 {
                     method: 'POST',
                     headers: {
@@ -1379,26 +1555,40 @@ ${attachmentUrl}
                                                     </div>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => handleAnalyzeJob(jobGroup.job_id)}
-                                                    disabled={jobGroup.isAnalyzing || jobGroup.total_candidates === 0}
-                                                    className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${jobGroup.isAnalyzing
-                                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                                        : 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
-                                                        }`}
-                                                >
-                                                    {jobGroup.isAnalyzing ? (
-                                                        <>
-                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                            <span>Analyzing...</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Sparkles className="w-4 h-4" />
-                                                            <span>{jobGroup.hasRankings ? 'Re-analyze' : 'Analyze'}</span>
-                                                        </>
-                                                    )}
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setBulkDownloadDialog(jobGroup)}
+                                                        disabled={jobGroup.total_candidates === 0}
+                                                        className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${jobGroup.total_candidates === 0
+                                                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                            : 'bg-white border border-[#5530FA] text-[#5530FA] hover:bg-[#5530FA] hover:text-white'
+                                                            }`}
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                        <span>Download CVs</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleAnalyzeJob(jobGroup.job_id)}
+                                                        disabled={jobGroup.isAnalyzing || jobGroup.total_candidates === 0}
+                                                        className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${jobGroup.isAnalyzing
+                                                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                            : 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
+                                                            }`}
+                                                    >
+                                                        {jobGroup.isAnalyzing ? (
+                                                            <>
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                                <span>Analyzing...</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Sparkles className="w-4 h-4" />
+                                                                <span>{jobGroup.hasRankings ? 'Re-analyze' : 'Analyze'}</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -1564,6 +1754,164 @@ ${attachmentUrl}
                 </div>
             </div>
 
+            {bulkDownloadDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setBulkDownloadDialog(null);
+                        }
+                    }}
+                >
+                    <div className="fixed inset-0 bg-black bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Bulk Download CVs - {bulkDownloadDialog.job_title}
+                            </h3>
+                            <p className="text-gray-600 text-sm">
+                                Select candidates whose CVs you want to download
+                            </p>
+                        </div>
+
+                        <div className="mb-4">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const jobId = bulkDownloadDialog.job_id;
+                                    const allSelected = bulkDownloadDialog.selectedCandidates?.size === bulkDownloadDialog.candidates.length;
+
+                                    setJobGroups(prev => prev.map(group => {
+                                        if (group.job_id === jobId) {
+                                            if (allSelected) {
+                                                return { ...group, selectedCandidates: new Set<string>() };
+                                            } else {
+                                                return {
+                                                    ...group,
+                                                    selectedCandidates: new Set(group.candidates.map(c => c.user._id))
+                                                };
+                                            }
+                                        }
+                                        return group;
+                                    }));
+
+                                    // Update the dialog state
+                                    setBulkDownloadDialog(prev => {
+                                        if (!prev) return null;
+                                        const allSelected = prev.selectedCandidates?.size === prev.candidates.length;
+                                        return {
+                                            ...prev,
+                                            selectedCandidates: allSelected
+                                                ? new Set<string>()
+                                                : new Set(prev.candidates.map(c => c.user._id))
+                                        };
+                                    });
+                                }}
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                {bulkDownloadDialog.selectedCandidates?.size === bulkDownloadDialog.candidates.length
+                                    ? 'Deselect All'
+                                    : 'Select All'}
+                            </button>
+                            <span className="ml-3 text-sm text-gray-600">
+                                {bulkDownloadDialog.selectedCandidates?.size || 0} of {bulkDownloadDialog.candidates.length} selected
+                            </span>
+                        </div>
+
+                        <div className="border rounded-lg divide-y max-h-96 overflow-y-auto">
+                            {bulkDownloadDialog.candidates.map((candidate) => {
+                                const isSelected = bulkDownloadDialog.selectedCandidates?.has(candidate.user._id) || false;
+
+                                return (
+                                    <label
+                                        key={candidate.id}
+                                        className="p-3 hover:bg-gray-50 flex items-center cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => {
+                                                const jobId = bulkDownloadDialog.job_id;
+                                                const userId = candidate.user._id;
+
+                                                setJobGroups(prev => prev.map(group => {
+                                                    if (group.job_id === jobId) {
+                                                        const newSelected = new Set(group.selectedCandidates);
+                                                        if (newSelected.has(userId)) {
+                                                            newSelected.delete(userId);
+                                                        } else {
+                                                            newSelected.add(userId);
+                                                        }
+                                                        return { ...group, selectedCandidates: newSelected };
+                                                    }
+                                                    return group;
+                                                }));
+
+                                                // Update the dialog state
+                                                setBulkDownloadDialog(prev => {
+                                                    if (!prev) return null;
+                                                    const newSelected = new Set(prev.selectedCandidates);
+                                                    if (newSelected.has(userId)) {
+                                                        newSelected.delete(userId);
+                                                    } else {
+                                                        newSelected.add(userId);
+                                                    }
+                                                    return { ...prev, selectedCandidates: newSelected };
+                                                });
+                                            }}
+                                            className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
+                                        />
+                                        <div className="ml-3 flex-1">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {candidate.user.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {candidate.user.email}
+                                            </div>
+                                        </div>
+                                        <div className={`px-2 py-1 rounded text-xs ${getStatusColor(candidate.status)}`}>
+                                            {getDisplayStatus(candidate.status)}
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setBulkDownloadDialog(null)}
+                                disabled={downloadingBulk}
+                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleBulkDownload(bulkDownloadDialog)}
+                                disabled={downloadingBulk || !bulkDownloadDialog.selectedCandidates?.size}
+                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {downloadingBulk ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>Downloading...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        <span>Download Selected ({bulkDownloadDialog.selectedCandidates?.size || 0})</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Delete Confirmation Dialog */}
             {deleteCandidate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1712,7 +2060,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* NDA Dialog - Keeping the same structure as before */}
+            {/* NDA Dialog */}
             {ndaDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setNdaDialog(null)}></div>
@@ -1891,7 +2239,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Candidate Details Dialog - Simplified version */}
+            {/* Candidate Details Dialog */}
             {detailsDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>
@@ -2175,6 +2523,12 @@ ${attachmentUrl}
                                                                     className="px-3 py-1 text-xs bg-[#5530FA] text-white rounded hover:opacity-90"
                                                                 >
                                                                     Preview
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDownloadCVFromDialog(detailsDialog.user._id, detailsDialog.user.name)}
+                                                                    className="px-3 py-1 text-xs border border-[#5530FA] text-[#5530FA] rounded hover:bg-[#5530FA] hover:text-white transition-colors"
+                                                                >
+                                                                    Download
                                                                 </button>
                                                             </div>
                                                         </div>
