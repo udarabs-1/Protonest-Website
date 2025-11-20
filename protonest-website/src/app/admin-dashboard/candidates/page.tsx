@@ -73,12 +73,19 @@ interface CandidateRanking {
     candidate_email: string;
     user_id: string;
     overall_score: number;
+    original_score?: number; // Add this line
     experience_match_score: number;
     skills_match_score: number;
     question_scores: Array<{
         question_index: number;
         score: number;
     }>;
+    differentiation_factors?: { // Add this block
+        cv_quality: number;
+        experience_depth: number;
+        skill_relevance: number;
+        career_trajectory: number;
+    };
     evaluated_at: string;
 }
 interface ExpertiseArea {
@@ -525,6 +532,56 @@ const CandidateManagement = () => {
                     ? { ...group, isAnalyzing: false }
                     : group
             ));
+        }
+    };
+
+    // Clear cache for a job
+    const handleClearCache = async (jobId: string, jobTitle: string) => {
+        if (!confirm(`Clear all AI rankings for "${jobTitle}"?\n\nThis will remove all cached rankings and you'll need to re-analyze candidates.`)) {
+            return;
+        }
+
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}/clear-rankings-cache`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to clear cache');
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Clear from localStorage
+                localStorage.removeItem(`job_rankings_${jobId}`);
+
+                // Update UI state
+                setJobGroups(prev => prev.map(group => {
+                    if (group.job_id === jobId) {
+                        return {
+                            ...group,
+                            hasRankings: false,
+                            rankings: [],
+                            candidates: group.candidates // Keep original order
+                        };
+                    }
+                    return group;
+                }));
+
+                alert(`Successfully cleared ${data.data?.deleted_count || 0} cached ranking(s) for "${jobTitle}"`);
+            }
+        } catch (error) {
+            console.error('Error clearing cache:', error);
+            alert('Failed to clear cache. Please try again.');
         }
     };
 
@@ -1568,6 +1625,15 @@ ${attachmentUrl}
                                                         <span>Download CVs</span>
                                                     </button>
 
+                                                    {jobGroup.hasRankings && (
+                                                        <button
+                                                            onClick={() => handleClearCache(jobGroup.job_id, jobGroup.job_title)}
+                                                            className="px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium bg-white border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                                        >
+                                                            <span>Clear</span>
+                                                        </button>
+                                                    )}
+
                                                     <button
                                                         onClick={() => handleAnalyzeJob(jobGroup.job_id)}
                                                         disabled={jobGroup.isAnalyzing || jobGroup.total_candidates === 0}
@@ -1648,8 +1714,10 @@ ${attachmentUrl}
                                                                         <td className="px-4 py-3 whitespace-nowrap">
                                                                             {ranking ? (
                                                                                 <div className="flex items-center gap-2">
-                                                                                    <div className="text-xs text-gray-500">
-                                                                                        {ranking.overall_score}%
+                                                                                    <div className="flex flex-col">
+                                                                                        <div className="text-sm font-semibold text-[#5530FA]">
+                                                                                            {ranking.overall_score.toFixed(2)}%
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
