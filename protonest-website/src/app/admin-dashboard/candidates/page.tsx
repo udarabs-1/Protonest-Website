@@ -346,13 +346,18 @@ const CandidateManagement = () => {
         fetchNDADocuments();
     }, []);
 
-    // Group candidates by job
+    // Around line 344 - Add filtering for unknown jobs in groupCandidatesByJob
     const groupCandidatesByJob = (candidates: Candidate[]): JobGroup[] => {
         const jobMap = new Map<string, JobGroup>();
 
         candidates.forEach(candidate => {
             const jobId = candidate.job?._id;
-            const jobTitle = candidate.job?.title || 'Unknown Job';
+            const jobTitle = candidate.job?.title;
+
+            // Skip candidates without valid job information
+            if (!jobId || !jobTitle) {
+                return;
+            }
 
             if (!jobMap.has(jobId)) {
                 jobMap.set(jobId, {
