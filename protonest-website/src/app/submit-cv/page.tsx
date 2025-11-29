@@ -45,6 +45,8 @@ interface AnalyzeResponse {
         suggested_jobs: SuggestedJob[];
         analysis_id: string;
         user_id: string;
+        cv_full_text?: string;
+        total_years_experience?: number;
     };
 }
 
@@ -246,6 +248,8 @@ export default function OnboardingPage() {
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [redirectAfterSubmit, setRedirectAfterSubmit] = useState<string | null>(null);
+    const [cvFullText, setCvFullText] = useState<string>('');
+    const [totalYearsExperience, setTotalYearsExperience] = useState<number>(0);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -462,7 +466,9 @@ export default function OnboardingPage() {
                 // Set everything from one response
                 setExtractedSkills(allSkills);
                 setExpertiseAreas(data.results.expertise_areas);
-                setSuggestedJobs(data.results.suggested_jobs); // Already filtered to 70%+
+                setSuggestedJobs(data.results.suggested_jobs);
+                setCvFullText(data.results.cv_full_text || '');  // ✅ Add this
+                setTotalYearsExperience(data.results.total_years_experience || 0);
 
                 console.log(`✅ CV analyzed: ${allSkills.length} skills, ${data.results.suggested_jobs.length} jobs (70%+ match)`);
             } else {
@@ -497,7 +503,9 @@ export default function OnboardingPage() {
             submitData.append('ndaAcknowledged', formData.ndaAcknowledged.toString());
             submitData.append('skills', JSON.stringify(extractedSkills));
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
-            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs)); // Already 70%+ matches
+            submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
+            submitData.append('cvFullText', cvFullText);
+            submitData.append('totalYearsExperience', totalYearsExperience.toString());
             submitData.append('skip_talent_pool', 'false');
 
             // CRITICAL: Tell backend NOT to analyze again - we already have results
@@ -584,7 +592,7 @@ export default function OnboardingPage() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [validateForm, formData, extractedSkills, expertiseAreas, suggestedJobs, pendingJob, redirectAfterSubmit, uploadedCV]);
+    }, [validateForm, formData.fullName, formData.email, formData.phoneNumber, formData.city, formData.workFunction, formData.ndaAcknowledged, extractedSkills, expertiseAreas, suggestedJobs, cvFullText, totalYearsExperience, uploadedCV, pendingJob, redirectAfterSubmit]);
 
     const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
         const file = event.target.files?.[0];
