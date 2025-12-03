@@ -21,7 +21,6 @@ interface Content {
     updated_at: string;
 }
 
-// Function to calculate read time
 const calculateReadTime = (content: string): string => {
     const textContent = content.replace(/<[^>]*>/g, '');
     const wordCount = textContent.split(/\s+/).length;
@@ -30,7 +29,6 @@ const calculateReadTime = (content: string): string => {
     return `${minutes} min read`;
 };
 
-// Function to format date
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {

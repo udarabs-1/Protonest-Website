@@ -100,14 +100,11 @@ const TalentPool = () => {
     const [sendNDA, setSendNDA] = useState(false);
     const [assigningJob, setAssigningJob] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // Application History States
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [applicationHistory, setApplicationHistory] = useState<ApplicationHistoryResponse | null>(null);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [historyError, setHistoryError] = useState<string | null>(null);
     const [historyStatusFilter, setHistoryStatusFilter] = useState<string>('');
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
@@ -126,7 +123,6 @@ const TalentPool = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -134,7 +130,6 @@ const TalentPool = () => {
         }
     }, [router]);
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -152,7 +147,6 @@ const TalentPool = () => {
         };
     }, [sidebarOpen, showJobDropdown]);
 
-    // Fetch freelancers data from API
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         if (!adminToken) {
@@ -170,7 +164,6 @@ const TalentPool = () => {
                 throw new Error('No authentication token found');
             }
 
-            // Remove pagination parameters
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/talent-pool/admin`, {
                 method: 'GET',
                 headers: {
@@ -261,10 +254,8 @@ const TalentPool = () => {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
 
-                // Open in new tab
                 const newWindow = window.open(url, '_blank');
 
-                // Clean up the URL after a delay
                 if (newWindow) {
                     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
@@ -330,7 +321,6 @@ const TalentPool = () => {
 
             const data = await response.json();
 
-            // Check if response has the expected structure
             if (data.status === 'success' && data.data) {
                 setApplicationHistory(data.data);
             } else {
@@ -554,7 +544,7 @@ const TalentPool = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -584,16 +574,16 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Application History Modal */}
+
             {showHistoryModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-3xl bg-opacity-50 p-4 overflow-y-auto">
                     <div className="w-full max-w-6xl bg-white rounded-[25px] shadow-xl my-8">
-                        {/* Modal Header */}
+
                         <div className="sticky top-0 bg-white rounded-t-[25px] border-b border-gray-200 p-6 z-10">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
@@ -622,7 +612,7 @@ const TalentPool = () => {
                                 </button>
                             </div>
 
-                            {/* Summary Cards */}
+
                             {applicationHistory && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -660,7 +650,7 @@ const TalentPool = () => {
                                 </div>
                             )}
 
-                            {/* Filter */}
+
                             <div className="mt-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Filter by Status
@@ -683,7 +673,7 @@ const TalentPool = () => {
                             </div>
                         </div>
 
-                        {/* Modal Content */}
+
                         <div className="p-6 max-h-[60vh] overflow-y-auto">
                             {loadingHistory ? (
                                 <div className="flex items-center justify-center py-12">
@@ -713,7 +703,7 @@ const TalentPool = () => {
                                             className={`border rounded-lg p-5 hover:shadow-md transition-shadow ${app.job_deleted ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
                                                 }`}
                                         >
-                                            {/* Application Header */}
+
                                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-start gap-3">
@@ -750,16 +740,16 @@ const TalentPool = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Job Details */}
+
                                             <div className="space-y-3 text-sm">
-                                                {/* Description */}
+
                                                 <div>
                                                     <p className="text-gray-600 line-clamp-2">
                                                         {app.job_details.description}
                                                     </p>
                                                 </div>
 
-                                                {/* Skills */}
+
                                                 {app.job_details.required_skills && app.job_details.required_skills.length > 0 && (
                                                     <div>
                                                         <span className="font-medium text-gray-700">Required Skills: </span>
@@ -776,7 +766,7 @@ const TalentPool = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Deadline */}
+
                                                 {app.job_details.deadline && (
                                                     <div className="flex items-center gap-2 text-gray-600">
                                                         <FileText className="w-4 h-4" />
@@ -785,7 +775,7 @@ const TalentPool = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Application Timeline */}
+
                                                 <div className="pt-3 border-t border-gray-200">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
                                                         <div>
@@ -825,7 +815,7 @@ const TalentPool = () => {
                             )}
                         </div>
 
-                        {/* Modal Footer */}
+
                         <div className="sticky bottom-0 bg-white rounded-b-[25px] border-t border-gray-200 p-6">
                             <button
                                 onClick={resetHistoryModal}
@@ -838,11 +828,11 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Assignment Popup */}
+
             {showAssignPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                     <div className="w-full max-w-[600px] bg-white rounded-[25px] shadow-xl p-6 max-h-[90vh] overflow-y-auto">
-                        {/* Header */}
+
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-xl font-semibold text-[#6c6c6c] mb-2">
@@ -861,7 +851,7 @@ const TalentPool = () => {
                             </button>
                         </div>
 
-                        {/* Freelancer Name Section */}
+
                         <div className="mb-6">
                             <label className="block text-[#6c6c6c] text-base font-medium mb-3">
                                 Freelancer Name
@@ -879,7 +869,7 @@ const TalentPool = () => {
                             </div>
                         </div>
 
-                        {/* Job Selection Section */}
+
                         <div className="mb-6" ref={dropdownRef}>
                             <label className="block text-[#6c6c6c] text-base font-medium mb-3">
                                 Select Job
@@ -906,7 +896,7 @@ const TalentPool = () => {
                                     <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showJobDropdown ? 'rotate-180' : ''}`} />
                                 </button>
 
-                                {/* Job Dropdown */}
+
                                 {showJobDropdown && (
                                     <div className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-[200px] overflow-y-auto z-20 mt-1">
                                         {filteredJobs.length > 0 ? (
@@ -936,7 +926,7 @@ const TalentPool = () => {
                                 )}
                             </div>
 
-                            {/* Selected Job Display */}
+
                             {selectedJob && (
                                 <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                                     <div className="font-medium text-blue-800">Selected: {selectedJob.title}</div>
@@ -947,7 +937,7 @@ const TalentPool = () => {
                             )}
                         </div>
 
-                        {/* Action Buttons */}
+
                         <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={handleAssignToJob}
@@ -968,7 +958,7 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -984,7 +974,7 @@ const TalentPool = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -996,7 +986,7 @@ const TalentPool = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -1059,7 +1049,7 @@ const TalentPool = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -1100,7 +1090,7 @@ const TalentPool = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button

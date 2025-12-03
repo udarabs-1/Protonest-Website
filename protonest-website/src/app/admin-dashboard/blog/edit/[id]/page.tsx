@@ -32,7 +32,6 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Custom TextStyle extension to support fontSize
 const CustomTextStyle = TextStyle.extend({
     addAttributes() {
         return {
@@ -88,7 +87,6 @@ const EditBlogPost = () => {
     const params = useParams();
     const blogId = params.id as string;
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -101,7 +99,6 @@ const EditBlogPost = () => {
         router.push('/admin-signin');
     };
 
-    // Custom resizable image extension
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
 
@@ -173,7 +170,6 @@ const EditBlogPost = () => {
                     ${node.attrs.style || ''}
                 `;
 
-                // Add resize handles
                 const resizeHandles = ['nw', 'ne', 'sw', 'se'].map(position => {
                     const handle = document.createElement('div');
                     handle.className = `resize-handle resize-${position}`;
@@ -192,7 +188,6 @@ const EditBlogPost = () => {
                     return handle;
                 });
 
-                // Show/hide handles on selection
                 const showHandles = () => {
                     resizeHandles.forEach(handle => handle.style.display = 'block');
                     container.style.outline = '2px solid #5530fa';
@@ -212,7 +207,6 @@ const EditBlogPost = () => {
 
                 img.addEventListener('click', showHandles);
 
-                // Click outside to deselect
                 const handleDocumentClick = (e: Event) => {
                     const target = e.target as HTMLElement;
                     if (!container.contains(target)) {
@@ -222,7 +216,6 @@ const EditBlogPost = () => {
 
                 document.addEventListener('click', handleDocumentClick);
 
-                // Resize functionality
                 resizeHandles.forEach((handle, index) => {
                     handle.addEventListener('mousedown', (e) => {
                         e.preventDefault();
@@ -237,7 +230,6 @@ const EditBlogPost = () => {
                             let newWidth = startWidth;
                             let newHeight = startHeight;
 
-                            // Calculate new dimensions based on handle position
                             const position = ['nw', 'ne', 'sw', 'se'][index];
 
                             if (position.includes('e')) {
@@ -246,10 +238,8 @@ const EditBlogPost = () => {
                                 newWidth = startWidth - deltaX;
                             }
 
-                            // Maintain aspect ratio
                             newHeight = newWidth / aspectRatio;
 
-                            // Apply minimum size constraints
                             newWidth = Math.max(50, Math.min(800, newWidth));
                             newHeight = Math.max(50, Math.min(600, newHeight));
 
@@ -261,7 +251,6 @@ const EditBlogPost = () => {
                             document.removeEventListener('mousemove', onMouseMove);
                             document.removeEventListener('mouseup', onMouseUp);
 
-                            // Update the node attributes
                             if (typeof getPos === 'function') {
                                 const pos = getPos();
                                 if (pos !== undefined) {
@@ -703,7 +692,6 @@ const EditBlogPost = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -713,7 +701,6 @@ const EditBlogPost = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -762,7 +749,6 @@ const EditBlogPost = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />

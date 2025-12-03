@@ -232,7 +232,6 @@ const AllJobsPage = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Debounced screen size check
     const checkIsMobile = useCallback(() => {
         setIsMobile(window.innerWidth < 1024);
     }, []);
@@ -253,7 +252,6 @@ const AllJobsPage = () => {
         };
     }, [checkIsMobile]);
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -261,7 +259,6 @@ const AllJobsPage = () => {
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -313,7 +310,6 @@ const AllJobsPage = () => {
         };
     }, [sidebarOpen, showProfileDropdown]);
 
-    // Fetch jobs from API
     useEffect(() => {
         const fetchAllJobs = async () => {
             setLoading(true);
@@ -355,7 +351,6 @@ const AllJobsPage = () => {
         fetchUserProfile();
     }, []);
 
-    // Optimized filter handlers
     const handleFilterToggle = useCallback((filterType: FilterType, value: string) => {
         setFilters(prev => {
             const currentFilters = [...prev[filterType]];
@@ -396,7 +391,6 @@ const AllJobsPage = () => {
         setVisibleJobsCount(prev => prev + 3);
     }, []);
 
-    // Memoized filter calculations
     const filteredJobs = useMemo(() => {
         let filtered = jobs;
 
@@ -431,16 +425,13 @@ const AllJobsPage = () => {
         return filtered;
     }, [jobs, filters, searchQuery]);
 
-    // Reset visible jobs count when filters change
     useEffect(() => {
         setVisibleJobsCount(3);
     }, [filters, searchQuery]);
 
-    // Determine which jobs to display
     const jobsToShow = isMobile ? filteredJobs.slice(0, visibleJobsCount) : filteredJobs;
     const hasMoreJobs = isMobile && visibleJobsCount < filteredJobs.length;
 
-    // Get unique categories from jobs
     const uniqueCategories = useMemo(() => {
         return Array.from(new Set(jobs.map(job => job.category)));
     }, [jobs]);
@@ -508,7 +499,7 @@ const AllJobsPage = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+            
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -518,7 +509,7 @@ const AllJobsPage = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+            
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -611,7 +602,7 @@ const AllJobsPage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Mobile Sidebar */}
+                        
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -674,7 +665,7 @@ const AllJobsPage = () => {
                             </div>
                         </div>
 
-                        {/* Desktop Sidebar */}
+                        
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -715,7 +706,7 @@ const AllJobsPage = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content Area */}
+                        
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                             <div className="flex items-center mb-6">
                                 <button
@@ -753,7 +744,7 @@ const AllJobsPage = () => {
                             </div>
 
                             <div className="flex flex-col lg:flex-row gap-8">
-                                {/* Desktop Filters Sidebar */}
+                                
                                 <aside className="w-full lg:w-1/4 hidden lg:block">
                                     <div className="bg-white rounded-xl p-6 shadow-lg">
                                         <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
@@ -765,7 +756,7 @@ const AllJobsPage = () => {
                                             Clear All Filters
                                         </button>
 
-                                        {/* Experience Level Filter */}
+                                        
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
                                             {FILTER_OPTIONS.experience.map(level => (
@@ -778,7 +769,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        {/* Category Filter */}
+                                        
                                         {uniqueCategories.length > 0 && (
                                             <div className="mb-8">
                                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h3>
@@ -793,7 +784,7 @@ const AllJobsPage = () => {
                                             </div>
                                         )}
 
-                                        {/* Location Filter */}
+                                        
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
                                             {FILTER_OPTIONS.location.map(location => (
@@ -806,7 +797,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        {/* Date Posted Filter */}
+                                        
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
                                             {FILTER_OPTIONS.datePosted.map(date => (
@@ -819,7 +810,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        {/* Job Type Filter */}
+                                        
                                         <div>
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
                                             {FILTER_OPTIONS.jobType.map(type => (
@@ -838,13 +829,13 @@ const AllJobsPage = () => {
                                     </div>
                                 </aside>
 
-                                {/* Jobs Content */}
+                                
                                 <div className="w-full lg:w-3/4">
                                     <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
                                         Explore Variety of Jobs
                                     </h2>
 
-                                    {/* Search Bar */}
+                                    
                                     <div className="relative w-full mb-8 lg:mb-12">
                                         <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
                                             <input
@@ -867,7 +858,7 @@ const AllJobsPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Mobile Filter Section */}
+                                    
                                     <div className="lg:hidden mb-6">
                                         <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                                             Filter Your Fit
@@ -897,7 +888,7 @@ const AllJobsPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Mobile Filter Popup */}
+                                        
                                         {showMobileFilters && (
                                             <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                                                 <div className="flex justify-between items-center mb-6">
@@ -919,7 +910,7 @@ const AllJobsPage = () => {
                                                 </div>
 
                                                 <div className="space-y-8">
-                                                    {/* Experience Level Filter */}
+                                                    
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
                                                         {FILTER_OPTIONS.experience.map(level => (
@@ -932,7 +923,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    {/* Category Filter */}
+                                                    
                                                     {uniqueCategories.length > 0 && (
                                                         <div>
                                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h5>
@@ -947,7 +938,7 @@ const AllJobsPage = () => {
                                                         </div>
                                                     )}
 
-                                                    {/* Location Filter */}
+                                                    
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
                                                         {FILTER_OPTIONS.location.map(location => (
@@ -960,7 +951,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    {/* Date Posted Filter */}
+                                                    
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
                                                         {FILTER_OPTIONS.datePosted.map(date => (
@@ -973,7 +964,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    {/* Job Type Filter */}
+                                                    
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
                                                         {FILTER_OPTIONS.jobType.map(type => (
@@ -1009,7 +1000,7 @@ const AllJobsPage = () => {
                                         )}
                                     </div>
 
-                                    {/* Job Listings */}
+                                    
                                     {jobsToShow.length > 0 ? (
                                         <>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1021,7 +1012,7 @@ const AllJobsPage = () => {
                                                 ))}
                                             </div>
 
-                                            {/* Load More Button for Mobile */}
+                                            
                                             {hasMoreJobs && (
                                                 <div className="mt-8 flex justify-center">
                                                     <button

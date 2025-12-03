@@ -45,17 +45,15 @@ const faqs = [
     }
 ];
 
-// Memoized gradient icon component
 const GradientIcon = ({ letter }: { letter: string }) => (
     <div className="w-[30px] h-[30px] px-[13px] py-[7px] bg-[conic-gradient(from_180deg_at_50%_50%,_rgba(85,_48,_250,_0.93)_0deg,_rgba(245,_29,_165,_0.93)_360deg)] rounded-[20px] outline outline-offset-[-1px] outline-[#dedede] inline-flex flex-col justify-center items-center gap-2.5 flex-shrink-0">
         <div className="text-white text-base font-normal font-poppins">{letter}</div>
     </div>
 );
 
-// Memoized FAQ item component
 const FAQItem = ({ faq }: { faq: typeof faqs[0] }) => (
     <div className="space-y-3 lg:space-y-4">
-        {/* Question */}
+
         <div className="flex items-start gap-3 lg:gap-4">
             <GradientIcon letter="Q" />
             <h4 className="text-[#3C3C3C] text-sm lg:text-[15px] xl:text-base font-normal font-poppins mt-1 flex-1">
@@ -63,7 +61,7 @@ const FAQItem = ({ faq }: { faq: typeof faqs[0] }) => (
             </h4>
         </div>
 
-        {/* Answer */}
+
         <div className="flex items-start gap-3 lg:gap-4">
             <GradientIcon letter="A" />
             <p className="text-[#6c6c6c]/93 text-sm lg:text-[15px] xl:text-base font-normal font-poppins mt-1 italic flex-1">
@@ -76,43 +74,37 @@ const FAQItem = ({ faq }: { faq: typeof faqs[0] }) => (
 export default function FAQSection() {
     const [showAll, setShowAll] = useState(false);
 
-    // Optimized navbar height calculation with memoization
     const getNavbarHeight = useCallback(() => {
-        // Check if we're in browser environment
-        if (typeof window === 'undefined') return 80; // Default for SSR
 
-        // Get current screen width
+        if (typeof window === 'undefined') return 80;
+
         const screenWidth = window.innerWidth;
 
-        // Return different navbar heights based on screen size
-        if (screenWidth < 768) { // Mobile (md breakpoint)
-            return 80; // Smaller navbar height for mobile
-        } else if (screenWidth < 1024) { // Tablet (lg breakpoint)
-            return 100; // Medium navbar height for tablet
+        if (screenWidth < 768) {
+            return 80;
+        } else if (screenWidth < 1024) {
+            return 100;
         } else {
-            return 120; // Larger navbar height for desktop
+            return 120;
         }
     }, []);
 
     const scrollToGetInTouch = useCallback(() => {
-        // Find the "Get in Touch" section by looking for the form or title
+
         const getInTouchSection = document.querySelector('form') ||
             document.querySelector('[data-section="get-in-touch"]');
 
         if (getInTouchSection) {
-            // Get the element's position
+
             const elementRect = getInTouchSection.getBoundingClientRect();
             const elementTop = elementRect.top + window.pageYOffset;
 
-            // Get responsive navbar height
             const navbarHeight = getNavbarHeight();
 
-            // Calculate the center position accounting for viewport height and navbar
             const viewportHeight = window.innerHeight;
             const elementHeight = elementRect.height;
             const centerOffset = (viewportHeight - elementHeight) / 2;
 
-            // Scroll to center the form in the visible area below the navbar
             const scrollToPosition = elementTop - navbarHeight - centerOffset;
 
             window.scrollTo({
@@ -126,7 +118,6 @@ export default function FAQSection() {
         setShowAll(prev => !prev);
     }, []);
 
-    // Memoized FAQ calculations
     const { displayedFaqs, hasMoreFaqs } = useMemo(() => {
         const displayedFaqs = showAll ? faqs : faqs.slice(0, 5);
         const hasMoreFaqs = faqs.length > 5;
@@ -139,7 +130,7 @@ export default function FAQSection() {
             className="mt-20 md:mt-32 xl:mt-30 mb-20 md:mb-32 xl:mb-40 w-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px] py-6 md:py-12"
             aria-labelledby="faq-title"
         >
-            {/* Header */}
+
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-8 md:mb-12">
                 <h2
                     id="faq-title"
@@ -158,7 +149,7 @@ export default function FAQSection() {
                 </div>
             </div>
 
-            {/* FAQ Items */}
+
             <div className="mt-12 md:mt-16 lg:mt-20 w-full max-w-[870px] space-y-6 md:space-y-8">
                 {displayedFaqs.map((faq) => (
                     <FAQItem
@@ -168,7 +159,7 @@ export default function FAQSection() {
                 ))}
             </div>
 
-            {/* Load More / Show Less Button */}
+
             {hasMoreFaqs && (
                 <div className="flex justify-center mt-8 sm:mt-12 lg:mt-15">
                     <button

@@ -45,7 +45,7 @@ export default function Contact() {
 
       if (response.ok) {
         setSubmitStatus('success');
-        setFormData({ name: '', email: '', message: '' }); // Reset form
+        setFormData({ name: '', email: '', message: '' });
       } else {
         setSubmitStatus('error');
         console.error('Error:', result.message || result.error);
@@ -66,7 +66,7 @@ export default function Contact() {
   return (
     <div>
       <Head>
-        {/* Primary Meta Tags */}
+
         <title>Contact Us - Protonest</title>
         <meta
           name="description"
@@ -74,16 +74,16 @@ export default function Contact() {
         />
         <meta name="keywords" content="IoT prototyping contact, Protonest email, IoT development quote, hardware prototyping consultation" />
 
-        {/* Canonical URL */}
+
         <link rel="canonical" href="https://protonest.co/contact-us" />
 
-        {/* Open Graph */}
+
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://protonest.co/contact-us" />
         <meta property="og:title" content="Contact Us - Protonest" />
         <meta property="og:description" content="Get in touch with our IoT engineering team for prototyping services and project consultations." />
 
-        {/* Structured Data */}
+
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -110,7 +110,7 @@ export default function Contact() {
       </Head>
       <Navbar />
       <div>
-        {/* Hero Section */}
+
         <div className="relative">
           <div className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] relative">
             <Image
@@ -124,9 +124,9 @@ export default function Contact() {
               className="absolute inset-0"
             />
 
-            {/* Glassmorphic Cards - Only visible on screens smaller than sm */}
+
             <div className="block sm:hidden">
-              {/* Top Left Card */}
+
               <div className="absolute top-4 left-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
               </div>
             </div>
@@ -151,15 +151,15 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Gradient Overlay */}
+
           <div className="absolute -bottom-4 sm:bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
         </div>
 
-        {/* Form Section */}
+
         <div className="relative w-full min-h-screen sm:min-h-[1100px] 2xl:min-h-[1300px]">
-          {/* Combined Background & Decorative Image */}
+
           <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[500px] sm:-mt-[500px] md:-mt-[100px] lg:-mt-[110px] xl:-mt-[150px]">
-            {/* Mobile Image - shown on small screens */}
+
             <div className="block md:hidden">
               <Image
                 src="/contact-2-mobile.svg"
@@ -171,7 +171,7 @@ export default function Contact() {
                 style={{ objectFit: 'cover', objectPosition: 'center' }}
               />
             </div>
-            {/* Desktop Image - shown on medium screens and up */}
+
             <div className="hidden md:block max-w-[1440px] ml-auto h-full">
               <Image
                 src="/contact-2.webp"
@@ -185,18 +185,18 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Content Container */}
+
           <div className="relative z-20 pt-[120px] sm:pt-[140px] md:pt-[170px] lg:pt-[200px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
-            {/* Title - Centered */}
+
             <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] sm:top-[50px] md:top-[65px] lg:top-[80px] w-full max-w-[1127px] text-center px-4">
               <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                 Get in Touch
               </span>
             </div>
 
-            {/* Form Container - Left Aligned */}
+
             <form onSubmit={handleSubmit} className="max-w-[500px] sm:max-w-[600px] md:max-w-[500px] lg:max-w-[550px] xl:max-w-[770px] space-y-[30px] sm:space-y-[35px] md:space-y-[42px] lg:space-y-[50px]">
-              {/* Name Field */}
+
               <div>
                 <label htmlFor="name" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Name
@@ -215,7 +215,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Email Field */}
+
               <div>
                 <label htmlFor="email" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Email
@@ -234,7 +234,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Message Field */}
+
               <div>
                 <label htmlFor="message" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
                   Message
@@ -252,7 +252,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Submit Button - Left Aligned */}
+
               <div className="inline-flex justify-start items-center mt-4 text-center w-full">
                 <button
                   type="submit"
@@ -266,9 +266,9 @@ export default function Contact() {
           </div>
         </div>
 
-        {/* Contact Cards Section */}
+
         <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-25 sm:-mt-80 md:-mt-60 lg:-mt-50 2xl:-mt-[250px] pb-[60px] lg:pb-0">
-          {/* Background Image */}
+
           <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[520px] lg:h-[585px] overflow-hidden">
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
@@ -284,7 +284,7 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Title */}
+
           <div className="relative z-10 w-full text-center px-4 mb-[60px] sm:mb-[70px] md:mb-[80px] lg:mb-[90px]">
             <h2 className="text-[20px] sm:text-[22px] md:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[38px] md:leading-[48px] lg:leading-[55px]">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Reach Us </span>
@@ -292,9 +292,9 @@ export default function Contact() {
             </h2>
           </div>
 
-          {/* Contact Cards Container */}
+
           <div className="relative z-10 flex flex-col sm:flex-col md:flex-row justify-center items-center gap-6 sm:gap-6 md:gap-8 lg:gap-[67px] px-4 sm:px-8 md:px-12 lg:px-[160px]">
-            {/* Location Card */}
+
             <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[300px] lg:w-[329px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
               <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
@@ -313,7 +313,7 @@ export default function Contact() {
               <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
             </div>
 
-            {/* Phone Card */}
+
             <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[300px] lg:w-[329px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
               <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
@@ -332,7 +332,7 @@ export default function Contact() {
               <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
             </div>
 
-            {/* Email Card */}
+
             <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[300px] lg:w-[329px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
               <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
@@ -357,7 +357,7 @@ export default function Contact() {
       </div>
       <Footer />
 
-      {/* Status Modal - Rendered at the root level */}
+
       <StatusModal
         showModal={showModal}
         isSubmitting={isSubmitting}

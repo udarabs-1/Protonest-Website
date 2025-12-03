@@ -31,7 +31,6 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Check if user is signed in
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         setIsUserSignedIn(!!token);
@@ -60,7 +59,6 @@ export default function Navbar() {
         setMobileMenuOpen(false);
     };
 
-    // Handle conditional navigation for Careers
     const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (isUserSignedIn) {
@@ -135,13 +133,12 @@ export default function Navbar() {
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
 
-    // Show the account button on careers or jobs routes
     const showAccountButton = pathname === "/careers" ||
         pathname.startsWith('/jobs');
 
     return (
         <div>
-            {/* Desktop Navigation (lg screens and up) */}
+            
             <div className="hidden lg:block">
                 <div className="relative">
                     <nav className="fixed top-0 left-0 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-4 md:py-[35px] lg:py-[40px] xl:py-[43px] 2xl:py-[50px] z-50 bg-white/80 backdrop-blur-[20px]">
@@ -320,7 +317,7 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Navigation */}
+            
             <div className="block lg:hidden">
                 <div className="relative">
                     <AnimatePresence>

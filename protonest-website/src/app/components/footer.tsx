@@ -16,7 +16,7 @@ export default function Footer() {
         const gradientClass = "text-transparent bg-clip-text bg-gradient-to-r from-[#f51da5] to-[#5530fa]";
 
         if (isDesktop) {
-            // Desktop: Show gradient for active item only if nothing is hovered, or for hovered item
+
             if (hoveredItem === path) {
                 return gradientClass;
             } else if (hoveredItem === null && isActive(path)) {
@@ -25,7 +25,7 @@ export default function Footer() {
                 return baseClass;
             }
         } else {
-            // Mobile: Show gradient for active item only
+
             return isActive(path) ? gradientClass : baseClass;
         }
     };
@@ -40,10 +40,10 @@ export default function Footer() {
 
     return (
         <>
-            {/* Desktop Footer (lg screens and up) */}
+
             <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[450px] xl:h-[520px] 2xl:h-[578px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
                 <div className="rounded-b-[25px] relative h-full overflow-hidden">
-                    {/* Background Video - Convert GIF to video for better performance */}
+
                     <div className="absolute inset-0 z-0">
                         <video
                             autoPlay
@@ -55,7 +55,7 @@ export default function Footer() {
                         >
                             <source src="/footerWeb.webm" type="video/webm" />
                             <source src="/footerWeb.mp4" type="video/mp4" />
-                            {/* Fallback to optimized image if video fails */}
+
                             <Image
                                 src="/footerWeb.gif"
                                 alt="Footer background"
@@ -71,7 +71,7 @@ export default function Footer() {
                         </video>
                     </div>
 
-                    {/* Gradient Overlay */}
+
                     <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
 
                     <div className='relative z-20 lg:px-[60px] xl:px-[80px] 2xl:px-[98px]'>
@@ -181,9 +181,9 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Mobile Footer (lg screens and down) */}
+
             <div className="block lg:hidden w-full h-[643px] md:h-[720px] relative">
-                {/* Background Video with margins - Convert GIF to video for better performance */}
+
                 <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
                     <video
                         autoPlay
@@ -195,7 +195,7 @@ export default function Footer() {
                     >
                         <source src="/footerMobile.webm" type="video/webm" />
                         <source src="/footerMobile.mp4" type="video/mp4" />
-                        {/* Fallback to optimized image if video fails */}
+
                         <Image
                             src="/footerMobile.gif"
                             alt="Footer background"
@@ -211,12 +211,12 @@ export default function Footer() {
                     </video>
                 </div>
 
-                {/* Gradient Overlay with same margins */}
+
                 <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] bg-gradient-to-t from-transparent to-white z-10" />
 
-                {/* Content Container - Centered within the GIF area */}
+
                 <div className="relative z-20 h-full">
-                    {/* Logo - Centered */}
+
                     <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
                         <Image
                             src="/logo.png"
@@ -230,12 +230,12 @@ export default function Footer() {
                         />
                     </div>
 
-                    {/* Address - Centered */}
+
                     <div className="w-[211px] md:w-[280px] left-1/2 -translate-x-1/2 top-[467px] md:top-[545px] absolute text-center text-[#6c6c6c] text-xs md:text-sm font-normal font-poppins">
                         503/A, Welivita Road, Kaduwela, Colombo, Sri Lanka. 10640
                     </div>
 
-                    {/* Social Icons - Centered */}
+
                     <div className="left-1/2 -translate-x-1/2 top-[514px] md:top-[590px] absolute inline-flex justify-center items-center gap-[26px] md:gap-[32px]">
                         <Link href="https://lk.linkedin.com/company/protonestiot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                             <svg className="w-4 h-4 md:w-5 md:h-5" fill="#4d4d4d" viewBox="0 0 24 24">
@@ -259,9 +259,9 @@ export default function Footer() {
                         </Link>
                     </div>
 
-                    {/* Menu Columns Container - Centered */}
+
                     <div className="w-[280px] md:w-[320px] left-1/2 -translate-x-1/2 top-[51px] md:top-[60px] absolute flex justify-start items-start gap-[60px] md:gap-[80px]">
-                        {/* Left Menu Column */}
+
                         <div className="inline-flex flex-col justify-start items-start gap-5 md:gap-6">
                             <Link href="/" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/', false)}`}>Home</div>
@@ -274,7 +274,7 @@ export default function Footer() {
                             </Link>
                         </div>
 
-                        {/* Right Menu Column */}
+
                         <div className="inline-flex flex-col justify-start items-start gap-5 md:gap-6">
                             <Link href="/blog" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/blog', false)}`}>Blog</div>
@@ -288,14 +288,14 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Get a Quote Button - Centered */}
+
                     <Link href="https://iot-system-design-tool.protonest.co/" target="_blank" rel="noopener noreferrer" className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[215px] md:top-[250px]">
                         <button className="w-full p-2.5 md:p-3 rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5 hover:scale-105">
                             <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal hover:scale-105">Get a Quote</div>
                         </button>
                     </Link>
 
-                    {/* Copyright - Centered */}
+
                     <div className="w-full px-4 md:px-8 left-1/2 -translate-x-1/2 top-[573px] md:top-[650px] absolute text-center bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent text-xs md:text-sm font-normal font-poppins leading-normal">
                         © 2025 Protonest. All Rights Reserved.
                     </div>

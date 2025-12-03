@@ -41,7 +41,6 @@ const TestimonialSection = () => {
         }
     ];
 
-    // Settings for mobile carousel
     const mobileCarouselSettings = {
         dots: false,
         infinite: true,
@@ -53,7 +52,6 @@ const TestimonialSection = () => {
         autoplaySpeed: 3000,
     };
 
-    // Settings for desktop carousel
     const desktopCarouselSettings = {
         dots: false,
         infinite: true,
@@ -75,7 +73,6 @@ const TestimonialSection = () => {
         ]
     };
 
-    // Desktop carousel handlers
     const handleCardMouseEnter = () => {
         if (sliderRef.current) {
             sliderRef.current.slickPause();
@@ -88,7 +85,6 @@ const TestimonialSection = () => {
         }
     };
 
-    // Mobile carousel handlers
     const handleMobileCardInteractionStart = () => {
         if (mobileSliderRef.current) {
             mobileSliderRef.current.slickPause();
@@ -103,7 +99,7 @@ const TestimonialSection = () => {
 
     return (
         <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
-            {/* Background Container - Now visible on all screens */}
+
             <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 left-0 right-0 z-10">
                 <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px]">
                     <Image
@@ -118,9 +114,9 @@ const TestimonialSection = () => {
                 </div>
             </div>
 
-            {/* Content Container - Independent with standard padding */}
+
             <div className="relative z-10 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-                {/* Header Section */}
+
                 <div className="w-full mb-12 lg:mb-16">
                     <div className="text-center">
                         <h2 className="text-[#6c6c6c] text-2xl lg:text-[26px] font-medium font-montserrat leading-tight md:leading-[1.3]">
@@ -135,7 +131,7 @@ const TestimonialSection = () => {
                     </div>
                 </div>
 
-                {/* Mobile Carousel (hidden on lg and above) */}
+
                 <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2">
                     <Slider ref={mobileSliderRef} {...mobileCarouselSettings}>
                         {testimonials.map((testimonial) => (
@@ -154,7 +150,7 @@ const TestimonialSection = () => {
                     </Slider>
                 </div>
 
-                {/* Desktop Carousel (visible on lg and above) */}
+
                 <div className="hidden lg:block mt-10 mb-10 md:mb-12 lg:mb-16">
                     <Slider ref={sliderRef} {...desktopCarouselSettings}>
                         {testimonials.map((testimonial) => (
@@ -176,7 +172,7 @@ const TestimonialSection = () => {
                     </Slider>
                 </div>
 
-                {/* Contact Us Button */}
+
                 <div className="flex justify-center">
                     <Link href="/contact-us">
                         <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
@@ -189,7 +185,6 @@ const TestimonialSection = () => {
     );
 };
 
-// Enhanced Testimonial Card Component with mobile interaction support
 const TestimonialCard = ({
     name,
     company,
@@ -222,13 +217,10 @@ const TestimonialCard = ({
             setShowScrollIndicator(hasVerticalScroll && !isAtBottom);
         };
 
-        // Check initially
         checkScrollable();
 
-        // Add scroll listener
         container.addEventListener('scroll', checkScrollable);
 
-        // Add resize observer to handle dynamic content changes
         const resizeObserver = new ResizeObserver(checkScrollable);
         resizeObserver.observe(container);
 
@@ -236,38 +228,32 @@ const TestimonialCard = ({
             container.removeEventListener('scroll', checkScrollable);
             resizeObserver.disconnect();
         };
-    }, [text]); // Re-run when text changes
+    }, [text]);
 
-    // Handle user interaction start (touch/scroll)
     const handleInteractionStart = () => {
         if (!isMobile || isUserInteracting) return;
 
         setIsUserInteracting(true);
         onInteractionStart?.();
 
-        // Clear any existing timeout
         if (interactionTimeoutRef.current) {
             clearTimeout(interactionTimeoutRef.current);
         }
     };
 
-    // Handle user interaction end with delay
     const handleInteractionEnd = () => {
         if (!isMobile) return;
 
-        // Clear any existing timeout
         if (interactionTimeoutRef.current) {
             clearTimeout(interactionTimeoutRef.current);
         }
 
-        // Set a timeout to resume autoplay after user stops interacting
         interactionTimeoutRef.current = setTimeout(() => {
             setIsUserInteracting(false);
             onInteractionEnd?.();
-        }, 2000); // Resume after 2 seconds of inactivity
+        }, 2000);
     };
 
-    // Function to handle scroll indicator click
     const handleScrollIndicatorClick = () => {
         const container = scrollContainerRef.current;
         if (!container) return;
@@ -276,14 +262,12 @@ const TestimonialCard = ({
             handleInteractionStart();
         }
 
-        // Scroll down by a reasonable amount (e.g., 50px)
         container.scrollBy({
             top: 50,
             behavior: 'smooth'
         });
     };
 
-    // Handle scroll events
     const handleScroll = () => {
         if (isMobile) {
             handleInteractionStart();
@@ -291,7 +275,6 @@ const TestimonialCard = ({
         }
     };
 
-    // Clean up timeout on unmount
     useEffect(() => {
         return () => {
             if (interactionTimeoutRef.current) {
@@ -311,14 +294,14 @@ const TestimonialCard = ({
             className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative"
             {...cardProps}
         >
-            {/* Scrollable Content Container with normal Tailwind scrollbar */}
+
             <div
                 ref={scrollContainerRef}
                 className="w-full max-w-[259px] h-full overflow-y-auto"
                 onScroll={handleScroll}
             >
                 <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
-                    {/* Avatar with Gradient Border */}
+
                     <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center">
                         <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] bg-white rounded-full flex justify-center items-center overflow-hidden">
                             <Image
@@ -334,20 +317,20 @@ const TestimonialCard = ({
                         </div>
                     </div>
 
-                    {/* Client Info */}
+
                     <div className="flex flex-col gap-2 sm:gap-[13px]">
                         <div className="text-black text-sm sm:text-base font-normal font-poppins">{name}</div>
                         <div className="text-[#989898] text-xs font-normal font-poppins">{company}</div>
                     </div>
 
-                    {/* Testimonial Text */}
+
                     <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed">
                         {text}
                     </p>
                 </div>
             </div>
 
-            {/* Clickable Double Arrow Scroll Indicator */}
+
             {showScrollIndicator && (
                 <button
                     onClick={handleScrollIndicatorClick}
@@ -355,7 +338,7 @@ const TestimonialCard = ({
                     aria-label="Scroll down to see more content"
                 >
                     <div className="animate-bounce flex flex-col items-center -space-y-4">
-                        {/* First arrow - Blue */}
+
                         <svg
                             className="w-5 h-5 text-[#5530fa] animate-pulse"
                             fill="currentColor"
@@ -367,7 +350,7 @@ const TestimonialCard = ({
                                 clipRule="evenodd"
                             />
                         </svg>
-                        {/* Second arrow - Pink */}
+
                         <svg
                             className="w-5 h-5 text-[#f51da5] animate-pulse"
                             fill="currentColor"

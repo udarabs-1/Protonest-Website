@@ -8,7 +8,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-// Define a Blog type for better type safety
 interface Blog {
   id: string;
   title: string;
@@ -23,7 +22,6 @@ interface Blog {
   updated_at: string;
 }
 
-// Subscription form interface
 interface SubscriptionForm {
   name: string;
   email: string;
@@ -31,15 +29,13 @@ interface SubscriptionForm {
   newsletter: boolean;
 }
 
-// Function to extract excerpt from HTML content
 const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
-  // Remove HTML tags
+
   const textContent = htmlContent.replace(/<[^>]*>/g, '');
-  // Trim whitespace and limit length
+
   const trimmed = textContent.trim();
   if (trimmed.length <= maxLength) return trimmed;
 
-  // Find the last complete word within the limit
   const truncated = trimmed.substring(0, maxLength);
   const lastSpaceIndex = truncated.lastIndexOf(' ');
 
@@ -48,16 +44,14 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 150): string =>
     : truncated + '...';
 };
 
-// Function to estimate read time
 const calculateReadTime = (content: string): string => {
   const textContent = content.replace(/<[^>]*>/g, '');
   const wordCount = textContent.split(/\s+/).length;
-  const readingSpeed = 200; // Average words per minute
+  const readingSpeed = 200;
   const minutes = Math.ceil(wordCount / readingSpeed);
   return `${minutes} min read`;
 };
 
-// Blog Card Component with mobile-friendly hover effects
 const BlogCard = ({ blog }: { blog: Blog }) => {
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useOnScreen(ref);
@@ -80,10 +74,8 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
     };
   }, []);
 
-  // For mobile and small screens, use intersection observer; for larger screens, use hover
   const shouldShowEffects = isMobile ? isVisible : false;
 
-  // Generate excerpt and read time from content
   const excerpt = blog.excerpt || extractExcerpt(blog.content);
   const readTime = calculateReadTime(blog.content);
 
@@ -94,7 +86,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
         className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
           }`}
       >
-        {/* Image Container with hover effects */}
+
         <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
           <Image
             src={blog.cover_image || '/default-blog-image.jpg'}
@@ -110,7 +102,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
               target.src = '/default-blog-image.jpg';
             }}
           />
-          {/* Read More Button with solid background and gradient text */}
+
           <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
@@ -119,7 +111,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
           </button>
         </div>
 
-        {/* Content Container */}
+
         <div className="space-y-4">
           <h3 className={`text-[16px] xl:text-[18px] font-medium font-poppins leading-[1.4] transition-all duration-300 md:text-[#6c6c6c] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#6c6c6c]'
             }`}>
@@ -150,31 +142,27 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 };
 
 export default function BlogSection() {
-  // State for blogs data
+
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State for search functionality
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  // State for load more functionality
   const [showAllBlogs, setShowAllBlogs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // State for subscription form
   const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
     name: '',
     email: '',
     career_updates: false,
-    newsletter: true // Default to true since they're subscribing to newsletter
+    newsletter: true
   });
 
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
-  // Fetch blogs from API
   const fetchBlogs = useCallback(async () => {
     try {
       setLoading(true);
@@ -201,18 +189,16 @@ export default function BlogSection() {
     } catch (err) {
       console.error('Error fetching blogs:', err);
       setError(err instanceof Error ? err.message : 'Failed to load blogs');
-      setBlogs([]); // Set empty array as fallback
+      setBlogs([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Fetch blogs on component mount
   useEffect(() => {
     fetchBlogs();
   }, [fetchBlogs]);
 
-  // Debounced screen size check
   const checkScreenSize = useCallback(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
@@ -233,15 +219,13 @@ export default function BlogSection() {
     };
   }, [checkScreenSize]);
 
-  // Memoized category calculations
   const allCategories = useMemo(() =>
     Array.from(new Set(blogs.flatMap(blog => blog.categories)))
-      .filter(category => category && category.trim() !== '') // Filter out empty categories
+      .filter(category => category && category.trim() !== '')
       .sort((a: string, b: string) => a.localeCompare(b)),
     [blogs]
   );
 
-  // Memoized filtered blogs
   const filteredBlogs = useMemo(() =>
     blogs.filter(blog =>
       selectedCategories.every(cat => blog.categories.includes(cat))
@@ -249,7 +233,6 @@ export default function BlogSection() {
     [blogs, selectedCategories]
   );
 
-  // Memoized display calculations
   const { visibleBlogs, shouldShowLoadMoreButton } = useMemo(() => {
     const blogsToDisplay = selectedCategories.length > 0 ? filteredBlogs : blogs;
     const limit = isMobile ? 3 : 6;
@@ -260,7 +243,6 @@ export default function BlogSection() {
     return { visibleBlogs, shouldShowLoadMoreButton };
   }, [blogs, filteredBlogs, selectedCategories, isMobile, showAllBlogs]);
 
-  // Optimized event handlers
   const handleLoadMore = useCallback(() => {
     setShowAllBlogs(prev => !prev);
   }, []);
@@ -292,7 +274,6 @@ export default function BlogSection() {
     setShowAllBlogs(false);
   }, []);
 
-  // Handle subscription form submission
   const handleSubscriptionSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSubscriptionStatus('loading');
@@ -334,7 +315,6 @@ export default function BlogSection() {
     }
   }, [subscriptionForm]);
 
-  // Handle form input changes
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setSubscriptionForm(prev => ({
@@ -350,7 +330,7 @@ export default function BlogSection() {
   return (
     <div>
       <Head>
-        {/* Primary Meta Tags */}
+
         <title>Blog - Protonest</title>
         <meta
           name="description"
@@ -358,16 +338,16 @@ export default function BlogSection() {
         />
         <meta name="keywords" content="IoT blog, prototyping insights, hardware development, IoT technology, sensor selection, IoT communication" />
 
-        {/* Canonical URL */}
+
         <link rel="canonical" href="https://protonest.co/blog" />
 
-        {/* Open Graph */}
+
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://protonest.co/blog" />
         <meta property="og:title" content="Blog - Protonest" />
         <meta property="og:description" content="Expert articles on IoT prototyping, hardware selection, and system design from Protonest engineers." />
 
-        {/* Structured Data */}
+
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -384,7 +364,7 @@ export default function BlogSection() {
       </Head>
       <Navbar />
       <main className="md:mt-[50px] mb-30">
-        {/* Hero Section with Image */}
+
         <section className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
           <div className="absolute inset-0 z-0">
             <Image
@@ -397,10 +377,10 @@ export default function BlogSection() {
             />
           </div>
 
-          {/* Top Edge Gradient Overlay */}
+
           <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
 
-          {/* Bottom Edge Gradient Overlay */}
+
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
 
           <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
@@ -415,7 +395,7 @@ export default function BlogSection() {
               </p>
             </div>
 
-            {/* Search bar with flex positioning */}
+
             <div className="py-20 w-full">
               <form onSubmit={handleSearch} className="relative h-[45px] opacity-100 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden flex items-center">
                 <input
@@ -468,7 +448,7 @@ export default function BlogSection() {
         </section>
 
         <section className="px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
-          {/* Loading State */}
+
           {loading && (
             <div className="flex justify-center items-center py-20">
               <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin"></div>
@@ -476,7 +456,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* Error State */}
+
           {error && (
             <div className="flex justify-center items-center py-20">
               <div className="text-center">
@@ -491,7 +471,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* No Blogs State */}
+
           {!loading && !error && blogs.length === 0 && (
             <div className="flex justify-center items-center py-20">
               <div className="text-center">
@@ -501,7 +481,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* No Filtered Results */}
+
           {!loading && !error && blogs.length > 0 && filteredBlogs.length === 0 && selectedCategories.length > 0 && (
             <div className="flex justify-center items-center py-20">
               <div className="text-center">
@@ -516,7 +496,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* Blog Grid */}
+
           {!loading && !error && visibleBlogs.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
               {visibleBlogs.map((blog) => (
@@ -525,7 +505,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* Load More / Show Less Button */}
+
           {!loading && !error && shouldShowLoadMoreButton && (
             <div className="flex justify-center mt-8 sm:mt-12">
               <button
@@ -539,7 +519,7 @@ export default function BlogSection() {
             </div>
           )}
 
-          {/* Newsletter Section */}
+
           <section className="mt-20 sm:mt-40 lg:mt-60 relative">
             <div className="flex flex-col items-start gap-12 sm:gap-16 lg:gap-24">
               <div className="w-full lg:w-1/2 relative">
@@ -547,7 +527,7 @@ export default function BlogSection() {
                   Stay Ahead in the IoT Space
                 </h2>
 
-                {/* Mobile/Tablet Image - shows only on md and smaller screens, positioned at right edge */}
+
                 <div className="block lg:hidden absolute -top-40 right-0 -mr-4 sm:-mr-8">
                   <Image
                     src="/blogs-2-mobile.svg"
@@ -563,7 +543,7 @@ export default function BlogSection() {
                   Get the latest articles, insights, and stories delivered to your inbox.
                 </p>
 
-                {/* Working Newsletter Form */}
+
                 <form onSubmit={handleSubscriptionSubmit} className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
                   <div className="space-y-1">
                     <label htmlFor="newsletter-name" className="text-[#6c6c6c] text-base xl:text-lg xl:font-medium font-poppins leading-[30px]">
@@ -611,7 +591,7 @@ export default function BlogSection() {
                     </label>
                   </div>
 
-                  {/* Status Message */}
+
                   {subscriptionMessage && (
                     <div className={`text-sm font-poppins ${subscriptionStatus === 'success' ? 'text-green-600' : 'text-red-600'
                       }`} role="alert">
@@ -632,7 +612,7 @@ export default function BlogSection() {
               </div>
             </div>
 
-            {/* Desktop image - position image to the rightmost side on larger screens (lg and up) */}
+
             <div className="hidden lg:block absolute top-1/2 transform -translate-y-1/2 right-0 -mr-15 xl:-mr-32 2xl:-mr-45">
               <Image
                 src="/blogs-2.svg"

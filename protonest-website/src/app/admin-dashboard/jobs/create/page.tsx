@@ -24,8 +24,6 @@ const JobCreator = () => {
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [error, setError] = useState('');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // Form state
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -38,7 +36,7 @@ const JobCreator = () => {
         experience: 'intermediate',
         deadline: '',
         schedule_at: '',
-        publish_later: false,  // Changed from publish_now to publish_later
+        publish_later: false,
         selection_criteria: {
             prompt: '',
             questions: [{ question: '', weight: 5, type: 'technical' as 'technical' | 'experience' | 'soft_skills' }],
@@ -47,7 +45,6 @@ const JobCreator = () => {
         }
     });
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -74,7 +71,6 @@ const JobCreator = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -113,7 +109,6 @@ const JobCreator = () => {
         }
     };
 
-    // Handle selection criteria changes
     const handleCriteriaChange = (field: string, value: string | number) => {
         setFormData(prev => ({
             ...prev,
@@ -124,7 +119,6 @@ const JobCreator = () => {
         }));
     };
 
-    // Handle question changes
     const handleQuestionChange = (index: number, field: string, value: string | number) => {
         const newQuestions = [...formData.selection_criteria.questions];
         newQuestions[index] = {
@@ -141,7 +135,6 @@ const JobCreator = () => {
         }));
     };
 
-    // Add new question
     const addQuestion = () => {
         setFormData(prev => ({
             ...prev,
@@ -155,10 +148,9 @@ const JobCreator = () => {
         }));
     };
 
-    // Remove question
     const removeQuestion = (index: number) => {
         if (formData.selection_criteria.questions.length <= 1) {
-            return; // Keep at least one question
+            return;
         }
 
         const newQuestions = formData.selection_criteria.questions.filter((_, i) => i !== index);
@@ -171,16 +163,14 @@ const JobCreator = () => {
         }));
     };
 
-    // Get minimum datetime for schedule_at (current datetime)
     const getMinDateTime = () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         return now.toISOString().slice(0, 16);
     };
 
-    // Prepare API data
     const prepareApiData = (isDraft: boolean = false) => {
-        // Filter out empty questions
+
         const validQuestions = formData.selection_criteria.questions.filter(q => q.question.trim() !== '');
 
         return {
@@ -195,7 +185,7 @@ const JobCreator = () => {
             requirements: formData.requirements.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             required_skills: formData.required_skills.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             schedule_at: (formData.publish_later && formData.schedule_at) ? new Date(formData.schedule_at).toISOString() : null,
-            publish_now: isDraft ? false : !formData.publish_later, // If not draft and not publish_later, then publish now
+            publish_now: isDraft ? false : !formData.publish_later,
             selection_criteria: {
                 prompt: formData.selection_criteria.prompt.trim(),
                 questions: validQuestions,
@@ -205,9 +195,8 @@ const JobCreator = () => {
         };
     };
 
-    // Validate form for publishing
     const validateForm = (isDraft: boolean = false) => {
-        // For draft, only title is required
+
         if (isDraft) {
             if (!formData.title.trim()) {
                 setError('Job title is required to save as draft');
@@ -216,7 +205,6 @@ const JobCreator = () => {
             return true;
         }
 
-        // For publishing, all required fields must be filled
         if (!formData.title.trim()) {
             setError('Job title is required');
             return false;
@@ -257,7 +245,6 @@ const JobCreator = () => {
             return false;
         }
 
-        // Validate schedule time if publish_later is checked
         if (formData.publish_later) {
             if (!formData.schedule_at) {
                 setError('Please select a publish date and time or uncheck "Publish Later"');
@@ -286,7 +273,6 @@ const JobCreator = () => {
         return true;
     };
 
-    // Handle save as draft
     const handleSaveAsDraft = async () => {
         setIsSavingDraft(true);
         setError('');
@@ -328,7 +314,7 @@ const JobCreator = () => {
             }
 
             if (data.status === 'success') {
-                // Show success message
+
                 alert('Job saved as draft successfully!');
                 router.push('/admin-dashboard/jobs');
             } else {
@@ -342,7 +328,6 @@ const JobCreator = () => {
         }
     };
 
-    // Handle submit (publish)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -414,7 +399,7 @@ const JobCreator = () => {
 
     return (
         <div className="font-poppins min-h-screen bg-white relative">
-            {/* ... SVG Gradient and other components remain the same ... */}
+
             <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
@@ -447,7 +432,7 @@ const JobCreator = () => {
                 </defs>
             </svg>
 
-            {/* Logout Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -481,7 +466,7 @@ const JobCreator = () => {
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -508,7 +493,7 @@ const JobCreator = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -571,7 +556,7 @@ const JobCreator = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -612,7 +597,7 @@ const JobCreator = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
@@ -657,7 +642,7 @@ const JobCreator = () => {
                         )}
 
                         <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
-                            {/* Basic Information Section */}
+
                             <div className="mb-8">
                                 <h2 className="text-lg font-semibold text-[#4e4e4e] mb-4 pb-2 border-b border-gray-200">
                                     Basic Information
@@ -753,7 +738,7 @@ const JobCreator = () => {
                                     </div>
                                 </div>
 
-                                {/* Publishing Options */}
+
                                 <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="flex items-start mb-3">
                                         <input
@@ -853,7 +838,7 @@ const JobCreator = () => {
                                 </div>
                             </div>
 
-                            {/* Selection Criteria Section */}
+
                             <div className="mb-8">
                                 <h2 className="text-lg font-semibold text-[#4e4e4e] mb-2 pb-2 border-b border-gray-200">
                                     Selection Criteria for AI Ranking
@@ -862,7 +847,7 @@ const JobCreator = () => {
                                     These criteria will be used to automatically rank and analyze candidates using AI when you click the &quot;Analyze&quot; button.
                                 </p>
 
-                                {/* Experience Requirements */}
+
                                 <div className="mb-6">
                                     <h3 className="text-base font-medium text-[#4e4e4e] mb-3">Experience Requirements</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -901,7 +886,7 @@ const JobCreator = () => {
                                     </div>
                                 </div>
 
-                                {/* AI Evaluation Prompt */}
+
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
                                         Ideal Candidate Description (AI Prompt)
@@ -922,7 +907,7 @@ const JobCreator = () => {
                                     </p>
                                 </div>
 
-                                {/* Evaluation Questions */}
+
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between mb-3">
                                         <div>
@@ -1003,7 +988,7 @@ const JobCreator = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Visual indicator of weight */}
+
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <span className="text-xs text-gray-500">Priority:</span>
                                                     <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -1043,7 +1028,7 @@ const JobCreator = () => {
                                 </div>
                             </div>
 
-                            {/* Form Actions */}
+
                             <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
                                 <button
                                     type="button"

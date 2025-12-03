@@ -147,7 +147,6 @@ const Dashboard = () => {
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -427,7 +426,7 @@ const Dashboard = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+            
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">

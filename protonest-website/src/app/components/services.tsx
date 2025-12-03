@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOnScreen } from './use-on-screen';
 
-// Service data interface
 interface ServiceData {
     id: number;
     normalImage: string;
@@ -11,7 +10,6 @@ interface ServiceData {
     alt: string;
 }
 
-// Memoized service data for different screen sizes
 const useServiceData = () => {
     return useMemo(() => ({
         '2xl': [
@@ -65,7 +63,6 @@ const useServiceData = () => {
     }), []);
 };
 
-// Enhanced ServiceCard component with optimizations
 const ServiceCard = ({
     service,
     enableMobileHover = false,
@@ -81,7 +78,6 @@ const ServiceCard = ({
     const isVisible = useOnScreen(ref);
     const [isMobile, setIsMobile] = useState(false);
 
-    // Debounced screen size check
     const checkIsMobile = useCallback(() => {
         setIsMobile(window.innerWidth < 768);
     }, []);
@@ -104,7 +100,6 @@ const ServiceCard = ({
 
     const shouldShowHover = enableMobileHover && isMobile && isVisible;
 
-    // Generate responsive sizes based on width
     const generateSizes = useCallback((cardWidth: string) => {
         if (cardWidth.includes('580') || cardWidth.includes('510') || cardWidth.includes('470') || cardWidth.includes('450')) {
             return "(max-width: 640px) 90vw, (max-width: 768px) 80vw, (max-width: 1024px) 60vw, 580px";
@@ -118,10 +113,10 @@ const ServiceCard = ({
             className="relative group"
             style={{ width, height }}
         >
-            {/* Background layer */}
+
             <div className="absolute inset-0 rounded-[25px] sm:rounded-[35px] shadow-lg group-hover:shadow-xl transition-shadow duration-300" />
 
-            {/* Normal image */}
+
             <div
                 className={`absolute inset-0 transition-opacity duration-300 rounded-[25px] sm:rounded-[35px] overflow-hidden ${shouldShowHover ? 'opacity-0' : 'group-hover:opacity-0'
                     }`}
@@ -133,11 +128,11 @@ const ServiceCard = ({
                     className="object-cover"
                     quality={85}
                     sizes={generateSizes(width)}
-                    priority={service.id <= 2} // Prioritize first 2 service cards
+                    priority={service.id <= 2}
                 />
             </div>
 
-            {/* Hover image */}
+
             <div
                 className={`absolute inset-0 transition-opacity duration-300 rounded-[25px] sm:rounded-[35px] overflow-hidden ${shouldShowHover
                     ? 'opacity-100 delay-300'
@@ -151,14 +146,13 @@ const ServiceCard = ({
                     className="object-cover"
                     quality={85}
                     sizes={generateSizes(width)}
-                    loading="lazy" // Lazy load hover images
+                    loading="lazy"
                 />
             </div>
         </div>
     );
 };
 
-// Optimized layout components
 const ServiceLayout2XL = ({ services }: { services: ServiceData[] }) => (
     <div className="hidden 2xl:block mt-[140px] mb-[100px] h-[749px] relative">
         <div className="absolute inset-0 z-0">
@@ -193,13 +187,13 @@ const ServiceLayout2XL = ({ services }: { services: ServiceData[] }) => (
             </div>
 
             <div className="w-full">
-                {/* First row */}
+
                 <div className="flex justify-between mb-14 gap-4">
                     <ServiceCard service={services[0]} width="580px" height="210px" />
                     <ServiceCard service={services[1]} width="300px" height="210px" />
                     <ServiceCard service={services[2]} width="300px" height="210px" />
                 </div>
-                {/* Second row */}
+
                 <div className="flex justify-between gap-4">
                     <ServiceCard service={services[3]} width="300px" height="210px" />
                     <ServiceCard service={services[4]} width="580px" height="210px" />
@@ -245,13 +239,13 @@ const ServiceLayoutXL = ({ services }: { services: ServiceData[] }) => (
             </div>
 
             <div className="w-full">
-                {/* First row */}
+
                 <div className="flex justify-between mb-12 gap-3">
                     <ServiceCard service={services[0]} width="510px" height="186px" />
                     <ServiceCard service={services[1]} width="264px" height="186px" />
                     <ServiceCard service={services[2]} width="264px" height="186px" />
                 </div>
-                {/* Second row */}
+
                 <div className="flex justify-between gap-3">
                     <ServiceCard service={services[3]} width="264px" height="186px" />
                     <ServiceCard service={services[4]} width="510px" height="186px" />
@@ -262,8 +256,7 @@ const ServiceLayoutXL = ({ services }: { services: ServiceData[] }) => (
     </div>
 );
 
-// Continue with other layout components following the same pattern...
-// (I'll include the rest in a follow-up for brevity)
+
 
 const ServicesSection = () => {
     const serviceData = useServiceData();
@@ -272,7 +265,7 @@ const ServicesSection = () => {
         <>
             <ServiceLayout2XL services={serviceData['2xl']} />
             <ServiceLayoutXL services={serviceData.xl} />
-            {/* Add other layout components here */}
+
         </>
     );
 };

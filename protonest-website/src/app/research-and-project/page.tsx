@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-// Define types for Research and Projects
 interface ResearchProject {
   id: string;
   title: string;
@@ -20,7 +19,6 @@ interface ResearchProject {
   updated_at: string;
 }
 
-// Subscription form interface
 interface SubscriptionForm {
   name: string;
   email: string;
@@ -28,7 +26,6 @@ interface SubscriptionForm {
   newsletter: boolean;
 }
 
-// Function to extract excerpt from HTML content
 const extractExcerpt = (htmlContent: string, maxLength: number = 100): string => {
   const textContent = htmlContent.replace(/<[^>]*>/g, '');
   const trimmed = textContent.trim();
@@ -42,7 +39,6 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 100): string =>
     : truncated + '...';
 };
 
-// Card Component
 const ContentCard = ({ item, type }: { item: ResearchProject; type: 'research' | 'projects' }) => {
   const excerpt = item.excerpt || extractExcerpt(item.content);
 
@@ -84,17 +80,14 @@ export default function ResearchProjects() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [activeTab, setActiveTab] = useState<'research' | 'projects'>('research');
 
-  // State for content data
   const [researchData, setResearchData] = useState<ResearchProject[]>([]);
   const [projectsData, setProjectsData] = useState<ResearchProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State for search and load more
   const [searchTerm, setSearchTerm] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  // State for subscription form
   const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
     name: '',
     email: '',
@@ -105,7 +98,6 @@ export default function ResearchProjects() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
-  // Fetch research data
   const fetchResearch = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/research?published=true`, {
@@ -132,7 +124,6 @@ export default function ResearchProjects() {
     }
   }, []);
 
-  // Fetch projects data
   const fetchProjects = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/projects?published=true`, {
@@ -159,7 +150,6 @@ export default function ResearchProjects() {
     }
   }, []);
 
-  // Fetch all data on mount
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -177,10 +167,8 @@ export default function ResearchProjects() {
     fetchAllData();
   }, [fetchResearch, fetchProjects]);
 
-  // Get current data based on active tab
   const currentData = activeTab === 'research' ? researchData : projectsData;
 
-  // Filter data based on search
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return currentData;
 
@@ -190,7 +178,6 @@ export default function ResearchProjects() {
     );
   }, [currentData, searchTerm]);
 
-  // Calculate visible items
   const { visibleItems, shouldShowLoadMoreButton } = useMemo(() => {
     const limit = 6;
     const visibleCount = showAll ? filteredData.length : limit;
@@ -200,7 +187,6 @@ export default function ResearchProjects() {
     return { visibleItems, shouldShowLoadMoreButton };
   }, [filteredData, showAll]);
 
-  // Event handlers
   const handleLoadMore = useCallback(() => {
     setShowAll(prev => !prev);
   }, []);
@@ -214,7 +200,6 @@ export default function ResearchProjects() {
     setShowAll(false);
   }, []);
 
-  // Handle subscription
   const handleSubscriptionSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSubscriptionStatus('loading');
@@ -268,7 +253,7 @@ export default function ResearchProjects() {
     <div>
       <Navbar />
       <div className="mb-30">
-        {/* Hero Section */}
+        
         <div
           className="mt-[50px] h-[400px] sm:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center relative"
           style={{ backgroundImage: "url('/research-1.svg')" }}
@@ -294,7 +279,7 @@ export default function ResearchProjects() {
 
         <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[130px]">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Desktop Filters Sidebar */}
+            
             <div className="hidden lg:block w-full lg:w-1/4">
               <div className="text-[#6c6c6c] text-xl font-medium font-poppins mb-6">
                 Filter
@@ -336,9 +321,9 @@ export default function ResearchProjects() {
               </div>
             </div>
 
-            {/* Main Content */}
+            
             <div className="w-full lg:w-3/4">
-              {/* Mobile Filter Header */}
+              
               <div className="lg:hidden mb-6">
                 <div className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                   Filter Your Fit
@@ -364,7 +349,7 @@ export default function ResearchProjects() {
                   </div>
                 </div>
 
-                {/* Mobile Filter Popup */}
+                
                 {showMobileFilters && (
                   <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                     <div className="flex justify-between items-center mb-6">
@@ -430,7 +415,7 @@ export default function ResearchProjects() {
                 )}
               </div>
 
-              {/* Tabs */}
+              
               <div className="flex justify-start gap-3 mb-4">
                 <button
                   onClick={() => {
@@ -470,7 +455,7 @@ export default function ResearchProjects() {
                 </button>
               </div>
 
-              {/* Search */}
+              
               <form onSubmit={handleSearch} className="relative h-[50px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden mb-8">
                 <input
                   type="text"
@@ -490,7 +475,7 @@ export default function ResearchProjects() {
                 </div>
               </form>
 
-              {/* Loading State */}
+              
               {loading && (
                 <div className="flex justify-center items-center py-20">
                   <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin"></div>
@@ -498,7 +483,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              {/* Error State */}
+              
               {error && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -513,7 +498,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              {/* No Content State */}
+              
               {!loading && !error && currentData.length === 0 && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -525,7 +510,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              {/* No Filtered Results */}
+              
               {!loading && !error && currentData.length > 0 && filteredData.length === 0 && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -540,7 +525,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              {/* Content Grid */}
+              
               {!loading && !error && visibleItems.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
                   {visibleItems.map((item) => (
@@ -549,7 +534,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              {/* Load More Button */}
+              
               {!loading && !error && shouldShowLoadMoreButton && (
                 <div className="flex justify-center mt-8 sm:mt-12">
                   <button
@@ -563,7 +548,7 @@ export default function ResearchProjects() {
             </div>
           </div>
 
-          {/* Newsletter Section */}
+          
           <div className="mt-20 sm:mt-40 lg:mt-60 relative">
             <div className="flex flex-col items-start gap-12 sm:gap-16 lg:gap-24">
               <div className="w-full lg:w-1/2">

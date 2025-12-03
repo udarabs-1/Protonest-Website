@@ -49,8 +49,6 @@ const JobEditor = () => {
     const [error, setError] = useState('');
     const [jobData, setJobData] = useState<JobData | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // Form state
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -72,7 +70,6 @@ const JobEditor = () => {
         }
     });
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -99,7 +96,6 @@ const JobEditor = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch job data using the public API endpoint
     useEffect(() => {
         const fetchJobData = async () => {
             if (!jobId) {
@@ -142,7 +138,6 @@ const JobEditor = () => {
         fetchJobData();
     }, [jobId]);
 
-    // Initialize form with fetched job data
     useEffect(() => {
         if (jobData) {
             const selectionCriteria = jobData.selection_criteria || {
@@ -177,7 +172,6 @@ const JobEditor = () => {
         }
     }, [jobData]);
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -191,7 +185,6 @@ const JobEditor = () => {
         };
     }, [sidebarOpen]);
 
-    // Helper function to get auth headers
     const getAuthHeaders = () => {
         const adminToken = localStorage.getItem('adminToken');
         return {
@@ -217,7 +210,6 @@ const JobEditor = () => {
         }
     };
 
-    // Handle selection criteria changes
     const handleCriteriaChange = (field: string, value: string | number) => {
         setFormData(prev => ({
             ...prev,
@@ -228,7 +220,6 @@ const JobEditor = () => {
         }));
     };
 
-    // Handle question changes
     const handleQuestionChange = (index: number, field: string, value: string | number) => {
         const newQuestions = [...formData.selection_criteria.questions];
         newQuestions[index] = {
@@ -245,7 +236,6 @@ const JobEditor = () => {
         }));
     };
 
-    // Add new question
     const addQuestion = () => {
         setFormData(prev => ({
             ...prev,
@@ -259,10 +249,9 @@ const JobEditor = () => {
         }));
     };
 
-    // Remove question
     const removeQuestion = (index: number) => {
         if (formData.selection_criteria.questions.length <= 1) {
-            return; // Keep at least one question
+            return;
         }
 
         const newQuestions = formData.selection_criteria.questions.filter((_, i) => i !== index);
@@ -275,16 +264,14 @@ const JobEditor = () => {
         }));
     };
 
-    // Get minimum datetime for schedule_at (current datetime)
     const getMinDateTime = () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         return now.toISOString().slice(0, 16);
     };
 
-    // Prepare API data
     const prepareApiData = () => {
-        // Filter out empty questions
+
         const validQuestions = formData.selection_criteria.questions.filter(q => q.question.trim() !== '');
 
         return {
@@ -299,7 +286,7 @@ const JobEditor = () => {
             requirements: formData.requirements.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             required_skills: formData.required_skills.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             schedule_at: (formData.publish_later && formData.schedule_at) ? new Date(formData.schedule_at).toISOString() : null,
-            publish_now: !formData.publish_later, // If not publish_later, then publish now
+            publish_now: !formData.publish_later,
             selection_criteria: {
                 prompt: formData.selection_criteria.prompt.trim(),
                 questions: validQuestions,
@@ -309,7 +296,6 @@ const JobEditor = () => {
         };
     };
 
-    // Validate form
     const validateForm = () => {
         if (!formData.title.trim()) {
             setError('Job title is required');
@@ -351,7 +337,6 @@ const JobEditor = () => {
             return false;
         }
 
-        // Validate schedule time if publish_later is checked
         if (formData.publish_later) {
             if (!formData.schedule_at) {
                 setError('Please select a publish date and time or uncheck "Publish Later"');
@@ -449,7 +434,6 @@ const JobEditor = () => {
         'Other Roles'
     ];
 
-    // Show loading state while fetching job data
     if (isLoadingData) {
         return (
             <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
@@ -495,7 +479,7 @@ const JobEditor = () => {
                 </defs>
             </svg>
 
-            {/* Logout Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -529,7 +513,7 @@ const JobEditor = () => {
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -556,7 +540,7 @@ const JobEditor = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -619,7 +603,7 @@ const JobEditor = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -660,7 +644,7 @@ const JobEditor = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
@@ -705,7 +689,7 @@ const JobEditor = () => {
                         )}
 
                         <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
-                            {/* Basic Information Section */}
+
                             <div className="mb-8">
                                 <h2 className="text-lg font-semibold text-[#4e4e4e] mb-4 pb-2 border-b border-gray-200">
                                     Basic Information
@@ -801,7 +785,7 @@ const JobEditor = () => {
                                     </div>
                                 </div>
 
-                                {/* Publishing Options */}
+
                                 <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="flex items-start mb-3">
                                         <input
@@ -901,7 +885,7 @@ const JobEditor = () => {
                                 </div>
                             </div>
 
-                            {/* Selection Criteria Section */}
+
                             <div className="mb-8">
                                 <h2 className="text-lg font-semibold text-[#4e4e4e] mb-2 pb-2 border-b border-gray-200">
                                     Selection Criteria for AI Ranking
@@ -910,7 +894,7 @@ const JobEditor = () => {
                                     These criteria will be used to automatically rank and analyze candidates using AI when you click the &quot;Analyze&quot; button.
                                 </p>
 
-                                {/* Experience Requirements */}
+
                                 <div className="mb-6">
                                     <h3 className="text-base font-medium text-[#4e4e4e] mb-3">Experience Requirements</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -949,7 +933,7 @@ const JobEditor = () => {
                                     </div>
                                 </div>
 
-                                {/* AI Evaluation Prompt */}
+
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
                                         Ideal Candidate Description (AI Prompt)
@@ -970,7 +954,7 @@ const JobEditor = () => {
                                     </p>
                                 </div>
 
-                                {/* Evaluation Questions */}
+
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between mb-3">
                                         <div>
@@ -1051,7 +1035,7 @@ const JobEditor = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Visual indicator of weight */}
+
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <span className="text-xs text-gray-500">Priority:</span>
                                                     <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -1091,7 +1075,7 @@ const JobEditor = () => {
                                 </div>
                             </div>
 
-                            {/* Form Actions */}
+
                             <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
                                 <button
                                     type="button"

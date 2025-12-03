@@ -10,7 +10,6 @@ import Navbar from "../components/navbar";
 import OurTeamSection from "../components/our-team";
 import { useOnScreen } from "../components/use-on-screen";
 
-// Value Card Component with mobile-friendly hover effects
 type ValueType = {
   title: string;
   icon: string;
@@ -21,8 +20,6 @@ const ValueCard = ({ value }: { value: ValueType }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useOnScreen(ref);
-
-  // For mobile and small screens, use intersection observer; for larger screens, use hover
   const shouldShowEffects = isMobile ? isVisible : false;
 
   return (
@@ -31,7 +28,6 @@ const ValueCard = ({ value }: { value: ValueType }) => {
       className={`group w-[280px] sm:w-[200px] md:w-[220px] lg:w-64 h-[280px] sm:h-[320px] md:h-[340px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[30px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] flex flex-col items-center relative transition-all duration-300 md:hover:shadow-xl ${shouldShowEffects ? 'shadow-xl' : ''
         }`}
     >
-      {/* Icon Section with hover effects */}
       <div className={`h-[180px] lg:h-[240px] flex items-center justify-center transition-transform duration-300 md:group-hover:-rotate-7 md:group-hover:scale-115 ${shouldShowEffects ? '-rotate-7 scale-115' : ''
         }`}>
         <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
@@ -42,15 +38,12 @@ const ValueCard = ({ value }: { value: ValueType }) => {
         </div>
       </div>
 
-      {/* Content Section with hover effects */}
       <div className="flex-1 flex flex-col items-center justify-start pt-2 px-4">
-        {/* Title with hover gradient effect */}
         <h3 className={`text-sm sm:text-base font-normal font-poppins mb-3 text-center transition-all duration-300 md:text-[#4E4E4E] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[rgba(85,48,250,1)] md:to-[rgba(245,29,165,1)] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)]' : 'text-[#4E4E4E]'
           }`}>
           {value.title}
         </h3>
 
-        {/* Description */}
         <p className="text-gray-500 text-[10px] sm:text-xs font-normal font-poppins text-center leading-relaxed">
           {value.description}
         </p>
@@ -86,7 +79,6 @@ export default function About() {
   return (
     <div className="overflow-x-hidden">
       <Head>
-        {/* Primary Meta Tags */}
         <title>About Us - Protonest</title>
         <meta
           name="description"
@@ -94,16 +86,13 @@ export default function About() {
         />
         <meta name="keywords" content="IoT prototyping company, about Protonest, IoT engineering team, hardware prototyping experts" />
 
-        {/* Canonical URL */}
         <link rel="canonical" href="https://protonest.co/about-us" />
 
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://protonest.co/about-us" />
         <meta property="og:title" content="About Us - Protonest" />
         <meta property="og:description" content="Discover our team's journey in IoT prototyping and how we turn visionary ideas into scalable systems since 2023." />
 
-        {/* Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -128,7 +117,6 @@ export default function About() {
       </Head>
       <Navbar />
       <div>
-        {/* Hero Section with Background and Gradient Overlay */}
         <div className="relative">
           <div className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] relative">
             <Image
@@ -144,7 +132,6 @@ export default function About() {
             />
 
             <div className="block sm:hidden">
-              {/* Top Left Card */}
               <div className="absolute -top-8 right-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
               </div>
             </div>
@@ -169,14 +156,11 @@ export default function About() {
             </div>
           </div>
 
-          {/* Gradient Overlay */}
           <div className="absolute -bottom-6 sm:bottom-0 left-0 right-0 h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] bg-gradient-to-b from-transparent via-white/30 to-white pointer-events-none"></div>
         </div>
 
         <div className="relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
-          {/* Background Image */}
           <div className="absolute inset-0 flex justify-center">
-            {/* Mobile image (hidden on lg and above) */}
             <Image
               src="/about-2-mobile.svg"
               alt="Our Journey background mobile"
@@ -188,7 +172,6 @@ export default function About() {
               className="absolute w-[350px] md:w-[500px] right-0 h-auto lg:hidden"
               style={{ objectPosition: 'right' }}
             />
-            {/* Desktop image (hidden on md and below) */}
             <Image
               src="/about-2.webp"
               alt="Our Journey background desktop"
@@ -201,19 +184,16 @@ export default function About() {
             />
           </div>
 
-          {/* Title */}
           <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] sm:top-[60px] md:top-[80px] lg:top-[96px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1127px] text-center">
             <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
               Our Journey
             </span>
           </div>
 
-          {/* Subtitle */}
           <div className="absolute left-1/2 transform -translate-x-1/2 top-[90px] sm:top-[120px] md:top-[150px] lg:top-[178px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[779px] text-center text-[#6c6c6c] text-[14px] md:text-[16px] xl:text-[18px] font-normal font-poppins leading-[24px] sm:leading-[28px] lg:leading-[30px]">
             From Engineer&apos;s Vision to a Collective Force
           </div>
 
-          {/* Description Text */}
           <div className="absolute left-0 md:left-[5%] lg:left-[10%] 2xl:left-[11%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] px-4 lg:px-0">
             Founded in June 2023 by an electronic engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
             <br /><br />
@@ -224,7 +204,6 @@ export default function About() {
         </div>
 
         <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[649px] overflow-hidden -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20">
-          {/* Background Image */}
           <div className="absolute inset-0 flex justify-center">
             <Image
               src="/about-3.svg"
@@ -239,7 +218,6 @@ export default function About() {
             />
           </div>
 
-          {/* Title */}
           <div className="flex justify-center text-center w-full pt-8 sm:pt-12 md:pt-16 lg:pt-20 relative z-10">
             <div className="w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1124px] px-4">
               <span className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
@@ -254,7 +232,6 @@ export default function About() {
           </div>
         </div>
 
-        {/* Our Mission Section - Reduced spacing */}
         <div className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] relative -mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16">
           <div className="absolute inset-0">
             <Image
@@ -269,7 +246,6 @@ export default function About() {
           </div>
 
           <div className="flex flex-col items-start justify-start h-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 sm:py-12 md:py-16 relative z-10">
-            {/* Left-aligned heading */}
             <div className="flex justify-start w-full">
               <div className="text-left text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
@@ -300,12 +276,10 @@ export default function About() {
           </div>
         </div>
 
-        {/* Our Team Section - Reduced top margin */}
         <div className="-mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16">
           <OurTeamSection />
         </div>
 
-        {/* Final CTA Section - Reduced top margin */}
         <div className="mt-32 md:mt-22 lg:mt-24 flex justify-center w-full px-4">
           <div className="w-full max-w-[1100px] text-center">
             <h2 className="text-[24px] lg:text-[30px] xl:text-[40px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">

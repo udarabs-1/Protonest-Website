@@ -16,7 +16,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Updated interface to match CandidateManagement structure
 interface NDARecord {
     id: string;
     user: {
@@ -72,11 +71,8 @@ const NDAComplianceLog = () => {
     const [searchInput, setSearchInput] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const [editingNote, setEditingNote] = useState<{ id: string; note: string } | null>(null);
-    // const [sendingNDA, setSendingNDA] = useState<string | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // NDA Dialog states
     const [ndaDialog, setNdaDialog] = useState<NDARecord | null>(null);
     const [selectedNda, setSelectedNda] = useState<'template' | 'upload'>('template');
     const [ndaDocuments, setNdaDocuments] = useState<NDADocument[]>([]);
@@ -85,13 +81,11 @@ const NDAComplianceLog = () => {
     const [uploadingNDA, setUploadingNDA] = useState(false);
     const [ndaSubject, setNdaSubject] = useState('');
     const [ndaBody, setNdaBody] = useState('');
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -118,7 +112,6 @@ const NDAComplianceLog = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch NDA documents
     const fetchNDADocuments = async () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -145,14 +138,12 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Updated to use the same API endpoint as CandidateManagement
     useEffect(() => {
         const fetchNDARecords = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Use the same endpoint as CandidateManagement page
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
@@ -187,7 +178,6 @@ const NDAComplianceLog = () => {
         fetchNDADocuments();
     }, []);
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -201,7 +191,6 @@ const NDAComplianceLog = () => {
         };
     }, [sidebarOpen]);
 
-    // Handle adding a filter
     const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchInput.trim()) {
             const trimmedInput = searchInput.trim();
@@ -212,12 +201,10 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Handle removing a filter
     const handleRemoveFilter = (filterToRemove: string) => {
         setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
     };
 
-    // Helper functions
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
         try {
@@ -232,7 +219,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Updated to match CandidateManagement NDA status display
     const getNDAStatusDisplay = (record: NDARecord) => {
         if (!record.nda_status) {
             return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
@@ -270,7 +256,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Function to open email client
     const openEmailClient = (to: string, subject: string, body: string) => {
         const encodedSubject = encodeURIComponent(subject);
         const encodedBody = encodeURIComponent(body);
@@ -278,7 +263,6 @@ const NDAComplianceLog = () => {
         window.open(emailUrl);
     };
 
-    // Set default NDA email content
     const setNdaDialogContent = (record: NDARecord) => {
         const defaultSubject = `Protonest NDA for ${record.job?.title || '[Role Name]'} – Action Required`;
         const defaultBody = `Hello ${record.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${record.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:\n\n1. Download and carefully read the attached NDA document\n2. Sign the document electronically or print, sign, and scan\n3. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached\n\nPlease complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.\n\nBest regards,\nProtonest Team`;
@@ -288,7 +272,6 @@ const NDAComplianceLog = () => {
         setNdaDialog(record);
     };
 
-    // Function to handle file upload for NDA
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file && file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024) {
@@ -298,7 +281,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Function to upload NDA document to server
     const uploadNDADocument = async (file: File): Promise<string | null> => {
         try {
             setUploadingNDA(true);
@@ -341,7 +323,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Function to send NDA with template or uploaded file
     const sendNDA = async (recordId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -379,7 +360,6 @@ const NDAComplianceLog = () => {
 
             await response.json();
 
-            // Update local state
             setNdaRecords(prev => prev.map(record =>
                 record.id === recordId
                     ? {
@@ -405,7 +385,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Update the resendNDA function to use the dialog
     const resendNDA = async (recordId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -443,7 +422,6 @@ const NDAComplianceLog = () => {
 
             await response.json();
 
-            // Update local state
             setNdaRecords(prev => prev.map(record =>
                 record.id === recordId && record.nda_status
                     ? {
@@ -468,13 +446,11 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Updated to use new candidate structure endpoint
     const updateNDAStatus = async (recordId: string, statusUpdate: NDAStatusUpdate) => {
         try {
             setUpdatingStatus(recordId);
             const adminToken = localStorage.getItem('adminToken');
 
-            // Use the candidate status update endpoint
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/status`,
                 {
@@ -494,7 +470,6 @@ const NDAComplianceLog = () => {
                 throw new Error('Failed to update NDA status');
             }
 
-            // Update local state
             setNdaRecords(prev => prev.map(record =>
                 record.id === recordId
                     ? {
@@ -521,7 +496,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Handle NDA sending
     const handleSendNda = async () => {
         if (!ndaDialog) return;
 
@@ -546,14 +520,12 @@ const NDAComplianceLog = () => {
             ndaDocumentId = selectedTemplate;
         }
 
-        // Open email client first
         openEmailClient(
             ndaDialog.user?.email || '',
             ndaSubject,
             ndaBody
         );
 
-        // Send NDA via API
         const success = await sendNDA(
             ndaDialog.id,
             ndaDocumentId,
@@ -561,7 +533,7 @@ const NDAComplianceLog = () => {
         );
 
         if (success) {
-            // Close dialog and reset
+
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
@@ -571,7 +543,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Add new function to handle resend with dialog
     const handleResendNda = async () => {
         if (!ndaDialog) return;
 
@@ -596,14 +567,12 @@ const NDAComplianceLog = () => {
             ndaDocumentId = selectedTemplate;
         }
 
-        // Open email client first
         openEmailClient(
             ndaDialog.user?.email || '',
             ndaSubject,
             ndaBody
         );
 
-        // Resend NDA via API
         const success = await resendNDA(
             ndaDialog.id,
             ndaDocumentId,
@@ -611,7 +580,7 @@ const NDAComplianceLog = () => {
         );
 
         if (success) {
-            // Close dialog and reset
+
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
@@ -621,7 +590,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Update handleActionClick to open dialog for resend
     const handleActionClick = (record: NDARecord) => {
         const action = getActionButton(record);
 
@@ -655,7 +623,6 @@ const NDAComplianceLog = () => {
         }
     };
 
-    // Updated filter with null safety
     const filteredRecords = ndaRecords.filter(record => {
         if (!record) return false;
 
@@ -725,7 +692,7 @@ const NDAComplianceLog = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -735,7 +702,7 @@ const NDAComplianceLog = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -765,12 +732,12 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -786,7 +753,7 @@ const NDAComplianceLog = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -798,7 +765,7 @@ const NDAComplianceLog = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -860,7 +827,7 @@ const NDAComplianceLog = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -901,7 +868,7 @@ const NDAComplianceLog = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
@@ -934,7 +901,7 @@ const NDAComplianceLog = () => {
                             </p>
                         </div>
 
-                        {/* Search Bar */}
+
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
@@ -951,7 +918,7 @@ const NDAComplianceLog = () => {
                             </div>
                         </div>
 
-                        {/* Active Filters Display */}
+
                         {activeFilters.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-2">
@@ -977,7 +944,7 @@ const NDAComplianceLog = () => {
                             </div>
                         )}
 
-                        {/* NDA Records Table */}
+
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead>
@@ -1062,7 +1029,7 @@ const NDAComplianceLog = () => {
                                                             <div className="flex items-center gap-1 ml-2">
                                                                 <button
                                                                     onClick={() => {
-                                                                        // Navigate to candidate details
+
                                                                         window.location.href = `/admin-dashboard/candidates?highlight=${record.id}`;
                                                                     }}
                                                                     className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -1114,7 +1081,7 @@ const NDAComplianceLog = () => {
                 </div>
             </div>
 
-            {/* Edit Note Modal */}
+
             {editingNote && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setEditingNote(null)}></div>
@@ -1154,13 +1121,13 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-            {/* NDA Dialog */}
+
             {ndaDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setNdaDialog(null)}></div>
                     <div className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto">
                         <div className="p-4 sm:p-6 lg:p-8">
-                            {/* Header */}
+
                             <div className="mb-6">
                                 <h2 className="text-lg sm:text-[22px] font-medium font-poppins text-[#6c6c6c] mb-2">
                                     {getActionButton(ndaDialog).action === 'resend' ? 'Resend' : 'Send'} NDA to Freelancer
@@ -1170,7 +1137,7 @@ const NDAComplianceLog = () => {
                                 </p>
                             </div>
 
-                            {/* Candidate Info */}
+
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-8 text-center">
                                 <div>
                                     <div className="text-sm sm:text-base font-medium font-poppins text-[#6c6c6c] mb-1">
@@ -1192,7 +1159,7 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-                            {/* NDA File Section */}
+
                             <div className="mb-6">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">NDA File</h3>
 
@@ -1280,7 +1247,7 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-                            {/* Email Title */}
+
                             <div className="mb-4">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Title</h3>
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -1295,7 +1262,7 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-                            {/* Email Body */}
+
                             <div className="mb-6 sm:mb-8">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Body</h3>
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -1310,7 +1277,7 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
+
                             <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
                                 <button
                                     onClick={() => {
@@ -1346,7 +1313,7 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-            {/* Hidden file input */}
+
             <input
                 type="file"
                 ref={fileInputRef}

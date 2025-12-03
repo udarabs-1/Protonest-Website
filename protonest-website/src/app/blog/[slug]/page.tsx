@@ -22,16 +22,14 @@ interface Blog {
     updated_at: string;
 }
 
-// Function to calculate read time
 const calculateReadTime = (content: string): string => {
     const textContent = content.replace(/<[^>]*>/g, '');
     const wordCount = textContent.split(/\s+/).length;
-    const readingSpeed = 200; // Average words per minute
+    const readingSpeed = 200;
     const minutes = Math.ceil(wordCount / readingSpeed);
     return `${minutes} min read`;
 };
 
-// Function to format date
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -50,7 +48,6 @@ export default function BlogDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch blog data
     useEffect(() => {
         const fetchBlog = async () => {
             if (!slug) return;
@@ -91,7 +88,6 @@ export default function BlogDetailPage() {
         fetchBlog();
     }, [slug]);
 
-    // Loading state
     if (loading) {
         return (
             <div className="overflow-x-hidden">
@@ -107,7 +103,6 @@ export default function BlogDetailPage() {
         );
     }
 
-    // Error state
     if (error || !blog) {
         return (
             <div className="overflow-x-hidden">
@@ -143,7 +138,6 @@ export default function BlogDetailPage() {
         );
     }
 
-    // Check if blog is published
     if (!blog.published) {
         return (
             <div className="overflow-x-hidden">
@@ -173,7 +167,7 @@ export default function BlogDetailPage() {
     return (
         <div className="overflow-x-hidden">
             <Head>
-                {/* Primary Meta Tags */}
+
                 <title>{blog.title} - Protonest</title>
                 <meta
                     name="description"
@@ -182,10 +176,10 @@ export default function BlogDetailPage() {
                 <meta name="keywords" content={blog.categories.join(', ')} />
                 <meta name="author" content={blog.author} />
 
-                {/* Canonical URL */}
+
                 <link rel="canonical" href={`https://protonest.co/blog/${blog.slug}`} />
 
-                {/* Open Graph */}
+
                 <meta property="og:type" content="article" />
                 <meta property="og:url" content={`https://protonest.co/blog/${blog.slug}`} />
                 <meta property="og:title" content={blog.title} />
@@ -193,7 +187,7 @@ export default function BlogDetailPage() {
                 {blog.cover_image && <meta property="og:image" content={blog.cover_image} />}
                 <meta property="og:image:alt" content={blog.title} />
 
-                {/* Article specific tags */}
+
                 <meta property="article:author" content={blog.author} />
                 <meta property="article:published_time" content={publishDate} />
                 <meta property="article:modified_time" content={blog.updated_at} />
@@ -201,7 +195,7 @@ export default function BlogDetailPage() {
                     <meta key={index} property="article:tag" content={category} />
                 ))}
 
-                {/* Structured Data */}
+
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org",
@@ -240,7 +234,7 @@ export default function BlogDetailPage() {
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
 
-                {/* Featured Image */}
+
                 {blog.cover_image && (
                     <div className="mb-8 lg:mb-12">
                         <Image
@@ -258,7 +252,7 @@ export default function BlogDetailPage() {
                     </div>
                 )}
 
-                {/* Title and Meta Row */}
+
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight mb-4 sm:mb-0 sm:pr-8">
                         {blog.title}
@@ -269,7 +263,7 @@ export default function BlogDetailPage() {
                     </div>
                 </div>
 
-                {/* Categories */}
+
                 <div className="flex flex-wrap gap-2 md:gap-4 mb-8">
                     {blog.categories.map((category, idx) => (
                         <div
@@ -281,7 +275,7 @@ export default function BlogDetailPage() {
                     ))}
                 </div>
 
-                {/* Blog Content */}
+
                 <article className="prose prose-lg max-w-none">
                     <div
                         className="text-[#6c6c6c] text-base font-normal font-poppins leading-[30px]"
@@ -294,7 +288,7 @@ export default function BlogDetailPage() {
             <Footer />
 
             <style jsx global>{`
-        /* Enhanced prose styles for blog content */
+        
         .prose {
           color: #6c6c6c;
           font-family: 'Poppins', sans-serif;
@@ -358,7 +352,7 @@ export default function BlogDetailPage() {
           color: #f51da5;
         }
         
-        /* Image container styles - respects alignment from editor */
+        
         .prose .image-container {
           margin: 2rem 0;
           max-width: 100%;
@@ -371,7 +365,7 @@ export default function BlogDetailPage() {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        /* Fallback for images without container */
+        
         .prose img:not(.image-container img) {
           border-radius: 8px;
           margin: 2rem 0;
