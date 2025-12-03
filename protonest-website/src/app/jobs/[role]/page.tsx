@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-// Types
 type Job = {
     id: string;
     title: string;
@@ -20,7 +19,6 @@ type Job = {
     created_at: string;
 };
 
-// API Response type for better type safety
 interface ApiJobData {
     id?: string;
     title?: string;
@@ -79,7 +77,6 @@ const FILTER_OPTIONS = {
     datePosted: ['Newest', 'Oldest']
 } as const;
 
-// Helper function to format time difference as "X days ago"
 const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -91,7 +88,6 @@ const formatTimeAgo = (dateString: string): string => {
     return `${diffDays} days ago`;
 };
 
-// Helper function to format date as "MMM D, YYYY"
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -101,7 +97,6 @@ const formatDate = (dateString: string): string => {
     });
 };
 
-// Memoized filter checkbox component
 const FilterCheckbox = ({
     isSelected,
     onClick,
@@ -128,7 +123,6 @@ const FilterCheckbox = ({
     </div>
 );
 
-// Memoized job card component
 const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
     <Link
         href={`/jobs/${roleKey}/${job.id}`}
@@ -167,7 +161,7 @@ const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
                 </div>
             </div>
 
-            {/* Arrow Image Swap on Hover */}
+            
             <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
                 <div className="w-full h-full group-hover:hidden">
                     <Image
@@ -215,7 +209,6 @@ export default function RolePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Debounced screen size check
     const checkIsMobile = useCallback(() => {
         setIsMobile(window.innerWidth < 1024);
     }, []);
@@ -236,7 +229,6 @@ export default function RolePage() {
         };
     }, [checkIsMobile]);
 
-    // Memoized role calculations
     const { roleKey, category, displayTitle } = useMemo(() => {
         const roleKey = Array.isArray(role) ? role[0] : role;
         const category = roleKey ? roleToCategoryMap[roleKey] : null;
@@ -245,7 +237,6 @@ export default function RolePage() {
         return { roleKey, category, displayTitle };
     }, [role]);
 
-    // Fetch jobs from API
     useEffect(() => {
         const fetchJobs = async () => {
             if (!category) return;
@@ -339,7 +330,6 @@ export default function RolePage() {
         fetchJobs();
     }, [category]);
 
-    // Optimized filter handlers
     const handleFilterToggle = useCallback((filterType: FilterType, value: string) => {
         setFilters(prev => {
             const currentFilters = [...prev[filterType]];
@@ -379,9 +369,8 @@ export default function RolePage() {
         setVisibleJobsCount(prev => prev + 3);
     }, []);
 
-    // Memoized filter calculations
     const filteredJobs = useMemo(() => {
-        // Filter jobs
+
         const filtered = jobs.filter(job => {
             if (filters.experience.length > 0 && !filters.experience.includes(job.experience)) {
                 return false;
@@ -398,7 +387,6 @@ export default function RolePage() {
             return true;
         });
 
-        // Sort by date if needed
         if (filters.datePosted.length > 0) {
             filtered.sort((a, b) => {
                 const dateA = new Date(a.created_at).getTime();
@@ -415,12 +403,10 @@ export default function RolePage() {
         return filtered;
     }, [jobs, filters, searchQuery]);
 
-    // Reset visible jobs count when filters change
     useEffect(() => {
         setVisibleJobsCount(3);
     }, [filters, searchQuery]);
 
-    // Determine which jobs to display
     const jobsToShow = isMobile ? filteredJobs.slice(0, visibleJobsCount) : filteredJobs;
     const hasMoreJobs = isMobile && visibleJobsCount < filteredJobs.length;
 
@@ -463,9 +449,9 @@ export default function RolePage() {
         <div className="min-h-screen relative bg-white overflow-x-hidden">
             <Navbar />
 
-            {/* Hero Section */}
+            
             <section className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-                {/* Background Image - Mobile */}
+                
                 <div className="absolute inset-0 block sm:hidden">
                     <Image
                         src="/jobs-1-mobile.svg"
@@ -478,7 +464,7 @@ export default function RolePage() {
                     />
                 </div>
 
-                {/* Background Image - Desktop */}
+                
                 <div className="absolute inset-0 hidden sm:block">
                     <Image
                         src="/jobs-1.svg"
@@ -491,11 +477,11 @@ export default function RolePage() {
                     />
                 </div>
 
-                {/* Gradient Overlays */}
+                
                 <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
                 <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
 
-                {/* Hero Content */}
+                
                 <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
                     <div className="text-center max-w-4xl xl:max-w-[1120px]">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8 text-[#6c6c6c]">
@@ -510,7 +496,7 @@ export default function RolePage() {
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Filters Sidebar */}
+                    
                     <aside className="w-full lg:w-1/4 hidden lg:block">
                         <div className="bg-white rounded-xl p-6 shadow-lg">
                             <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
@@ -522,7 +508,7 @@ export default function RolePage() {
                                 Clear All Filters
                             </button>
 
-                            {/* Experience Level Filter */}
+                            
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
                                 {FILTER_OPTIONS.experience.map(level => (
@@ -535,7 +521,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            {/* Location Filter */}
+                            
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
                                 {FILTER_OPTIONS.location.map(location => (
@@ -548,7 +534,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            {/* Date Posted Filter */}
+                            
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
                                 {FILTER_OPTIONS.datePosted.map(date => (
@@ -561,7 +547,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            {/* Job Type Filter */}
+                            
                             <div>
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
                                 {FILTER_OPTIONS.jobType.map(type => (
@@ -580,13 +566,13 @@ export default function RolePage() {
                         </div>
                     </aside>
 
-                    {/* Main Content Area */}
+                    
                     <div className="w-full lg:w-3/4">
                         <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
                             Explore Variety of Jobs
                         </h2>
 
-                        {/* Search Bar */}
+                        
                         <div className="relative w-full mb-8 lg:mb-12">
                             <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
                                 <input
@@ -609,7 +595,7 @@ export default function RolePage() {
                             </div>
                         </div>
 
-                        {/* Mobile Filter Section */}
+                        
                         <div className="lg:hidden mb-6">
                             <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                                 Filter Your Fit
@@ -639,7 +625,7 @@ export default function RolePage() {
                                 </div>
                             </div>
 
-                            {/* Mobile Filter Popup */}
+                            
                             {showMobileFilters && (
                                 <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                                     <div className="flex justify-between items-center mb-6">
@@ -660,9 +646,9 @@ export default function RolePage() {
                                         </button>
                                     </div>
 
-                                    {/* Mobile filters content - same as desktop but in mobile popup */}
+                                    
                                     <div className="space-y-8">
-                                        {/* Experience Level Filter */}
+                                        
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
                                             {FILTER_OPTIONS.experience.map(level => (
@@ -675,7 +661,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        {/* Location Filter */}
+                                        
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
                                             {FILTER_OPTIONS.location.map(location => (
@@ -688,7 +674,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        {/* Date Posted Filter */}
+                                        
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
                                             {FILTER_OPTIONS.datePosted.map(date => (
@@ -701,7 +687,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        {/* Job Type Filter */}
+                                        
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
                                             {FILTER_OPTIONS.jobType.map(type => (
@@ -737,7 +723,7 @@ export default function RolePage() {
                             )}
                         </div>
 
-                        {/* Job Listings */}
+                        
                         {jobsToShow.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -750,7 +736,7 @@ export default function RolePage() {
                                     ))}
                                 </div>
 
-                                {/* Load More Button for Mobile */}
+                                
                                 {hasMoreJobs && (
                                     <div className="mt-8 flex justify-center">
                                         <button

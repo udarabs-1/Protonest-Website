@@ -42,7 +42,6 @@ const BlogManager = () => {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -69,7 +68,6 @@ const BlogManager = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch blog posts from API
     const fetchBlogPosts = async () => {
         try {
             setLoading(true);
@@ -95,13 +93,12 @@ const BlogManager = () => {
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             console.error('Error fetching blog posts:', err);
-            setBlogPosts([]); // Ensure blogPosts is always an array
+            setBlogPosts([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Delete a blog post
     const deleteBlogPost = async (id: string) => {
         if (!confirm('Are you sure you want to delete this blog post?')) {
             return;
@@ -124,7 +121,6 @@ const BlogManager = () => {
             const result = await response.json();
 
             if (result.status === 'success') {
-                // Remove the deleted post from state
                 setBlogPosts(prev => prev.filter(post => post.id !== id));
             } else {
                 throw new Error(result.message || 'Failed to delete blog post');
@@ -135,7 +131,6 @@ const BlogManager = () => {
         }
     };
 
-    // Format date for display
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
 
@@ -147,7 +142,6 @@ const BlogManager = () => {
         });
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -161,7 +155,6 @@ const BlogManager = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch blog posts on component mount
     useEffect(() => {
         fetchBlogPosts();
     }, []);
@@ -170,13 +163,10 @@ const BlogManager = () => {
         setActiveFilter(filter);
     };
 
-    // Filter blog posts based on active filter and search query
     const filteredBlogPosts = blogPosts.filter(post => {
-        // Status filter
         if (activeFilter === 'published' && !post.published) return false;
         if (activeFilter === 'draft' && post.published) return false;
 
-        // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             return (
@@ -213,7 +203,6 @@ const BlogManager = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -223,7 +212,6 @@ const BlogManager = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -253,16 +241,13 @@ const BlogManager = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -275,7 +260,6 @@ const BlogManager = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -287,12 +271,10 @@ const BlogManager = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -311,7 +293,6 @@ const BlogManager = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -335,7 +316,6 @@ const BlogManager = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -353,7 +333,6 @@ const BlogManager = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -377,7 +356,6 @@ const BlogManager = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -395,9 +373,7 @@ const BlogManager = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -412,7 +388,6 @@ const BlogManager = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-1">
@@ -439,7 +414,6 @@ const BlogManager = () => {
                             </div>
                         </div>
 
-                        {/* Search and Filter */}
                         <div className="flex items-center gap-3 mb-4">
                             <div className="relative flex-1">
                                 <input
@@ -459,7 +433,6 @@ const BlogManager = () => {
                             </button>
                         </div>
 
-                        {/* Filter Buttons */}
                         <div className="inline-flex justify-start items-center gap-2 mb-6">
                             <button
                                 onClick={() => handleFilterChange('all')}
@@ -498,14 +471,12 @@ const BlogManager = () => {
                             </button>
                         </div>
 
-                        {/* Loading State */}
                         {loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <p className="text-gray-500">Loading blog posts...</p>
                             </div>
                         )}
 
-                        {/* Error State */}
                         {error && !loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <p className="text-red-500 mb-4">Error: {error}</p>
@@ -518,10 +489,8 @@ const BlogManager = () => {
                             </div>
                         )}
 
-                        {/* Blog Posts Table */}
                         {!loading && !error && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
-                                {/* Table Header */}
                                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                                     <div className="hidden md:grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                         <div className="col-span-4">Blog Title</div>
@@ -535,7 +504,6 @@ const BlogManager = () => {
                                     </div>
                                 </div>
 
-                                {/* Table Body */}
                                 <div className="divide-y divide-gray-200">
                                     {filteredBlogPosts.length === 0 ? (
                                         <div className="px-4 py-8 text-center text-gray-500">
@@ -544,7 +512,6 @@ const BlogManager = () => {
                                     ) : (
                                         filteredBlogPosts.map((post) => (
                                             <div key={post.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                                {/* Mobile Layout */}
                                                 <div className="md:hidden">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="flex-1">
@@ -583,7 +550,6 @@ const BlogManager = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Desktop Layout */}
                                                 <div className="hidden md:grid grid-cols-12 gap-4 items-center">
                                                     <div className="col-span-4">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">

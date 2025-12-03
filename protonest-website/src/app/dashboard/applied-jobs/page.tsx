@@ -71,7 +71,6 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
-// Applied Jobs Card Component
 const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
     const getStatusDisplay = (status: string) => {
         switch (status) {
@@ -112,7 +111,6 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
 
     const statusDisplay = getStatusDisplay(job.status);
 
-    // Get the role slug from the job category
     const roleSlug = categoryToSlugMap[job.jobDetails?.category || ''] || 'other-roles';
 
     return (
@@ -273,7 +271,6 @@ const AppliedJobs = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -281,7 +278,6 @@ const AppliedJobs = () => {
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -333,7 +329,6 @@ const AppliedJobs = () => {
         };
     }, [sidebarOpen, showProfileDropdown]);
 
-    // Fetch applied jobs data from API
     useEffect(() => {
         const jwtToken = localStorage.getItem('jwtToken');
         if (!jwtToken) {
@@ -353,11 +348,9 @@ const AppliedJobs = () => {
                 throw new Error('No authentication token found');
             }
 
-            // Try multiple possible endpoints
             let response;
             let applicationsData;
 
-            // First try the applications endpoint
             try {
                 response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                     headers: {
@@ -373,7 +366,7 @@ const AppliedJobs = () => {
                 applicationsData = await response.json();
             } catch {
                 console.log('Primary endpoint failed, trying fallback...');
-                // Try alternative endpoint structure
+
                 try {
                     response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/applications`, {
                         headers: {
@@ -392,7 +385,6 @@ const AppliedJobs = () => {
                 }
             }
 
-            // Handle different response structures
             const jobs: AppliedJob[] = applicationsData.data || applicationsData.applications || applicationsData || [];
 
             if (jobs.length === 0) {
@@ -402,7 +394,6 @@ const AppliedJobs = () => {
                 return;
             }
 
-            // Enrich jobs with job details
             const enrichedJobs = await Promise.all(
                 jobs.map(async (job) => {
                     try {
@@ -495,7 +486,7 @@ const AppliedJobs = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+            
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -505,7 +496,7 @@ const AppliedJobs = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+            
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"

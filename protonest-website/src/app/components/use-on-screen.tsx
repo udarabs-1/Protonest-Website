@@ -8,8 +8,8 @@ export const useOnScreen = (ref: RefObject<HTMLDivElement | null>) => {
         const observer = new IntersectionObserver(
             ([entry]) => setIntersecting(entry.isIntersecting),
             {
-                threshold: 0.1, // Trigger when 10% of the element is visible
-                rootMargin: '-50px' // Trigger 50px before the element comes into view
+                threshold: 0.1,
+                rootMargin: '-50px'
             }
         );
 

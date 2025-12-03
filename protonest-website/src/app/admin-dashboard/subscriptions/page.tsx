@@ -49,7 +49,6 @@ const SubscriptionManagement = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -57,7 +56,6 @@ const SubscriptionManagement = () => {
         }
     }, [router]);
 
-    // Fetch subscriptions from API
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         if (!adminToken) {
@@ -82,13 +80,12 @@ const SubscriptionManagement = () => {
                 if (response.ok) {
                     const data = await response.json();
 
-                    // Handle different response structures
                     if (data.data && Array.isArray(data.data)) {
                         setSubscriptions(data.data);
                     } else if (Array.isArray(data)) {
                         setSubscriptions(data);
                     } else if (data.data === null) {
-                        // Handle case where data is null (empty subscriptions)
+
                         setSubscriptions([]);
                     } else {
                         console.error('Unexpected response structure:', data);
@@ -109,7 +106,6 @@ const SubscriptionManagement = () => {
         fetchSubscriptions();
     }, []);
 
-    // Close sidebar and dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -149,7 +145,7 @@ const SubscriptionManagement = () => {
             });
 
             if (response.ok) {
-                // Update local state
+
                 setSubscriptions(prev => prev.map(sub =>
                     sub.id === id
                         ? { ...sub, [type]: !currentStatus }
@@ -215,7 +211,7 @@ const SubscriptionManagement = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -225,7 +221,7 @@ const SubscriptionManagement = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -255,16 +251,16 @@ const SubscriptionManagement = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
+
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -277,7 +273,7 @@ const SubscriptionManagement = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -289,12 +285,12 @@ const SubscriptionManagement = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
+
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -313,7 +309,7 @@ const SubscriptionManagement = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
+
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -337,7 +333,7 @@ const SubscriptionManagement = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -355,7 +351,7 @@ const SubscriptionManagement = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -379,7 +375,7 @@ const SubscriptionManagement = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -397,9 +393,9 @@ const SubscriptionManagement = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -414,7 +410,7 @@ const SubscriptionManagement = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
+
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -449,7 +445,7 @@ const SubscriptionManagement = () => {
                             </button>
                         </div>
 
-                        {/* Subscriptions Table */}
+
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
                             {subscriptions.length === 0 ? (
                                 <div className="p-8 text-center text-gray-500">

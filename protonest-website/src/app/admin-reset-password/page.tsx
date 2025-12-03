@@ -138,7 +138,7 @@ function AdminResetPasswordContent() {
 
     return (
         <div className="bg-white">
-            {/* Mobile/Tablet Layout */}
+
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -228,7 +228,7 @@ function AdminResetPasswordContent() {
                 </div>
             </div>
 
-            {/* Desktop Layout */}
+
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">

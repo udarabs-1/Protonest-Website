@@ -19,7 +19,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
         <div className="fixed inset-0 bg-black/20 z-[9999] backdrop-blur-xl flex items-center justify-center px-4">
             <div className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[833px] h-[250px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[325px] bg-white rounded-[20px] sm:rounded-[22px] md:rounded-[24px] xl:rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] overflow-hidden flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4">
 
-                {/* Loading State */}
+
                 {isSubmitting && (
                     <>
                         <div className="flex items-center justify-center">
@@ -38,7 +38,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
                     </>
                 )}
 
-                {/* Success State */}
+
                 {submitStatus === 'success' && !isSubmitting && (
                     <>
                         <div className="flex items-center justify-center">
@@ -63,7 +63,7 @@ const StatusModal: React.FC<StatusModalProps> = ({
                     </>
                 )}
 
-                {/* Error State */}
+
                 {submitStatus === 'error' && !isSubmitting && (
                     <>
                         <div className="flex items-center justify-center">

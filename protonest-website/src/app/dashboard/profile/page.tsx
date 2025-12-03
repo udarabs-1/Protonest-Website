@@ -226,7 +226,6 @@ const ProfilePage = () => {
             setSaving(true);
             setError(null);
 
-            // Update user profile (excluding email)
             const updateData = {
                 first_name: editedData.firstName,
                 last_name: editedData.lastName,
@@ -243,7 +242,7 @@ const ProfilePage = () => {
             });
 
             if (response.success && response.user) {
-                // Update CV profile if CV data exists and has been modified
+
                 if (editedData.cvData && profileData.cvData) {
                     const cvUpdateData = {
                         phone_number: editedData.cvData.phone_number,
@@ -258,11 +257,10 @@ const ProfilePage = () => {
                         });
                     } catch (cvErr) {
                         console.error('Failed to update CV profile:', cvErr);
-                        // Continue even if CV update fails
+
                     }
                 }
 
-                // Reload profile to get updated data
                 await loadProfile();
                 setIsEditing(false);
                 setSuccess('Profile updated successfully!');
@@ -375,7 +373,7 @@ const ProfilePage = () => {
             });
 
             if (response.success) {
-                // Clear token and redirect
+
                 localStorage.removeItem('jwtToken');
                 setShowDeleteDialog(false);
                 router.push('/careers');
@@ -406,10 +404,8 @@ const ProfilePage = () => {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
 
-                // Open in new tab
                 const newWindow = window.open(url, '_blank');
 
-                // Clean up the URL after a delay
                 if (newWindow) {
                     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
@@ -435,7 +431,7 @@ const ProfilePage = () => {
 
     return (
         <div>
-            {/* Delete Account Confirmation Dialog */}
+            
             {showDeleteDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -643,7 +639,7 @@ const ProfilePage = () => {
                     }
                 `}</style>
 
-                {/* SVG Gradient Definition - Darker colors */}
+                
                 <svg width="0" height="0" style={{ position: 'absolute' }}>
                     <defs>
                         <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -944,7 +940,7 @@ const ProfilePage = () => {
                                         </div>
 
                                         <div>
-                                            {/* Email is always read-only */}
+                                            
                                             <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] break-words">
                                                 {profileData.email}
                                             </p>
@@ -952,7 +948,7 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                {/* CV Information Section */}
+                                
                                 {profileData.cvData && (
                                     <div className="mb-8 pb-8 border-b border-gray-100">
                                         <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins'] mb-4 flex items-center gap-3">
@@ -1066,7 +1062,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {/* Account Security Section */}
+                            
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
                                 <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
                                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">

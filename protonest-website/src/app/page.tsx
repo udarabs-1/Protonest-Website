@@ -1,4 +1,3 @@
-// Main Homepage Component
 "use client";
 import Head from 'next/head';
 import Image from "next/image";
@@ -14,13 +13,12 @@ import TestimonialSection from "./components/testimonials";
 import { useOnScreen } from "./components/use-on-screen";
 import WhyChooseProtonest from "./components/why-choose";
 
-// Large Screen Component (lg, xl, 2xl)
 function LargeScreenHome() {
   const scrollToTestimonials = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const testimonialSection = document.getElementById('testimonials-section');
     if (testimonialSection) {
-      const navbarHeight = 100; // Adjust this value based on your navbar height
+      const navbarHeight = 100;
       const elementPosition = testimonialSection.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
 
@@ -33,9 +31,7 @@ function LargeScreenHome() {
 
   return (
     <div className="hidden lg:block">
-      {/* Hero Section */}
       <div className="mt-[100px] h-full relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-1.svg"
@@ -48,7 +44,6 @@ function LargeScreenHome() {
           />
         </div>
 
-        {/* Top Gradient Overlay */}
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10">
@@ -83,9 +78,7 @@ function LargeScreenHome() {
         </div>
       </div>
 
-      {/* Clients Section */}
       <div className="mt-[120px] h-[649px] relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-2.svg"
@@ -125,7 +118,6 @@ function LargeScreenHome() {
         </div>
       </div>
 
-      {/* CEO Quote Section */}
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center pb-[120px]">
         <div className="relative w-[90px] h-[90px] mb-6">
           <Image
@@ -195,7 +187,6 @@ function LargeScreenHome() {
 
       <ServicesSection />
 
-      {/* Stats Section */}
       <div className="bg-[#FAFAFA] py-16 w-full h-[316px] flex items-center hover:bg-black transition-all duration-300 group">
         <div className="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 lg:gap-45 xl:gap-[211px] max-w-screen-xl mx-auto">
           <div className="text-center">
@@ -230,7 +221,6 @@ function LargeScreenHome() {
   );
 }
 
-// Small/Medium Screen Component (sm, md)
 function SmallScreenHome() {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const ref = useRef<HTMLDivElement>(null);
@@ -240,7 +230,7 @@ function SmallScreenHome() {
     e.preventDefault();
     const testimonialSection = document.getElementById('testimonials-section');
     if (testimonialSection) {
-      const navbarHeight = 80; // Adjust this value based on your mobile navbar height
+      const navbarHeight = 80;
       const elementPosition = testimonialSection.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
 
@@ -253,9 +243,7 @@ function SmallScreenHome() {
 
   return (
     <div className="lg:hidden">
-      {/* Hero Section */}
       <div className="mt-12 sm:mt-6 h-[450px] sm:h-[520px] relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-1.svg"
@@ -268,7 +256,6 @@ function SmallScreenHome() {
           />
         </div>
 
-        {/* Top Gradient Overlay */}
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
@@ -307,9 +294,7 @@ function SmallScreenHome() {
         </div>
       </div>
 
-      {/* Clients Section */}
       <div className="mt-12 sm:mt-16 min-h-[400px] relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-2.svg"
@@ -351,7 +336,6 @@ function SmallScreenHome() {
         </div>
       </div>
 
-      {/* CEO Quote Section */}
       <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-12 sm:py-16 px-4 sm:px-8">
         <div className="relative w-[70px] h-[70px] sm:w-[80px] sm:h-[80px] mb-4">
           <Image
@@ -421,7 +405,6 @@ function SmallScreenHome() {
 
       <ServicesSection />
 
-      {/* Stats Section with scroll-triggered animation */}
       <div
         ref={ref}
         className={`py-20 sm:py-16 w-full min-h-[200px] flex items-center transition-all duration-500 ${isMobile && isVisible ? 'bg-black' : 'bg-[#FAFAFA]'
@@ -469,12 +452,10 @@ function SmallScreenHome() {
   );
 }
 
-// Main Export Component
 export default function Home() {
   return (
     <div>
       <Head>
-        {/* Primary Meta Tags */}
         <title>IoT Prototyping Services by Protonest</title>
         <meta
           name="description"
@@ -482,17 +463,14 @@ export default function Home() {
         />
         <meta name="keywords" content="IoT prototyping services, rapid IoT prototyping, IoT product development, hardware prototyping, IoT prototype company" />
 
-        {/* Canonical URL */}
         <link rel="canonical" href="https://protonest.co/" />
 
-        {/* Open Graph (Basic) */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://protonest.co/" />
         <meta property="og:title" content="IoT Prototyping Services by Protonest" />
         <meta property="og:description" content="Transform IoT ideas into reality with expert prototyping from Protonest. Built fast. Built right." />
         <meta property="og:image" content="https://protonest.co/images/og-home.jpg" />
 
-        {/* Structured Data (Organization Only) */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -509,13 +487,10 @@ export default function Home() {
         </script>
       </Head>
       <Navbar />
-      {/* Large Screen Layout */}
       <LargeScreenHome />
 
-      {/* Small/Medium Screen Layout */}
       <SmallScreenHome />
 
-      {/* Shared Components - These remain the same for all screen sizes */}
       <ProjectSlider />
       <div id="testimonials-section">
         <TestimonialSection />

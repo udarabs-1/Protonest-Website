@@ -73,14 +73,14 @@ interface CandidateRanking {
     candidate_email: string;
     user_id: string;
     overall_score: number;
-    original_score?: number; // Add this line
+    original_score?: number;
     experience_match_score: number;
     skills_match_score: number;
     question_scores: Array<{
         question_index: number;
         score: number;
     }>;
-    differentiation_factors?: { // Add this block
+    differentiation_factors?: {
         cv_quality: number;
         experience_depth: number;
         skill_relevance: number;
@@ -149,23 +149,17 @@ const CandidateManagement = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [bulkDownloadDialog, setBulkDownloadDialog] = useState<JobGroup | null>(null);
     const [downloadingBulk, setDownloadingBulk] = useState(false);
-
-    // Search state
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Editable email states
     const [interviewSubject, setInterviewSubject] = useState('');
     const [interviewBody, setInterviewBody] = useState('');
     const [ndaSubject, setNdaSubject] = useState('');
     const [ndaBody, setNdaBody] = useState('');
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -192,7 +186,6 @@ const CandidateManagement = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Status options for the dropdown
     const statusOptions = [
         { value: 'applied', label: 'Applied', color: 'bg-[#86dcff]' },
         { value: 'admin_moved', label: 'Admin Moved', color: 'bg-[#ffd986]' },
@@ -202,7 +195,6 @@ const CandidateManagement = () => {
         { value: 'rejected', label: 'Rejected', color: 'bg-[#ff8686]' }
     ];
 
-    // Local Storage functions for rankings
     const saveRankingsToLocalStorage = (jobId: string, rankings: CandidateRanking[]) => {
         try {
             const rankingsData = {
@@ -228,7 +220,6 @@ const CandidateManagement = () => {
         return null;
     };
 
-    // Sort candidates based on rankings
     const sortCandidatesByRankings = (candidates: Candidate[], rankings: CandidateRanking[]): Candidate[] => {
         const rankedCandidates: Candidate[] = [];
         const unrankedCandidates: Candidate[] = [];
@@ -242,18 +233,15 @@ const CandidateManagement = () => {
             }
         });
 
-        // Sort ranked candidates by rank_position
         rankedCandidates.sort((a, b) => {
             const rankA = rankings.find(r => r.user_id === a.user._id);
             const rankB = rankings.find(r => r.user_id === b.user._id);
             return (rankA?.rank_position || 0) - (rankB?.rank_position || 0);
         });
 
-        // Return ranked candidates first, then unranked
         return [...rankedCandidates, ...unrankedCandidates];
     };
 
-    // Fetch NDA documents
     const fetchNDADocuments = async () => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -280,7 +268,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Fetch candidates and group by job
     useEffect(() => {
         const fetchCandidates = async () => {
             try {
@@ -302,10 +289,8 @@ const CandidateManagement = () => {
                     const candidatesData = data.data?.nda_logs || data.data || [];
                     const candidates = Array.isArray(candidatesData) ? candidatesData : [];
 
-                    // Group candidates by job
                     const grouped = groupCandidatesByJob(candidates);
 
-                    // Load rankings from localStorage and apply sorting
                     const groupedWithRankings = grouped.map(group => {
                         const storedRankings = loadRankingsFromLocalStorage(group.job_id);
                         if (storedRankings && storedRankings.length > 0) {
@@ -346,7 +331,6 @@ const CandidateManagement = () => {
         fetchNDADocuments();
     }, []);
 
-    // Around line 344 - Add filtering for unknown jobs in groupCandidatesByJob
     const groupCandidatesByJob = (candidates: Candidate[]): JobGroup[] => {
         const jobMap = new Map<string, JobGroup>();
 
@@ -354,7 +338,6 @@ const CandidateManagement = () => {
             const jobId = candidate.job?._id;
             const jobTitle = candidate.job?.title;
 
-            // Skip candidates without valid job information
             if (!jobId || !jobTitle) {
                 return;
             }
@@ -378,11 +361,9 @@ const CandidateManagement = () => {
             group.total_candidates = group.candidates.length;
         });
 
-        // Convert to array and sort by total candidates (descending)
         return Array.from(jobMap.values()).sort((a, b) => b.total_candidates - a.total_candidates);
     };
 
-    // Toggle job expansion
     const toggleJobExpansion = (jobId: string) => {
         setJobGroups(prev => prev.map(group =>
             group.job_id === jobId
@@ -402,11 +383,9 @@ const CandidateManagement = () => {
             const adminToken = localStorage.getItem('adminToken');
             const selectedUserIds = Array.from(jobGroup.selectedCandidates);
 
-            // Create a new JSZip instance
             const zip = new JSZip();
             let successCount = 0;
 
-            // Download and add CVs to zip
             for (const userId of selectedUserIds) {
                 const candidate = jobGroup.candidates.find(c => c.user._id === userId);
                 if (!candidate) continue;
@@ -426,7 +405,6 @@ const CandidateManagement = () => {
                         const cleanName = candidate.user.name.replace(/\s+/g, '_');
                         const fileName = `${cleanName}_CV.pdf`;
 
-                        // Add file to zip
                         zip.file(fileName, blob);
                         successCount++;
                     }
@@ -436,15 +414,13 @@ const CandidateManagement = () => {
             }
 
             if (successCount > 0) {
-                // Generate zip file
+
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
 
-                // Create download link for zip
                 const url = window.URL.createObjectURL(zipBlob);
                 const a = document.createElement('a');
                 a.href = url;
 
-                // Create zip filename with job title and date
                 const jobTitle = jobGroup.job_title.replace(/\s+/g, '_');
                 const date = new Date().toISOString().split('T')[0];
                 a.download = `${jobTitle}_CVs_${date}.zip`;
@@ -461,7 +437,6 @@ const CandidateManagement = () => {
 
             setBulkDownloadDialog(null);
 
-            // Clear selections
             setJobGroups(prev => prev.map(group =>
                 group.job_id === jobGroup.job_id
                     ? { ...group, selectedCandidates: new Set<string>() }
@@ -475,10 +450,9 @@ const CandidateManagement = () => {
         }
     };
 
-    // Trigger AI ranking for a job
     const handleAnalyzeJob = async (jobId: string) => {
         try {
-            // Set analyzing state
+
             setJobGroups(prev => prev.map(group =>
                 group.job_id === jobId
                     ? { ...group, isAnalyzing: true }
@@ -504,13 +478,12 @@ const CandidateManagement = () => {
             const data = await response.json();
 
             if (data.status === 'success' && data.data?.rankings) {
-                // Save rankings to localStorage
+
                 saveRankingsToLocalStorage(jobId, data.data.rankings);
 
-                // Update job group with rankings
                 setJobGroups(prev => prev.map(group => {
                     if (group.job_id === jobId) {
-                        // Sort candidates by ranking
+
                         const sortedCandidates = sortCandidatesByRankings(group.candidates, data.data.rankings);
 
                         return {
@@ -531,7 +504,6 @@ const CandidateManagement = () => {
             console.error('Error analyzing job:', error);
             alert('Failed to analyze candidates. Please try again.');
 
-            // Reset analyzing state on error
             setJobGroups(prev => prev.map(group =>
                 group.job_id === jobId
                     ? { ...group, isAnalyzing: false }
@@ -540,7 +512,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Clear cache for a job
     const handleClearCache = async (jobId: string, jobTitle: string) => {
         if (!confirm(`Clear all AI rankings for "${jobTitle}"?\n\nThis will remove all cached rankings and you'll need to re-analyze candidates.`)) {
             return;
@@ -566,17 +537,16 @@ const CandidateManagement = () => {
             const data = await response.json();
 
             if (data.status === 'success') {
-                // Clear from localStorage
+
                 localStorage.removeItem(`job_rankings_${jobId}`);
 
-                // Update UI state
                 setJobGroups(prev => prev.map(group => {
                     if (group.job_id === jobId) {
                         return {
                             ...group,
                             hasRankings: false,
                             rankings: [],
-                            candidates: group.candidates // Keep original order
+                            candidates: group.candidates
                         };
                     }
                     return group;
@@ -590,13 +560,11 @@ const CandidateManagement = () => {
         }
     };
 
-    // Get ranking for a candidate
     const getCandidateRanking = (jobGroup: JobGroup, candidate: Candidate): CandidateRanking | null => {
         if (!jobGroup.hasRankings || !jobGroup.rankings) return null;
         return jobGroup.rankings.find(r => r.user_id === candidate.user._id) || null;
     };
 
-    // Close sidebar and dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -614,7 +582,6 @@ const CandidateManagement = () => {
         };
     }, [sidebarOpen, statusDropdown]);
 
-    // Fetch candidate details
     const fetchCandidateDetails = async (candidate: Candidate) => {
         setDetailsLoading(true);
         setCandidateDetails(null);
@@ -688,7 +655,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Download CV from details dialog
     const handleDownloadCVFromDialog = async (userId: string, userName: string) => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -740,10 +706,8 @@ const CandidateManagement = () => {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
 
-                // Open in new tab
                 const newWindow = window.open(url, '_blank');
 
-                // Clean up the URL after a delay
                 if (newWindow) {
                     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
@@ -759,12 +723,10 @@ const CandidateManagement = () => {
         }
     };
 
-    // Filter job groups based on search query
     const filteredJobGroups = jobGroups.filter(group =>
         group.job_title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Function to get status color based on status
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'applied': return 'bg-[#86dcff]';
@@ -777,7 +739,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to get NDA status display
     const getNDAStatusDisplay = (candidate: Candidate) => {
         if (!candidate.nda_status) {
             return { icon: '❌', text: 'Not Sent', color: 'text-red-600' };
@@ -793,7 +754,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to get display status text
     const getDisplayStatus = (status: string) => {
         const statusMap: { [key: string]: string } = {
             'applied': 'Applied',
@@ -806,7 +766,6 @@ const CandidateManagement = () => {
         return statusMap[status] || status;
     };
 
-    // Function to format date
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
         try {
@@ -821,7 +780,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to handle status change
     const handleStatusChange = async (candidateId: string, newStatus: string) => {
         try {
             setUpdatingStatus(candidateId);
@@ -842,7 +800,6 @@ const CandidateManagement = () => {
                 throw new Error('Failed to update status');
             }
 
-            // Update local state
             setJobGroups(prev => prev.map(group => ({
                 ...group,
                 candidates: group.candidates.map(candidate =>
@@ -860,7 +817,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to get action text based on status and NDA status
     const getActionText = (candidate: Candidate) => {
         switch (candidate.status) {
             case 'applied': return 'Proceed';
@@ -880,7 +836,6 @@ const CandidateManagement = () => {
         }
     };
 
-    // Function to open email client
     const openEmailClient = (to: string, subject: string, body: string) => {
         const encodedSubject = encodeURIComponent(subject);
         const encodedBody = encodeURIComponent(body);
@@ -888,7 +843,6 @@ const CandidateManagement = () => {
         window.open(emailUrl);
     };
 
-    // Set default email content when dialog opens
     const setInterviewDialogContent = (candidate: Candidate) => {
         const defaultSubject = `Interview invitation for ${candidate.job?.title || 'the position'}`;
         const defaultBody = `Dear ${candidate.user?.name || 'Candidate'},\n\nWe are pleased to inform you that your application for the ${candidate.job?.title || 'position'} role at Protonest has been successful, and we would like to invite you for an interview.\n\nPlease confirm your availability for the scheduled interview time. We look forward to discussing your qualifications and learning more about your experience.\n\nBest regards,\nProtonest Team`;
@@ -898,7 +852,6 @@ const CandidateManagement = () => {
         setInterviewDialog(candidate);
     };
 
-    // Set default NDA email content
     const setNdaDialogContent = (candidate: Candidate) => {
         const defaultSubject = `Protonest NDA for ${candidate.job?.title || '[Role Name]'} – Action Required`;
         const defaultBody = `Hello ${candidate.user?.name?.split(' ')[0] || '[Candidate First Name]'},
@@ -998,7 +951,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to handle delete confirmation
     const handleDelete = async (candidate: Candidate) => {
         if (!deleteCandidate) return;
 
@@ -1027,7 +979,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to update status
     const updateStatus = async (candidateId: string, newStatus: string, notes?: string) => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/status`, {
@@ -1060,7 +1011,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to send NDA
     const sendNDA = async (candidateId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -1126,7 +1076,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to resend NDA
     const resendNDA = async (candidateId: string, notes?: string) => {
         try {
             const adminToken = localStorage.getItem('adminToken');
@@ -1171,7 +1120,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to handle file upload for NDA
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file && file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024) {
@@ -1181,7 +1129,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to upload NDA document to server
     const uploadNDADocument = async (file: File): Promise<string | null> => {
         try {
             setUploadingNDA(true);
@@ -1224,7 +1171,6 @@ ${attachmentUrl}
         }
     };
 
-    // Function to handle action button clicks
     const handleActionClick = (candidate: Candidate) => {
         const actionText = getActionText(candidate);
 
@@ -1255,7 +1201,6 @@ ${attachmentUrl}
         }
     };
 
-    // Handle status dialog actions
     const handleStatusAction = (action: 'shortlist' | 'reject') => {
         if (!statusDialog) return;
 
@@ -1272,7 +1217,6 @@ ${attachmentUrl}
         setStatusDialog(null);
     };
 
-    // Handle interview invitation
     const handleSendInterview = () => {
         if (!interviewDialog) return;
 
@@ -1289,7 +1233,6 @@ ${attachmentUrl}
         setInterviewBody('');
     };
 
-    // Function to handle details view
     const handleViewDetails = async (candidate: Candidate) => {
         setDetailsDialog(candidate);
         await fetchCandidateDetails(candidate);
@@ -1347,7 +1290,7 @@ ${attachmentUrl}
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1357,7 +1300,7 @@ ${attachmentUrl}
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -1387,12 +1330,12 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -1419,7 +1362,7 @@ ${attachmentUrl}
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -1482,7 +1425,7 @@ ${attachmentUrl}
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -1523,7 +1466,7 @@ ${attachmentUrl}
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
@@ -1556,7 +1499,7 @@ ${attachmentUrl}
                             </p>
                         </div>
 
-                        {/* Search Bar */}
+
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
@@ -1572,7 +1515,7 @@ ${attachmentUrl}
                             </div>
                         </div>
 
-                        {/* Job Groups List */}
+
                         <div className="space-y-4">
                             {filteredJobGroups.length > 0 ? (
                                 filteredJobGroups.map((jobGroup) => (
@@ -1580,7 +1523,7 @@ ${attachmentUrl}
                                         key={jobGroup.job_id}
                                         className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden"
                                     >
-                                        {/* Job Header */}
+
                                         <div className="bg-gradient-to-r from-[#5530FA]/10 to-[#F51DA5]/10 px-6 py-4">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-4 flex-1">
@@ -1663,7 +1606,7 @@ ${attachmentUrl}
                                             </div>
                                         </div>
 
-                                        {/* Candidates Table - Expanded */}
+
                                         {jobGroup.isExpanded && (
                                             <div className="overflow-x-auto">
                                                 <table className="min-w-full divide-y divide-gray-200">
@@ -1871,7 +1814,6 @@ ${attachmentUrl}
                                         return group;
                                     }));
 
-                                    // Update the dialog state
                                     setBulkDownloadDialog(prev => {
                                         if (!prev) return null;
                                         const allSelected = prev.selectedCandidates?.size === prev.candidates.length;
@@ -1923,7 +1865,6 @@ ${attachmentUrl}
                                                     return group;
                                                 }));
 
-                                                // Update the dialog state
                                                 setBulkDownloadDialog(prev => {
                                                     if (!prev) return null;
                                                     const newSelected = new Set(prev.selectedCandidates);
@@ -1985,7 +1926,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
+
             {deleteCandidate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteCandidate(null)}></div>
@@ -2026,7 +1967,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Status Selection Dialog */}
+
             {statusDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setStatusDialog(null)}></div>
@@ -2071,7 +2012,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Interview Invitation Dialog */}
+
             {interviewDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setInterviewDialog(null)}></div>
@@ -2133,7 +2074,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* NDA Dialog */}
+
             {ndaDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setNdaDialog(null)}></div>
@@ -2312,7 +2253,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Candidate Details Dialog */}
+
             {detailsDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50" onClick={() => setDetailsDialog(null)}></div>
@@ -2665,7 +2606,7 @@ ${attachmentUrl}
                 </div>
             )}
 
-            {/* Hidden file input */}
+
             <input
                 type="file"
                 ref={fileInputRef}

@@ -10,7 +10,6 @@ import 'swiper/css/navigation';
 import { Autoplay, EffectCoverflow, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-// Custom hook to observe multiple slides
 const useMultipleOnScreen = (refs: React.RefObject<HTMLDivElement | null>[]) => {
     const [intersectingSlides, setIntersectingSlides] = useState<Set<number>>(new Set());
 
@@ -73,18 +72,15 @@ export default function ProjectSlider() {
     const [isMobile, setIsMobile] = useState(false);
     const swiperRef = useRef<SwiperType | null>(null);
 
-    // Refs for each slide to use with useOnScreen hook
     const slideRefs = useRef<Array<React.RefObject<HTMLDivElement | null>>>([]);
 
-    // Initialize refs for each slide
     useEffect(() => {
         slideRefs.current = images.map(() => React.createRef<HTMLDivElement>());
     }, []);
 
-    // Detect if device is mobile
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 1024); // lg breakpoint
+            setIsMobile(window.innerWidth < 1024);
         };
 
         checkMobile();
@@ -93,7 +89,7 @@ export default function ProjectSlider() {
     }, []);
 
     useEffect(() => {
-        // Small delay to ensure Swiper is properly initialized
+
         const timer = setTimeout(() => {
             setSwiperReady(true);
         }, 100);
@@ -101,12 +97,11 @@ export default function ProjectSlider() {
         return () => clearTimeout(timer);
     }, []);
 
-    // Use intersection observer for mobile hover effects
     const intersectingSlides = useMultipleOnScreen(slideRefs.current);
 
     useEffect(() => {
         if (isMobile) {
-            // On mobile, show hover effects for the active slide that's intersecting
+
             if (intersectingSlides.has(activeSlideIndex)) {
                 setHoveredSlide(activeSlideIndex);
             } else {
@@ -153,7 +148,7 @@ export default function ProjectSlider() {
     return (
         <div>
             <div className="hidden lg:block w-full py-20 lg:py-24 xl:py-28 2xl:py-30 relative">
-                {/* Background Image */}
+
                 <div className="absolute inset-0 -z-10">
                     <Image
                         src="/home-4.svg"
@@ -207,18 +202,18 @@ export default function ProjectSlider() {
                                     centeredSlidesBounds={true}
                                     watchSlidesProgress={true}
                                     autoplay={{
-                                        delay: 4000, // 4 seconds
+                                        delay: 4000,
                                         disableOnInteraction: false,
-                                        pauseOnMouseEnter: false, // We handle this manually
+                                        pauseOnMouseEnter: false,
                                     }}
                                     breakpoints={{
-                                        1024: { // lg
+                                        1024: {
                                             spaceBetween: 30,
                                         },
-                                        1280: { // xl
+                                        1280: {
                                             spaceBetween: 40,
                                         },
-                                        1536: { // 2xl
+                                        1536: {
                                             spaceBetween: 50,
                                         }
                                     }}
@@ -270,7 +265,7 @@ export default function ProjectSlider() {
                                                             className={`object-cover w-full h-full rounded-[12px] lg:rounded-[14px] xl:rounded-[15px] transition-all duration-300 ${hoveredSlide === index ? 'grayscale' : 'grayscale-0'
                                                                 }`}
                                                         />
-                                                        {/* Read More Button */}
+
                                                         <div className={`absolute bottom-3 lg:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${hoveredSlide === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                                             <Link href="/research-and-project">
                                                                 <button className="w-[140px] lg:w-[160px] xl:w-[180px] h-[40px] lg:h-[45px] xl:h-[50px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[13px] lg:text-[14px] xl:text-[15px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition">
@@ -314,7 +309,7 @@ export default function ProjectSlider() {
                 </div>
             </div>
             <div className="lg:hidden w-full py-12 sm:py-16 md:py-20 relative">
-                {/* Background Image */}
+
                 <div className="absolute inset-0 -z-10">
                     <Image
                         src="/home-4.svg"
@@ -368,9 +363,9 @@ export default function ProjectSlider() {
                                     centeredSlidesBounds={true}
                                     watchSlidesProgress={true}
                                     autoplay={{
-                                        delay: 4000, // 4 seconds
+                                        delay: 4000,
                                         disableOnInteraction: false,
-                                        pauseOnMouseEnter: false, // We handle this manually
+                                        pauseOnMouseEnter: false,
                                     }}
                                     navigation={{
                                         nextEl: '.swiper-button-next-unique',
@@ -418,7 +413,7 @@ export default function ProjectSlider() {
                                                             className={`object-cover w-full h-full rounded-[10px] sm:rounded-[12px] md:rounded-[14px] transition-all duration-300 ${(hoveredSlide === index || isActiveAndVisible) ? 'grayscale' : 'grayscale-0'
                                                                 }`}
                                                         />
-                                                        {/* Read More Button - Enhanced for mobile */}
+
                                                         <div className={`absolute bottom-2 sm:bottom-3 md:bottom-4 left-0 right-0 flex justify-center transition-all duration-300 ${(hoveredSlide === index || isActiveAndVisible) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                                             <Link href="/research-and-project">
                                                                 <button className="w-[120px] sm:w-[140px] md:w-[160px] h-[35px] sm:h-[40px] md:h-[45px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-semibold font-montserrat text-[11px] sm:text-[12px] md:text-[14px] hover:from-[#F51DA5] hover:to-[#5530FA] hover:font-poppins transition shadow-lg">

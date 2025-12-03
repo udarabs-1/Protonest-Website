@@ -71,7 +71,6 @@ const ResearchProjectsManager = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -79,7 +78,6 @@ const ResearchProjectsManager = () => {
         }
     }, [router]);
 
-    // Fetch research posts from API
     const fetchResearchPosts = async () => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -107,7 +105,6 @@ const ResearchProjectsManager = () => {
         }
     };
 
-    // Fetch project posts from API
     const fetchProjectPosts = async () => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -135,7 +132,6 @@ const ResearchProjectsManager = () => {
         }
     };
 
-    // Fetch all content
     const fetchAllContent = useCallback(async () => {
         try {
             setLoading(true);
@@ -148,7 +144,6 @@ const ResearchProjectsManager = () => {
         }
     }, []);
 
-    // Delete a research post
     const deleteResearchPost = async (id: string) => {
         if (!confirm('Are you sure you want to delete this research post?')) {
             return;
@@ -181,7 +176,6 @@ const ResearchProjectsManager = () => {
         }
     };
 
-    // Delete a project post
     const deleteProjectPost = async (id: string) => {
         if (!confirm('Are you sure you want to delete this project?')) {
             return;
@@ -219,7 +213,6 @@ const ResearchProjectsManager = () => {
         router.push('/admin-signin');
     };
 
-    // Format date for display
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
 
@@ -231,7 +224,6 @@ const ResearchProjectsManager = () => {
         });
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -245,7 +237,6 @@ const ResearchProjectsManager = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch content on component mount
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         if (!adminToken) {
@@ -258,18 +249,15 @@ const ResearchProjectsManager = () => {
         setActiveFilter(filter);
     };
 
-    // Get current posts based on active content type
     const getCurrentPosts = () => {
         return activeContentType === 'research' ? researchPosts : projectPosts;
     };
 
-    // Filter posts based on active filter and search query
     const filteredPosts = getCurrentPosts().filter(post => {
-        // Status filter
+
         if (activeFilter === 'published' && !post.published) return false;
         if (activeFilter === 'draft' && post.published) return false;
 
-        // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             return (
@@ -281,7 +269,6 @@ const ResearchProjectsManager = () => {
         return true;
     });
 
-    // Fixed routes to match the create and edit pages
     const getCreateUrl = () => {
         return `/admin-dashboard/research/create?type=${activeContentType}`;
     };
@@ -325,7 +312,7 @@ const ResearchProjectsManager = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+            
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -335,7 +322,7 @@ const ResearchProjectsManager = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+            
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -365,12 +352,12 @@ const ResearchProjectsManager = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+            
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+            
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -386,7 +373,7 @@ const ResearchProjectsManager = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+                        
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -398,7 +385,7 @@ const ResearchProjectsManager = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+                    
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -461,7 +448,7 @@ const ResearchProjectsManager = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+                    
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -502,9 +489,9 @@ const ResearchProjectsManager = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+                    
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb */}
+                        
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -519,7 +506,7 @@ const ResearchProjectsManager = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
+                        
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-1">
@@ -546,7 +533,7 @@ const ResearchProjectsManager = () => {
                             </div>
                         </div>
 
-                        {/* Content Type Toggle */}
+                        
                         <div className="inline-flex justify-start items-center gap-2 mb-6">
                             <button
                                 onClick={() => setActiveContentType('research')}
@@ -573,7 +560,7 @@ const ResearchProjectsManager = () => {
                             </button>
                         </div>
 
-                        {/* Search and Filter */}
+                        
                         <div className="flex items-center gap-3 mb-4">
                             <div className="relative flex-1">
                                 <input
@@ -593,7 +580,7 @@ const ResearchProjectsManager = () => {
                             </button>
                         </div>
 
-                        {/* Filter Buttons */}
+                        
                         <div className="inline-flex justify-start items-center gap-2 mb-6">
                             <button
                                 onClick={() => handleFilterChange('all')}
@@ -632,7 +619,7 @@ const ResearchProjectsManager = () => {
                             </button>
                         </div>
 
-                        {/* Loading State */}
+                        
                         {loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <div className="text-center">
@@ -642,7 +629,7 @@ const ResearchProjectsManager = () => {
                             </div>
                         )}
 
-                        {/* Error State */}
+                        
                         {error && !loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -657,10 +644,10 @@ const ResearchProjectsManager = () => {
                             </div>
                         )}
 
-                        {/* Content Table */}
+                        
                         {!loading && !error && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
-                                {/* Table Header */}
+                                
                                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                                     <div className="hidden md:grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                         <div className="col-span-4">{activeContentType === 'research' ? 'Research' : 'Project'} Title</div>
@@ -674,7 +661,7 @@ const ResearchProjectsManager = () => {
                                     </div>
                                 </div>
 
-                                {/* Table Body */}
+                                
                                 <div className="divide-y divide-gray-200">
                                     {filteredPosts.length === 0 ? (
                                         <div className="px-4 py-8 text-center text-gray-500">
@@ -683,7 +670,7 @@ const ResearchProjectsManager = () => {
                                     ) : (
                                         filteredPosts.map((post) => (
                                             <div key={post.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                                {/* Mobile Layout */}
+                                                
                                                 <div className="md:hidden">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="flex-1">
@@ -722,7 +709,7 @@ const ResearchProjectsManager = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Desktop Layout */}
+                                                
                                                 <div className="hidden md:grid grid-cols-12 gap-4 items-center">
                                                     <div className="col-span-4">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">

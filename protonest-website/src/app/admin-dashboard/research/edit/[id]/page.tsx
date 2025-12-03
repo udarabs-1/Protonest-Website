@@ -32,7 +32,6 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
-// Custom TextStyle extension to support fontSize
 const CustomTextStyle = TextStyle.extend({
     addAttributes() {
         return {
@@ -86,11 +85,9 @@ const EditResearchProjectContent = () => {
     const router = useRouter();
     const params = useParams();
     const searchParams = useSearchParams();
-
     const contentId = params.id as string;
     const typeFromUrl = searchParams.get('type') as 'research' | 'projects' || 'research';
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -117,7 +114,6 @@ const EditResearchProjectContent = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Custom resizable image extension
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
 
@@ -685,7 +681,7 @@ const EditResearchProjectContent = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -695,7 +691,7 @@ const EditResearchProjectContent = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -744,7 +740,7 @@ const EditResearchProjectContent = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -756,7 +752,7 @@ const EditResearchProjectContent = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -819,7 +815,7 @@ const EditResearchProjectContent = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -860,9 +856,9 @@ const EditResearchProjectContent = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb */}
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -879,7 +875,7 @@ const EditResearchProjectContent = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
+
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -897,7 +893,7 @@ const EditResearchProjectContent = () => {
                             </p>
                         </div>
 
-                        {/* Content Type Display */}
+
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Content Type</h2>
                             <div className="inline-flex justify-start items-center gap-2">
@@ -921,14 +917,14 @@ const EditResearchProjectContent = () => {
                             </div>
                         </div>
 
-                        {/* Error Message */}
+
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
                         )}
 
-                        {/* Title Section */}
+
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">
                                 {contentType === 'research' ? 'Research' : 'Project'} Title
@@ -944,7 +940,7 @@ const EditResearchProjectContent = () => {
                             </div>
                         </div>
 
-                        {/* Cover Image Upload Section */}
+
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
@@ -992,15 +988,15 @@ const EditResearchProjectContent = () => {
                             </div>
                         </div>
 
-                        {/* Content Editor Section */}
+
                         <div className="mb-8">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Content Editor</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] overflow-hidden">
 
-                                {/* Toolbar */}
+
                                 <div className="border-b border-gray-200 p-4 bg-gray-50">
                                     <div className="flex flex-wrap gap-2">
-                                        {/* Text Formatting */}
+
                                         <button
                                             onClick={() => editor.chain().focus().toggleBold().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
@@ -1025,7 +1021,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Family */}
+
                                         <select
                                             onChange={(e) => {
                                                 const fontFamily = e.target.value;
@@ -1042,7 +1038,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Size */}
+
                                         <select
                                             onChange={(e) => {
                                                 const fontSize = e.target.value;
@@ -1067,7 +1063,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Headers for Structure */}
+
                                         <select
                                             onChange={(e) => {
                                                 const level = parseInt(e.target.value);
@@ -1094,7 +1090,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Lists */}
+
                                         <button
                                             onClick={() => editor.chain().focus().toggleBulletList().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
@@ -1112,7 +1108,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Alignment */}
+
                                         <button
                                             onClick={() => editor.chain().focus().setTextAlign('left').run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
@@ -1137,7 +1133,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Links and Images */}
+
                                         <button
                                             onClick={addLink}
                                             className="p-2 hover:bg-gray-200 rounded"
@@ -1158,7 +1154,7 @@ const EditResearchProjectContent = () => {
                                             )}
                                         </button>
 
-                                        {/* Image Controls - Show only when image is selected */}
+
                                         {selectedImageNode && (
                                             <>
                                                 <button
@@ -1194,7 +1190,7 @@ const EditResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Text Color */}
+
                                         <input
                                             type="color"
                                             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
@@ -1204,12 +1200,12 @@ const EditResearchProjectContent = () => {
                                     </div>
                                 </div>
 
-                                {/* Editor */}
+
                                 <EditorContent editor={editor} className="min-h-[400px]" />
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
+
                         <div className="flex justify-end gap-2 mb-8">
                             <button
                                 onClick={handleSaveAsDraft}

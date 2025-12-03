@@ -15,10 +15,10 @@ const PrivacyPolicyPage = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-white py-8">
-        {/* Container with responsive max-width */}
+        
         <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
 
-          {/* Back Button */}
+          
           <div className="mb-8">
             <button
               onClick={handleBack}
@@ -30,17 +30,17 @@ const PrivacyPolicyPage = () => {
             </button>
           </div>
 
-          {/* Header */}
+          
           <div className="mb-4">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium font-['Montserrat'] text-[#6c6c6c] leading-tight">
               Privacy Policy
             </h1>
           </div>
 
-          {/* Content */}
+          
           <div className="space-y-6">
 
-            {/* Introduction */}
+            
             <section>
               <h2 className="text-xl sm:text-2xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 Introduction
@@ -59,7 +59,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Information We Collect */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 1. Information We Collect
@@ -76,7 +76,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* How We Use Your Information */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 2. How We Use Your Information
@@ -97,7 +97,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Cookies and Tracking Technologies */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 3. Cookies and Tracking Technologies
@@ -112,7 +112,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Sharing Your Information */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 4. Sharing Your Information
@@ -133,7 +133,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Data Security */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 5. Data Security
@@ -145,7 +145,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Data Retention */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 6. Data Retention
@@ -157,7 +157,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Your Rights */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 7. Your Rights
@@ -180,7 +180,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Changes to This Policy */}
+            
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 8. Changes to This Policy
@@ -192,7 +192,7 @@ const PrivacyPolicyPage = () => {
               </div>
             </section>
 
-            {/* Contact Us */}
+            
             <section className="border-t border-gray-200 pt-6">
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 Contact Us

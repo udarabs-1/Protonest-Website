@@ -70,7 +70,6 @@ const AdminSettings = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [newAdminFirstName, setNewAdminFirstName] = useState('');
     const [newAdminLastName, setNewAdminLastName] = useState('');
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const ndaFileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
@@ -90,7 +89,6 @@ const AdminSettings = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -559,7 +557,6 @@ const AdminSettings = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -589,7 +586,6 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            {/* Add Admin Dialog */}
             {addAdminDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg">
@@ -609,7 +605,6 @@ const AdminSettings = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {/* Info Box */}
                                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div className="flex items-start gap-3">
                                         <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -623,7 +618,6 @@ const AdminSettings = () => {
                                     </div>
                                 </div>
 
-                                {/* First Name Input */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         First Name *
@@ -639,7 +633,6 @@ const AdminSettings = () => {
                                     />
                                 </div>
 
-                                {/* Last Name Input */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Last Name *
@@ -655,7 +648,6 @@ const AdminSettings = () => {
                                     />
                                 </div>
 
-                                {/* Email Input */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Admin Email Address *
@@ -674,7 +666,6 @@ const AdminSettings = () => {
                                     </div>
                                 </div>
 
-                                {/* Warning Box */}
                                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <div className="flex items-start gap-3">
                                         <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -711,7 +702,6 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            {/* Delete Admin Confirmation Dialog */}
             {deleteAdmin && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
@@ -729,7 +719,6 @@ const AdminSettings = () => {
                                 </button>
                             </div>
 
-                            {/* Warning Box */}
                             <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
                                 <div className="flex items-start gap-3">
                                     <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -777,7 +766,6 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            {/* Delete NDA Confirmation Dialog */}
             {deleteNDAConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteNDAConfirm(null)}></div>
@@ -794,7 +782,6 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            {/* Password Reset Link Dialog */}
             {passwordResetDialog && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
@@ -814,7 +801,6 @@ const AdminSettings = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {/* Info Message */}
                                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div className="flex items-start gap-3">
                                         <div className="flex-shrink-0 mt-0.5">
@@ -831,13 +817,11 @@ const AdminSettings = () => {
                                     </div>
                                 </div>
 
-                                {/* Current Admin Email Display */}
                                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                                     <p className="text-sm text-gray-600 mb-1">Reset link will be sent to:</p>
                                     <p className="text-base font-semibold text-gray-900">{getCurrentAdmin()?.email}</p>
                                 </div>
 
-                                {/* Warning Message */}
                                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <div className="flex items-start gap-3">
                                         <div className="flex-shrink-0 mt-0.5">
@@ -856,7 +840,6 @@ const AdminSettings = () => {
                                     </div>
                                 </div>
 
-                                {/* Error Message */}
                                 {resetLinkError && (
                                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                                         <p className="text-red-600 text-sm">{resetLinkError}</p>
@@ -898,7 +881,6 @@ const AdminSettings = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -1010,7 +992,7 @@ const AdminSettings = () => {
                         <div className="mb-8">
                             <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Admin Users & Access Control</h2>
 
-                            {/* Info Banner for Non-Super Admins */}
+
                             {!isSuperAdmin() && (
                                 <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <div className="flex items-start gap-3">

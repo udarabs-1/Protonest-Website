@@ -84,7 +84,6 @@ interface ExpertiseArea {
     [category: string]: string[];
 }
 
-// All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
     'Anuradhapura',
@@ -113,7 +112,6 @@ const sriLankaDistricts: string[] = [
     'Vavuniya'
 ];
 
-// Work functions list
 const workFunctionsList: string[] = [
     'Engineering',
     'Design',
@@ -135,7 +133,6 @@ const workFunctionsList: string[] = [
 const ResubmitCVPage = () => {
     const router = useRouter();
     const pathname = usePathname();
-
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -171,7 +168,6 @@ const ResubmitCVPage = () => {
         isGoogleUser: false,
     });
 
-    // Form data states
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
         email: '',
@@ -205,7 +201,6 @@ const ResubmitCVPage = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -213,7 +208,6 @@ const ResubmitCVPage = () => {
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -265,17 +259,16 @@ const ResubmitCVPage = () => {
         populateUserData();
         fetchUserProfile();
 
-        // Check for pending job application
         const pendingJobStr = localStorage.getItem('pendingJobApplication');
         if (pendingJobStr) {
             try {
                 const jobData = JSON.parse(pendingJobStr);
-                // Check if the job application is still valid (within 10 minutes)
+
                 const isValid = Date.now() - jobData.timestamp < 10 * 60 * 1000;
                 if (isValid) {
                     setPendingJob(jobData);
                 } else {
-                    // Remove expired job application
+
                     localStorage.removeItem('pendingJobApplication');
                 }
             } catch {
@@ -405,7 +398,6 @@ const ResubmitCVPage = () => {
             }));
         }
 
-        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -458,7 +450,6 @@ const ResubmitCVPage = () => {
                         }
                     });
 
-                    // STORE ALL ANALYSIS RESULTS
                     setExtractedSkills(allSkills);
                     setExpertiseAreas(expertiseAreasData);
                     setSuggestedJobs(data.results.suggested_jobs || []);
@@ -513,11 +504,10 @@ const ResubmitCVPage = () => {
     const handleSubmit = async () => {
         setHasAttemptedSubmit(true);
 
-        // If user hasn't uploaded CV before, validate full form
         if (!hasCVUploaded) {
             if (!validateForm()) return;
         } else {
-            // If resubmitting, only require file
+
             if (!selectedFile) {
                 setError('Please select a file first.');
                 return;
@@ -538,18 +528,15 @@ const ResubmitCVPage = () => {
             const submitData = new FormData();
             submitData.append('cv', selectedFile!);
 
-            // CRITICAL: Tell backend to skip analysis - we already have results
             submitData.append('skip_analysis', 'true');
             submitData.append('already_analyzed', 'true');
 
-            // Add pre-analyzed data
             submitData.append('skills', JSON.stringify(extractedSkills));
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
             submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
             submitData.append('cvFullText', cvFullText);
             submitData.append('totalYearsExperience', totalYearsExperience.toString());
 
-            // Add form data only if it's first time upload
             if (!hasCVUploaded) {
                 submitData.append('fullName', formData.fullName);
                 submitData.append('email', formData.email);
@@ -591,16 +578,14 @@ const ResubmitCVPage = () => {
                 setTimeout(() => {
                     setShowSubmissionModal(false);
 
-                    // Check if this was for a pending job application
                     if (pendingJob && pendingJob.jobUrl) {
-                        // Set flag that CV has been uploaded
+
                         sessionStorage.setItem('cvUploadedForJob', JSON.stringify({
                             jobTitle: pendingJob.jobTitle,
                             jobId: pendingJob.jobId,
                             timestamp: Date.now()
                         }));
 
-                        // Redirect to job details page to continue application
                         window.location.replace(pendingJob.jobUrl);
                     } else if (cvData.suggested_jobs && cvData.suggested_jobs.length > 0) {
                         setShowJobsModal(true);
@@ -628,7 +613,6 @@ const ResubmitCVPage = () => {
                 return;
             }
 
-            // Fetch the CV file
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
                 headers: {
                     'Authorization': `Bearer ${jwtToken}`,
@@ -642,7 +626,6 @@ const ResubmitCVPage = () => {
 
             const blob = await response.blob();
 
-            // Get file extension from CV info or default to .pdf
             let extension = '.pdf';
             if (cvInfo && cvInfo.file_type) {
                 extension = cvInfo.file_type.toLowerCase().startsWith('.')
@@ -650,17 +633,15 @@ const ResubmitCVPage = () => {
                     : `.${cvInfo.file_type.toLowerCase()}`;
             }
 
-            // Generate filename using profile data
             let filename = 'CV.pdf';
             const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
 
             if (fullName) {
-                // Clean the name for filename - replace spaces with underscores
+
                 const cleanName = fullName.replace(/\s+/g, '_');
                 filename = `${cleanName}_CV${extension}`;
             }
 
-            // Create blob URL and trigger download
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = blobUrl;
@@ -669,7 +650,6 @@ const ResubmitCVPage = () => {
             document.body.appendChild(link);
             link.click();
 
-            // Cleanup
             setTimeout(() => {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
@@ -699,10 +679,8 @@ const ResubmitCVPage = () => {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
 
-                // Open in new tab
                 const newWindow = window.open(url, '_blank');
 
-                // Clean up the URL after a delay
                 if (newWindow) {
                     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
@@ -718,7 +696,6 @@ const ResubmitCVPage = () => {
         }
     };
 
-    // Check if form is valid (for first time upload)
     const isFormValid = useMemo(() => {
         if (hasCVUploaded) {
             return !!selectedFile;
@@ -735,7 +712,6 @@ const ResubmitCVPage = () => {
         );
     }, [formData, selectedFile, hasCVUploaded]);
 
-    // Loading Spinner Component
     const LoadingSpinner = () => (
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
             <div className="w-full h-full rounded-full"></div>
@@ -750,7 +726,6 @@ const ResubmitCVPage = () => {
         </div>
     );
 
-    // Modal Wrapper Component
     const ModalWrapper = ({
         children,
         onBackdropClick,
@@ -770,7 +745,6 @@ const ResubmitCVPage = () => {
         </div>
     );
 
-    // Analysis Modal Component
     const AnalysisModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -784,7 +758,6 @@ const ResubmitCVPage = () => {
         </ModalWrapper>
     );
 
-    // Submission Modal Component
     const SubmissionModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -804,7 +777,6 @@ const ResubmitCVPage = () => {
         </ModalWrapper>
     );
 
-    // Jobs Modal Component
     const JobsModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -883,7 +855,6 @@ const ResubmitCVPage = () => {
         );
     };
 
-    // No Match Modal Component
     const NoMatchModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -969,7 +940,7 @@ const ResubmitCVPage = () => {
             }
         `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -979,7 +950,7 @@ const ResubmitCVPage = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -1356,7 +1327,7 @@ const ResubmitCVPage = () => {
                                                 What functions do you prefer to work in?
                                             </label>
 
-                                            {/* Display selected functions as tags ABOVE the dropdown */}
+
                                             {formData.workFunction && (
                                                 <div className="mb-3 flex flex-wrap gap-2">
                                                     {formData.workFunction.split(',').filter(Boolean).map((func, index) => (

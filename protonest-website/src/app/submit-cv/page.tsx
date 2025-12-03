@@ -56,7 +56,6 @@ interface PendingJobApplication {
     timestamp: number;
 }
 
-// All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
     'Anuradhapura',
@@ -85,7 +84,6 @@ const sriLankaDistricts: string[] = [
     'Vavuniya'
 ];
 
-// Work functions list
 const workFunctionsList: string[] = [
     'Engineering',
     'Design',
@@ -104,7 +102,6 @@ const workFunctionsList: string[] = [
     'Administration'
 ];
 
-// Optimized Background Component
 const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className: string }) => (
     <div className={className}>
         <Image
@@ -120,7 +117,6 @@ const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className
     </div>
 );
 
-// Optimized Modal Components
 const LoadingSpinner = () => (
     <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
         <div className="w-full h-full rounded-full"></div>
@@ -154,7 +150,6 @@ const ModalWrapper = ({
     </div>
 );
 
-// Error Dialog Component
 interface ErrorDialogProps {
     message: string;
     onClose: () => void;
@@ -253,24 +248,21 @@ export default function OnboardingPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Memoized dropdown refs
     const dropdownRefs = useMemo(() => ({
         city: { current: null as HTMLDivElement | null },
         workFunction: { current: null as HTMLDivElement | null },
     }), []);
 
-    // Debounced screen size check
     const checkIsMobile = useCallback(() => {
         return window.innerWidth < 640;
     }, []);
 
-    // Authentication check - MUST BE FIRST
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('jwtToken');
 
             if (!token) {
-                // Store current URL to redirect back after sign in
+
                 const currentPath = window.location.pathname;
                 if (currentPath !== '/signin') {
                     sessionStorage.setItem('redirectAfterSignIn', currentPath);
@@ -283,18 +275,15 @@ export default function OnboardingPage() {
         }
     }, [router]);
 
-    // Prevent back navigation - IMPORTANT: Only after auth check
     useEffect(() => {
         if (!isAuthChecking) {
-            // Replace history entry to prevent back navigation
+
             window.history.replaceState(null, '', window.location.href);
 
-            // Handle back button
             const handlePopState = (e: PopStateEvent) => {
                 e.preventDefault();
                 window.history.replaceState(null, '', window.location.href);
 
-                // Optional: Show a warning if they have unsaved changes
                 if (uploadedCV || formData.fullName || formData.email || formData.phoneNumber) {
                     const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
                     if (confirmLeave) {
@@ -329,28 +318,27 @@ export default function OnboardingPage() {
 
     useEffect(() => {
         if (typeof window !== 'undefined' && !isAuthChecking) {
-            // Check for pending job application
+
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
             if (pendingJobStr) {
                 try {
                     const jobData = JSON.parse(pendingJobStr);
-                    // Check if the job application is still valid (within 24 hours)
+
                     const isValid = Date.now() - jobData.timestamp < 24 * 60 * 60 * 1000;
                     if (isValid) {
                         setPendingJob(jobData);
-                        // Store the redirect URL
+
                         setRedirectAfterSubmit(jobData.jobUrl || `/jobs/${jobData.role}/${jobData.jobId}`);
                     } else {
-                        // Remove expired job application
+
                         localStorage.removeItem('pendingJobApplication');
                     }
                 } catch {
-                    // Remove invalid job application data
+
                     localStorage.removeItem('pendingJobApplication');
                 }
             }
 
-            // Pre-populate user data if available
             const userStr = localStorage.getItem('userData');
             if (userStr) {
                 try {
@@ -367,7 +355,6 @@ export default function OnboardingPage() {
         }
     }, [isAuthChecking]);
 
-    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const isOutsideDropdown = Object.values(dropdownRefs).every(ref =>
@@ -409,7 +396,7 @@ export default function OnboardingPage() {
 
     const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
         if (field === 'workFunction') {
-            // Remove any duplicate functions when adding new ones
+
             const functionsArray = (value as string).split(',').filter(Boolean);
             const uniqueFunctions = [...new Set(functionsArray)].join(',');
             setFormData(prev => ({
@@ -423,13 +410,11 @@ export default function OnboardingPage() {
             }));
         }
 
-        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
     }, [errors]);
 
-    // One function handles everything - upload CV and get complete results
     const analyzeCV = useCallback(async (file: File): Promise<void> => {
         setShowAnalysisModal(true);
         try {
@@ -441,7 +426,6 @@ export default function OnboardingPage() {
                 throw new Error('User token not found. Please sign in first.');
             }
 
-            // Single endpoint call - gets EVERYTHING
             const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
                 method: 'POST',
                 headers: {
@@ -457,13 +441,12 @@ export default function OnboardingPage() {
             const data: AnalyzeResponse = await response.json();
 
             if (data.status === 'success') {
-                // Extract all skills
+
                 const allSkills: string[] = [];
                 Object.values(data.results.expertise_areas).forEach(skills => {
                     allSkills.push(...skills);
                 });
 
-                // Set everything from one response
                 setExtractedSkills(allSkills);
                 setExpertiseAreas(data.results.expertise_areas);
                 setSuggestedJobs(data.results.suggested_jobs);
@@ -484,7 +467,6 @@ export default function OnboardingPage() {
         }
     }, []);
 
-    // On form submit - data is already there from CV analysis, just submit to backend
     const handleSubmit = useCallback(async (): Promise<void> => {
         if (!validateForm()) return;
 
@@ -492,7 +474,7 @@ export default function OnboardingPage() {
         setShowSubmissionModal(true);
 
         try {
-            // Use FormData to send both CV file and analysis results
+
             const submitData = new FormData();
             submitData.append('fullName', formData.fullName);
             submitData.append('email', formData.email);
@@ -508,11 +490,9 @@ export default function OnboardingPage() {
             submitData.append('totalYearsExperience', totalYearsExperience.toString());
             submitData.append('skip_talent_pool', 'false');
 
-            // CRITICAL: Tell backend NOT to analyze again - we already have results
             submitData.append('skip_analysis', 'true'); // ← NEW FLAG
             submitData.append('already_analyzed', 'true'); // ← BACKUP FLAG
 
-            // Send the CV file for storage only
             if (uploadedCV) {
                 submitData.append('cv', uploadedCV);
             }
@@ -522,12 +502,11 @@ export default function OnboardingPage() {
                 throw new Error('Authentication token not found. Please log in again.');
             }
 
-            // Submit to Go backend with multipart/form-data
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    // Don't set Content-Type - browser will set it with boundary for FormData
+
                 },
                 body: submitData,
             });
@@ -608,7 +587,6 @@ export default function OnboardingPage() {
             setExpertiseAreas({});
             setSuggestedJobs([]);
 
-            // Call the Python API to analyze the CV - ONLY ONCE HERE
             analyzeCV(file);
         }
     }, [analyzeCV]);
@@ -637,7 +615,6 @@ export default function OnboardingPage() {
         }));
     }, []);
 
-    // Get button text based on pending job
     const getButtonText = useCallback(() => {
         if (pendingJob) {
             return 'Submit CV and Apply for the Job';
@@ -646,7 +623,6 @@ export default function OnboardingPage() {
         }
     }, [pendingJob]);
 
-    // Check if all required fields are filled
     const isFormValid = useMemo(() => {
         return !!(
             formData.fullName.trim() &&
@@ -669,7 +645,6 @@ export default function OnboardingPage() {
         setShowErrorDialog(null);
     }, []);
 
-    // Analysis Modal Component
     const AnalysisModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -683,7 +658,6 @@ export default function OnboardingPage() {
         </ModalWrapper>
     );
 
-    // Submission Modal Component
     const SubmissionModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -701,7 +675,6 @@ export default function OnboardingPage() {
         </ModalWrapper>
     );
 
-    // Jobs Modal Component
     const JobsModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -773,7 +746,6 @@ export default function OnboardingPage() {
         );
     };
 
-    // No Match Modal Component
     const NoMatchModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -807,7 +779,7 @@ export default function OnboardingPage() {
                             <button
                                 className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
                                 onClick={() => {
-                                    // Clear pending job application
+
                                     if (pendingJob) {
                                         localStorage.removeItem('pendingJobApplication');
                                     }
@@ -834,7 +806,6 @@ export default function OnboardingPage() {
         );
     };
 
-    // Job Application Success Modal Component
     const JobApplicationSuccessModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -849,12 +820,12 @@ export default function OnboardingPage() {
             >
                 <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
-                        {/* Success Icon */}
+
                         <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center gradient-icon">
                             <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
                         </div>
 
-                        {/* Success Message */}
+
                         <div className="text-center">
                             <h2 className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-4">
                                 Application Submitted Successfully!
@@ -865,14 +836,14 @@ export default function OnboardingPage() {
                             </p>
                         </div>
 
-                        {/* Additional suggested jobs if available */}
+
                         {suggestedJobs && suggestedJobs.length > 0 && (
                             <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-4">
                                 We&apos;ve also found other roles that might interest you!
                             </div>
                         )}
 
-                        {/* Action Buttons */}
+
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
                             {suggestedJobs && suggestedJobs.length > 0 ? (
                                 <>
@@ -944,7 +915,7 @@ export default function OnboardingPage() {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -956,9 +927,9 @@ export default function OnboardingPage() {
 
             <Navbar />
 
-            {/* Optimized Header Section */}
+
             <header className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-                {/* Background Images */}
+
                 <BackgroundImage
                     isMobile={true}
                     className="absolute inset-0 -z-10 block sm:hidden"
@@ -968,11 +939,11 @@ export default function OnboardingPage() {
                     className="absolute inset-0 -z-10 hidden sm:block"
                 />
 
-                {/* Gradient Overlays */}
+
                 <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
                 <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
 
-                {/* Hero Content */}
+
                 <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
                     <div className="text-center max-w-4xl xl:max-w-[1120px]">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-['Montserrat'] leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8">
@@ -1005,9 +976,9 @@ export default function OnboardingPage() {
             <main className="min-h-screen relative overflow-hidden">
                 <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
                     <div className="space-y-8">
-                        {/* Personal Information */}
+
                         <div className="grid grid-cols-1 gap-6">
-                            {/* Full Name - Always full width */}
+
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     Full Name
@@ -1022,9 +993,9 @@ export default function OnboardingPage() {
                                 {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                             </div>
 
-                            {/* Email and Phone - Side by side on large screens */}
+
                             <div className="grid grid-cols-1 gap-6">
-                                {/* Email */}
+
                                 <div>
                                     <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                         Email
@@ -1039,13 +1010,13 @@ export default function OnboardingPage() {
                                     {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
                                 </div>
 
-                                {/* Phone Number */}
+
                                 <div>
                                     <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                         Phone Number
                                     </label>
                                     <div className="flex items-center">
-                                        {/* Country Code - Fixed for Sri Lanka */}
+
                                         <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
                                             <span className="mr-1">🇱🇰</span>
                                             <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
@@ -1063,7 +1034,7 @@ export default function OnboardingPage() {
                                 </div>
                             </div>
 
-                            {/* City Dropdown */}
+
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     District
@@ -1179,7 +1150,7 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* CV Upload */}
+
                         <div className="space-y-4">
                             <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold font-['Poppins']">
                                 Upload CV
@@ -1228,7 +1199,7 @@ export default function OnboardingPage() {
                             {errors.cv && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.cv}</p>}
                         </div>
 
-                        {/* NDA Acknowledgment */}
+
                         <div className="flex items-start space-x-3">
                             <button
                                 type="button"
@@ -1255,7 +1226,7 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* Error Summary - Only show if form is not valid and has been submitted */}
+
                         {!isFormValid && Object.keys(errors).length > 0 && (
                             <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3">
                                 <div className="flex-shrink-0">
@@ -1269,7 +1240,7 @@ export default function OnboardingPage() {
                             </div>
                         )}
 
-                        {/* Action Buttons */}
+
                         <div className="flex flex-col sm:flex-row gap-4 pt-8">
                             <button
                                 type="button"
@@ -1292,14 +1263,14 @@ export default function OnboardingPage() {
                 </div>
             </main>
 
-            {/* Modals */}
+
             {showAnalysisModal && <AnalysisModal />}
             {showSubmissionModal && <SubmissionModal />}
             {showJobApplicationSuccessModal && <JobApplicationSuccessModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
 
-            {/* Error Dialog */}
+
             {showErrorDialog && (
                 <ErrorDialog
                     message={showErrorDialog}

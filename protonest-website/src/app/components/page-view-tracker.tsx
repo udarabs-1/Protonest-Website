@@ -30,7 +30,6 @@ function PageViewTrackerComponent() {
     return null
 }
 
-// Wrap the component with Suspense
 import { Suspense } from 'react'
 
 export default function PageViewTracker() {

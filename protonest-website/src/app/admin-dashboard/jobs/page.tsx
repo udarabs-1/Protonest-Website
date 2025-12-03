@@ -19,7 +19,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Type definitions
 interface Job {
     id: string;
     title: string;
@@ -43,7 +42,6 @@ interface Job {
     status: string;
 }
 
-// Updated API Response interface to match new endpoint structure
 interface ApiResponse {
     status: string;
     message: string;
@@ -66,7 +64,6 @@ interface ApiResponse {
     timestamp: string;
 }
 
-// Add category to slug mapping
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
@@ -89,19 +86,15 @@ const JobPostings = () => {
     const [applicationCounts, setApplicationCounts] = useState<{ [key: string]: number }>({});
     const [loadingCounts, setLoadingCounts] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // Job Suggestions Trigger States
     const [showTriggerDialog, setShowTriggerDialog] = useState(false);
     const [triggerLoading, setTriggerLoading] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -141,7 +134,6 @@ const JobPostings = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch application counts for each job
     const fetchApplicationCounts = useCallback(async (jobs: Job[]) => {
         const token = localStorage.getItem('adminToken');
         if (!token || !jobs || jobs.length === 0) return;
@@ -289,7 +281,6 @@ const JobPostings = () => {
         }
     };
 
-    // Handle manual trigger of job suggestions
     const handleTriggerJobSuggestions = async () => {
         setShowTriggerDialog(false);
         setTriggerLoading(true);
@@ -385,7 +376,6 @@ const JobPostings = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -395,7 +385,6 @@ const JobPostings = () => {
                 </defs>
             </svg>
 
-            {/* Loading Overlay for Trigger */}
             {triggerLoading && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 text-center">
@@ -412,7 +401,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Trigger Confirmation Dialog */}
             {showTriggerDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -452,7 +440,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Success Dialog */}
             {showSuccessDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -495,7 +482,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Error Dialog */}
             {showErrorDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -526,7 +512,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -721,7 +706,6 @@ const JobPostings = () => {
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-                                {/* Send Job Suggestions Button */}
                                 <button
                                     onClick={() => setShowTriggerDialog(true)}
                                     disabled={triggerLoading}
@@ -732,7 +716,6 @@ const JobPostings = () => {
                                     Send Job Suggestions
                                 </button>
 
-                                {/* Create New Job Button */}
                                 <Link
                                     href="/admin-dashboard/jobs/create"
                                     className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"

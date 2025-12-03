@@ -37,7 +37,6 @@ const ContactFormMessages = () => {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -64,7 +63,6 @@ const ContactFormMessages = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch contact messages from backend
     useEffect(() => {
         const fetchContactMessages = async () => {
             try {
@@ -110,7 +108,7 @@ const ContactFormMessages = () => {
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
                 console.error('Error fetching contact messages:', err);
-                setContactMessages([]); // Ensure it's always an array
+                setContactMessages([]);
             } finally {
                 setLoading(false);
             }
@@ -119,7 +117,6 @@ const ContactFormMessages = () => {
         fetchContactMessages();
     }, [searchTerm, statusFilter]);
 
-    // Update contact status
     const updateContactStatus = async (id: string, newStatus: string) => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -141,7 +138,6 @@ const ContactFormMessages = () => {
                 throw new Error(`Failed to update status: ${response.statusText}`);
             }
 
-            // Update local state
             setContactMessages(prev => prev.map(msg =>
                 msg.id === id ? { ...msg, status: newStatus } : msg
             ));
@@ -151,17 +147,14 @@ const ContactFormMessages = () => {
         }
     };
 
-    // Handle search
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
-    // Handle status filter change
     const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setStatusFilter(e.target.value);
     };
 
-    // Format date
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
@@ -171,16 +164,14 @@ const ContactFormMessages = () => {
                 day: 'numeric'
             });
         } catch {
-            return dateString; // Return original if parsing fails
+            return dateString;
         }
     };
 
-    // Get message preview
     const getMessagePreview = (message: string) => {
         return message.length > 50 ? `"${message.substring(0, 50)}..."` : `"${message}"`;
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -247,7 +238,7 @@ const ContactFormMessages = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -257,7 +248,7 @@ const ContactFormMessages = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -287,16 +278,16 @@ const ContactFormMessages = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
+
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
@@ -309,7 +300,7 @@ const ContactFormMessages = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -321,12 +312,12 @@ const ContactFormMessages = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
+
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
@@ -345,7 +336,7 @@ const ContactFormMessages = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
+
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -369,7 +360,7 @@ const ContactFormMessages = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -387,7 +378,7 @@ const ContactFormMessages = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -411,7 +402,7 @@ const ContactFormMessages = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -429,9 +420,9 @@ const ContactFormMessages = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -446,7 +437,7 @@ const ContactFormMessages = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
+
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -476,7 +467,7 @@ const ContactFormMessages = () => {
                             </div>
                         )}
 
-                        {/* Search and Filter Bar */}
+
                         <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                             <div className="relative flex-1 w-full">
                                 <input
@@ -508,7 +499,7 @@ const ContactFormMessages = () => {
                             </div>
                         </div>
 
-                        {/* Contact Messages Table */}
+
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -585,7 +576,7 @@ const ContactFormMessages = () => {
                                                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
                                                                 title="View details"
                                                                 onClick={() => {
-                                                                    // You can implement a modal or detail view here
+
                                                                     alert(`Message: ${message.message}`);
                                                                 }}
                                                             >

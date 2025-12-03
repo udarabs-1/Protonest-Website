@@ -32,7 +32,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Custom TextStyle extension to support fontSize
 const CustomTextStyle = TextStyle.extend({
     addAttributes() {
         return {
@@ -85,7 +84,6 @@ const CreateBlogPost = () => {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -98,7 +96,6 @@ const CreateBlogPost = () => {
         router.push('/admin-signin');
     };
 
-    // Custom resizable image extension
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
 
@@ -170,7 +167,6 @@ const CreateBlogPost = () => {
                     ${node.attrs.style || ''}
                 `;
 
-                // Add resize handles
                 const resizeHandles = ['nw', 'ne', 'sw', 'se'].map(position => {
                     const handle = document.createElement('div');
                     handle.className = `resize-handle resize-${position}`;
@@ -189,7 +185,6 @@ const CreateBlogPost = () => {
                     return handle;
                 });
 
-                // Show/hide handles on selection
                 const showHandles = () => {
                     resizeHandles.forEach(handle => handle.style.display = 'block');
                     container.style.outline = '2px solid #5530fa';
@@ -209,7 +204,6 @@ const CreateBlogPost = () => {
 
                 img.addEventListener('click', showHandles);
 
-                // Click outside to deselect
                 const handleDocumentClick = (e: Event) => {
                     const target = e.target as HTMLElement;
                     if (!container.contains(target)) {
@@ -219,7 +213,6 @@ const CreateBlogPost = () => {
 
                 document.addEventListener('click', handleDocumentClick);
 
-                // Resize functionality
                 resizeHandles.forEach((handle, index) => {
                     handle.addEventListener('mousedown', (e) => {
                         e.preventDefault();
@@ -234,7 +227,6 @@ const CreateBlogPost = () => {
                             let newWidth = startWidth;
                             let newHeight = startHeight;
 
-                            // Calculate new dimensions based on handle position
                             const position = ['nw', 'ne', 'sw', 'se'][index];
 
                             if (position.includes('e')) {
@@ -243,10 +235,8 @@ const CreateBlogPost = () => {
                                 newWidth = startWidth - deltaX;
                             }
 
-                            // Maintain aspect ratio
                             newHeight = newWidth / aspectRatio;
 
-                            // Apply minimum size constraints
                             newWidth = Math.max(50, Math.min(800, newWidth));
                             newHeight = Math.max(50, Math.min(600, newHeight));
 
@@ -258,7 +248,6 @@ const CreateBlogPost = () => {
                             document.removeEventListener('mousemove', onMouseMove);
                             document.removeEventListener('mouseup', onMouseUp);
 
-                            // Update the node attributes
                             if (typeof getPos === 'function') {
                                 const pos = getPos();
                                 if (pos !== undefined) {
@@ -323,10 +312,9 @@ const CreateBlogPost = () => {
             },
             handleDrop: (view, event, slice, moved) => {
                 if (moved) {
-                    return false; // Let TipTap handle internal moves
+                    return false;
                 }
 
-                // Handle external file drops
                 const files = Array.from(event.dataTransfer?.files || []);
                 const imageFile = files.find(file => file.type.startsWith('image/'));
 
@@ -363,12 +351,10 @@ const CreateBlogPost = () => {
         setCategoryInput('');
     };
 
-    // Handle removing categories
     const removeCategory = (categoryToRemove: string) => {
         setCategories(categories.filter(category => category !== categoryToRemove));
     };
 
-    // Handle category input key press
     const handleCategoryKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -376,17 +362,14 @@ const CreateBlogPost = () => {
         }
     };
 
-    // Handle file selection
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 setError('Please select a valid image file (JPG, PNG)');
                 return;
             }
 
-            // Validate file size (2MB)
             if (file.size > 2 * 1024 * 1024) {
                 setError('File size should be less than 2MB');
                 return;
@@ -394,7 +377,6 @@ const CreateBlogPost = () => {
 
             setCoverImage(file);
 
-            // Create preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 setCoverImagePreview(e.target?.result as string);
@@ -404,12 +386,10 @@ const CreateBlogPost = () => {
         }
     };
 
-    // Handle drag and drop
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (file) {
-            // Create a proper FileList-like object
             const fileList = {
                 0: file,
                 length: 1,
@@ -432,15 +412,12 @@ const CreateBlogPost = () => {
         e.preventDefault();
     };
 
-    // Handle image upload to editor
     const handleImageUploadToEditor = useCallback(async (file: File) => {
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             setError('Please select a valid image file (JPG, PNG)');
             return;
         }
 
-        // Validate file size (2MB)
         if (file.size > 2 * 1024 * 1024) {
             setError('Image size should be less than 2MB');
             return;
@@ -472,8 +449,7 @@ const CreateBlogPost = () => {
                 editor?.chain().focus().setImage({
                     src: result.data.url,
                     alt: file.name,
-                    width: 400, // Default width
-                    // height will be auto-calculated to maintain aspect ratio
+                    width: 400,
                 }).run();
             } else {
                 throw new Error(result.message || 'Failed to upload image');
@@ -485,7 +461,6 @@ const CreateBlogPost = () => {
         }
     }, [editor]);
 
-    // Image alignment functions
     const alignImageLeft = () => {
         if (selectedImageNode) {
             const { container } = selectedImageNode;
@@ -521,7 +496,6 @@ const CreateBlogPost = () => {
         }
     };
 
-    // Delete selected image
     const deleteSelectedImage = () => {
         if (selectedImageNode && selectedImageNode.getPos) {
             const pos = selectedImageNode.getPos();
@@ -530,7 +504,6 @@ const CreateBlogPost = () => {
         }
     };
 
-    // Add image to editor
     const addImage = useCallback(() => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -544,7 +517,6 @@ const CreateBlogPost = () => {
         input.click();
     }, [handleImageUploadToEditor]);
 
-    // Add link to editor
     const addLink = useCallback(() => {
         const url = prompt('Enter URL:');
         if (url && editor) {
@@ -552,17 +524,14 @@ const CreateBlogPost = () => {
         }
     }, [editor]);
 
-    // Submit as draft
     const handleSaveAsDraft = async () => {
         await submitBlog(false);
     };
 
-    // Submit as published
     const handlePublish = async () => {
         await submitBlog(true);
     };
 
-    // Submit blog post
     const submitBlog = async (published: boolean) => {
         if (!title.trim()) {
             setError('Title is required');
@@ -617,7 +586,6 @@ const CreateBlogPost = () => {
         }
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -660,7 +628,6 @@ const CreateBlogPost = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -670,7 +637,6 @@ const CreateBlogPost = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -700,12 +666,10 @@ const CreateBlogPost = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
@@ -721,7 +685,6 @@ const CreateBlogPost = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -733,7 +696,6 @@ const CreateBlogPost = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -796,7 +758,6 @@ const CreateBlogPost = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -837,9 +798,7 @@ const CreateBlogPost = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb */}
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -856,7 +815,6 @@ const CreateBlogPost = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -874,14 +832,12 @@ const CreateBlogPost = () => {
                             </p>
                         </div>
 
-                        {/* Error Message */}
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
                         )}
 
-                        {/* Blog Title Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Title</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
@@ -895,7 +851,6 @@ const CreateBlogPost = () => {
                             </div>
                         </div>
 
-                        {/* Blog Categories Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Categories</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
@@ -908,7 +863,6 @@ const CreateBlogPost = () => {
                                     placeholder="Type a category and press Enter to add"
                                 />
 
-                                {/* Categories Display */}
                                 <div className="flex flex-wrap gap-2">
                                     {categories.map((category, index) => (
                                         <div
@@ -935,7 +889,6 @@ const CreateBlogPost = () => {
                             </div>
                         </div>
 
-                        {/* Cover Image Upload Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
@@ -983,15 +936,12 @@ const CreateBlogPost = () => {
                             </div>
                         </div>
 
-                        {/* Blog Content Editor Section */}
                         <div className="mb-8">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Content Editor</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] overflow-hidden">
 
-                                {/* Toolbar */}
                                 <div className="border-b border-gray-200 p-4 bg-gray-50">
                                     <div className="flex flex-wrap gap-2">
-                                        {/* Text Formatting */}
                                         <button
                                             onClick={() => editor.chain().focus().toggleBold().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
@@ -1016,7 +966,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Family */}
                                         <select
                                             onChange={(e) => {
                                                 const fontFamily = e.target.value;
@@ -1033,7 +982,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Size */}
                                         <select
                                             onChange={(e) => {
                                                 const fontSize = e.target.value;
@@ -1058,7 +1006,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Headers for Structure */}
                                         <select
                                             onChange={(e) => {
                                                 const level = parseInt(e.target.value);
@@ -1085,7 +1032,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Lists */}
                                         <button
                                             onClick={() => editor.chain().focus().toggleBulletList().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
@@ -1103,7 +1049,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Alignment */}
                                         <button
                                             onClick={() => editor.chain().focus().setTextAlign('left').run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
@@ -1128,7 +1073,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Links and Images */}
                                         <button
                                             onClick={addLink}
                                             className="p-2 hover:bg-gray-200 rounded"
@@ -1149,7 +1093,6 @@ const CreateBlogPost = () => {
                                             )}
                                         </button>
 
-                                        {/* Image Controls - Show only when image is selected */}
                                         {selectedImageNode && (
                                             <>
                                                 <button
@@ -1185,7 +1128,6 @@ const CreateBlogPost = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Text Color */}
                                         <input
                                             type="color"
                                             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
@@ -1195,12 +1137,10 @@ const CreateBlogPost = () => {
                                     </div>
                                 </div>
 
-                                {/* Editor */}
                                 <EditorContent editor={editor} className="min-h-[400px]" />
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="flex justify-end gap-2 mb-8">
                             <button
                                 onClick={handleSaveAsDraft}
@@ -1370,17 +1310,14 @@ const CreateBlogPost = () => {
                                 linear-gradient(45deg, #F51DA5, #5530FA) border-box;
                 }
 
-                /* Image drag placeholder */
                 .ProseMirror .image-container.dragging {
                     opacity: 0.5;
                 }
                 
-                /* Better focus states */
                 .ProseMirror:focus {
                     outline: none;
                 }
                 
-                /* Selection styles */
                 .ProseMirror ::selection {
                     background: rgba(85, 48, 250, 0.2);
                 }
