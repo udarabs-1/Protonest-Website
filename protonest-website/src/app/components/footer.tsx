@@ -58,6 +58,7 @@ export default function Footer() {
 
                             <Image
                                 src="/footerWeb.gif"
+                                unoptimized
                                 alt="Footer background"
                                 fill
                                 style={{
@@ -198,6 +199,7 @@ export default function Footer() {
 
                         <Image
                             src="/footerMobile.gif"
+                            unoptimized
                             alt="Footer background"
                             fill
                             style={{

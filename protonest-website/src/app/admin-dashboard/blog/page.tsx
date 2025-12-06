@@ -274,7 +274,6 @@ const BlogManager = () => {
                 </div>
             )}
 
-            {/* Success Dialog */}
             {successDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -299,7 +298,6 @@ const BlogManager = () => {
                 </div>
             )}
 
-            {/* Error Dialog */}
             {errorDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -324,7 +322,6 @@ const BlogManager = () => {
                 </div>
             )}
 
-            {/* Confirmation Dialog */}
             {confirmDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"

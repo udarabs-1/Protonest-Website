@@ -780,7 +780,6 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Success Dialog */}
             {successDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -805,7 +804,6 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Error Dialog */}
             {errorDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -830,7 +828,6 @@ const TalentPool = () => {
                 </div>
             )}
 
-            {/* Confirmation Dialog */}
             {confirmDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"

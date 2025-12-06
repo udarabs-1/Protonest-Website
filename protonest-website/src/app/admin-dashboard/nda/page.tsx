@@ -627,7 +627,7 @@ const NDAComplianceLog = () => {
                 setNdaDialogContent(record);
                 break;
             case 'resend':
-                setNdaDialogContent(record); // Open dialog instead of confirm
+                setNdaDialogContent(record);
                 break;
             case 'note':
                 const currentNote = record.nda_status?.compliance_notes || '';
@@ -1423,7 +1423,6 @@ const NDAComplianceLog = () => {
             )}
 
 
-            {/* Success Dialog */}
             {successDialog && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
@@ -1462,7 +1461,6 @@ const NDAComplianceLog = () => {
                 className="hidden"
             />
 
-            {/* Error Dialog */}
             {errorDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -1487,7 +1485,7 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-            {/* Confirmation Dialog */}
+
             {confirmDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
