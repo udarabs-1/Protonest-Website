@@ -46,6 +46,29 @@ interface NDADocument {
     download_url: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const AdminSettings = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -70,6 +93,8 @@ const AdminSettings = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [newAdminFirstName, setNewAdminFirstName] = useState('');
     const [newAdminLastName, setNewAdminLastName] = useState('');
+    const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
+    const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const ndaFileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
@@ -90,8 +115,7 @@ const AdminSettings = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -194,7 +218,7 @@ const AdminSettings = () => {
 
     const openAddAdminDialog = () => {
         if (!isSuperAdmin()) {
-            alert('Only super admins can add new admins');
+            setErrorDialog({ title: 'Access Denied', message: 'Only super admins can add new admins' });
             return;
         }
         setAddAdminDialog(true);
@@ -212,23 +236,23 @@ const AdminSettings = () => {
 
     const handleAddAdmin = async () => {
         if (!newAdminEmail.trim()) {
-            alert('Please enter an email address');
+            setErrorDialog({ title: 'Validation Error', message: 'Please enter an email address' });
             return;
         }
 
         if (!newAdminFirstName.trim()) {
-            alert('Please enter a first name');
+            setErrorDialog({ title: 'Validation Error', message: 'Please enter a first name' });
             return;
         }
 
         if (!newAdminLastName.trim()) {
-            alert('Please enter a last name');
+            setErrorDialog({ title: 'Validation Error', message: 'Please enter a last name' });
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(newAdminEmail)) {
-            alert('Please enter a valid email address');
+            setErrorDialog({ title: 'Validation Error', message: 'Please enter a valid email address' });
             return;
         }
 
@@ -260,10 +284,10 @@ const AdminSettings = () => {
             setNewAdminEmail('');
             setNewAdminFirstName('');
             setNewAdminLastName('');
-            alert('Admin added successfully! Login credentials have been sent to their email.');
+            setSuccessDialog({ title: 'Success', message: 'Admin added successfully! Login credentials have been sent to their email.' });
         } catch (err) {
             console.error('Error adding admin:', err);
-            alert(err instanceof Error ? err.message : 'Failed to add admin');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to add admin' });
         } finally {
             setAddingAdmin(false);
         }
@@ -288,10 +312,10 @@ const AdminSettings = () => {
 
             setAdmins(admins.filter(a => a.id !== deleteAdmin.id));
             setDeleteAdmin(null);
-            alert('Admin deleted successfully');
+            setSuccessDialog({ title: 'Success', message: 'Admin deleted successfully' });
         } catch (err) {
             console.error('Error deleting admin:', err);
-            alert(err instanceof Error ? err.message : 'Failed to delete admin');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to delete admin' });
         }
     };
 
@@ -300,12 +324,12 @@ const AdminSettings = () => {
         if (!file) return;
 
         if (file.type !== 'application/pdf') {
-            alert('Please upload a PDF file');
+            setErrorDialog({ title: 'Validation Error', message: 'Please upload a PDF file' });
             return;
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB');
+            setErrorDialog({ title: 'Validation Error', message: 'File size must be less than 10MB' });
             return;
         }
 
@@ -341,10 +365,10 @@ const AdminSettings = () => {
             }
 
             setNdaDescription('');
-            alert('NDA uploaded successfully');
+            setSuccessDialog({ title: 'Success', message: 'NDA uploaded successfully' });
         } catch (err) {
             console.error('Error uploading NDA:', err);
-            alert(err instanceof Error ? err.message : 'Failed to upload NDA');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to upload NDA' });
         } finally {
             setUploadingNDA(false);
             if (ndaFileInputRef.current) {
@@ -355,7 +379,7 @@ const AdminSettings = () => {
 
     const handleUpdateDescription = async (documentId: string) => {
         if (!descriptionText.trim()) {
-            alert('Description cannot be empty');
+            setErrorDialog({ title: 'Validation Error', message: 'Description cannot be empty' });
             return;
         }
 
@@ -389,10 +413,10 @@ const AdminSettings = () => {
 
             setEditingDescription(null);
             setDescriptionText('');
-            alert('Description updated successfully');
+            setSuccessDialog({ title: 'Success', message: 'Description updated successfully' });
         } catch (err) {
             console.error('Error updating description:', err);
-            alert(err instanceof Error ? err.message : 'Failed to update description');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to update description' });
         } finally {
             setUpdatingDescription(false);
         }
@@ -423,10 +447,10 @@ const AdminSettings = () => {
                 setActiveNDA({ ...newActive, is_active: true });
             }
 
-            alert('Document activated successfully');
+            setSuccessDialog({ title: 'Success', message: 'Document activated successfully' });
         } catch (err) {
             console.error('Error activating document:', err);
-            alert(err instanceof Error ? err.message : 'Failed to activate document');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to activate document' });
         } finally {
             setActivatingNDA(null);
         }
@@ -451,10 +475,10 @@ const AdminSettings = () => {
 
             setNdaDocuments(ndaDocuments.filter(doc => doc.id !== deleteNDAConfirm.id));
             setDeleteNDAConfirm(null);
-            alert('Document deleted successfully');
+            setSuccessDialog({ title: 'Success', message: 'Document deleted successfully' });
         } catch (err) {
             console.error('Error deleting document:', err);
-            alert(err instanceof Error ? err.message : 'Failed to delete document');
+            setErrorDialog({ title: 'Error', message: err instanceof Error ? err.message : 'Failed to delete document' });
         } finally {
             setDeletingNDA(null);
         }
@@ -495,10 +519,15 @@ const AdminSettings = () => {
             }
 
             setPasswordResetDialog(false);
-            alert('Password reset link has been sent to your email address. You will now be logged out. Please check your email to reset your password.');
+            setSuccessDialog({
+                title: 'Link Sent',
+                message: 'Password reset link has been sent to your email address. You will now be logged out. Please check your email to reset your password.'
+            });
 
-            localStorage.removeItem('adminToken');
-            router.push('/admin-signin');
+            setTimeout(() => {
+                localStorage.removeItem('adminToken');
+                router.push('/admin-signin');
+            }, 3000);
         } catch (err) {
             console.error('Error sending reset link:', err);
             setResetLinkError(err instanceof Error ? err.message : 'Failed to send reset link. Please try again.');
@@ -559,11 +588,12 @@ const AdminSettings = () => {
 
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowLogoutDialog(false)}
                 >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
@@ -580,6 +610,56 @@ const AdminSettings = () => {
                                 className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
                             >
                                 Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Dialog */}
+            {successDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setSuccessDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{successDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setSuccessDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Dialog */}
+            {errorDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setErrorDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setErrorDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
                             </button>
                         </div>
                     </div>
@@ -767,9 +847,15 @@ const AdminSettings = () => {
             )}
 
             {deleteNDAConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteNDAConfirm(null)}></div>
-                    <div className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setDeleteNDAConfirm(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2" > Delete NDA Document </h3>
                             <p className="text-gray-600 text-sm sm:text-base">Are you sure you want to delete <span className="font-medium">{deleteNDAConfirm.file_name}</span> (Version {deleteNDAConfirm.version})? This action cannot be undone.</p>
@@ -877,7 +963,7 @@ const AdminSettings = () => {
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image src="/logo.png" alt="Protonest Logo" width={130} height={80} className="object-contain" />
+                                <Image src="/logo.webp" alt="Protonest Logo" width={130} height={80} className="object-contain" />
                             </Link>
                         </div>
 
@@ -895,7 +981,7 @@ const AdminSettings = () => {
                     <div ref={sidebarRef} className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
-                                <Image src="/logo.png" alt="Protonest Logo" width={100} height={60} className="object-contain" />
+                                <Image src="/logo.webp" alt="Protonest Logo" width={100} height={60} className="object-contain" />
                             </Link>
                             <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
                                 <X className="w-5 h-5 text-gray-600" />

@@ -15,6 +15,29 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const JobCreator = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -24,6 +47,8 @@ const JobCreator = () => {
     const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [error, setError] = useState('');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [successDialog, setSuccessDialog] = useState<{ title: string; message: string; onOk?: () => void } | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -46,8 +71,7 @@ const JobCreator = () => {
     });
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -314,14 +338,20 @@ const JobCreator = () => {
             }
 
             if (data.status === 'success') {
-
-                alert('Job saved as draft successfully!');
-                router.push('/admin-dashboard/jobs');
+                setSuccessDialog({
+                    title: 'Success',
+                    message: 'Job saved as draft successfully!',
+                    onOk: () => router.push('/admin-dashboard/jobs')
+                });
             } else {
                 throw new Error(data.message || 'Operation failed');
             }
         } catch (error) {
             console.error('Error saving draft:', error);
+            setErrorDialog({
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to save draft. Please try again.'
+            });
             setError(error instanceof Error ? error.message : 'Failed to save draft. Please try again.');
         } finally {
             setIsSavingDraft(false);
@@ -373,13 +403,20 @@ const JobCreator = () => {
                 const message = formData.publish_later
                     ? 'Job scheduled for publishing successfully!'
                     : 'Job published successfully!';
-                alert(message);
-                router.push('/admin-dashboard/jobs');
+                setSuccessDialog({
+                    title: 'Success',
+                    message: message,
+                    onOk: () => router.push('/admin-dashboard/jobs')
+                });
             } else {
                 throw new Error(data.message || 'Operation failed');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
+            setErrorDialog({
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to create job. Please try again.'
+            });
             setError(error instanceof Error ? error.message : 'Failed to create job. Please try again.');
         } finally {
             setIsLoading(false);
@@ -435,11 +472,12 @@ const JobCreator = () => {
 
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowLogoutDialog(false)}
                 >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
@@ -462,6 +500,62 @@ const JobCreator = () => {
                 </div>
             )}
 
+            {/* Success Dialog */}
+            {successDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => {
+                        if (successDialog.onOk) successDialog.onOk();
+                        setSuccessDialog(null);
+                    }}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{successDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => {
+                                    if (successDialog.onOk) successDialog.onOk();
+                                    setSuccessDialog(null);
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Dialog */}
+            {errorDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setErrorDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setErrorDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
@@ -473,7 +567,7 @@ const JobCreator = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -501,7 +595,7 @@ const JobCreator = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}

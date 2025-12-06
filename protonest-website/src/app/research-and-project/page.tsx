@@ -2,6 +2,7 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -251,13 +252,46 @@ export default function ResearchProjects() {
 
   return (
     <div>
+      <Head>
+        <title>Research & Projects - Protonest</title>
+        <meta
+          name="description"
+          content="Explore Protonest's cutting-edge research and innovative projects in IoT, embedded systems, and electronics. From proof-of-concepts to real-world deployments."
+        />
+        <meta name="keywords" content="IoT research, embedded systems projects, electronics projects, Protonest projects, innovation, prototyping" />
+
+        <link rel="canonical" href="https://protonest.co/research-and-project" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://protonest.co/research-and-project" />
+        <meta property="og:title" content="Research & Projects - Protonest" />
+        <meta property="og:description" content="Explore Protonest's most impactful work in IoT and embedded systems." />
+
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Protonest Research & Projects",
+            "description": "A collection of Protonest's research and projects in IoT and embedded systems.",
+            "url": "https://protonest.co/research-and-project"
+          })}
+        </script>
+      </Head>
       <Navbar />
       <div className="mb-30">
-        
-        <div
-          className="mt-[50px] h-[400px] sm:h-[480px] lg:h-[553px] bg-no-repeat bg-cover bg-center relative"
-          style={{ backgroundImage: "url('/research-1.svg')" }}
-        >
+
+        <div className="mt-[50px] h-[400px] sm:h-[480px] lg:h-[553px] relative">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/research-1.webp"
+              alt="Research and Projects background"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              priority={true}
+              quality={100}
+            />
+          </div>
+
           <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10"></div>
 
@@ -279,7 +313,7 @@ export default function ResearchProjects() {
 
         <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[130px]">
           <div className="flex flex-col lg:flex-row gap-8">
-            
+
             <div className="hidden lg:block w-full lg:w-1/4">
               <div className="text-[#6c6c6c] text-xl font-medium font-poppins mb-6">
                 Filter
@@ -321,9 +355,9 @@ export default function ResearchProjects() {
               </div>
             </div>
 
-            
+
             <div className="w-full lg:w-3/4">
-              
+
               <div className="lg:hidden mb-6">
                 <div className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                   Filter Your Fit
@@ -349,7 +383,7 @@ export default function ResearchProjects() {
                   </div>
                 </div>
 
-                
+
                 {showMobileFilters && (
                   <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                     <div className="flex justify-between items-center mb-6">
@@ -415,7 +449,7 @@ export default function ResearchProjects() {
                 )}
               </div>
 
-              
+
               <div className="flex justify-start gap-3 mb-4">
                 <button
                   onClick={() => {
@@ -455,7 +489,7 @@ export default function ResearchProjects() {
                 </button>
               </div>
 
-              
+
               <form onSubmit={handleSearch} className="relative h-[50px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden mb-8">
                 <input
                   type="text"
@@ -475,7 +509,7 @@ export default function ResearchProjects() {
                 </div>
               </form>
 
-              
+
               {loading && (
                 <div className="flex justify-center items-center py-20">
                   <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin"></div>
@@ -483,7 +517,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              
+
               {error && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -498,7 +532,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              
+
               {!loading && !error && currentData.length === 0 && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -510,7 +544,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              
+
               {!loading && !error && currentData.length > 0 && filteredData.length === 0 && (
                 <div className="flex justify-center items-center py-20">
                   <div className="text-center">
@@ -525,7 +559,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              
+
               {!loading && !error && visibleItems.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
                   {visibleItems.map((item) => (
@@ -534,7 +568,7 @@ export default function ResearchProjects() {
                 </div>
               )}
 
-              
+
               {!loading && !error && shouldShowLoadMoreButton && (
                 <div className="flex justify-center mt-8 sm:mt-12">
                   <button
@@ -548,7 +582,7 @@ export default function ResearchProjects() {
             </div>
           </div>
 
-          
+
           <div className="mt-20 sm:mt-40 lg:mt-60 relative">
             <div className="flex flex-col items-start gap-12 sm:gap-16 lg:gap-24">
               <div className="w-full lg:w-1/2">

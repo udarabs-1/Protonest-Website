@@ -73,7 +73,7 @@ export default function AdminForgotPassword() {
                     <div className="relative z-10 pb-8">
                         <div className="pt-11 px-4 sm:px-8 md:px-16">
                             <Image
-                                src="/logo.png"
+                                src="/logo.webp"
                                 alt="Protonest Logo"
                                 width={112}
                                 height={80}
@@ -154,7 +154,7 @@ export default function AdminForgotPassword() {
                             <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={112}
                                         height={80}
@@ -221,7 +221,7 @@ export default function AdminForgotPassword() {
                         <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
-                                    src="/login1.svg"
+                                    src="/login1.webp"
                                     alt="Welcome illustration"
                                     width={800}
                                     height={600}

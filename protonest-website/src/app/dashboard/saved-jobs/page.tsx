@@ -107,7 +107,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
 
     return (
         <div className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6">
-            
+
             <div className="absolute left-3 top-6 z-10" ref={menuRef}>
                 <button
                     onClick={(e) => {
@@ -120,7 +120,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                     <MoreVertical className="w-5 h-5" />
                 </button>
 
-                
+
                 {isMenuOpen && (
                     <div className="absolute left-2 mt-2 w-50 h-10 bg-white rounded-xl hover:bg-gray-100 shadow-lg z-20">
                         <button
@@ -137,21 +137,21 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                 )}
             </div>
 
-            
+
             <div className="w-full h-[43px] mt-8">
                 <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
                     {job.job_details.title}
                 </div>
             </div>
 
-            
+
             <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                 {job.job_details.type} - Saved {formatTimeAgo(job.created_at)}
             </div>
 
-            
+
             <div className="mt-6 grid grid-cols-2 gap-4">
-                
+
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
                         {job.job_details.experience || 'Not specified'}
@@ -161,7 +161,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                     </div>
                 </div>
 
-                
+
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                         {job.job_details.location}
@@ -171,7 +171,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                     </div>
                 </div>
 
-                
+
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                         {job.job_details.applicationDeadline ? formatDate(job.job_details.applicationDeadline) : 'Not specified'}
@@ -181,7 +181,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                     </div>
                 </div>
 
-                
+
                 <div className="flex flex-col">
                     <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                         {job.job_details.matchPercentage ? `${job.job_details.matchPercentage}% Match` : 'N/A'}
@@ -192,7 +192,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                 </div>
             </div>
 
-            
+
             <Link
                 href={`/jobs/${roleSlug}/${job.job_id}`}
                 className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
@@ -217,7 +217,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                 </div>
             </Link>
 
-            
+
             <Link
                 href={`/jobs/${roleSlug}/${job.job_id}`}
                 className="absolute bottom-6 left-6 right-6 bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300"
@@ -226,6 +226,31 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
             </Link>
         </div>
     );
+};
+
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
 };
 
 const SavedJobs = () => {
@@ -266,8 +291,7 @@ const SavedJobs = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
@@ -458,7 +482,7 @@ const SavedJobs = () => {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -468,7 +492,7 @@ const SavedJobs = () => {
                 </defs>
             </svg>
 
-            
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -499,20 +523,20 @@ const SavedJobs = () => {
             )}
 
             <div className="font-poppins min-h-screen bg-white relative">
-                
+
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                
+
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            
+
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -564,16 +588,16 @@ const SavedJobs = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        
+
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            
+
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -588,7 +612,7 @@ const SavedJobs = () => {
                                 </button>
                             </div>
 
-                            
+
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -612,7 +636,7 @@ const SavedJobs = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -630,7 +654,7 @@ const SavedJobs = () => {
                             </div>
                         </div>
 
-                        
+
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -654,7 +678,7 @@ const SavedJobs = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -672,9 +696,9 @@ const SavedJobs = () => {
                             </div>
                         </aside>
 
-                        
+
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            
+
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -689,7 +713,7 @@ const SavedJobs = () => {
                                 </nav>
                             </div>
 
-                            
+
                             <div className="mb-8">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
@@ -711,7 +735,7 @@ const SavedJobs = () => {
                                 </div>
 
                                 <div className="relative mb-6 flex items-center gap-3">
-                                    
+
                                     <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
                                         <input
                                             type="text"
@@ -724,7 +748,7 @@ const SavedJobs = () => {
                                     </div>
                                 </div>
 
-                                
+
                                 {activeFilters.length > 0 && (
                                     <div className="flex flex-wrap gap-3 mb-6">
                                         {activeFilters.map((filter, index) => (
@@ -740,7 +764,7 @@ const SavedJobs = () => {
                                     </div>
                                 )}
 
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {filteredJobs.length > 0 ? (
                                         filteredJobs.map((job) => (

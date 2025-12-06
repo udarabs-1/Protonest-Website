@@ -116,12 +116,12 @@ export default function CareersPage() {
 
                 <div className="absolute inset-0 -z-10 block sm:hidden">
                     <Image
-                        src="/jobs-1-mobile.svg"
+                        src="/jobs-1-mobile.webp"
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                         priority={true}
-                        quality={85}
+                        quality={100}
                         aria-hidden="true"
                     />
                 </div>
@@ -129,12 +129,12 @@ export default function CareersPage() {
 
                 <div className="absolute inset-0 -z-10 hidden sm:block">
                     <Image
-                        src="/jobs-1.svg"
+                        src="/jobs-1.webp"
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                         priority={true}
-                        quality={85}
+                        quality={100}
                         aria-hidden="true"
                     />
                 </div>

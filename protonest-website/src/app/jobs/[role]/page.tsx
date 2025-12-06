@@ -161,7 +161,7 @@ const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
                 </div>
             </div>
 
-            
+
             <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
                 <div className="w-full h-full group-hover:hidden">
                     <Image
@@ -449,12 +449,12 @@ export default function RolePage() {
         <div className="min-h-screen relative bg-white overflow-x-hidden">
             <Navbar />
 
-            
+
             <section className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-                
+
                 <div className="absolute inset-0 block sm:hidden">
                     <Image
-                        src="/jobs-1-mobile.svg"
+                        src="/jobs-1-mobile.webp"
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -464,10 +464,10 @@ export default function RolePage() {
                     />
                 </div>
 
-                
+
                 <div className="absolute inset-0 hidden sm:block">
                     <Image
-                        src="/jobs-1.svg"
+                        src="/jobs-1.webp"
                         alt=""
                         fill
                         style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -477,11 +477,11 @@ export default function RolePage() {
                     />
                 </div>
 
-                
+
                 <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
                 <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
 
-                
+
                 <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
                     <div className="text-center max-w-4xl xl:max-w-[1120px]">
                         <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8 text-[#6c6c6c]">
@@ -496,7 +496,7 @@ export default function RolePage() {
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    
+
                     <aside className="w-full lg:w-1/4 hidden lg:block">
                         <div className="bg-white rounded-xl p-6 shadow-lg">
                             <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
@@ -508,7 +508,7 @@ export default function RolePage() {
                                 Clear All Filters
                             </button>
 
-                            
+
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
                                 {FILTER_OPTIONS.experience.map(level => (
@@ -521,7 +521,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            
+
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
                                 {FILTER_OPTIONS.location.map(location => (
@@ -534,7 +534,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            
+
                             <div className="mb-8">
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
                                 {FILTER_OPTIONS.datePosted.map(date => (
@@ -547,7 +547,7 @@ export default function RolePage() {
                                 ))}
                             </div>
 
-                            
+
                             <div>
                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
                                 {FILTER_OPTIONS.jobType.map(type => (
@@ -566,13 +566,13 @@ export default function RolePage() {
                         </div>
                     </aside>
 
-                    
+
                     <div className="w-full lg:w-3/4">
                         <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
                             Explore Variety of Jobs
                         </h2>
 
-                        
+
                         <div className="relative w-full mb-8 lg:mb-12">
                             <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
                                 <input
@@ -595,7 +595,7 @@ export default function RolePage() {
                             </div>
                         </div>
 
-                        
+
                         <div className="lg:hidden mb-6">
                             <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                                 Filter Your Fit
@@ -625,7 +625,7 @@ export default function RolePage() {
                                 </div>
                             </div>
 
-                            
+
                             {showMobileFilters && (
                                 <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                                     <div className="flex justify-between items-center mb-6">
@@ -646,9 +646,9 @@ export default function RolePage() {
                                         </button>
                                     </div>
 
-                                    
+
                                     <div className="space-y-8">
-                                        
+
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
                                             {FILTER_OPTIONS.experience.map(level => (
@@ -661,7 +661,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        
+
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
                                             {FILTER_OPTIONS.location.map(location => (
@@ -674,7 +674,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        
+
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
                                             {FILTER_OPTIONS.datePosted.map(date => (
@@ -687,7 +687,7 @@ export default function RolePage() {
                                             ))}
                                         </div>
 
-                                        
+
                                         <div>
                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
                                             {FILTER_OPTIONS.jobType.map(type => (
@@ -723,7 +723,7 @@ export default function RolePage() {
                             )}
                         </div>
 
-                        
+
                         {jobsToShow.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -736,7 +736,7 @@ export default function RolePage() {
                                     ))}
                                 </div>
 
-                                
+
                                 {hasMoreJobs && (
                                     <div className="mt-8 flex justify-center">
                                         <button

@@ -186,6 +186,31 @@ const JobCard = ({ job }: { job: Job }) => {
     );
 };
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const AllJobsPage = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -253,8 +278,7 @@ const AllJobsPage = () => {
     }, [checkIsMobile]);
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
@@ -499,7 +523,7 @@ const AllJobsPage = () => {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -509,7 +533,7 @@ const AllJobsPage = () => {
                 </defs>
             </svg>
 
-            
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -550,7 +574,7 @@ const AllJobsPage = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -602,7 +626,7 @@ const AllJobsPage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        
+
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -610,7 +634,7 @@ const AllJobsPage = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -665,7 +689,7 @@ const AllJobsPage = () => {
                             </div>
                         </div>
 
-                        
+
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -706,7 +730,7 @@ const AllJobsPage = () => {
                             </div>
                         </aside>
 
-                        
+
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                             <div className="flex items-center mb-6">
                                 <button
@@ -744,7 +768,7 @@ const AllJobsPage = () => {
                             </div>
 
                             <div className="flex flex-col lg:flex-row gap-8">
-                                
+
                                 <aside className="w-full lg:w-1/4 hidden lg:block">
                                     <div className="bg-white rounded-xl p-6 shadow-lg">
                                         <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
@@ -756,7 +780,7 @@ const AllJobsPage = () => {
                                             Clear All Filters
                                         </button>
 
-                                        
+
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
                                             {FILTER_OPTIONS.experience.map(level => (
@@ -769,7 +793,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        
+
                                         {uniqueCategories.length > 0 && (
                                             <div className="mb-8">
                                                 <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h3>
@@ -784,7 +808,7 @@ const AllJobsPage = () => {
                                             </div>
                                         )}
 
-                                        
+
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
                                             {FILTER_OPTIONS.location.map(location => (
@@ -797,7 +821,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        
+
                                         <div className="mb-8">
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
                                             {FILTER_OPTIONS.datePosted.map(date => (
@@ -810,7 +834,7 @@ const AllJobsPage = () => {
                                             ))}
                                         </div>
 
-                                        
+
                                         <div>
                                             <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
                                             {FILTER_OPTIONS.jobType.map(type => (
@@ -829,13 +853,13 @@ const AllJobsPage = () => {
                                     </div>
                                 </aside>
 
-                                
+
                                 <div className="w-full lg:w-3/4">
                                     <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
                                         Explore Variety of Jobs
                                     </h2>
 
-                                    
+
                                     <div className="relative w-full mb-8 lg:mb-12">
                                         <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
                                             <input
@@ -858,7 +882,7 @@ const AllJobsPage = () => {
                                         </div>
                                     </div>
 
-                                    
+
                                     <div className="lg:hidden mb-6">
                                         <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
                                             Filter Your Fit
@@ -888,7 +912,7 @@ const AllJobsPage = () => {
                                             </div>
                                         </div>
 
-                                        
+
                                         {showMobileFilters && (
                                             <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
                                                 <div className="flex justify-between items-center mb-6">
@@ -910,7 +934,7 @@ const AllJobsPage = () => {
                                                 </div>
 
                                                 <div className="space-y-8">
-                                                    
+
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
                                                         {FILTER_OPTIONS.experience.map(level => (
@@ -923,7 +947,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    
+
                                                     {uniqueCategories.length > 0 && (
                                                         <div>
                                                             <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h5>
@@ -938,7 +962,7 @@ const AllJobsPage = () => {
                                                         </div>
                                                     )}
 
-                                                    
+
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
                                                         {FILTER_OPTIONS.location.map(location => (
@@ -951,7 +975,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    
+
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
                                                         {FILTER_OPTIONS.datePosted.map(date => (
@@ -964,7 +988,7 @@ const AllJobsPage = () => {
                                                         ))}
                                                     </div>
 
-                                                    
+
                                                     <div>
                                                         <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
                                                         {FILTER_OPTIONS.jobType.map(type => (
@@ -1000,7 +1024,7 @@ const AllJobsPage = () => {
                                         )}
                                     </div>
 
-                                    
+
                                     {jobsToShow.length > 0 ? (
                                         <>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1012,7 +1036,7 @@ const AllJobsPage = () => {
                                                 ))}
                                             </div>
 
-                                            
+
                                             {hasMoreJobs && (
                                                 <div className="mt-8 flex justify-center">
                                                     <button

@@ -77,7 +77,7 @@ export default function Footer() {
                     <div className='relative z-20 lg:px-[60px] xl:px-[80px] 2xl:px-[98px]'>
                         <div className="w-full flex lg:pt-[120px] xl:pt-[150px] 2xl:pt-[180px] justify-between">
                             <Image
-                                src="/logo.png"
+                                src="/logo.webp"
                                 alt="Protonest Logo"
                                 width={149}
                                 height={106}
@@ -219,7 +219,7 @@ export default function Footer() {
 
                     <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
                         <Image
-                            src="/logo.png"
+                            src="/logo.webp"
                             alt="Protonest Logo"
                             width={170}
                             height={120}

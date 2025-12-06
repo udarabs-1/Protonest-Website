@@ -25,6 +25,29 @@ interface ContactMessage {
     created_at: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const ContactFormMessages = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
@@ -33,13 +56,13 @@ const ContactFormMessages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [viewMessageDialog, setViewMessageDialog] = useState<{ name: string; message: string } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -251,11 +274,12 @@ const ContactFormMessages = () => {
 
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowLogoutDialog(false)}
                 >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
@@ -278,6 +302,38 @@ const ContactFormMessages = () => {
                 </div>
             )}
 
+            {/* Message View Dialog */}
+            {viewMessageDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setViewMessageDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 className="text-lg font-semibold text-gray-800">Message from {viewMessageDialog.name}</h3>
+                            <button onClick={() => setViewMessageDialog(null)} className="text-gray-500 hover:text-gray-700">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="max-h-[60vh] overflow-y-auto mb-6">
+                            <p className="text-gray-600 whitespace-pre-wrap">{viewMessageDialog.message}</p>
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setViewMessageDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
@@ -291,7 +347,7 @@ const ContactFormMessages = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -321,7 +377,7 @@ const ContactFormMessages = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -576,8 +632,7 @@ const ContactFormMessages = () => {
                                                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
                                                                 title="View details"
                                                                 onClick={() => {
-
-                                                                    alert(`Message: ${message.message}`);
+                                                                    setViewMessageDialog({ name: message.name, message: message.message });
                                                                 }}
                                                             >
                                                                 <Eye className="w-4 h-4 text-gray-600" />

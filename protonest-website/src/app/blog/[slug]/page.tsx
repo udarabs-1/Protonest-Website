@@ -211,7 +211,7 @@ export default function BlogDetailPage() {
                             "name": "Protonest",
                             "logo": {
                                 "@type": "ImageObject",
-                                "url": "https://protonest.co/logo.png"
+                                "url": "https://protonest.co/logo.webp"
                             }
                         },
                         "datePublished": publishDate,

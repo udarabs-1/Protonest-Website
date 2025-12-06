@@ -71,19 +71,19 @@ export default function NotFound() {
     <div className="bg-white">
       <Navbar />
 
-      
+
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 pt-15 lg:pt-8">
         <BackButton />
       </div>
 
-      
+
       <main className="min-h-screen overflow-visible bg-white">
-        
+
         <div className="relative w-full h-screen flex items-center justify-center -mt-[150px] sm:-mt-[120px] md:-mt-[100px] lg:-mt-[150px]">
-          
+
           <div className="absolute inset-0 z-10">
             <Image
-              src="/404-1.svg"
+              src="/404-1.webp"
               alt=""
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -93,30 +93,30 @@ export default function NotFound() {
             />
           </div>
 
-          
+
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16">
 
-              
+
               <div className="flex-shrink-0 relative lg:hidden">
                 <ResponsiveImage isMobile />
               </div>
 
-              
+
               <div className="flex-1 text-center lg:text-left max-w-2xl px-2 sm:px-4 md:px-6 lg:px-0">
-                
+
                 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl text-[#6c6c6c] font-medium font-['Poppins'] leading-tight mb-4 sm:mb-5 md:mb-6 lg:mb-8 xl:mb-10">
                   Oops! This page doesn&apos;t exist.
                 </h1>
 
-                
+
                 <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 max-w-lg mx-auto lg:mx-0">
                   <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-[#6c6c6c] font-medium font-['Poppins'] leading-relaxed">
                     The page you&apos;re looking for might have been moved, deleted, or never existed.
                   </p>
                 </div>
 
-                
+
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-8 sm:mt-10 md:mt-12 lg:mt-14 xl:mt-16">
                   <ActionButton
                     href="/"
@@ -133,7 +133,7 @@ export default function NotFound() {
                 </div>
               </div>
 
-              
+
               <div className="flex-shrink-0 relative hidden lg:block">
                 <ResponsiveImage />
               </div>

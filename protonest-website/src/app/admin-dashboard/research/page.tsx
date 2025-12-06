@@ -43,6 +43,29 @@ interface ProjectPost {
     updated_at: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const ResearchProjectsManager = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -54,6 +77,9 @@ const ResearchProjectsManager = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
+    const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -72,8 +98,7 @@ const ResearchProjectsManager = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -145,67 +170,81 @@ const ResearchProjectsManager = () => {
     }, []);
 
     const deleteResearchPost = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this research post?')) {
-            return;
-        }
+        setConfirmDialog({
+            title: 'Confirm Deletion',
+            message: 'Are you sure you want to delete this research post?',
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                try {
+                    const token = localStorage.getItem('adminToken');
 
-        try {
-            const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/research/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/research/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+                    if (!response.ok) {
+                        throw new Error('Failed to delete research post');
+                    }
 
-            if (!response.ok) {
-                throw new Error('Failed to delete research post');
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        setResearchPosts(prev => prev.filter(post => post.id !== id));
+                        setSuccessDialog({ title: 'Success', message: 'Research post deleted successfully' });
+                    } else {
+                        throw new Error(result.message || 'Failed to delete research post');
+                    }
+                } catch (err) {
+                    setErrorDialog({
+                        title: 'Error',
+                        message: err instanceof Error ? err.message : 'An error occurred while deleting'
+                    });
+                    console.error('Error deleting research post:', err);
+                }
             }
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                setResearchPosts(prev => prev.filter(post => post.id !== id));
-            } else {
-                throw new Error(result.message || 'Failed to delete research post');
-            }
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'An error occurred while deleting');
-            console.error('Error deleting research post:', err);
-        }
+        });
     };
 
     const deleteProjectPost = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this project?')) {
-            return;
-        }
+        setConfirmDialog({
+            title: 'Confirm Deletion',
+            message: 'Are you sure you want to delete this project?',
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                try {
+                    const token = localStorage.getItem('adminToken');
 
-        try {
-            const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/projects/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/projects/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+                    if (!response.ok) {
+                        throw new Error('Failed to delete project');
+                    }
 
-            if (!response.ok) {
-                throw new Error('Failed to delete project');
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        setProjectPosts(prev => prev.filter(post => post.id !== id));
+                        setSuccessDialog({ title: 'Success', message: 'Project deleted successfully' });
+                    } else {
+                        throw new Error(result.message || 'Failed to delete project');
+                    }
+                } catch (err) {
+                    setErrorDialog({
+                        title: 'Error',
+                        message: err instanceof Error ? err.message : 'An error occurred while deleting'
+                    });
+                    console.error('Error deleting project:', err);
+                }
             }
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                setProjectPosts(prev => prev.filter(post => post.id !== id));
-            } else {
-                throw new Error(result.message || 'Failed to delete project');
-            }
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'An error occurred while deleting');
-            console.error('Error deleting project:', err);
-        }
+        });
     };
 
     const handleLogout = () => {
@@ -312,7 +351,7 @@ const ResearchProjectsManager = () => {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -322,14 +361,15 @@ const ResearchProjectsManager = () => {
                 </defs>
             </svg>
 
-            
+
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowLogoutDialog(false)}
                 >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
@@ -352,19 +392,100 @@ const ResearchProjectsManager = () => {
                 </div>
             )}
 
-            
+            {/* Success Dialog */}
+            {successDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setSuccessDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{successDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setSuccessDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Dialog */}
+            {errorDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setErrorDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setErrorDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setConfirmDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{confirmDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{confirmDialog.message}</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setConfirmDialog(null)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDialog.onConfirm}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -373,7 +494,7 @@ const ResearchProjectsManager = () => {
                             </Link>
                         </div>
 
-                        
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -385,7 +506,7 @@ const ResearchProjectsManager = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -393,7 +514,7 @@ const ResearchProjectsManager = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -448,7 +569,7 @@ const ResearchProjectsManager = () => {
                         </div>
                     </div>
 
-                    
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -489,9 +610,9 @@ const ResearchProjectsManager = () => {
                         </div>
                     </aside>
 
-                    
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -506,7 +627,7 @@ const ResearchProjectsManager = () => {
                             </nav>
                         </div>
 
-                        
+
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-1">
@@ -533,7 +654,7 @@ const ResearchProjectsManager = () => {
                             </div>
                         </div>
 
-                        
+
                         <div className="inline-flex justify-start items-center gap-2 mb-6">
                             <button
                                 onClick={() => setActiveContentType('research')}
@@ -543,7 +664,7 @@ const ResearchProjectsManager = () => {
                                     }`}
                             >
                                 <span className="text-center text-xs font-semibold font-montserrat">
-                                    🔬 Research
+                                    Research
                                 </span>
                             </button>
 
@@ -555,12 +676,12 @@ const ResearchProjectsManager = () => {
                                     }`}
                             >
                                 <span className="text-center text-xs font-semibold font-montserrat">
-                                    🚀 Projects
+                                    Projects
                                 </span>
                             </button>
                         </div>
 
-                        
+
                         <div className="flex items-center gap-3 mb-4">
                             <div className="relative flex-1">
                                 <input
@@ -580,7 +701,7 @@ const ResearchProjectsManager = () => {
                             </button>
                         </div>
 
-                        
+
                         <div className="inline-flex justify-start items-center gap-2 mb-6">
                             <button
                                 onClick={() => handleFilterChange('all')}
@@ -590,7 +711,7 @@ const ResearchProjectsManager = () => {
                                     }`}
                             >
                                 <span className="text-center text-xs font-semibold font-montserrat">
-                                    📎 All
+                                    All
                                 </span>
                             </button>
 
@@ -602,7 +723,7 @@ const ResearchProjectsManager = () => {
                                     }`}
                             >
                                 <span className="text-center text-[11px] font-medium font-poppins">
-                                    ✅ Published
+                                    Published
                                 </span>
                             </button>
 
@@ -614,12 +735,12 @@ const ResearchProjectsManager = () => {
                                     }`}
                             >
                                 <span className="text-center text-[11px] font-medium font-poppins">
-                                    ⌛ Draft
+                                    Draft
                                 </span>
                             </button>
                         </div>
 
-                        
+
                         {loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <div className="text-center">
@@ -629,7 +750,7 @@ const ResearchProjectsManager = () => {
                             </div>
                         )}
 
-                        
+
                         {error && !loading && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-8 text-center">
                                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -644,10 +765,10 @@ const ResearchProjectsManager = () => {
                             </div>
                         )}
 
-                        
+
                         {!loading && !error && (
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
-                                
+
                                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                                     <div className="hidden md:grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                         <div className="col-span-4">{activeContentType === 'research' ? 'Research' : 'Project'} Title</div>
@@ -661,7 +782,7 @@ const ResearchProjectsManager = () => {
                                     </div>
                                 </div>
 
-                                
+
                                 <div className="divide-y divide-gray-200">
                                     {filteredPosts.length === 0 ? (
                                         <div className="px-4 py-8 text-center text-gray-500">
@@ -670,7 +791,7 @@ const ResearchProjectsManager = () => {
                                     ) : (
                                         filteredPosts.map((post) => (
                                             <div key={post.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                                
+
                                                 <div className="md:hidden">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="flex-1">
@@ -683,7 +804,7 @@ const ResearchProjectsManager = () => {
                                                             <div className="flex items-center gap-3 text-[10px] text-gray-500">
                                                                 <span>{formatDate(post.published_at)}</span>
                                                                 <span className={`px-2 py-1 rounded-full ${post.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                                    {post.published ? '✅ Published' : '⌛ Draft'}
+                                                                    {post.published ? 'Published' : 'Draft'}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -709,7 +830,7 @@ const ResearchProjectsManager = () => {
                                                     </div>
                                                 </div>
 
-                                                
+
                                                 <div className="hidden md:grid grid-cols-12 gap-4 items-center">
                                                     <div className="col-span-4">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
@@ -728,7 +849,7 @@ const ResearchProjectsManager = () => {
                                                     </div>
                                                     <div className="col-span-2">
                                                         <span className={`text-[11px] font-medium font-poppins ${post.published ? 'text-green-600' : 'text-gray-600'}`}>
-                                                            {post.published ? '✅ Published' : '⌛ Draft'}
+                                                            {post.published ? 'Published' : 'Draft'}
                                                         </span>
                                                     </div>
                                                     <div className="col-span-2">

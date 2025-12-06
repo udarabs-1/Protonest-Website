@@ -1,9 +1,33 @@
 "use client";
 
+import { Icon } from '@iconify/react';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+
+
+const SuccessDialog = ({ onClose }: { onClose: () => void }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className="p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+                    <Icon icon="solar:check-circle-bold" className="w-10 h-10 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2 font-['Montserrat']">Success!</h3>
+                <p className="text-gray-600 mb-6 font-['Poppins']">
+                    Password reset successfully! You can now sign in with your new password.
+                </p>
+                <button
+                    onClick={onClose}
+                    className="w-full py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white rounded-xl font-semibold font-['Poppins'] hover:opacity-90 transition-opacity"
+                >
+                    Continue to Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+);
 
 function AdminResetPasswordContent() {
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -14,6 +38,7 @@ function AdminResetPasswordContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [validatingToken, setValidatingToken] = useState(true);
     const [tokenValid, setTokenValid] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
@@ -86,8 +111,7 @@ function AdminResetPasswordContent() {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                alert('Password reset successfully! You can now sign in with your new password.');
-                router.push('/admin-signin');
+                setShowSuccessDialog(true);
             } else {
                 setError(data.error || 'Failed to reset password. Please try again.');
             }
@@ -150,7 +174,7 @@ function AdminResetPasswordContent() {
                     <div className="relative z-10 pb-8">
                         <div className="pt-11 px-4 sm:px-8 md:px-16">
                             <Image
-                                src="/logo.png"
+                                src="/logo.webp"
                                 alt="Protonest Logo"
                                 width={112}
                                 height={80}
@@ -229,6 +253,13 @@ function AdminResetPasswordContent() {
             </div>
 
 
+
+            {showSuccessDialog && (
+                <SuccessDialog
+                    onClose={() => router.push('/admin-signin')}
+                />
+            )}
+
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -242,7 +273,7 @@ function AdminResetPasswordContent() {
                             <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={112}
                                         height={80}
@@ -320,7 +351,7 @@ function AdminResetPasswordContent() {
                         <div className="flex items-stretch min-h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
-                                    src="/login1.svg"
+                                    src="/login1.webp"
                                     alt="Welcome illustration"
                                     width={800}
                                     height={600}

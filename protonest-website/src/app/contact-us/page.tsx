@@ -114,11 +114,11 @@ export default function Contact() {
         <div className="relative">
           <div className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] relative">
             <Image
-              src="/contact-1.svg"
+              src="/contact-1.webp"
               alt="Contact page hero background"
               fill
               priority={true}
-              quality={75}
+              quality={100}
               sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               className="absolute inset-0"

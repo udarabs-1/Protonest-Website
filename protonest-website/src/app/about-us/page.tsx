@@ -120,11 +120,11 @@ export default function About() {
         <div className="relative">
           <div className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] relative">
             <Image
-              src="/about-1.svg"
+              src="/about-1.webp"
               alt="About Protonest hero background"
               fill
               priority={true}
-              quality={75}
+              quality={100}
               sizes="100vw"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               className="absolute inset-0"

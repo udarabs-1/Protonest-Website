@@ -23,6 +23,29 @@ interface Subscription {
     created_at: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const SubscriptionManagement = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,8 +73,7 @@ const SubscriptionManagement = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -264,7 +286,7 @@ const SubscriptionManagement = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -294,7 +316,7 @@ const SubscriptionManagement = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}

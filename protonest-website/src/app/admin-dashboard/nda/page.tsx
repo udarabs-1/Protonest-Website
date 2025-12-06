@@ -63,6 +63,29 @@ interface NDADocument {
     uploaded_at: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const NDAComplianceLog = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [ndaRecords, setNdaRecords] = useState<NDARecord[]>([]);
@@ -70,6 +93,7 @@ const NDAComplianceLog = () => {
     const [error, setError] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
+    const [ndaStatusFilter, setNdaStatusFilter] = useState<'all' | 'submitted' | 'sent' | 'not_sent'>('all');
     const [editingNote, setEditingNote] = useState<{ id: string; note: string } | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -81,14 +105,17 @@ const NDAComplianceLog = () => {
     const [uploadingNDA, setUploadingNDA] = useState(false);
     const [ndaSubject, setNdaSubject] = useState('');
     const [ndaBody, setNdaBody] = useState('');
+    const [sendingNDA, setSendingNDA] = useState(false);
+    const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -256,12 +283,7 @@ const NDAComplianceLog = () => {
         }
     };
 
-    const openEmailClient = (to: string, subject: string, body: string) => {
-        const encodedSubject = encodeURIComponent(subject);
-        const encodedBody = encodeURIComponent(body);
-        const emailUrl = `mailto:${to}?subject=${encodedSubject}&body=${encodedBody}`;
-        window.open(emailUrl);
-    };
+
 
     const setNdaDialogContent = (record: NDARecord) => {
         const defaultSubject = `Protonest NDA for ${record.job?.title || '[Role Name]'} – Action Required`;
@@ -277,7 +299,7 @@ const NDAComplianceLog = () => {
         if (file && file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024) {
             setUploadedFile(file);
         } else {
-            alert('Please select a PDF file under 10MB');
+            setErrorDialog({ title: 'Invalid File', message: 'Please select a PDF file under 10MB' });
         }
     };
 
@@ -316,7 +338,7 @@ const NDAComplianceLog = () => {
             throw new Error('Invalid response from server');
         } catch (error) {
             console.error('Error uploading NDA document:', error);
-            alert(error instanceof Error ? error.message : 'Failed to upload NDA document');
+            setErrorDialog({ title: 'Upload Failed', message: error instanceof Error ? error.message : 'Failed to upload NDA document' });
             return null;
         } finally {
             setUploadingNDA(false);
@@ -324,6 +346,7 @@ const NDAComplianceLog = () => {
     };
 
     const sendNDA = async (recordId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
+        setSendingNDA(true);
         try {
             const adminToken = localStorage.getItem('adminToken');
 
@@ -331,7 +354,11 @@ const NDAComplianceLog = () => {
                 nda_document_id?: string;
                 nda_document_url?: string;
                 compliance_notes?: string;
+                subject: string;
+                message: string;
             } = {
+                subject: ndaSubject,
+                message: ndaBody,
                 compliance_notes: ndaBody || ''
             };
 
@@ -360,6 +387,7 @@ const NDAComplianceLog = () => {
 
             await response.json();
 
+            const record = ndaRecords.find(r => r.id === recordId);
             setNdaRecords(prev => prev.map(record =>
                 record.id === recordId
                     ? {
@@ -376,16 +404,22 @@ const NDAComplianceLog = () => {
                     : record
             ));
 
-            alert('NDA sent successfully!');
+            setSuccessDialog({
+                title: 'NDA Sent Successfully',
+                message: `NDA has been sent to ${record?.user?.name} (${record?.user?.email}) with the PDF attachment.`
+            });
             return true;
         } catch (error) {
             console.error('Error sending NDA:', error);
-            alert(error instanceof Error ? error.message : 'Failed to send NDA');
+            setErrorDialog({ title: 'Send Failed', message: error instanceof Error ? error.message : 'Failed to send NDA' });
             return false;
+        } finally {
+            setSendingNDA(false);
         }
     };
 
     const resendNDA = async (recordId: string, ndaDocumentId?: string, uploadedFileUrl?: string) => {
+        setSendingNDA(true);
         try {
             const adminToken = localStorage.getItem('adminToken');
 
@@ -393,7 +427,11 @@ const NDAComplianceLog = () => {
                 nda_document_id?: string;
                 nda_document_url?: string;
                 compliance_notes?: string;
+                subject: string;
+                message: string;
             } = {
+                subject: ndaSubject,
+                message: ndaBody,
                 compliance_notes: ndaBody || ''
             };
 
@@ -422,6 +460,7 @@ const NDAComplianceLog = () => {
 
             await response.json();
 
+            const record = ndaRecords.find(r => r.id === recordId);
             setNdaRecords(prev => prev.map(record =>
                 record.id === recordId && record.nda_status
                     ? {
@@ -437,12 +476,17 @@ const NDAComplianceLog = () => {
                     : record
             ));
 
-            alert('NDA resent successfully!');
+            setSuccessDialog({
+                title: 'NDA Resent Successfully',
+                message: `NDA has been resent to ${record?.user?.name} (${record?.user?.email}) with the PDF attachment.`
+            });
             return true;
         } catch (error) {
             console.error('Error resending NDA:', error);
-            alert(error instanceof Error ? error.message : 'Failed to resend NDA');
+            setErrorDialog({ title: 'Resend Failed', message: error instanceof Error ? error.message : 'Failed to resend NDA' });
             return false;
+        } finally {
+            setSendingNDA(false);
         }
     };
 
@@ -452,7 +496,7 @@ const NDAComplianceLog = () => {
             const adminToken = localStorage.getItem('adminToken');
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/status`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${recordId}/nda`,
                 {
                     method: 'PUT',
                     headers: {
@@ -460,8 +504,8 @@ const NDAComplianceLog = () => {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        status: 'hired',
-                        notes: statusUpdate.compliance_notes
+                        status: statusUpdate.status,
+                        compliance_notes: statusUpdate.compliance_notes || ''
                     })
                 }
             );
@@ -470,27 +514,24 @@ const NDAComplianceLog = () => {
                 throw new Error('Failed to update NDA status');
             }
 
-            setNdaRecords(prev => prev.map(record =>
-                record.id === recordId
-                    ? {
-                        ...record,
-                        nda_status: {
-                            status: statusUpdate.status,
-                            sent_on: record.nda_status?.sent_on,
-                            submitted_on: statusUpdate.status === 'submitted' ? new Date().toISOString() : record.nda_status?.submitted_on,
-                            compliance_notes: statusUpdate.compliance_notes || record.nda_status?.compliance_notes,
-                            resend_count: record.nda_status?.resend_count || 0,
-                            created_at: record.nda_status?.created_at || new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        }
-                    }
-                    : record
-            ));
+            const refetchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
 
-            alert('NDA status updated successfully!');
+            if (refetchResponse.ok) {
+                const data = await refetchResponse.json();
+                if (data.status === 'success') {
+                    const candidatesData = data.data?.nda_logs || data.data || [];
+                    setNdaRecords(Array.isArray(candidatesData) ? candidatesData : []);
+                }
+            }
+
+            setSuccessDialog({ title: 'Success', message: 'NDA status updated successfully!' });
         } catch (error) {
             console.error('Error updating NDA status:', error);
-            alert('Failed to update NDA status');
+            setErrorDialog({ title: 'Update Failed', message: 'Failed to update NDA status' });
         } finally {
             setUpdatingStatus(null);
         }
@@ -504,7 +545,7 @@ const NDAComplianceLog = () => {
 
         if (selectedNda === 'upload') {
             if (!uploadedFile) {
-                alert('Please select a file to upload');
+                setErrorDialog({ title: 'No File Selected', message: 'Please select a file to upload' });
                 return;
             }
 
@@ -514,17 +555,11 @@ const NDAComplianceLog = () => {
             }
         } else {
             if (!selectedTemplate) {
-                alert('Please select an NDA template');
+                setErrorDialog({ title: 'No Template Selected', message: 'Please select an NDA template' });
                 return;
             }
             ndaDocumentId = selectedTemplate;
         }
-
-        openEmailClient(
-            ndaDialog.user?.email || '',
-            ndaSubject,
-            ndaBody
-        );
 
         const success = await sendNDA(
             ndaDialog.id,
@@ -551,7 +586,7 @@ const NDAComplianceLog = () => {
 
         if (selectedNda === 'upload') {
             if (!uploadedFile) {
-                alert('Please select a file to upload');
+                setErrorDialog({ title: 'No File Selected', message: 'Please select a file to upload' });
                 return;
             }
 
@@ -561,17 +596,11 @@ const NDAComplianceLog = () => {
             }
         } else {
             if (!selectedTemplate) {
-                alert('Please select an NDA template');
+                setErrorDialog({ title: 'No Template Selected', message: 'Please select an NDA template' });
                 return;
             }
             ndaDocumentId = selectedTemplate;
         }
-
-        openEmailClient(
-            ndaDialog.user?.email || '',
-            ndaSubject,
-            ndaBody
-        );
 
         const success = await resendNDA(
             ndaDialog.id,
@@ -618,13 +647,24 @@ const NDAComplianceLog = () => {
     };
 
     const handleStatusChange = (record: NDARecord, newStatus: 'not_sent' | 'sent' | 'submitted') => {
-        if (confirm(`Change NDA status to ${newStatus.replace('_', ' ')} for ${record.user.name}?`)) {
-            updateNDAStatus(record.id, { status: newStatus });
-        }
+        setConfirmDialog({
+            title: 'Confirm Status Change',
+            message: `Change NDA status to ${newStatus.replace('_', ' ')} for ${record.user.name}?`,
+            onConfirm: () => {
+                updateNDAStatus(record.id, { status: newStatus });
+                setConfirmDialog(null);
+            }
+        });
     };
 
     const filteredRecords = ndaRecords.filter(record => {
         if (!record) return false;
+
+        const matchesStatusFilter = ndaStatusFilter === 'all' ||
+            (record.nda_status?.status === ndaStatusFilter) ||
+            (!record.nda_status && ndaStatusFilter === 'not_sent');
+
+        if (!matchesStatusFilter) return false;
 
         if (activeFilters.length === 0) return true;
 
@@ -639,6 +679,16 @@ const NDAComplianceLog = () => {
             return false;
         });
     });
+
+    const getStatusCounts = () => {
+        const counts = {
+            all: ndaRecords.length,
+            submitted: ndaRecords.filter(r => r.nda_status?.status === 'submitted').length,
+            sent: ndaRecords.filter(r => r.nda_status?.status === 'sent').length,
+            not_sent: ndaRecords.filter(r => !r.nda_status || r.nda_status?.status === 'not_sent').length
+        };
+        return counts;
+    };
 
     if (loading) {
         return (
@@ -744,7 +794,7 @@ const NDAComplianceLog = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -773,7 +823,7 @@ const NDAComplianceLog = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -828,7 +878,7 @@ const NDAComplianceLog = () => {
                     </div>
 
 
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
+                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto flex-shrink-0">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -869,7 +919,7 @@ const NDAComplianceLog = () => {
                     </aside>
 
 
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
+                    <main className={`flex-1 min-w-0 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -901,6 +951,45 @@ const NDAComplianceLog = () => {
                             </p>
                         </div>
 
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            <button
+                                onClick={() => setNdaStatusFilter('all')}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'all'
+                                    ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                All ({getStatusCounts().all})
+                            </button>
+                            <button
+                                onClick={() => setNdaStatusFilter('submitted')}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'submitted'
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                                    }`}
+                            >
+                                Signed ({getStatusCounts().submitted})
+                            </button>
+                            <button
+                                onClick={() => setNdaStatusFilter('sent')}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'sent'
+                                    ? 'bg-yellow-500 text-white'
+                                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                                    }`}
+                            >
+                                Sent & Not Submitted ({getStatusCounts().sent})
+                            </button>
+                            <button
+                                onClick={() => setNdaStatusFilter('not_sent')}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'not_sent'
+                                    ? 'bg-gray-500 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                Not Sent ({getStatusCounts().not_sent})
+                            </button>
+                        </div>
 
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
@@ -1083,9 +1172,15 @@ const NDAComplianceLog = () => {
 
 
             {editingNote && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setEditingNote(null)}></div>
-                    <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setEditingNote(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 Edit Compliance Notes
@@ -1123,9 +1218,15 @@ const NDAComplianceLog = () => {
 
 
             {ndaDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setNdaDialog(null)}></div>
-                    <div className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+                    onClick={() => setNdaDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="p-4 sm:p-6 lg:p-8">
 
                             <div className="mb-6">
@@ -1288,10 +1389,18 @@ const NDAComplianceLog = () => {
                                             handleSendNda();
                                         }
                                     }}
-                                    disabled={uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    disabled={sendingNDA || uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
+                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {uploadingNDA ? 'Processing...' : (getActionButton(ndaDialog).action === 'resend' ? 'Resend NDA' : 'Send NDA')}
+                                    {sendingNDA ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Sending...
+                                        </>
+                                    ) : uploadingNDA ? 'Processing...' : (getActionButton(ndaDialog).action === 'resend' ? 'Resend NDA' : 'Send NDA')}
                                 </button>
                                 <button
                                     onClick={() => {
@@ -1314,6 +1423,37 @@ const NDAComplianceLog = () => {
             )}
 
 
+            {/* Success Dialog */}
+            {successDialog && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] p-6">
+                            <div className="flex items-center justify-center mb-4">
+                                <div className="bg-white rounded-full p-3">
+                                    <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white text-center">
+                                {successDialog.title}
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-gray-700 text-center mb-6">
+                                {successDialog.message}
+                            </p>
+                            <button
+                                onClick={() => setSuccessDialog(null)}
+                                className="w-full px-6 py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <input
                 type="file"
                 ref={fileInputRef}
@@ -1321,6 +1461,62 @@ const NDAComplianceLog = () => {
                 accept=".pdf"
                 className="hidden"
             />
+
+            {/* Error Dialog */}
+            {errorDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setErrorDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{errorDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setErrorDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setConfirmDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{confirmDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{confirmDialog.message}</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setConfirmDialog(null)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDialog.onConfirm}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

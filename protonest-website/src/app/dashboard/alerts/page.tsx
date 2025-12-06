@@ -30,6 +30,31 @@ interface ProfileData {
     isGoogleUser?: boolean;
 }
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const ManageAlertsPage = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,8 +95,7 @@ const ManageAlertsPage = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
@@ -325,7 +349,7 @@ const ManageAlertsPage = () => {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -335,7 +359,7 @@ const ManageAlertsPage = () => {
                 </defs>
             </svg>
 
-            
+
             {showSuccessDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -364,7 +388,7 @@ const ManageAlertsPage = () => {
                 </div>
             )}
 
-            
+
             {showErrorDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -393,7 +417,7 @@ const ManageAlertsPage = () => {
                 </div>
             )}
 
-            
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -424,20 +448,20 @@ const ManageAlertsPage = () => {
             )}
 
             <div className="font-poppins min-h-screen bg-white relative">
-                
+
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                
+
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            
+
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -446,7 +470,7 @@ const ManageAlertsPage = () => {
                                 </Link>
                             </div>
 
-                            
+
                             <div className="flex items-center relative" ref={profileDropdownRef}>
                                 <button
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -490,16 +514,16 @@ const ManageAlertsPage = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        
+
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            
+
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -514,7 +538,7 @@ const ManageAlertsPage = () => {
                                 </button>
                             </div>
 
-                            
+
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -538,7 +562,7 @@ const ManageAlertsPage = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -556,7 +580,7 @@ const ManageAlertsPage = () => {
                             </div>
                         </div>
 
-                        
+
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -580,7 +604,7 @@ const ManageAlertsPage = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -598,9 +622,9 @@ const ManageAlertsPage = () => {
                             </div>
                         </aside>
 
-                        
+
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            
+
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -615,7 +639,7 @@ const ManageAlertsPage = () => {
                                 </nav>
                             </div>
 
-                            
+
                             <div className="mb-8">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
@@ -637,7 +661,7 @@ const ManageAlertsPage = () => {
                                 </div>
                             </div>
 
-                            
+
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
                                 <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
                                     Manage Job Alerts via Email
@@ -660,7 +684,7 @@ const ManageAlertsPage = () => {
                                 </div>
                             </div>
 
-                            
+
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
                                 <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
                                     Manage Email Notifications from the Newsletter
@@ -683,7 +707,7 @@ const ManageAlertsPage = () => {
                                 </div>
                             </div>
 
-                            
+
                             <div className="flex justify-center lg:justify-end">
                                 <button
                                     onClick={handleSavePreferences}

@@ -40,6 +40,31 @@ interface ProfileData {
     cvData?: CVData;
 }
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const ProfilePage = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -90,8 +115,7 @@ const ProfilePage = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
@@ -431,7 +455,7 @@ const ProfilePage = () => {
 
     return (
         <div>
-            
+
             {showDeleteDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -639,7 +663,7 @@ const ProfilePage = () => {
                     }
                 `}</style>
 
-                
+
                 <svg width="0" height="0" style={{ position: 'absolute' }}>
                     <defs>
                         <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -655,7 +679,7 @@ const ProfilePage = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -714,7 +738,7 @@ const ProfilePage = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -940,7 +964,7 @@ const ProfilePage = () => {
                                         </div>
 
                                         <div>
-                                            
+
                                             <p className="text-[#6c6c6c]/80 text-sm font-normal font-['Poppins'] break-words">
                                                 {profileData.email}
                                             </p>
@@ -948,7 +972,7 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                
+
                                 {profileData.cvData && (
                                     <div className="mb-8 pb-8 border-b border-gray-100">
                                         <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins'] mb-4 flex items-center gap-3">
@@ -1062,7 +1086,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            
+
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
                                 <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
                                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">

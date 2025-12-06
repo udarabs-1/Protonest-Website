@@ -34,11 +34,11 @@ function LargeScreenHome() {
       <div className="mt-[100px] h-full relative">
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/home-1.svg"
+            src="/home-1.webp"
             alt="Hero background"
             fill
             priority={true}
-            quality={75}
+            quality={100}
             sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
@@ -246,11 +246,11 @@ function SmallScreenHome() {
       <div className="mt-12 sm:mt-6 h-[450px] sm:h-[520px] relative">
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/home-1.svg"
+            src="/home-1.webp"
             alt="Hero background"
             fill
             priority={true}
-            quality={70}
+            quality={100}
             sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
@@ -469,7 +469,6 @@ export default function Home() {
         <meta property="og:url" content="https://protonest.co/" />
         <meta property="og:title" content="IoT Prototyping Services by Protonest" />
         <meta property="og:description" content="Transform IoT ideas into reality with expert prototyping from Protonest. Built fast. Built right." />
-        <meta property="og:image" content="https://protonest.co/images/og-home.jpg" />
 
         <script type="application/ld+json">
           {JSON.stringify({

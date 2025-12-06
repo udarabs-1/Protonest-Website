@@ -368,12 +368,12 @@ export default function BlogSection() {
         <section className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/blogs-1.svg"
+              src="/blogs-1.webp"
               alt="Blogs background"
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               priority={true}
-              quality={90}
+              quality={100}
             />
           </div>
 

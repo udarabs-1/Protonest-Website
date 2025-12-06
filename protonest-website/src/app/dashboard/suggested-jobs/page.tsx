@@ -129,6 +129,31 @@ const ModalWrapper = ({
     </div>
 );
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const SuggestedJobs = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -172,8 +197,7 @@ const SuggestedJobs = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
@@ -709,7 +733,7 @@ const SuggestedJobs = () => {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -719,7 +743,7 @@ const SuggestedJobs = () => {
                 </defs>
             </svg>
 
-            
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -750,20 +774,20 @@ const SuggestedJobs = () => {
             )}
 
             <div className="font-poppins min-h-screen bg-white relative">
-                
+
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                
+
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            
+
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -815,16 +839,16 @@ const SuggestedJobs = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        
+
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            
+
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -839,7 +863,7 @@ const SuggestedJobs = () => {
                                 </button>
                             </div>
 
-                            
+
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -863,7 +887,7 @@ const SuggestedJobs = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -881,7 +905,7 @@ const SuggestedJobs = () => {
                             </div>
                         </div>
 
-                        
+
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -905,7 +929,7 @@ const SuggestedJobs = () => {
                                     ))}
                                 </nav>
 
-                                
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -923,9 +947,9 @@ const SuggestedJobs = () => {
                             </div>
                         </aside>
 
-                        
+
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            
+
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -940,7 +964,7 @@ const SuggestedJobs = () => {
                                 </nav>
                             </div>
 
-                            
+
                             <div className="mb-8">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
@@ -960,7 +984,7 @@ const SuggestedJobs = () => {
                                         </p>
                                     </div>
 
-                                    
+
                                     <button
                                         onClick={handleUpdateSuggestedJobs}
                                         disabled={isUpdating}
@@ -972,7 +996,7 @@ const SuggestedJobs = () => {
                                 </div>
 
                                 <div className="relative mb-6 flex items-center gap-3">
-                                    
+
                                     <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
                                         <input
                                             type="text"
@@ -987,7 +1011,7 @@ const SuggestedJobs = () => {
                                     </div>
                                 </div>
 
-                                
+
                                 {activeFilters.length > 0 && (
                                     <div className="flex flex-wrap gap-3 mb-6">
                                         {activeFilters.map((filter, index) => (
@@ -1003,7 +1027,7 @@ const SuggestedJobs = () => {
                                     </div>
                                 )}
 
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {filteredJobs.length > 0 ? (
                                         filteredJobs.map((job) => {
@@ -1015,21 +1039,21 @@ const SuggestedJobs = () => {
                                                     key={job.id}
                                                     className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6"
                                                 >
-                                                    
+
                                                     <div className="w-full h-[43px]">
                                                         <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
                                                             {job.title}
                                                         </div>
                                                     </div>
 
-                                                    
+
                                                     <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                                                         {job.type} - Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
                                                     </div>
 
-                                                    
+
                                                     <div className="mt-6 grid grid-cols-2 gap-4">
-                                                        
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.matchPercentage ? `${job.matchPercentage}% Match` : 'N/A'}
@@ -1039,7 +1063,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
                                                                 {job.experience || 'Not specified'}
@@ -1049,7 +1073,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'Not specified'}
@@ -1059,7 +1083,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.location}
@@ -1070,7 +1094,7 @@ const SuggestedJobs = () => {
                                                         </div>
                                                     </div>
 
-                                                    
+
                                                     <Link
                                                         href={`/jobs/${roleSlug}/${job.id}`}
                                                         className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
@@ -1095,7 +1119,7 @@ const SuggestedJobs = () => {
                                                         </div>
                                                     </Link>
 
-                                                    
+
                                                     <div className="mt-6">
                                                         <Link
                                                             href={`/jobs/${roleSlug}/${job.id}`}
@@ -1129,7 +1153,7 @@ const SuggestedJobs = () => {
                 </div>
             </div>
 
-            
+
             {showAnalysisModal && <AnalysisModal />}
             {showUpdateSuccessModal && <UpdateSuccessModal />}
             {showUpdateErrorModal && <UpdateErrorModal />}
