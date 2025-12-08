@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
+import NewsletterSubscription from "../components/newsletter-subscription";
 import PageHero from "../components/page-hero";
 
 interface ResearchProject {
@@ -22,13 +23,6 @@ interface ResearchProject {
   updated_at: string;
 }
 
-interface SubscriptionForm {
-  name: string;
-  email: string;
-  career_updates: boolean;
-  newsletter: boolean;
-}
-
 const extractExcerpt = (htmlContent: string, maxLength: number = 100): string => {
   const textContent = htmlContent.replace(/<[^>]*>/g, '');
   const trimmed = textContent.trim();
@@ -41,6 +35,7 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 100): string =>
     ? truncated.substring(0, lastSpaceIndex) + '...'
     : truncated + '...';
 };
+
 
 const ContentCard = ({ item, type }: { item: ResearchProject; type: 'research' | 'projects' }) => {
   return (
@@ -93,15 +88,7 @@ function ResearchAndProjectContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
-    name: '',
-    email: '',
-    career_updates: false,
-    newsletter: true
-  });
 
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
   const searchParams = useSearchParams();
 
@@ -216,54 +203,6 @@ function ResearchAndProjectContent() {
     setShowAll(false);
   }, []);
 
-  const handleSubscriptionSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubscriptionStatus('loading');
-    setSubscriptionMessage('');
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: subscriptionForm.name,
-          email: subscriptionForm.email,
-          career_updates: subscriptionForm.career_updates,
-          newsletter: subscriptionForm.newsletter
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSubscriptionStatus('success');
-        setSubscriptionMessage(data.message || 'Subscription successful!');
-        setSubscriptionForm({
-          name: '',
-          email: '',
-          career_updates: false,
-          newsletter: true
-        });
-      } else {
-        setSubscriptionStatus('error');
-        setSubscriptionMessage(data.message || 'Failed to subscribe.');
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      setSubscriptionStatus('error');
-      setSubscriptionMessage('An error occurred. Please try again later.');
-    }
-  }, [subscriptionForm]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setSubscriptionForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  }, []);
 
   return (
     <div>
@@ -429,96 +368,13 @@ function ResearchAndProjectContent() {
                 </button>
               </div>
             )}
-          </div>
-        </section>
 
-        <section className="relative py-16 sm:py-20 lg:py-24 xl:py-28 2xl:py-30 overflow-hidden bg-gradient-to-b from-white to-gray-50">
-          <div className="relative z-10 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-            <div className="max-w-4xl">
-              <h2 className="text-[#6c6c6c] text-xl sm:text-2xl lg:text-3xl font-medium font-montserrat leading-[35px] sm:leading-[45px] lg:leading-[55px]">
-                Stay Ahead in the IoT Space
-              </h2>
-              <p className="mt-4 text-[#6c6c6c] text-sm sm:text-base font-normal font-poppins leading-[24px] sm:leading-[30px]">
-                Get the latest articles, insights, and stories delivered to your inbox.
-              </p>
 
-              <form onSubmit={handleSubscriptionSubmit} className="mt-6 sm:mt-8 space-y-8 sm:space-y-12 lg:space-y-16">
-                <div className="space-y-1">
-                  <label htmlFor="name" className="text-[#6c6c6c] text-base sm:text-lg font-semibold font-poppins leading-[30px]">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={subscriptionForm.name}
-                    onChange={handleInputChange}
-                    placeholder="Your Full Name"
-                    required
-                    className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c] text-sm sm:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label htmlFor="email" className="text-[#6c6c6c] text-base sm:text-lg font-semibold font-poppins leading-[30px]">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={subscriptionForm.email}
-                    onChange={handleInputChange}
-                    placeholder="you@company.com"
-                    required
-                    className="w-full border-b border-[#6c6c6c] py-2 text-[#6c6c6c] text-sm sm:text-base font-normal font-poppins leading-[30px] focus:outline-none focus:border-[#5530fa]"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="career-updates"
-                    name="career_updates"
-                    checked={subscriptionForm.career_updates}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-[#5530fa] bg-gray-100 border-gray-300 rounded focus:ring-[#5530fa] focus:ring-2"
-                  />
-                  <label htmlFor="career-updates" className="text-[#6c6c6c]/80 text-sm sm:text-base font-normal font-poppins leading-[24px] sm:leading-[30px] cursor-pointer">
-                    I&apos;m interested in career updates too.
-                  </label>
-                </div>
-
-                {subscriptionMessage && (
-                  <div className={`text-sm font-poppins ${subscriptionStatus === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {subscriptionMessage}
-                  </div>
-                )}
-
-                <div className="flex justify-start mt-8 sm:mt-12">
-                  <button
-                    type="submit"
-                    disabled={subscriptionStatus === 'loading'}
-                    className="h-[50px] w-[160px] sm:w-[180px] font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {subscriptionStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div >
-
-          <div className="hidden lg:block absolute top-1/2 transform -translate-y-1/2 right-0 -mr-32">
-            <Image
-              src="/blogs-2.svg"
-              width={600}
-              height={600}
-              alt="IoT Newsletter"
-              className="opacity-80"
-            />
+            <NewsletterSubscription />
           </div>
         </section>
       </div>
+
       <Footer />
     </div>
   );

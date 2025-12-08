@@ -8,7 +8,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -50,6 +49,7 @@ const isAdminTokenExpired = (): boolean => {
 
 const ContactFormMessages = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [allContactMessages, setAllContactMessages] = useState<ContactMessage[]>([]);
     const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -97,19 +97,7 @@ const ContactFormMessages = () => {
                     return;
                 }
 
-                let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/contacts`;
-                const params = new URLSearchParams();
-
-                if (searchTerm) {
-                    params.append('search', searchTerm);
-                }
-                if (statusFilter !== 'all') {
-                    params.append('status', statusFilter);
-                }
-
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
+                const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/contacts`;
 
                 const response = await fetch(url, {
                     headers: {
@@ -124,6 +112,7 @@ const ContactFormMessages = () => {
 
                 const data = await response.json();
                 if (data.status === 'success') {
+                    setAllContactMessages(data.data || []);
                     setContactMessages(data.data || []);
                 } else {
                     throw new Error(data.message || 'Failed to fetch contacts');
@@ -131,6 +120,7 @@ const ContactFormMessages = () => {
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
                 console.error('Error fetching contact messages:', err);
+                setAllContactMessages([]);
                 setContactMessages([]);
             } finally {
                 setLoading(false);
@@ -138,7 +128,26 @@ const ContactFormMessages = () => {
         };
 
         fetchContactMessages();
-    }, [searchTerm, statusFilter]);
+    }, []);
+
+    useEffect(() => {
+        let filtered = [...allContactMessages];
+
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(msg => msg.status === statusFilter);
+        }
+
+        if (searchTerm.trim()) {
+            const search = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(msg =>
+                msg.name.toLowerCase().includes(search) ||
+                msg.email.toLowerCase().includes(search) ||
+                msg.message.toLowerCase().includes(search)
+            );
+        }
+
+        setContactMessages(filtered);
+    }, [searchTerm, statusFilter, allContactMessages]);
 
     const updateContactStatus = async (id: string, newStatus: string) => {
         try {
@@ -161,7 +170,7 @@ const ContactFormMessages = () => {
                 throw new Error(`Failed to update status: ${response.statusText}`);
             }
 
-            setContactMessages(prev => prev.map(msg =>
+            setAllContactMessages(prev => prev.map(msg =>
                 msg.id === id ? { ...msg, status: newStatus } : msg
             ));
         } catch (err) {
@@ -529,7 +538,7 @@ const ContactFormMessages = () => {
                                     type="text"
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
                                     placeholder="Search by name, email, or message content"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -538,19 +547,23 @@ const ContactFormMessages = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <select
-                                    value={statusFilter}
-                                    onChange={handleStatusFilterChange}
-                                    className="px-4 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Replied">Replied</option>
-                                    <option value="Archived">Archived</option>
-                                </select>
-                                <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                    <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                                </button>
+                                <div className="relative">
+                                    <select
+                                        value={statusFilter}
+                                        onChange={handleStatusFilterChange}
+                                        className="px-4 py-2 pr-10 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none bg-white text-[#6c6c6c] text-sm font-medium font-poppins cursor-pointer appearance-none"
+                                        style={{ direction: 'ltr' }}
+                                    >
+                                        <option value="all">All Status</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Replied">Replied</option>
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-[#6c6c6c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -605,15 +618,22 @@ const ContactFormMessages = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
-                                                        <select
-                                                            value={message.status}
-                                                            onChange={(e) => updateContactStatus(message.id, e.target.value)}
-                                                            className={`px-3 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] ${getStatusColor(message.status)} outline-[0.80px] outline-offset-[-0.80px] border-none focus:ring-0`}
-                                                        >
-                                                            <option value="Pending">Pending</option>
-                                                            <option value="Replied">Replied</option>
-                                                            <option value="Archived">Archived</option>
-                                                        </select>
+                                                        <div className="relative inline-block">
+                                                            <select
+                                                                value={message.status}
+                                                                onChange={(e) => updateContactStatus(message.id, e.target.value)}
+                                                                className={`px-3 py-1.5 pr-8 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] ${getStatusColor(message.status)} outline-none border-none cursor-pointer appearance-none`}
+                                                                style={{ direction: 'ltr' }}
+                                                            >
+                                                                <option value="Pending">Pending</option>
+                                                                <option value="Replied">Replied</option>
+                                                            </select>
+                                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                                <svg className="w-3 h-3 text-[#4e4e4e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         {formatDate(message.created_at)}

@@ -6,7 +6,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -50,9 +49,11 @@ const SubscriptionManagement = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -103,11 +104,14 @@ const SubscriptionManagement = () => {
                     const data = await response.json();
 
                     if (data.data && Array.isArray(data.data)) {
+                        setAllSubscriptions(data.data);
                         setSubscriptions(data.data);
                     } else if (Array.isArray(data)) {
+                        setAllSubscriptions(data);
                         setSubscriptions(data);
                     } else if (data.data === null) {
 
+                        setAllSubscriptions([]);
                         setSubscriptions([]);
                     } else {
                         console.error('Unexpected response structure:', data);
@@ -127,6 +131,20 @@ const SubscriptionManagement = () => {
 
         fetchSubscriptions();
     }, []);
+
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setSubscriptions(allSubscriptions);
+            return;
+        }
+
+        const search = searchTerm.toLowerCase().trim();
+        const filtered = allSubscriptions.filter(sub =>
+            sub.name.toLowerCase().includes(search) ||
+            sub.email.toLowerCase().includes(search)
+        );
+        setSubscriptions(filtered);
+    }, [searchTerm, allSubscriptions]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -150,10 +168,21 @@ const SubscriptionManagement = () => {
     };
 
     const toggleSubscriptionStatus = async (id: string, currentStatus: boolean, type: 'career_updates' | 'newsletter') => {
+        setAllSubscriptions(prev => prev.map(sub =>
+            sub.id === id
+                ? { ...sub, [type]: !currentStatus }
+                : sub
+        ));
+
         try {
             const token = localStorage.getItem('adminToken');
             if (!token) {
                 setError('Authentication required. Please login again.');
+                setAllSubscriptions(prev => prev.map(sub =>
+                    sub.id === id
+                        ? { ...sub, [type]: currentStatus }
+                        : sub
+                ));
                 return;
             }
 
@@ -166,20 +195,23 @@ const SubscriptionManagement = () => {
                 body: JSON.stringify({ type })
             });
 
-            if (response.ok) {
-
-                setSubscriptions(prev => prev.map(sub =>
-                    sub.id === id
-                        ? { ...sub, [type]: !currentStatus }
-                        : sub
-                ));
-            } else {
+            if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 setError(errorData.message || 'Failed to update subscription');
+                setAllSubscriptions(prev => prev.map(sub =>
+                    sub.id === id
+                        ? { ...sub, [type]: currentStatus }
+                        : sub
+                ));
             }
         } catch (error) {
             console.error('Error toggling subscription status:', error);
             setError('Failed to update subscription. Please try again.');
+            setAllSubscriptions(prev => prev.map(sub =>
+                sub.id === id
+                    ? { ...sub, [type]: currentStatus }
+                    : sub
+            ));
         }
     };
 
@@ -454,17 +486,15 @@ const SubscriptionManagement = () => {
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] opacity-50"
-                                    placeholder="Search by candidate name or email"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
+                                    placeholder="Search by name or email"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                     <Search className="h-5 w-5 text-gray-400" />
                                 </div>
                             </div>
-
-                            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                            </button>
                         </div>
 
 
@@ -483,17 +513,14 @@ const SubscriptionManagement = () => {
                                             <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                                 Email
                                             </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                                 Newsletter
                                             </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                                 Career Updates
                                             </th>
                                             <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                                 Created At
-                                            </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider min-w-[180px]">
-                                                Actions
                                             </th>
                                         </tr>
                                     </thead>
@@ -506,30 +533,24 @@ const SubscriptionManagement = () => {
                                                 <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {subscription.email}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {subscription.newsletter ? '✅' : '❌'}
+                                                <td className="px-4 py-3 whitespace-nowrap text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={subscription.newsletter}
+                                                        onChange={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
+                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 rounded cursor-pointer accent-[#5530fa]"
+                                                    />
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {subscription.career_updates ? '✅' : '❌'}
+                                                <td className="px-4 py-3 whitespace-nowrap text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={subscription.career_updates}
+                                                        onChange={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
+                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 rounded cursor-pointer accent-[#5530fa]"
+                                                    />
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {new Date(subscription.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-2 min-w-[160px]">
-                                                        <button
-                                                            onClick={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
-                                                            className="px-3 py-1 border border-[#5530FA] text-[#6c6c6c] bg-white hover:bg-gray-50 rounded-[15px] text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity whitespace-nowrap"
-                                                        >
-                                                            {subscription.newsletter ? 'Disable Newsletter' : 'Enable Newsletter'}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
-                                                            className="px-3 py-1 border border-[#5530FA] text-[#6c6c6c] bg-white hover:bg-gray-50 rounded-[15px] text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity whitespace-nowrap"
-                                                        >
-                                                            {subscription.career_updates ? 'Disable Career Updates' : 'Enable Career Updates'}
-                                                        </button>
-                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

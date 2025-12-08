@@ -3,11 +3,12 @@ import { Icon } from '@iconify/react';
 import Head from "next/head";
 import Image from "next/image";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import PageHero from "../components/page-hero";
-import StatusModal from "../components/status-model";
+import { ContactConfirmDialog, ContactMessageDialog, SubscriptionDialogStyles } from "../components/subscription-dialogs";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -16,8 +17,9 @@ export default function Contact() {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState<'success' | 'error' | null>(null);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -27,11 +29,15 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowConfirmDialog(true);
+  };
+
+  const confirmSubmit = async () => {
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
-    setShowModal(true);
-    setSubmitStatus('');
+    setSubmitMessage('');
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/contact`, {
@@ -45,24 +51,24 @@ export default function Contact() {
       const result = await response.json();
 
       if (response.ok) {
-        setSubmitStatus('success');
+        setSubmitMessage(result.message || 'Thank you for reaching out! We\'ll get back to you within 48 hours.');
+        setShowMessageDialog('success');
         setFormData({ name: '', email: '', message: '' });
       } else {
-        setSubmitStatus('error');
+        setSubmitMessage(result.message || result.error || 'Failed to send message. Please try again.');
+        setShowMessageDialog('error');
         console.error('Error:', result.message || result.error);
       }
     } catch (error) {
-      setSubmitStatus('error');
+      setSubmitMessage('An error occurred. Please try again later or contact us directly.');
+      setShowMessageDialog('error');
       console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSubmitStatus('');
-  };
+
 
   return (
     <div>
@@ -175,7 +181,7 @@ export default function Contact() {
                     type="text"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Your Full Name"
+                    placeholder="Enter Your Name"
                     className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
                     required
                   />
@@ -194,7 +200,7 @@ export default function Contact() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="you@company.com"
+                    placeholder="Enter Your Email"
                     className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
                     required
                   />
@@ -325,12 +331,28 @@ export default function Contact() {
       <Footer />
 
 
-      <StatusModal
-        showModal={showModal}
-        isSubmitting={isSubmitting}
-        submitStatus={submitStatus}
-        onClose={closeModal}
-      />
+      {typeof document !== 'undefined' && showConfirmDialog && createPortal(
+        <ContactConfirmDialog
+          name={formData.name}
+          email={formData.email}
+          onConfirm={confirmSubmit}
+          onCancel={() => setShowConfirmDialog(false)}
+        />,
+        document.body
+      )}
+
+      {typeof document !== 'undefined' && showMessageDialog && createPortal(
+        <ContactMessageDialog
+          type={showMessageDialog}
+          message={submitMessage}
+          onClose={() => {
+            setShowMessageDialog(null);
+          }}
+        />,
+        document.body
+      )}
+
+      <SubscriptionDialogStyles />
     </div>
   );
 }
