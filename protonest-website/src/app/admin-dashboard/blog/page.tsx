@@ -640,19 +640,24 @@ const BlogManager = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2 ml-4">
-                                                            <Link href={`/blog/${post.slug}`} target="_blank">
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="View">
-                                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={`/blog/${post.slug}`}
+                                                                target="_blank"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="View"
+                                                            >
+                                                                <Eye className="w-4 h-4 text-gray-600" />
                                                             </Link>
-                                                            <Link href={`/admin-dashboard/blog/edit/${post.id}`}>
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="Edit">
-                                                                    <Edit className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={`/admin-dashboard/blog/edit/${post.id}`}
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit className="w-4 h-4 text-gray-600" />
                                                             </Link>
                                                             <button
                                                                 onClick={() => deleteBlogPost(post.id)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
                                                                 title="Delete"
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-gray-600" />
@@ -684,19 +689,24 @@ const BlogManager = () => {
                                                     </div>
                                                     <div className="col-span-2">
                                                         <div className="flex items-center gap-2">
-                                                            <Link href={`/blog/${post.slug}`} target="_blank">
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="View">
-                                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={`/blog/${post.slug}`}
+                                                                target="_blank"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="View"
+                                                            >
+                                                                <Eye className="w-4 h-4 text-gray-600" />
                                                             </Link>
-                                                            <Link href={`/admin-dashboard/blog/edit/${post.id}`}>
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="Edit">
-                                                                    <Edit className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={`/admin-dashboard/blog/edit/${post.id}`}
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit className="w-4 h-4 text-gray-600" />
                                                             </Link>
                                                             <button
                                                                 onClick={() => deleteBlogPost(post.id)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
                                                                 title="Delete"
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-gray-600" />

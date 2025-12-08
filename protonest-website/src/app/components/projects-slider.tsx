@@ -10,10 +10,10 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 const projects = [
-    { id: 1, title: 'Compact GPS Tracker', image: '/project1.png' },
-    { id: 2, title: 'Smart Door Lock', image: '/project2.png' },
-    { id: 3, title: 'Smart WiFi Rebooter', image: '/project3.png' },
-    { id: 4, title: 'Soap Dose Tracking System', image: '/project4.png' },
+    { id: 1, title: 'Compact GPS Tracker', image: '/project1.png', slug: 'compact-gps-tracker-prototype-for-adam-healy' },
+    { id: 2, title: 'Smart Door Lock', image: '/project2.png', slug: 'smart-door-lock-system-for-entryphone,-uk' },
+    { id: 3, title: 'Smart WiFi Rebooter', image: '/project3.png', slug: 'wifi-rebooter-system-for-perseo-srls,-italy' },
+    { id: 4, title: 'Soap Dose Tracking System', image: '/project4.png', slug: 'soap-dose-tracking-system-for-1001cleanbox' },
 ];
 
 export default function ProjectSlider() {
@@ -86,6 +86,7 @@ export default function ProjectSlider() {
                             delay: 4000,
                             disableOnInteraction: false,
                             reverseDirection: false,
+                            pauseOnMouseEnter: true,
                         }}
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper;
@@ -104,25 +105,28 @@ export default function ProjectSlider() {
                                 spaceBetween: 30,
                             },
                         }}
+                        style={{ padding: '20px 10px' }}
                     >
                         {projects.map((project) => (
                             <SwiperSlide key={project.id}>
-                                <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200">
-                                    <div className="relative w-full aspect-video">
-                                        <Image
-                                            src={project.image}
-                                            alt={project.title}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 1280px) 50vw, 33vw"
-                                        />
+                                <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                    <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300">
+                                        <div className="relative w-full aspect-video">
+                                            <Image
+                                                src={project.image}
+                                                alt={project.title}
+                                                fill
+                                                className="object-cover"
+                                                sizes="(max-width: 1280px) 50vw, 33vw"
+                                            />
+                                        </div>
+                                        <div className="p-6">
+                                            <h3 className="text-[#333333] text-sm font-medium font-poppins">
+                                                {project.title}
+                                            </h3>
+                                        </div>
                                     </div>
-                                    <div className="p-6">
-                                        <h3 className="text-[#333333] text-sm font-medium font-poppins">
-                                            {project.title}
-                                        </h3>
-                                    </div>
-                                </div>
+                                </Link>
                             </SwiperSlide>
                         ))}
                     </Swiper>
@@ -210,6 +214,7 @@ export default function ProjectSlider() {
                                 delay: 4000,
                                 disableOnInteraction: false,
                                 reverseDirection: false,
+                                pauseOnMouseEnter: true,
                             }}
                             breakpoints={{
                                 480: {
@@ -225,25 +230,28 @@ export default function ProjectSlider() {
                                 prevEl: '.mobile-nav-prev',
                                 nextEl: '.mobile-nav-next',
                             }}
+                            style={{ padding: '20px 10px' }}
                         >
                             {projects.map((project) => (
                                 <SwiperSlide key={project.id}>
-                                    <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200">
-                                        <div className="relative w-full aspect-video">
-                                            <Image
-                                                src={project.image}
-                                                alt={project.title}
-                                                fill
-                                                className="object-cover"
-                                                sizes="90vw"
-                                            />
+                                    <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                        <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300">
+                                            <div className="relative w-full aspect-video">
+                                                <Image
+                                                    src={project.image}
+                                                    alt={project.title}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="90vw"
+                                                />
+                                            </div>
+                                            <div className="p-5">
+                                                <h3 className="text-[#333333] text-sm font-medium font-poppins">
+                                                    {project.title}
+                                                </h3>
+                                            </div>
                                         </div>
-                                        <div className="p-5">
-                                            <h3 className="text-[#333333] text-sm font-medium font-poppins">
-                                                {project.title}
-                                            </h3>
-                                        </div>
-                                    </div>
+                                    </Link>
                                 </SwiperSlide>
                             ))}
                         </Swiper>

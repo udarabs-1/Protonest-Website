@@ -806,19 +806,24 @@ const ResearchProjectsManager = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2 ml-4">
-                                                            <Link href={getViewUrl(post.slug)} target="_blank">
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="View">
-                                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={getViewUrl(post.slug)}
+                                                                target="_blank"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="View"
+                                                            >
+                                                                <Eye className="w-4 h-4 text-gray-600" />
                                                             </Link>
-                                                            <Link href={getEditUrl(post.id)}>
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="Edit">
-                                                                    <Edit className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={getEditUrl(post.id)}
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit className="w-4 h-4 text-gray-600" />
                                                             </Link>
                                                             <button
                                                                 onClick={() => getDeleteFunction()(post.id)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
                                                                 title="Delete"
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-gray-600" />
@@ -851,19 +856,24 @@ const ResearchProjectsManager = () => {
                                                     </div>
                                                     <div className="col-span-2">
                                                         <div className="flex items-center gap-2">
-                                                            <Link href={getViewUrl(post.slug)} target="_blank">
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="View">
-                                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={getViewUrl(post.slug)}
+                                                                target="_blank"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="View"
+                                                            >
+                                                                <Eye className="w-4 h-4 text-gray-600" />
                                                             </Link>
-                                                            <Link href={getEditUrl(post.id)}>
-                                                                <button className="p-1 hover:bg-gray-100 rounded" title="Edit">
-                                                                    <Edit className="w-4 h-4 text-gray-600" />
-                                                                </button>
+                                                            <Link
+                                                                href={getEditUrl(post.id)}
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit className="w-4 h-4 text-gray-600" />
                                                             </Link>
                                                             <button
                                                                 onClick={() => getDeleteFunction()(post.id)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
                                                                 title="Delete"
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-gray-600" />

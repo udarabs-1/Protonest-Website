@@ -327,9 +327,16 @@ export default function BlogDetailPage() {
           line-height: 1.8;
         }
         
-        .prose ul, .prose ol {
+        .prose ul {
           margin: 1.5rem 0;
           padding-left: 2rem;
+          list-style-type: disc;
+        }
+
+        .prose ol {
+          margin: 1.5rem 0;
+          padding-left: 2rem;
+          list-style-type: decimal;
         }
         
         .prose li {

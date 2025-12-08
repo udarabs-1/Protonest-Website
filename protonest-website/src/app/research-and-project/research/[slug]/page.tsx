@@ -237,7 +237,17 @@ export default function ProjectDetailPage() {
                 .prose h4 { font-size: 1.25rem; line-height: 1.4; }
                 
                 .prose p { margin-bottom: 1.5rem; line-height: 1.8; }
-                .prose ul, .prose ol { margin: 1.5rem 0; padding-left: 2rem; }
+                .prose ul {
+                    margin: 1.5rem 0;
+                    padding-left: 2rem;
+                    list-style-type: disc;
+                }
+
+                .prose ol {
+                    margin: 1.5rem 0;
+                    padding-left: 2rem;
+                    list-style-type: decimal;
+                }
                 .prose li { margin: 0.5rem 0; line-height: 1.7; }
                 .prose strong { font-weight: 600; color: #4a5568; }
                 
