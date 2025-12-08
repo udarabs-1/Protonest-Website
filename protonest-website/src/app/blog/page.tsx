@@ -150,6 +150,11 @@ export default function BlogSection() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [noResultsFound, setNoResultsFound] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [showAllBlogs, setShowAllBlogs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -264,16 +269,29 @@ export default function BlogSection() {
       if (newCategories.length > 0) {
         setSelectedCategories(prev => [...prev, ...newCategories]);
       }
+      setNoResultsFound(false);
+    } else {
+      if (!selectedCategories.includes(searchTerm.trim())) {
+        setSelectedCategories(prev => [...prev, searchTerm.trim()]);
+      }
+      setNoResultsFound(true);
     }
 
     setSearchTerm("");
     setShowAllBlogs(false);
+    setShowAutocomplete(false);
+    setHighlightedIndex(-1);
+    setTimeout(() => inputRef.current?.focus(), 0);
   }, [searchTerm, allCategories, selectedCategories]);
 
   const removeCategory = useCallback((category: string) => {
-    setSelectedCategories(prev => prev.filter(c => c !== category));
+    const newCategories = selectedCategories.filter(c => c !== category);
+    setSelectedCategories(newCategories);
     setShowAllBlogs(false);
-  }, []);
+    if (newCategories.length === 0) {
+      setNoResultsFound(false);
+    }
+  }, [selectedCategories]);
 
   const handleSubscriptionSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -325,8 +343,71 @@ export default function BlogSection() {
   }, []);
 
   const handleSearchTermChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowAutocomplete(value.trim().length > 0);
+    setNoResultsFound(false);
+    setHighlightedIndex(-1);
   }, []);
+
+  const handleCategorySelect = useCallback((category: string) => {
+    if (!selectedCategories.includes(category)) {
+      setSelectedCategories(prev => [...prev, category]);
+    }
+    setSearchTerm("");
+    setShowAutocomplete(false);
+    setNoResultsFound(false);
+    setShowAllBlogs(false);
+    setHighlightedIndex(-1);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }, [selectedCategories]);
+
+  const filteredSuggestions = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+    return allCategories.filter((cat: string) =>
+      cat.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !selectedCategories.includes(cat)
+    );
+  }, [searchTerm, allCategories, selectedCategories]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showAutocomplete || filteredSuggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => {
+        const newIndex = prev < filteredSuggestions.length - 1 ? prev + 1 : prev;
+        setTimeout(() => {
+          const dropdown = dropdownRef.current;
+          if (dropdown) {
+            const highlightedItem = dropdown.children[newIndex] as HTMLElement;
+            if (highlightedItem) {
+              highlightedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+          }
+        }, 0);
+        return newIndex;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => {
+        const newIndex = prev > 0 ? prev - 1 : -1;
+        setTimeout(() => {
+          const dropdown = dropdownRef.current;
+          if (dropdown && newIndex >= 0) {
+            const highlightedItem = dropdown.children[newIndex] as HTMLElement;
+            if (highlightedItem) {
+              highlightedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+          }
+        }, 0);
+        return newIndex;
+      });
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      e.preventDefault();
+      handleCategorySelect(filteredSuggestions[highlightedIndex]);
+    }
+  }, [showAutocomplete, filteredSuggestions, highlightedIndex, handleCategorySelect]);
 
   return (
     <div>
@@ -374,27 +455,45 @@ export default function BlogSection() {
           description="IoT Related Insights, and Innovations"
         />
 
-        <section className="-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+        <section className="relative z-30 -mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
           <div className="py-4 w-full">
-            <form onSubmit={handleSearch} className="relative h-[45px] opacity-100 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden flex items-center">
+            <form onSubmit={handleSearch} className="relative h-[50px] sm:h-[55px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden z-10">
               <input
+                ref={inputRef}
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchTermChange}
-                className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
+                onKeyDown={handleKeyDown}
+                className="w-full h-full pl-9 pr-12 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none relative z-10"
                 placeholder="Search for blog categories"
-                aria-label="Search blog categories"
+                aria-label="Search blogs"
               />
-              <button type="submit" className="w-5 h-5 mr-3" aria-label="Search">
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none">
                 <Image
                   src="/search.svg"
-                  alt=""
-                  width={20}
-                  height={20}
+                  alt="Search"
+                  width={24}
+                  height={24}
                   className="w-full h-full text-[#6c6c6c]"
                 />
-              </button>
+              </div>
             </form>
+
+            {showAutocomplete && filteredSuggestions.length > 0 && (
+              <div ref={dropdownRef} className="relative z-20 mt-2 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.15)] max-h-[300px] overflow-y-auto">
+                {filteredSuggestions.map((category, index) => (
+                  <div
+                    key={category}
+                    onClick={() => handleCategorySelect(category)}
+                    className={`px-6 py-3 cursor-pointer text-[#6c6c6c] text-sm font-poppins border-b border-gray-100 last:border-b-0 transition-colors ${index === highlightedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      }`}
+                  >
+                    {category}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {selectedCategories.length > 0 && (
               <div className="flex flex-wrap justify-start gap-3 mt-6 sm:mt-8 mb-8">
                 {selectedCategories.map((category) => (
@@ -420,6 +519,24 @@ export default function BlogSection() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {noResultsFound && (
+              <div className="flex justify-center items-center py-12 mt-4">
+                <div className="text-center">
+                  <p className="text-[#6c6c6c] font-poppins text-lg mb-4">No matching blogs found</p>
+                  <button
+                    onClick={() => {
+                      setSelectedCategories([]);
+                      setSearchTerm("");
+                      setNoResultsFound(false);
+                    }}
+                    className="px-6 py-2 gradient-button font-poppins transition-all"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -455,21 +572,6 @@ export default function BlogSection() {
               <div className="text-center">
                 <p className="text-[#6c6c6c] font-poppins text-lg">No blogs available at the moment.</p>
                 <p className="text-[#6c6c6c] font-poppins text-sm mt-2">Check back later for new content!</p>
-              </div>
-            </div>
-          )}
-
-
-          {!loading && !error && blogs.length > 0 && filteredBlogs.length === 0 && selectedCategories.length > 0 && (
-            <div className="flex justify-center items-center py-20">
-              <div className="text-center">
-                <p className="text-[#6c6c6c] font-poppins text-lg">No blogs found for the selected categories.</p>
-                <button
-                  onClick={() => setSelectedCategories([])}
-                  className="mt-4 px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors"
-                >
-                  Clear Filters
-                </button>
               </div>
             </div>
           )}
