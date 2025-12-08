@@ -6,6 +6,7 @@ import { useState } from "react";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
+import PageHero from "../components/page-hero";
 import StatusModal from "../components/status-model";
 
 export default function Contact() {
@@ -111,54 +112,20 @@ export default function Contact() {
       <Navbar />
       <div>
 
-        <div className="relative">
-          <div className="mt-10 sm:mt-0 h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px] relative">
-            <Image
-              src="/contact-1.webp"
-              alt="Contact page hero background"
-              fill
-              priority={true}
-              quality={100}
-              sizes="100vw"
-              style={{ objectFit: 'cover', objectPosition: 'center' }}
-              className="absolute inset-0"
-            />
-
-
-            <div className="block sm:hidden">
-
-              <div className="absolute top-4 left-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-12 lg:px-[133px] 2xl:px-[180px] relative z-10">
-              <div className="flex justify-center">
-                <div className="px-14 md:px-0 text-center text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
-                  <span className="text-[rgba(108,108,108,1)]">
-                    Let&apos;s Build the Future of IoT
-                  </span>
-                  <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                    Together!
-                  </span>
-                </div>
-              </div>
-              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[400px] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[900px]">
-                <span className="text-[rgba(108,108,108,1)]">
-                  Got an idea in mind? Let us know your idea, and we&apos;ll review it within 48 hours and get back to you with a detailed proposal
-                </span>
-              </div>
-            </div>
-          </div>
-
-
-          <div className="absolute -bottom-4 sm:bottom-0 left-0 w-full h-[100px] bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
-        </div>
+        <PageHero
+          backgroundImage="/contact-1.webp"
+          heading={{
+            beforeGradient: "Let's Build the Future of IoT",
+            gradientText: "Together!"
+          }}
+          description="Got an idea in mind? Let us know your idea, and we'll review it within 48 hours and get back to you with a detailed proposal"
+          height="h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px]"
+        />
 
 
         <div className="relative w-full min-h-screen sm:min-h-[1100px] 2xl:min-h-[1300px]">
 
-          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[500px] sm:-mt-[500px] md:-mt-[100px] lg:-mt-[110px] xl:-mt-[150px]">
+          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[500px] md:-mt-[100px] lg:-mt-[110px] xl:-mt-[150px]">
 
             <div className="block md:hidden">
               <Image
@@ -186,9 +153,9 @@ export default function Contact() {
           </div>
 
 
-          <div className="relative z-20 pt-[120px] sm:pt-[140px] md:pt-[170px] lg:pt-[200px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
+          <div className="relative z-20 pt-[120px] md:pt-[100px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
 
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] sm:top-[50px] md:top-[65px] lg:top-[80px] w-full max-w-[1127px] text-center px-4">
+            <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] md:-top-[40px] w-full max-w-[1127px] text-center px-4">
               <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                 Get in Touch
               </span>

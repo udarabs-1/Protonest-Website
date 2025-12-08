@@ -4,6 +4,22 @@ import Link from 'next/link';
 import { useRef } from 'react';
 import { useOnScreen } from './use-on-screen';
 
+const truncateToSentences = (text: string, sentenceCount: number = 2): string => {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+    return sentences.slice(0, sentenceCount).join(' ').trim();
+};
+
+const truncateByWords = (text: string, wordLimit: number = 30): { truncated: string; isTruncated: boolean } => {
+    const words = text.split(' ');
+    if (words.length <= wordLimit) {
+        return { truncated: text, isTruncated: false };
+    }
+    return {
+        truncated: words.slice(0, wordLimit).join(' '),
+        isTruncated: true
+    };
+};
+
 const NewsAndBlogs = () => {
     const blogs = [
         {
@@ -86,7 +102,7 @@ const BlogCard = ({ blog, index }: { blog: { id: number, title: string, image: s
         <Link href={blog.link} className="block w-full max-w-[345px]">
             <div
                 ref={ref}
-                className={`group w-full h-auto min-h-[450px] sm:min-h-[502px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
+                className={`group w-full h-auto min-h-[350px] sm:min-h-[420px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
                     }`}
             >
 
@@ -117,9 +133,19 @@ const BlogCard = ({ blog, index }: { blog: { id: number, title: string, image: s
                 </h3>
 
 
-                <p className="w-full max-w-[279px] mx-auto text-center text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed px-2">
-                    {blog.description}
-                </p>
+                {(() => {
+                    const { truncated, isTruncated } = truncateByWords(blog.description, 30);
+                    return (
+                        <p className="w-full max-w-[279px] mx-auto text-center text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed px-2">
+                            {truncated}{isTruncated && '... '}
+                            {isTruncated && (
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-medium">
+                                    Read more
+                                </span>
+                            )}
+                        </p>
+                    );
+                })()}
             </div>
         </Link>
     );

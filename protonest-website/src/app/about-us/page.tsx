@@ -8,6 +8,7 @@ import ClientMarquee from "../components/client-marquee";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import OurTeamSection from "../components/our-team";
+import PageHero from "../components/page-hero";
 import { useOnScreen } from "../components/use-on-screen";
 
 type ValueType = {
@@ -117,49 +118,17 @@ export default function About() {
       </Head>
       <Navbar />
       <div>
-        <div className="relative">
-          <div className="mt-18 sm:mt-0 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px] relative">
-            <Image
-              src="/about-1.webp"
-              alt="About Protonest hero background"
-              fill
-              priority={true}
-              quality={100}
-              sizes="100vw"
-              style={{ objectFit: 'cover', objectPosition: 'center' }}
-              className="absolute inset-0"
+        <PageHero
+          backgroundImage="/about-1.webp"
+          heading={{
+            beforeGradient: "Building the Future of",
+            gradientText: "IoT Innovation"
+          }}
+          description="Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you're launching a new smart device or need rapid prototyping, we're here to help."
+          height="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px]"
+        />
 
-            />
-
-            <div className="block sm:hidden">
-              <div className="absolute -top-8 right-3 w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center">
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px] relative z-10">
-              <div className="flex justify-center">
-                <div className="text-center text-[24px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
-                  <span className="text-[rgba(108,108,108,1)]">
-                    Building the Future of
-                  </span>
-                  <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                    IoT Innovation
-                  </span>
-                </div>
-              </div>
-              <div className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-poppins mt-6 sm:mt-8 md:mt-10 lg:mt-12 px-4 max-w-[300px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[750px] xl:max-w-[1000px]">
-                <span className="text-[rgba(108,108,108,1)]">
-                  Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you&apos;re launching a new smart device or need rapid prototyping, we&apos;re here to help.
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute -bottom-6 sm:bottom-0 left-0 right-0 h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] bg-gradient-to-b from-transparent via-white/30 to-white pointer-events-none"></div>
-        </div>
-
-        <div className="relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
+        <div className="z-10 mt-[40px] md:-mt-[150px] relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
           <div className="absolute inset-0 flex justify-center">
             <Image
               src="/about-2-mobile.svg"

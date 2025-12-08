@@ -258,7 +258,7 @@ const AdminDashboard = () => {
                 'rejected-interview': 'Rejected',
                 'interviewed': 'Interviewed',
                 'shortlisted': 'NDA Sent',
-                'hired': 'Project Started'
+                'hired': 'Hired'
             };
             return statusMap[status] || status;
         };
@@ -430,6 +430,7 @@ const AdminDashboard = () => {
                 });
 
                 const sortedApplications = [...applications]
+                    .filter(app => app.user_id && app.user_id.name && app.job_id && app.job_id.title)
                     .sort((a, b) => new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime())
                     .slice(0, 5);
 

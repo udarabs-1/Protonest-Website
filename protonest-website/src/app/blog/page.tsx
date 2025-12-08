@@ -2,6 +2,7 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
+import PageHero from "@/app/components/page-hero";
 import { useOnScreen } from "@/app/components/use-on-screen";
 import Head from "next/head";
 import Image from "next/image";
@@ -363,87 +364,64 @@ export default function BlogSection() {
         </script>
       </Head>
       <Navbar />
-      <main className="md:mt-[50px] mb-30">
+      <main className="mb-30">
 
-        <section className="h-[400px] sm:h-[480px] lg:h-[553px] relative">
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/blogs-1.webp"
-              alt="Blogs background"
-              fill
-              style={{ objectFit: 'cover', objectPosition: 'center' }}
-              priority={true}
-              quality={100}
-            />
-          </div>
+        <PageHero
+          backgroundImage="/blogs-1.webp"
+          heading={{
+            gradientText: "Blog"
+          }}
+          description="IoT Related Insights, and Innovations"
+        />
 
-
-          <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
-
-
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
-
-          <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-            <div className="flex flex-col items-center">
-              <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  Blog
-                </span>
-              </h1>
-              <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
-                IoT Related Insights, and Innovations
-              </p>
-            </div>
-
-
-            <div className="py-20 w-full">
-              <form onSubmit={handleSearch} className="relative h-[45px] opacity-100 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden flex items-center">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleSearchTermChange}
-                  className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
-                  placeholder="Search for blog categories"
-                  aria-label="Search blog categories"
+        <section className="-mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+          <div className="py-4 w-full">
+            <form onSubmit={handleSearch} className="relative h-[45px] opacity-100 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden flex items-center">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchTermChange}
+                className="flex-grow h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
+                placeholder="Search for blog categories"
+                aria-label="Search blog categories"
+              />
+              <button type="submit" className="w-5 h-5 mr-3" aria-label="Search">
+                <Image
+                  src="/search.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="w-full h-full text-[#6c6c6c]"
                 />
-                <button type="submit" className="w-5 h-5 mr-3" aria-label="Search">
-                  <Image
-                    src="/search.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="w-full h-full text-[#6c6c6c]"
-                  />
-                </button>
-              </form>
-              {selectedCategories.length > 0 && (
-                <div className="flex flex-wrap justify-start gap-3 mt-6 sm:mt-8 mb-8">
-                  {selectedCategories.map((category) => (
-                    <div
-                      key={category}
-                      className="h-11 px-4 py-2 rounded-[57px] inline-flex items-center gap-2 gradient-border"
+              </button>
+            </form>
+            {selectedCategories.length > 0 && (
+              <div className="flex flex-wrap justify-start gap-3 mt-6 sm:mt-8 mb-8">
+                {selectedCategories.map((category) => (
+                  <div
+                    key={category}
+                    className="h-11 px-4 py-2 rounded-[57px] inline-flex items-center gap-2 gradient-border"
+                  >
+                    <span className="text-[#6c6c6c] text-sm font-medium font-montserrat">
+                      {category}
+                    </span>
+                    <button
+                      onClick={() => removeCategory(category)}
+                      className="ml-1"
+                      aria-label={`Remove ${category} filter`}
                     >
-                      <span className="text-[#6c6c6c] text-sm font-medium font-montserrat">
-                        {category}
-                      </span>
-                      <button
-                        onClick={() => removeCategory(category)}
-                        className="ml-1"
-                        aria-label={`Remove ${category} filter`}
-                      >
-                        <Image
-                          src="/close.svg"
-                          width={30}
-                          height={30}
-                          alt=""
-                          className="hover:scale-110 transition-transform duration-200"
-                        />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                      <Image
+                        src="/close.svg"
+                        width={30}
+                        height={30}
+                        alt=""
+                        className="hover:scale-110 transition-transform duration-200"
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

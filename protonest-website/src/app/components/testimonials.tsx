@@ -1,7 +1,8 @@
 'use client';
+import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
@@ -15,7 +16,7 @@ const TestimonialSection = () => {
             id: 1,
             name: "Peter Hodgson",
             company: "Purbrook Engineering Ltd",
-            text: "I collaborated with Udara from Protonest on a test equipment project for a large international company, requiring microcontroller coding. We selected Udara based on his outstanding customer feedback and project discussions. He delivered circuit diagrams, operator instructions, code, and component selection promptly and reliably. Udara's responsiveness and reliable communication were key to achieving our goals. I highly recommend Udara for coding and electronic circuit projects.",
+            text: "I collaborated with Udara from Protonest on a test equipment project for a large international company, requiring microcontroller coding. We selected Udara based on his outstanding customer feedback and project discussions. He delivered everything promptly and reliably.",
             avatar: "/client1.webp"
         },
         {
@@ -202,170 +203,46 @@ const TestimonialCard = ({
     onInteractionEnd?: () => void;
     isMobile?: boolean;
 }) => {
-    const [showScrollIndicator, setShowScrollIndicator] = useState(false);
-    const [isUserInteracting, setIsUserInteracting] = useState(false);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        const checkScrollable = () => {
-            const hasVerticalScroll = container.scrollHeight > container.clientHeight;
-            const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
-            setShowScrollIndicator(hasVerticalScroll && !isAtBottom);
-        };
-
-        checkScrollable();
-
-        container.addEventListener('scroll', checkScrollable);
-
-        const resizeObserver = new ResizeObserver(checkScrollable);
-        resizeObserver.observe(container);
-
-        return () => {
-            container.removeEventListener('scroll', checkScrollable);
-            resizeObserver.disconnect();
-        };
-    }, [text]);
-
-    const handleInteractionStart = () => {
-        if (!isMobile || isUserInteracting) return;
-
-        setIsUserInteracting(true);
-        onInteractionStart?.();
-
-        if (interactionTimeoutRef.current) {
-            clearTimeout(interactionTimeoutRef.current);
-        }
-    };
-
-    const handleInteractionEnd = () => {
-        if (!isMobile) return;
-
-        if (interactionTimeoutRef.current) {
-            clearTimeout(interactionTimeoutRef.current);
-        }
-
-        interactionTimeoutRef.current = setTimeout(() => {
-            setIsUserInteracting(false);
-            onInteractionEnd?.();
-        }, 2000);
-    };
-
-    const handleScrollIndicatorClick = () => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        if (isMobile) {
-            handleInteractionStart();
-        }
-
-        container.scrollBy({
-            top: 50,
-            behavior: 'smooth'
-        });
-    };
-
-    const handleScroll = () => {
-        if (isMobile) {
-            handleInteractionStart();
-            handleInteractionEnd();
-        }
-    };
-
-    useEffect(() => {
-        return () => {
-            if (interactionTimeoutRef.current) {
-                clearTimeout(interactionTimeoutRef.current);
-            }
-        };
-    }, []);
-
     const cardProps = isMobile ? {
-        onTouchStart: handleInteractionStart,
-        onTouchEnd: handleInteractionEnd,
-        onTouchMove: handleInteractionStart,
+        onTouchStart: onInteractionStart,
+        onTouchEnd: onInteractionEnd,
+        onTouchMove: onInteractionStart,
     } : {};
 
     return (
         <div
-            className="w-full max-w-[343px] mx-auto h-[312px] px-4 sm:px-6 py-8 sm:py-[50px] bg-white/80 rounded-[20px] sm:rounded-[30px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)] backdrop-blur-[10px] flex flex-col justify-start items-center gap-2.5 relative"
+            className="w-full max-w-[550px] mx-auto h-[320px] px-5 sm:px-6 py-6 sm:py-7 bg-white rounded-[20px] sm:rounded-[25px] shadow-[0px_4px_15px_0px_rgba(0,0,0,0.1)] flex flex-col gap-2 relative"
             {...cardProps}
         >
-
-            <div
-                ref={scrollContainerRef}
-                className="w-full max-w-[259px] h-full overflow-y-auto"
-                onScroll={handleScroll}
-            >
-                <div className="flex flex-col justify-start items-start gap-4 sm:gap-[27px]">
-
-                    <div className="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] relative bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full flex justify-center items-center">
-                        <div className="w-[36px] h-[36px] sm:w-[41px] sm:h-[41px] bg-white rounded-full flex justify-center items-center overflow-hidden">
-                            <Image
-                                src={avatar}
-                                alt={`${name} profile picture`}
-                                width={41}
-                                height={41}
-                                priority={false}
-                                quality={85}
-                                sizes="(max-width: 640px) 36px, 41px"
-                                className="rounded-full w-[34px] h-[34px] sm:w-[39px] sm:h-[39px] object-cover"
-                            />
-                        </div>
-                    </div>
-
-
-                    <div className="flex flex-col gap-2 sm:gap-[13px]">
-                        <div className="text-black text-sm sm:text-base font-normal font-poppins">{name}</div>
-                        <div className="text-[#989898] text-xs font-normal font-poppins">{company}</div>
-                    </div>
-
-
-                    <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed">
-                        {text}
-                    </p>
-                </div>
+            <div className="flex-shrink-0">
+                <Icon
+                    icon="mdi:format-quote-open"
+                    className="text-[48px] text-[#6C9AE1]"
+                />
             </div>
 
+            <p className="text-[#333333] text-xs sm:text-[13px] font-normal font-poppins leading-relaxed flex-grow overflow-hidden">
+                {text}
+            </p>
 
-            {showScrollIndicator && (
-                <button
-                    onClick={handleScrollIndicatorClick}
-                    className="absolute bottom-2 left-1/2 transform -translate-x-1/2 cursor-pointer"
-                    aria-label="Scroll down to see more content"
-                >
-                    <div className="animate-bounce flex flex-col items-center -space-y-4">
-
-                        <svg
-                            className="w-5 h-5 text-[#5530fa] animate-pulse"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-
-                        <svg
-                            className="w-5 h-5 text-[#f51da5] animate-pulse"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            style={{ animationDelay: '0.2s' } as React.CSSProperties}
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </div>
-                </button>
-            )}
+            <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 relative flex-shrink-0 rounded-full overflow-hidden bg-gray-100">
+                    <Image
+                        src={avatar}
+                        alt={`${name} profile picture`}
+                        width={56}
+                        height={56}
+                        priority={false}
+                        quality={85}
+                        sizes="(max-width: 640px) 48px, 56px"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[#333333] text-xs sm:text-[13px] font-medium font-poppins">{name}</div>
+                    <div className="text-[#999999] text-[10px] sm:text-[11px] font-normal font-poppins">{company}</div>
+                </div>
+            </div>
         </div>
     );
 };

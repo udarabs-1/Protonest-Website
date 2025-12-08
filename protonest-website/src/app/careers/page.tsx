@@ -8,6 +8,7 @@ import { useCallback, useMemo } from 'react';
 import Blogs from '../components/blogs';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
+import PageHero from '../components/page-hero';
 
 const RoleCard = ({ role, onClick }: {
     role: { icon: string; title: string; slug: string };
@@ -112,56 +113,19 @@ export default function CareersPage() {
             <Navbar />
 
 
-            <section className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-
-                <div className="absolute inset-0 -z-10 block sm:hidden">
-                    <Image
-                        src="/jobs-1-mobile.webp"
-                        alt=""
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        priority={true}
-                        quality={100}
-                        aria-hidden="true"
-                    />
-                </div>
+            <PageHero
+                backgroundImage="/jobs-1.webp"
+                backgroundImageMobile="/jobs-1-mobile.webp"
+                heading={{
+                    beforeGradient: "Empowering Innovation",
+                    gradientText: "Join our Growing Team"
+                }}
+                description="From bold IoT ideas to fully functional products, Protonest is where innovation becomes real."
+                height="h-[400px] lg:h-[500px] xl:h-[439px]"
+            />
 
 
-                <div className="absolute inset-0 -z-10 hidden sm:block">
-                    <Image
-                        src="/jobs-1.webp"
-                        alt=""
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        priority={true}
-                        quality={100}
-                        aria-hidden="true"
-                    />
-                </div>
-
-
-                <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
-
-
-                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
-
-
-                <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
-                    <div className="text-center max-w-4xl xl:max-w-[1120px]">
-                        <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-['Montserrat'] leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8">
-                            <span className="text-[#6c6c6c]">Empowering Innovation</span>
-                            <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Join our Growing Team</span>
-                        </h1>
-                        <p className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] text-[#6c6c6c] font-normal font-['Poppins'] leading-6 sm:leading-[30px] max-w-2xl xl:max-w-[1120px] mx-auto">
-                            From bold IoT ideas to fully functional products, Protonest is where innovation becomes real.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-
-            <main className="bg-white relative z-10 py-4 sm:py-12">
+            <main className="bg-white relative z-10 sm:py-12 lg:py-16">
 
                 <section className="flex flex-col items-center mb-12 sm:mb-16 lg:mb-20 xl:mb-24 max-w-6xl xl:max-w-[1127px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-0">
                     <h2 className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-['Montserrat'] leading-tight xl:leading-[55px] text-center mb-8">

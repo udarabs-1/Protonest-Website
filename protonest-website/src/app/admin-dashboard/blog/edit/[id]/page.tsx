@@ -1223,7 +1223,7 @@ const EditBlogPost = () => {
                                     </div>
                                 </div>
 
-                                <EditorContent editor={editor} className="min-h-[400px]" />
+                                <EditorContent editor={editor} className="h-[500px] overflow-y-auto" />
                             </div>
                         </div>
 
@@ -1231,7 +1231,7 @@ const EditBlogPost = () => {
                             <button
                                 onClick={handleSaveAsDraft}
                                 disabled={loading}
-                                className="px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="px-6 py-4 rounded-[57px] gradient-border cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                                 {loading ? 'Saving...' : 'Save as Draft'}
                             </button>
@@ -1251,7 +1251,6 @@ const EditBlogPost = () => {
                 .ProseMirror {
                     outline: none;
                     padding: 1.5rem;
-                    min-height: 400px;
                     font-family: 'Poppins', sans-serif;
                     line-height: 1.6;
                 }

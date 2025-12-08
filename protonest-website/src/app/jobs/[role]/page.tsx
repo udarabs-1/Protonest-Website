@@ -2,6 +2,7 @@
 
 import Footer from '@/app/components/footer';
 import Navbar from '@/app/components/navbar';
+import PageHero from '@/app/components/page-hero';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -449,52 +450,17 @@ export default function RolePage() {
         <div className="min-h-screen relative bg-white overflow-x-hidden">
             <Navbar />
 
+            <PageHero
+                backgroundImage="/jobs-1.webp"
+                backgroundImageMobile="/jobs-1-mobile.webp"
+                heading={{
+                    gradientText: `${displayTitle} Jobs`
+                }}
+                description="Browse jobs posted on Protonest and apply for the role that fits you."
+                height="h-[350px] lg:h-[400px] xl:h-[439px]"
+            />
 
-            <section className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-
-                <div className="absolute inset-0 block sm:hidden">
-                    <Image
-                        src="/jobs-1-mobile.webp"
-                        alt=""
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        priority={true}
-                        quality={85}
-                        aria-hidden="true"
-                    />
-                </div>
-
-
-                <div className="absolute inset-0 hidden sm:block">
-                    <Image
-                        src="/jobs-1.webp"
-                        alt=""
-                        fill
-                        style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        priority={true}
-                        quality={85}
-                        aria-hidden="true"
-                    />
-                </div>
-
-
-                <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
-                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
-
-
-                <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
-                    <div className="text-center max-w-4xl xl:max-w-[1120px]">
-                        <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8 text-[#6c6c6c]">
-                            {displayTitle} Jobs
-                        </h1>
-                        <p className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] text-[#6c6c6c] font-normal font-poppins leading-6 sm:leading-[30px] max-w-2xl xl:max-w-[1120px] mx-auto">
-                            Browse jobs posted on Protonest and apply for the role that fits you.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
+            <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-0 pb-8 sm:py-12 lg:py-16">
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     <aside className="w-full lg:w-1/4 hidden lg:block">

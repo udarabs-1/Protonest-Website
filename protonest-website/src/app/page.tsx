@@ -31,7 +31,7 @@ function LargeScreenHome() {
 
   return (
     <div className="hidden lg:block">
-      <div className="mt-[100px] h-full relative">
+      <div className="h-full relative">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-1.webp"
@@ -46,9 +46,9 @@ function LargeScreenHome() {
 
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
-        <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10">
-          <div className="flex justify-center">
-            <div className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
+        <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+          <div className="flex flex-col items-center">
+            <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Bringing Your IoT Ideas to Life with
               </span>
@@ -56,16 +56,16 @@ function LargeScreenHome() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                 Expert Prototyping
               </span>
-            </div>
-          </div>
-          <div className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-8 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
-            <span>
-              At Protonest, we design, build, and connect scalable IoT solutions.
-            </span>
-            <br />
-            <span className="mt-4 block">
-              Built fast. Built right.
-            </span>
+            </h1>
+            <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+              <span>
+                At Protonest, we design, build, and connect scalable IoT solutions.
+              </span>
+              <br />
+              <span className="mt-4 block">
+                Built fast. Built right.
+              </span>
+            </p>
           </div>
           <div className="flex justify-center space-x-[33px] mt-8 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
             <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer" className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center">
@@ -243,7 +243,7 @@ function SmallScreenHome() {
 
   return (
     <div className="lg:hidden">
-      <div className="mt-12 sm:mt-6 h-[450px] sm:h-[520px] relative">
+      <div className="h-[450px] sm:h-[520px] relative">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-1.webp"
@@ -258,9 +258,9 @@ function SmallScreenHome() {
 
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
-        <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
-          <div className="flex justify-center">
-            <div className="text-center text-[24px] sm:text-[30px] md:text-[32px] font-medium font-montserrat">
+        <div className="pt-20 relative z-20 flex flex-col items-center justify-start h-full px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+          <div className="flex flex-col items-center">
+            <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Bringing Your IoT Ideas to Life with
               </span>
@@ -268,16 +268,16 @@ function SmallScreenHome() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
                 Expert Prototyping
               </span>
-            </div>
-          </div>
-          <div className="text-center text-[14px] font-normal font-poppins mt-5 sm:mt-6 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
-            <span>
-              At Protonest, we design, build, and connect scalable IoT solutions.
-            </span>
-            <br />
-            <span className="mt-3 block">
-              Built fast. Built right.
-            </span>
+            </h1>
+            <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+              <span>
+                At Protonest, we design, build, and connect scalable IoT solutions.
+              </span>
+              <br />
+              <span className="mt-4 block">
+                Built fast. Built right.
+              </span>
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-6 font-poppins font-medium text-[14px]">
             <Link href="https://iot-system-design-tool.protonest.co" target="_blank" rel="noopener noreferrer">

@@ -1,11 +1,13 @@
 "use client";
 
-import Footer from "@/app/components/footer";
-import Navbar from "@/app/components/navbar";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Footer from "../components/footer";
+import Navbar from "../components/navbar";
+import PageHero from "../components/page-hero";
 
 interface ResearchProject {
   id: string;
@@ -51,15 +53,11 @@ const ContentCard = ({ item, type }: { item: ResearchProject; type: 'research' |
         <div className="p-6 pb-0">
           <div className="w-full aspect-[374/164] rounded-[11px] overflow-hidden">
             <Image
-              src={item.cover_image || '/blogsPage1.svg'}
+              src={item.cover_image || ''}
               alt={item.title}
               width={374}
               height={164}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = '/blogsPage1.svg';
-              }}
             />
           </div>
         </div>
@@ -98,6 +96,17 @@ export default function ResearchProjects() {
 
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [subscriptionMessage, setSubscriptionMessage] = useState('');
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'projects') {
+      setActiveTab('projects');
+    } else if (tab === 'research') {
+      setActiveTab('research');
+    }
+  }, [searchParams]);
 
   const fetchResearch = useCallback(async () => {
     try {
@@ -280,38 +289,15 @@ export default function ResearchProjects() {
       <Navbar />
       <div className="mb-30">
 
-        <div className="mt-[50px] h-[400px] sm:h-[480px] lg:h-[553px] relative">
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/research-1.webp"
-              alt="Research and Projects background"
-              fill
-              style={{ objectFit: 'cover', objectPosition: 'center' }}
-              priority={true}
-              quality={100}
-            />
-          </div>
+        <PageHero
+          backgroundImage="/research-1.webp"
+          heading={{
+            gradientText: "Research and Projects"
+          }}
+          description="Explore our latest research and innovative projects in IoT and embedded systems"
+        />
 
-          <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10"></div>
-
-          <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-8 lg:px-[133px]">
-            <div className="flex justify-center">
-              <div className="text-center text-[28px] sm:text-[35px] md:text-[40px] lg:text-[45px] font-medium font-montserrat">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                  Research & Projects
-                </span>
-              </div>
-            </div>
-            <div className="text-center text-[14px] sm:text-[16px] lg:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20">
-              <span className="text-[rgba(108,108,108,1)]">
-                From proof-of-concepts to real-world IoT deployments! Dive into our most impactful work.
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[130px]">
+        <section className="relative z-30 -mt-[140px] py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[130px]">
           <div className="flex flex-col lg:flex-row gap-8">
 
             <div className="hidden lg:block w-full lg:w-1/4">
@@ -450,22 +436,19 @@ export default function ResearchProjects() {
               </div>
 
 
-              <div className="flex justify-start gap-3 mb-4">
+              <div className="inline-flex justify-start items-center gap-2 mb-4">
                 <button
                   onClick={() => {
                     setActiveTab('projects');
                     setShowAll(false);
                     setSearchTerm('');
                   }}
-                  className={`h-[51px] px-6 py-4 rounded-[57px] inline-flex justify-center items-center gap-1 ${activeTab === 'projects'
-                    ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] border border-transparent'
-                    : 'gradient-button'
+                  className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeTab === 'projects'
+                    ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
-                  <span className={`text-base font-poppins ${activeTab === 'projects'
-                    ? 'text-white font-semibold font-montserrat'
-                    : 'text-[#4d4d4d] font-medium'
-                    }`}>
+                  <span className={`text-center text-xs font-semibold font-montserrat`}>
                     Project
                   </span>
                 </button>
@@ -475,15 +458,12 @@ export default function ResearchProjects() {
                     setShowAll(false);
                     setSearchTerm('');
                   }}
-                  className={`h-[51px] px-6 py-4 rounded-[57px] inline-flex justify-center items-center gap-1 ${activeTab === 'research'
-                    ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] border border-transparent'
-                    : 'gradient-button'
+                  className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeTab === 'research'
+                    ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
-                  <span className={`text-base font-poppins ${activeTab === 'research'
-                    ? 'text-white font-semibold font-montserrat'
-                    : 'text-[#4d4d4d] font-medium'
-                    }`}>
+                  <span className={`text-center text-xs font-semibold font-montserrat`}>
                     Research
                   </span>
                 </button>
