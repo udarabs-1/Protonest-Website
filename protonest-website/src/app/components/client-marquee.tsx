@@ -7,7 +7,6 @@ const ClientMarquee = () => {
         { name: "Client 2", logo: "/client2.svg" },
         { name: "Client 3", logo: "/client3.svg" },
         { name: "Client 4", logo: "/client4.svg" },
-
     ];
 
     return (
