@@ -300,33 +300,32 @@ const AdminDashboard = () => {
                     throw new Error('No authentication token found');
                 }
 
-                const applicationsRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                const jobsRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                const usersRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                const ndaRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
+                const [applicationsRes, jobsRes, usersRes, ndaRes] = await Promise.all([
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    )
+                ]);
 
                 let applications: Application[] = [];
                 if (applicationsRes.ok) {
