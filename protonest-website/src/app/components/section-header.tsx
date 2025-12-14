@@ -52,7 +52,7 @@ export default function SectionHeader({
             }`}
           >
             {description && (
-              <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] max-w-3xl">
+              <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] max-w-4xl">
                 {description}
               </p>
             )}
@@ -64,16 +64,16 @@ export default function SectionHeader({
                   href={linkHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[14px] underline lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                  className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
                 >
-                  {linkLabel} &gt;
+                  <span className="underline">{linkLabel}</span> &gt;
                 </a>
               ) : (
                 <Link
                   href={linkHref}
-                  className="text-[14px] underline lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                  className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
                 >
-                  {linkLabel} &gt;
+                  <span className="underline">{linkLabel}</span> &gt;
                 </Link>
               ))}
           </div>

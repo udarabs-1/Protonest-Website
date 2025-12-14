@@ -13,6 +13,7 @@ import TestimonialSection from "./components/testimonials";
 import { useOnScreen } from "./components/use-on-screen";
 import WhyChooseProtonest from "./components/why-choose";
 import StatsSection from "./components/stats-section";
+import SectionHeader from "./components/section-header";
 
 const HIGHLIGHT_STATS = [
   { value: 100, suffix: "+", label: "Projects" },
@@ -44,7 +45,7 @@ function LargeScreenHome() {
         {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/home-1.svg"
+            src="/home-1.webp"
             alt="Hero background"
             fill
             priority={true}
@@ -111,30 +112,14 @@ function LargeScreenHome() {
         </div>
 
         <div className="flex flex-col items-start justify-start h-full px-[60px] xl:px-[133px] 2xl:px-[180px]">
-          <div className="flex justify-center">
-            <div className="text-center text-[26px] xl:text-[30px] font-medium font-montserrat">
-              <span className="text-[rgba(108,108,108,1)]">Explore Our </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Clients
-              </span>
-            </div>
-          </div>
-          <div className="flex justify-between items-center w-full my-12">
-            <div className="text-[16px] xl:text-[18px] font-normal font-poppins">
-              <span className="text-[rgba(108,108,108,1)]">
-                Trusted by Pioneers in Innovation. When they build, they build
-                with us.
-              </span>
-            </div>
-            <Link
-              href="/about-us"
-              className="text-[16px] xl:text-[18px] font-normal font-poppins"
-            >
-              <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer">
-                About Us &gt;
-              </span>
-            </Link>
-          </div>
+          <SectionHeader
+            prefix="Explore Our"
+            highlight="Clients"
+            description="Trusted by pioneers in innovation. When they build, they build with us."
+            linkLabel="About Us"
+            linkHref="/about-us"
+          />
+
           <ClientMarquee />
         </div>
       </div>

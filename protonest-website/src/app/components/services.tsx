@@ -111,7 +111,7 @@ const ServicesSection = () => (
     <div className="relative z-10 px-6 py-16 sm:px-10 lg:px-[133px] 2xl:px-[180px]">
       <SectionHeader
         prefix="What Do We"
-        highlight="Offer?x"
+        highlight="Offer?"
         description="From Idea to Execution, We’ve Got You Covered."
         linkLabel="Get a Quote"
         linkHref="https://iot-system-design-tool.protonest.co"
