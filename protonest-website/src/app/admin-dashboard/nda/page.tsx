@@ -285,9 +285,17 @@ const NDAComplianceLog = () => {
 
 
 
+    const generateFullEmailPreview = (userName: string, subject: string, body: string, isCareerEmail: boolean = true) => {
+        const firstName = userName.split(' ')[0] || 'User';
+        const team = isCareerEmail ? 'Recruitment Team' : 'Protonest Team';
+        const replyTo = isCareerEmail ? '\n\nReply to: careers@protonest.co' : '';
+
+        return `Dear ${firstName},\n\n${body.replace(/<br>/g, '\n')}\n\nHave a great day!\n\nBest regards,\n${team},\nProtonest\n\nThis is an automated message from Protonest. If you have any questions, feel free to contact us.${replyTo}`;
+    };
+
     const setNdaDialogContent = (record: NDARecord) => {
-        const defaultSubject = `Protonest NDA for ${record.job?.title || '[Role Name]'} – Action Required`;
-        const defaultBody = `Hello ${record.user?.name?.split(' ')[0] || '[Candidate First Name]'},\n\nWe're excited to move forward with your application for the role of ${record.job?.title || '[Role Name]'} at Protonest.\n\nTo proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:\n\n1. Download and carefully read the attached NDA document\n2. Sign the document electronically or print, sign, and scan\n3. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached\n\nPlease complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.\n\nBest regards,\nProtonest Team`;
+        const defaultSubject = `NDA for your review`;
+        const defaultBody = `We're excited to move forward with your application for the role of ${record.job?.title || '[Role Name]'} at Protonest.<br><br>To proceed, please review and sign the attached Non-Disclosure Agreement (NDA). Here's what to do:<br><br>1. Download and carefully read the attached NDA document<br>2. Sign the document electronically or print, sign, and scan<br>3. Upload the signed NDA to your candidate portal or reply to this email with the signed document attached<br><br>Please complete this within 3 business days. If you have any questions about the NDA, feel free to reach out.`;
 
         setNdaSubject(defaultSubject);
         setNdaBody(defaultBody);
@@ -1365,16 +1373,66 @@ const NDAComplianceLog = () => {
 
 
                             <div className="mb-6 sm:mb-8">
-                                <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Body</h3>
-                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
-                                    <textarea
-                                        value={ndaBody}
-                                        onChange={(e) => setNdaBody(e.target.value)}
-                                        rows={8}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80 leading-relaxed resize-none"
-                                        placeholder="Enter email body..."
-                                    />
-                                    <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-4">{ndaBody.length}/1000</p>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Edit Email Body</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 h-[500px] overflow-y-auto">
+                                                <textarea
+                                                    value={ndaBody.replace(/<br>/g, '\n')}
+                                                    onChange={(e) => setNdaBody(e.target.value.replace(/\n/g, '<br>'))}
+                                                    className="w-full h-full p-0 border-0 bg-transparent focus:ring-0 focus:outline-none text-sm font-normal font-poppins text-[#6c6c6c]/80 leading-relaxed resize-none"
+                                                    placeholder="Enter email body (press Enter for new lines)..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Preview</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <div className="bg-white p-6 rounded-lg border border-gray-200 h-[500px] overflow-y-auto">
+                                                <div className="space-y-4">
+                                                    <p className="text-[14.67px] font-normal font-poppins text-black leading-[1.5] mb-4">
+                                                        Dear {ndaDialog.user?.name?.split(' ')[0] || 'User'},
+                                                    </p>
+                                                    <div
+                                                        className="text-[14.67px] font-normal font-poppins text-black leading-[1.5]"
+                                                        dangerouslySetInnerHTML={{ __html: ndaBody.replace(/<br>/g, '<br/>') }}
+                                                    />
+                                                    <table cellPadding="0" cellSpacing="0" border={0} className="my-5">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <a
+                                                                        href="#"
+                                                                        className="inline-block px-[30px] py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white no-underline rounded font-bold text-sm"
+                                                                        style={{ display: 'inline-block', padding: '12px 30px', background: 'linear-gradient(135deg, #5530fa, #f51da5)', color: '#ffffff', textDecoration: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}
+                                                                    >
+                                                                        View NDA
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <p className="text-[14.67px] font-normal font-poppins text-black leading-[1.5] my-4">
+                                                        Have a great day!
+                                                    </p>
+                                                    <p className="text-[14.67px] font-normal font-poppins text-[#545454] leading-[1.5] my-4 mb-0">
+                                                        Best regards,<br />
+                                                        Recruitment Team,<br />
+                                                        Protonest
+                                                    </p>
+                                                    <div className="bg-[#f5f5f5] p-[14px_20px] text-center mt-4 rounded">
+                                                        <p className="text-[#737373] text-[13px] leading-[1.5] m-0">
+                                                            This is an automated message from Protonest. If you have any questions, feel free to contact us.<br />
+                                                            <span className="text-xs">Reply to: <a href="mailto:careers@protonest.co" className="text-[#5530fa]">careers@protonest.co</a></span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
