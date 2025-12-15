@@ -16,10 +16,7 @@ const TermsAndConditionsPage = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-white py-8">
-        {/* Container with responsive max-width */}
         <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-
-          {/* Back Button */}
           <div className="mb-8">
             <button
               onClick={handleBack}
@@ -31,24 +28,20 @@ const TermsAndConditionsPage = () => {
             </button>
           </div>
 
-          {/* Header */}
           <div className="mb-4">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium font-['Montserrat'] text-[#6c6c6c] leading-tight">
               Terms and Conditions
             </h1>
           </div>
 
-          {/* Agreement Subtitle */}
           <div className="mb-2">
             <h2 className="inline-block text-base sm:text-lg font-normal font-['Poppins'] text-transparent bg-clip-text bg-gradient-to-r from-[#F51DA5] to-[#5530FA]">
               Agreement to Terms
             </h2>
           </div>
 
-          {/* Content */}
           <div className="space-y-6">
 
-            {/* Acceptance of Terms */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 1. Acceptance of Terms
@@ -64,7 +57,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Services Offered */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 2. Services Offered
@@ -76,7 +68,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Eligibility */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 3. Eligibility
@@ -88,7 +79,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Account Registration */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 4. Account Registration
@@ -100,7 +90,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Use of Services */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 5. Use of Services
@@ -115,7 +104,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Intellectual Property */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 6. Intellectual Property
@@ -127,7 +115,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* User-Generated Content */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 7. User-Generated Content
@@ -139,7 +126,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Marketing and Testimonials */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 8. Marketing and Testimonials
@@ -154,7 +140,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Data Protection and Confidentiality */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 9. Data Protection and Confidentiality
@@ -166,7 +151,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Third-Party Links */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 10. Third-Party Links
@@ -178,7 +162,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Shipping and Returns */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 11. Shipping and Returns
@@ -190,7 +173,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Disclaimer of Warranties */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 12. Disclaimer of Warranties
@@ -202,7 +184,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Limitation of Liability */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 13. Limitation of Liability
@@ -214,7 +195,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Changes to Terms */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 14. Changes to Terms
@@ -226,7 +206,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Governing Law */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 15. Governing Law
@@ -238,7 +217,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Termination */}
             <section>
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 16. Termination
@@ -250,7 +228,6 @@ const TermsAndConditionsPage = () => {
               </div>
             </section>
 
-            {/* Contact Us */}
             <section className="border-t border-gray-200 pt-6">
               <h2 className="text-lg sm:text-xl font-medium font-['Poppins'] text-[#6c6c6c] mb-4">
                 17. Contact Us

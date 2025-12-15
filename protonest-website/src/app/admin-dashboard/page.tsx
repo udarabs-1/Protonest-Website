@@ -112,7 +112,6 @@ interface Candidate {
     added_by: string;
 }
 
-// Add category to slug mapping
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
@@ -124,7 +123,6 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
-// Token management functions
 const clearExpiredTokens = (): void => {
     if (typeof window === 'undefined') return;
 
@@ -139,7 +137,29 @@ const clearExpiredTokens = (): void => {
     }
 };
 
-// Helper functions moved outside component to fix ESLint warning
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const formatDate = (dateString: string) => {
     try {
         const date = new Date(dateString);
@@ -158,7 +178,6 @@ const formatRelativeDate = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
 
-        // Reset time components to compare only dates
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -198,7 +217,6 @@ const AdminDashboard = () => {
     const [jobAlerts, setJobAlerts] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -223,15 +241,12 @@ const AdminDashboard = () => {
         { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'View Talent Pool', path: '/admin-dashboard/talent-pool' }
     ];
 
-    // Authentication check and data fetching in the same useEffect
     useEffect(() => {
-        const adminToken = localStorage.getItem('adminToken');
-        if (!adminToken) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
             return;
         }
 
-        // Clear expired user tokens on admin dashboard load
         clearExpiredTokens();
 
         const getDisplayStatus = (status: string) => {
@@ -243,7 +258,7 @@ const AdminDashboard = () => {
                 'rejected-interview': 'Rejected',
                 'interviewed': 'Interviewed',
                 'shortlisted': 'NDA Sent',
-                'hired': 'Project Started'
+                'hired': 'Hired'
             };
             return statusMap[status] || status;
         };
@@ -285,45 +300,38 @@ const AdminDashboard = () => {
                     throw new Error('No authentication token found');
                 }
 
-                // Fetch applications using the correct endpoint
-                const applicationsRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
+                const [applicationsRes, jobsRes, usersRes, ndaRes] = await Promise.all([
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    )
+                ]);
 
-                // Fetch jobs using the correct endpoint
-                const jobsRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                // Fetch users using the correct endpoint
-                const usersRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/users`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                // Fetch NDA logs using the correct endpoint
-                const ndaRes = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`,
-                    {
-                        headers: { 'Authorization': `Bearer ${adminToken}` }
-                    }
-                );
-
-                // Process applications data
                 let applications: Application[] = [];
                 if (applicationsRes.ok) {
                     const applicationsData = await applicationsRes.json();
-                    console.log('Applications API Response:', applicationsData); // Debug log
+                    console.log('Applications API Response:', applicationsData);
 
-                    // Handle the specific response structure from your backend
                     if (applicationsData.status === 'success' && applicationsData.data?.applications) {
                         applications = Array.isArray(applicationsData.data.applications)
                             ? applicationsData.data.applications
@@ -337,10 +345,9 @@ const AdminDashboard = () => {
                         applications = [];
                     }
 
-                    console.log('Parsed applications:', applications.length); // Debug log
+                    console.log('Parsed applications:', applications.length);
                 }
 
-                // Process jobs data
                 let jobs: Job[] = [];
                 if (jobsRes.ok) {
                     const jobsData = await jobsRes.json();
@@ -354,7 +361,6 @@ const AdminDashboard = () => {
                     }
                 }
 
-                // Process users data
                 let users: User[] = [];
                 if (usersRes.ok) {
                     const usersData = await usersRes.json();
@@ -370,7 +376,6 @@ const AdminDashboard = () => {
                     }
                 }
 
-                // Process NDA data
                 let candidates: Candidate[] = [];
                 if (ndaRes.ok) {
                     const ndaData = await ndaRes.json();
@@ -387,8 +392,6 @@ const AdminDashboard = () => {
                     }
                 }
 
-                // Calculate stats
-                // Get current month's applications
                 const now = new Date();
                 const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
                 const totalApplicants = applications.filter(app => {
@@ -396,7 +399,6 @@ const AdminDashboard = () => {
                     return appliedDate >= currentMonthStart;
                 }).length;
 
-                // Count active/open jobs
                 const activeRoles = jobs.filter(job =>
                     job.publication_status === 'published' &&
                     (job.assignment_status === 'open' || job.status === 'open')
@@ -404,10 +406,8 @@ const AdminDashboard = () => {
 
                 const cvsInTalentPool = users.filter(user => user.cv).length;
 
-                // Calculate total subscribers (job_updates OR newsletter)
                 const totalSubscribers = users.filter(user => user.job_updates || user.newsletter).length;
 
-                // Calculate average time to hire
                 const hiredApplications = applications.filter(app => app.status === 'hired');
                 let avgTimeToHire = 11;
                 if (hiredApplications.length > 0) {
@@ -428,8 +428,8 @@ const AdminDashboard = () => {
                     totalSubscribers
                 });
 
-                // Get recent submissions
                 const sortedApplications = [...applications]
+                    .filter(app => app.user_id && app.user_id.name && app.job_id && app.job_id.title)
                     .sort((a, b) => new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime())
                     .slice(0, 5);
 
@@ -443,7 +443,6 @@ const AdminDashboard = () => {
 
                 setRecentSubmissions(recentData);
 
-                // Get NDA status data
                 const ndaCandidates = candidates
                     .filter(candidate =>
                         candidate.nda_status ||
@@ -464,7 +463,6 @@ const AdminDashboard = () => {
 
                 setNdaStatus(ndaData);
 
-                // Get job alert subscriptions
                 const subscribers = users.filter(user => user.job_updates).slice(0, 3);
                 setJobAlerts(subscribers);
 
@@ -564,7 +562,6 @@ const AdminDashboard = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -574,7 +571,6 @@ const AdminDashboard = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -615,7 +611,7 @@ const AdminDashboard = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -624,7 +620,6 @@ const AdminDashboard = () => {
                                 </Link>
                             </div>
 
-                            {/* Header Actions - Only Settings Button */}
                             <div className="flex items-center">
                                 <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                     <Settings className="w-5 h-5 text-gray-600" />
@@ -636,7 +631,6 @@ const AdminDashboard = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar - Mobile */}
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -644,7 +638,7 @@ const AdminDashboard = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -699,7 +693,6 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Sidebar - Desktop */}
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -740,7 +733,6 @@ const AdminDashboard = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content */}
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                             <div className="flex items-center mb-6">
                                 <button

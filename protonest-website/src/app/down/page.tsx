@@ -6,10 +6,9 @@ import { useCallback } from 'react';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
 
-// Memoized Back Button Component
 const BackButton = () => {
   const handleClick = useCallback(() => {
-    // Optional: Add analytics or custom navigation logic here
+
   }, []);
 
   return (
@@ -29,7 +28,6 @@ const BackButton = () => {
   );
 };
 
-// Memoized Responsive Image Component
 const ResponsiveImage = ({ isMobile = false }: { isMobile?: boolean }) => (
   <div className={`relative ${isMobile
     ? 'w-50 h-50 md:w-58 md:h-58'
@@ -53,19 +51,19 @@ export default function Down() {
     <div className="bg-white">
       <Navbar />
 
-      {/* Back Button positioned right below navbar for all screens */}
+
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 pt-15 lg:pt-8">
         <BackButton />
       </div>
 
-      {/* Main Content Area */}
+
       <main className="min-h-screen overflow-visible bg-white">
-        {/* Background Image Container */}
+
         <div className="relative w-full h-screen flex items-center justify-center -mt-[150px] sm:-mt-[120px] md:-mt-[100px] lg:-mt-[150px]">
-          {/* Background Image */}
+
           <div className="absolute inset-0 z-10">
             <Image
-              src="/404-1.svg"
+              src="/404-1.webp"
               alt=""
               fill
               style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -75,23 +73,23 @@ export default function Down() {
             />
           </div>
 
-          {/* Content Container */}
+
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-14 xl:px-16 2xl:px-28 relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16">
 
-              {/* Mobile Image - Shows only on smaller screens */}
+
               <div className="flex-shrink-0 relative lg:hidden">
                 <ResponsiveImage isMobile />
               </div>
 
-              {/* Left Content */}
+
               <div className="flex-1 text-center lg:text-left max-w-2xl px-2 sm:px-4 md:px-6 lg:px-0">
-                {/* Main heading */}
+
                 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl text-[#6c6c6c] font-medium font-['Poppins'] leading-tight mb-4 sm:mb-5 md:mb-6 lg:mb-8 xl:mb-10">
                   We&apos;ll be right back!
                 </h1>
 
-                {/* Content paragraphs */}
+
                 <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 max-w-lg mx-auto lg:mx-0">
                   <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-[#6c6c6c] font-medium font-['Poppins'] leading-relaxed">
                     We&apos;re performing some upgrades to serve you better. Protonest will be back online shortly.
@@ -102,7 +100,7 @@ export default function Down() {
                 </div>
               </div>
 
-              {/* Desktop Image */}
+
               <div className="flex-shrink-0 relative hidden lg:block">
                 <ResponsiveImage />
               </div>

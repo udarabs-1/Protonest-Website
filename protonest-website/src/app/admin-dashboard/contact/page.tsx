@@ -8,7 +8,6 @@ import {
     Menu,
     Search,
     Settings,
-    SlidersHorizontal,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -25,22 +24,45 @@ interface ContactMessage {
     created_at: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const ContactFormMessages = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [allContactMessages, setAllContactMessages] = useState<ContactMessage[]>([]);
     const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [viewMessageDialog, setViewMessageDialog] = useState<{ name: string; message: string } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -64,7 +86,6 @@ const ContactFormMessages = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Fetch contact messages from backend
     useEffect(() => {
         const fetchContactMessages = async () => {
             try {
@@ -76,19 +97,7 @@ const ContactFormMessages = () => {
                     return;
                 }
 
-                let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/contacts`;
-                const params = new URLSearchParams();
-
-                if (searchTerm) {
-                    params.append('search', searchTerm);
-                }
-                if (statusFilter !== 'all') {
-                    params.append('status', statusFilter);
-                }
-
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
+                const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/contacts`;
 
                 const response = await fetch(url, {
                     headers: {
@@ -103,6 +112,7 @@ const ContactFormMessages = () => {
 
                 const data = await response.json();
                 if (data.status === 'success') {
+                    setAllContactMessages(data.data || []);
                     setContactMessages(data.data || []);
                 } else {
                     throw new Error(data.message || 'Failed to fetch contacts');
@@ -110,16 +120,35 @@ const ContactFormMessages = () => {
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
                 console.error('Error fetching contact messages:', err);
-                setContactMessages([]); // Ensure it's always an array
+                setAllContactMessages([]);
+                setContactMessages([]);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchContactMessages();
-    }, [searchTerm, statusFilter]);
+    }, []);
 
-    // Update contact status
+    useEffect(() => {
+        let filtered = [...allContactMessages];
+
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(msg => msg.status === statusFilter);
+        }
+
+        if (searchTerm.trim()) {
+            const search = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(msg =>
+                msg.name.toLowerCase().includes(search) ||
+                msg.email.toLowerCase().includes(search) ||
+                msg.message.toLowerCase().includes(search)
+            );
+        }
+
+        setContactMessages(filtered);
+    }, [searchTerm, statusFilter, allContactMessages]);
+
     const updateContactStatus = async (id: string, newStatus: string) => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -141,8 +170,7 @@ const ContactFormMessages = () => {
                 throw new Error(`Failed to update status: ${response.statusText}`);
             }
 
-            // Update local state
-            setContactMessages(prev => prev.map(msg =>
+            setAllContactMessages(prev => prev.map(msg =>
                 msg.id === id ? { ...msg, status: newStatus } : msg
             ));
         } catch (err) {
@@ -151,17 +179,14 @@ const ContactFormMessages = () => {
         }
     };
 
-    // Handle search
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
-    // Handle status filter change
     const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setStatusFilter(e.target.value);
     };
 
-    // Format date
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
@@ -171,16 +196,14 @@ const ContactFormMessages = () => {
                 day: 'numeric'
             });
         } catch {
-            return dateString; // Return original if parsing fails
+            return dateString;
         }
     };
 
-    // Get message preview
     const getMessagePreview = (message: string) => {
         return message.length > 50 ? `"${message.substring(0, 50)}..."` : `"${message}"`;
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -247,7 +270,7 @@ const ContactFormMessages = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -257,14 +280,15 @@ const ContactFormMessages = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowLogoutDialog(false)}
                 >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
@@ -287,20 +311,51 @@ const ContactFormMessages = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
+            {viewMessageDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setViewMessageDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 className="text-lg font-semibold text-gray-800">Message from {viewMessageDialog.name}</h3>
+                            <button onClick={() => setViewMessageDialog(null)} className="text-gray-500 hover:text-gray-700">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="max-h-[60vh] overflow-y-auto mb-6">
+                            <p className="text-gray-600 whitespace-pre-wrap">{viewMessageDialog.message}</p>
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setViewMessageDialog(null)}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
+
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
-                        {/* Logo - Smaller on mobile */}
+
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -309,7 +364,7 @@ const ContactFormMessages = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
+
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -321,16 +376,16 @@ const ContactFormMessages = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     >
-                        {/* Mobile Sidebar Header */}
+
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -345,7 +400,7 @@ const ContactFormMessages = () => {
                             </button>
                         </div>
 
-                        {/* Sidebar Content */}
+
                         <div className="overflow-y-auto h-full p-4">
                             <nav className="space-y-1">
                                 {sidebarItems.map((item, index) => (
@@ -369,7 +424,7 @@ const ContactFormMessages = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -387,7 +442,7 @@ const ContactFormMessages = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
+
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -411,7 +466,7 @@ const ContactFormMessages = () => {
                                 ))}
                             </nav>
 
-                            {/* Logout Button */}
+
                             <div className="p-4 pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -429,9 +484,9 @@ const ContactFormMessages = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb with Hamburger Menu for mobile */}
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -446,7 +501,7 @@ const ContactFormMessages = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
+
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -476,14 +531,14 @@ const ContactFormMessages = () => {
                             </div>
                         )}
 
-                        {/* Search and Filter Bar */}
+
                         <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                             <div className="relative flex-1 w-full">
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
                                     placeholder="Search by name, email, or message content"
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -492,23 +547,27 @@ const ContactFormMessages = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <select
-                                    value={statusFilter}
-                                    onChange={handleStatusFilterChange}
-                                    className="px-4 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Replied">Replied</option>
-                                    <option value="Archived">Archived</option>
-                                </select>
-                                <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                    <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                                </button>
+                                <div className="relative">
+                                    <select
+                                        value={statusFilter}
+                                        onChange={handleStatusFilterChange}
+                                        className="px-4 py-2 pr-10 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none bg-white text-[#6c6c6c] text-sm font-medium font-poppins cursor-pointer appearance-none"
+                                        style={{ direction: 'ltr' }}
+                                    >
+                                        <option value="all">All Status</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Replied">Replied</option>
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-[#6c6c6c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Contact Messages Table */}
+
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -559,15 +618,22 @@ const ContactFormMessages = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
-                                                        <select
-                                                            value={message.status}
-                                                            onChange={(e) => updateContactStatus(message.id, e.target.value)}
-                                                            className={`px-3 py-1 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] ${getStatusColor(message.status)} outline-[0.80px] outline-offset-[-0.80px] border-none focus:ring-0`}
-                                                        >
-                                                            <option value="Pending">Pending</option>
-                                                            <option value="Replied">Replied</option>
-                                                            <option value="Archived">Archived</option>
-                                                        </select>
+                                                        <div className="relative inline-block">
+                                                            <select
+                                                                value={message.status}
+                                                                onChange={(e) => updateContactStatus(message.id, e.target.value)}
+                                                                className={`px-3 py-1.5 pr-8 rounded-[15px] text-[11px] font-medium font-poppins text-[#4e4e4e] ${getStatusColor(message.status)} outline-none border-none cursor-pointer appearance-none`}
+                                                                style={{ direction: 'ltr' }}
+                                                            >
+                                                                <option value="Pending">Pending</option>
+                                                                <option value="Replied">Replied</option>
+                                                            </select>
+                                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                                <svg className="w-3 h-3 text-[#4e4e4e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         {formatDate(message.created_at)}
@@ -585,8 +651,7 @@ const ContactFormMessages = () => {
                                                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
                                                                 title="View details"
                                                                 onClick={() => {
-                                                                    // You can implement a modal or detail view here
-                                                                    alert(`Message: ${message.message}`);
+                                                                    setViewMessageDialog({ name: message.name, message: message.message });
                                                                 }}
                                                             >
                                                                 <Eye className="w-4 h-4 text-gray-600" />

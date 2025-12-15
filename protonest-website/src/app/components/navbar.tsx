@@ -31,7 +31,6 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Check if user is signed in
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         setIsUserSignedIn(!!token);
@@ -60,7 +59,6 @@ export default function Navbar() {
         setMobileMenuOpen(false);
     };
 
-    // Handle conditional navigation for Careers
     const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (isUserSignedIn) {
@@ -135,16 +133,15 @@ export default function Navbar() {
         closed: { opacity: 0, transition: { duration: 0.15 } }
     };
 
-    // Show the account button on careers or jobs routes
     const showAccountButton = pathname === "/careers" ||
         pathname.startsWith('/jobs');
 
     return (
         <div>
-            {/* Desktop Navigation (lg screens and up) */}
+
             <div className="hidden lg:block">
                 <div className="relative">
-                    <nav className="fixed top-0 left-0 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-4 md:py-[35px] lg:py-[40px] xl:py-[43px] 2xl:py-[50px] z-50 bg-white/80 backdrop-blur-[20px]">
+                    <nav className="fixed top-0 left-0 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-4 md:py-[35px] lg:py-[25px] xl:py-[28px] 2xl:py-[30px] z-50 bg-white/80 backdrop-blur-[20px]">
                         <div className="container mx-auto">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center">
@@ -256,7 +253,16 @@ export default function Navbar() {
                                         </Link>
                                     </div>
                                 ) : (
-                                    <div className="w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px]"></div>
+                                    <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
+                                        <Link
+                                            href="https://iot-system-design-tool.protonest.co"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                        >
+                                            Get a Quote
+                                        </Link>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -266,7 +272,7 @@ export default function Navbar() {
                         {activeDropdown && (
                             <>
                                 <motion.div
-                                    className="fixed inset-0 top-[130px] lg:top-[135px] xl:top-[150px] 2xl:top-[165px] z-30 bg-transparent"
+                                    className="fixed inset-0 top-[100px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px] z-30 bg-transparent"
                                     onClick={handleNavigation}
                                     initial="closed"
                                     animate="open"
@@ -276,7 +282,7 @@ export default function Navbar() {
 
                                 <motion.div
                                     key={activeDropdown}
-                                    className="font-montserrat fixed top-[130px] lg:top-[135px] xl:top-[150px] 2xl:top-[165px] left-0 w-full z-40 bg-white/80 backdrop-blur-[20px]"
+                                    className="font-montserrat fixed top-[100px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px] left-0 w-full z-40 bg-white/80 backdrop-blur-[20px]"
                                     initial="closed"
                                     animate="open"
                                     exit="closed"
@@ -284,7 +290,7 @@ export default function Navbar() {
                                 >
                                     <div className="absolute top-2 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30"></div>
 
-                                    <div className="container px-4 sm:px-8 md:px-16 lg:px-[100px] xl:px-[133px] 2xl:px-[180px] py-[35px] lg:py-[40px] xl:py-[43px] 2xl:py-[50px]">
+                                    <div className="container px-4 sm:px-8 md:px-16 lg:px-[100px] xl:px-[133px] 2xl:px-[180px] py-[35px] lg:py-[25px] xl:py-[28px] 2xl:py-[30px]">
                                         <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
                                             {dropdownItems[activeDropdown].map((dropdownItem, index) => (
                                                 <motion.div
@@ -316,11 +322,11 @@ export default function Navbar() {
                         )}
                     </AnimatePresence>
 
-                    <div className="pt-[130px] lg:pt-[135px] xl:pt-[150px] 2xl:pt-[165px]"></div>
+                    <div className="pt-[100px] lg:pt-[105px] xl:pt-[115px] 2xl:pt-[125px]"></div>
                 </div>
             </div>
 
-            {/* Mobile Navigation */}
+
             <div className="block lg:hidden">
                 <div className="relative">
                     <AnimatePresence>
@@ -355,13 +361,24 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center gap-3 md:gap-6">
-                                {showAccountButton && (
+                                {showAccountButton ? (
                                     <Link
                                         href={isUserSignedIn ? "/dashboard" : "/signin"}
                                         className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
                                     >
                                         <span className="text-sm font-medium font-montserrat">
                                             My Account
+                                        </span>
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href="https://iot-system-design-tool.protonest.co"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
+                                    >
+                                        <span className="text-sm font-medium font-montserrat">
+                                            Get a Quote
                                         </span>
                                     </Link>
                                 )}

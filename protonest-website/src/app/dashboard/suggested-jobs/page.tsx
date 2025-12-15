@@ -85,7 +85,6 @@ interface ProfileData {
     isGoogleUser?: boolean;
 }
 
-// Add category to slug mapping
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
@@ -97,7 +96,6 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
-// Loading Spinner Component
 const LoadingSpinner = () => (
     <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
         <div className="w-full h-full rounded-full"></div>
@@ -112,7 +110,6 @@ const LoadingSpinner = () => (
     </div>
 );
 
-// Modal Wrapper Component
 const ModalWrapper = ({
     children,
     onBackdropClick,
@@ -131,6 +128,31 @@ const ModalWrapper = ({
         </div>
     </div>
 );
+
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
 
 const SuggestedJobs = () => {
     const router = useRouter();
@@ -174,15 +196,12 @@ const SuggestedJobs = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -218,7 +237,6 @@ const SuggestedJobs = () => {
         }
     };
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -235,12 +253,10 @@ const SuggestedJobs = () => {
         };
     }, [sidebarOpen, showProfileDropdown]);
 
-    // Fetch suggested jobs data
     const fetchSuggestedJobs = async () => {
         try {
             setLoading(true);
 
-            // Fetch suggested jobs
             const suggestedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/suggested-jobs`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
@@ -251,7 +267,6 @@ const SuggestedJobs = () => {
                 const suggestedData = await suggestedResponse.json();
                 const suggestedJobsList: SuggestedJob[] = suggestedData.data.suggested_jobs || [];
 
-                // Fetch details for each suggested job
                 const jobDetailsPromises = suggestedJobsList.map(async (suggestedJob: SuggestedJob) => {
                     try {
                         const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${suggestedJob.job_id}`);
@@ -259,7 +274,6 @@ const SuggestedJobs = () => {
                             const jobData = await jobResponse.json();
                             const publicJob: PublicJobResponse = jobData.data;
 
-                            // Map the public API response to the Job interface expected by the UI
                             return {
                                 id: publicJob.id,
                                 title: publicJob.title,
@@ -300,11 +314,9 @@ const SuggestedJobs = () => {
         fetchUserProfile();
     }, []);
 
-    // Handle search functionality
     useEffect(() => {
         let filtered = suggestedJobs;
 
-        // Apply search filter
         if (searchQuery.trim()) {
             filtered = filtered.filter(job =>
                 job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -317,7 +329,6 @@ const SuggestedJobs = () => {
             );
         }
 
-        // Apply other filters if needed
         if (activeFilters.length > 0) {
             filtered = filtered.filter(job => {
                 return activeFilters.some(filter => {
@@ -352,7 +363,6 @@ const SuggestedJobs = () => {
         router.push('/careers');
     };
 
-    // Helper function to format time difference as "X days ago"
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
         const now = new Date();
@@ -377,15 +387,14 @@ const SuggestedJobs = () => {
         });
     };
 
-    // Handle Update Suggested Jobs - ALL ERRORS CAUGHT AND SHOWN IN DIALOG
     const handleUpdateSuggestedJobs = async () => {
-        // Initialize state
+
         setIsUpdating(true);
         setShowAnalysisModal(true);
         setErrorMessage('');
 
         try {
-            // Step 1: Validate JWT Token
+
             const jwtToken = localStorage.getItem('jwtToken');
             if (!jwtToken) {
                 setErrorMessage('Please log in to update suggested jobs');
@@ -394,7 +403,6 @@ const SuggestedJobs = () => {
                 return;
             }
 
-            // Step 2: Get CV File Info (to get filename)
             let cvInfoResponse;
             try {
                 cvInfoResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
@@ -411,7 +419,6 @@ const SuggestedJobs = () => {
                 return;
             }
 
-            // Step 3: Handle CV Info Response
             if (!cvInfoResponse.ok) {
                 console.log('CV info response not ok - Status:', cvInfoResponse.status);
                 setErrorMessage('No CV found. Please upload your CV first by going to the "Resubmit CV" page.');
@@ -431,7 +438,6 @@ const SuggestedJobs = () => {
                 return;
             }
 
-            // Step 4: Validate CV Data
             if (!cvInfoData || cvInfoData.status !== 'success') {
                 console.log('Invalid CV info data:', cvInfoData);
                 setErrorMessage('Unable to retrieve CV information. Please try again.');
@@ -450,7 +456,6 @@ const SuggestedJobs = () => {
 
             console.log('✓ CV Info retrieved successfully:', cvInfoData.data.original_name);
 
-            // Step 5: Download CV File from Backend (avoids CORS issues)
             let cvFileResponse;
             try {
                 cvFileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
@@ -485,7 +490,6 @@ const SuggestedJobs = () => {
                 return;
             }
 
-            // Step 6: Validate Blob
             if (cvBlob.size === 0) {
                 console.log('CV blob is empty');
                 setErrorMessage('Your CV file appears to be empty. Please re-upload your CV.');
@@ -500,7 +504,6 @@ const SuggestedJobs = () => {
 
             console.log('✓ CV file downloaded successfully:', cvFile.name, 'Size:', cvFile.size, 'bytes');
 
-            // Step 7: Analyze CV with Python API
             const formData = new FormData();
             formData.append('file', cvFile);
 
@@ -552,7 +555,6 @@ const SuggestedJobs = () => {
 
             console.log('✓ CV analysis completed successfully');
 
-            // Step 8: Validate Analysis Results
             if (!analyzeData.results) {
                 console.log('No results in analysis data');
                 setErrorMessage('Analysis completed but no results were returned. Please try again.');
@@ -561,7 +563,6 @@ const SuggestedJobs = () => {
                 return;
             }
 
-            // Step 9: Update Database
             const updateData = {
                 expertise_areas: analyzeData.results.expertise_areas || {},
                 suggested_jobs: analyzeData.results.suggested_jobs || []
@@ -589,7 +590,7 @@ const SuggestedJobs = () => {
 
             if (!updateResponse.ok) {
                 console.log('Update API returned error - Status:', updateResponse.status);
-                // Check specific status codes for better error messages
+
                 if (updateResponse.status === 404) {
                     setErrorMessage('Your profile was not found. Please try re-uploading your CV from the "Resubmit CV" page.');
                 } else if (updateResponse.status === 401) {
@@ -614,7 +615,6 @@ const SuggestedJobs = () => {
 
             console.log('✓ Profile updated successfully');
 
-            // Step 10: Show Success and Refresh
             setTimeout(() => {
                 setShowAnalysisModal(false);
                 setShowUpdateSuccessModal(true);
@@ -625,13 +625,13 @@ const SuggestedJobs = () => {
                     await fetchSuggestedJobs();
                 } catch (refreshError) {
                     console.log('Error refreshing suggested jobs:', refreshError);
-                    // Don't show error for refresh failure, jobs were updated successfully
+
                 }
                 setShowUpdateSuccessModal(false);
             }, 3000);
 
         } catch (unexpectedError) {
-            // Catch any unexpected errors
+
             console.log('Unexpected error during update:', unexpectedError);
             setErrorMessage('An unexpected error occurred. Please refresh the page and try again.');
             setShowAnalysisModal(false);
@@ -641,7 +641,6 @@ const SuggestedJobs = () => {
         }
     };
 
-    // Analysis Modal Component
     const AnalysisModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -655,7 +654,6 @@ const SuggestedJobs = () => {
         </ModalWrapper>
     );
 
-    // Update Success Modal Component
     const UpdateSuccessModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -671,7 +669,6 @@ const SuggestedJobs = () => {
         </ModalWrapper>
     );
 
-    // Update Error Modal Component
     const UpdateErrorModal = () => (
         <ModalWrapper
             onBackdropClick={() => setShowUpdateErrorModal(false)}
@@ -736,7 +733,7 @@ const SuggestedJobs = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -746,7 +743,7 @@ const SuggestedJobs = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -777,20 +774,20 @@ const SuggestedJobs = () => {
             )}
 
             <div className="font-poppins min-h-screen bg-white relative">
-                {/* Mobile Sidebar Overlay */}
+
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
                 )}
 
-                {/* Header */}
+
                 <header className="bg-white py-4">
                     <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
-                            {/* Logo - Smaller on mobile */}
+
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -842,16 +839,16 @@ const SuggestedJobs = () => {
 
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar - Mobile */}
+
                         <div
                             ref={sidebarRef}
                             className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                         >
-                            {/* Mobile Sidebar Header */}
+
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -866,7 +863,7 @@ const SuggestedJobs = () => {
                                 </button>
                             </div>
 
-                            {/* Sidebar Content */}
+
                             <div className="overflow-y-auto h-full p-4">
                                 <nav className="space-y-1">
                                     {sidebarItems.map((item, index) => (
@@ -890,7 +887,7 @@ const SuggestedJobs = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -908,7 +905,7 @@ const SuggestedJobs = () => {
                             </div>
                         </div>
 
-                        {/* Sidebar - Desktop */}
+
                         <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                                 <nav className="p-4 space-y-1">
@@ -932,7 +929,7 @@ const SuggestedJobs = () => {
                                     ))}
                                 </nav>
 
-                                {/* Logout Button */}
+
                                 <div className="p-4 pt-8">
                                     <button
                                         onClick={() => setShowLogoutDialog(true)}
@@ -950,9 +947,9 @@ const SuggestedJobs = () => {
                             </div>
                         </aside>
 
-                        {/* Main Content */}
+
                         <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            {/* Breadcrumb with Hamburger Menu for mobile */}
+
                             <div className="flex items-center mb-6">
                                 <button
                                     onClick={() => setSidebarOpen(true)}
@@ -967,7 +964,7 @@ const SuggestedJobs = () => {
                                 </nav>
                             </div>
 
-                            {/* Suggested Jobs Section */}
+
                             <div className="mb-8">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                     <div className="flex flex-col justify-start items-start gap-2.5">
@@ -987,7 +984,7 @@ const SuggestedJobs = () => {
                                         </p>
                                     </div>
 
-                                    {/* Update Suggested Jobs Button */}
+
                                     <button
                                         onClick={handleUpdateSuggestedJobs}
                                         disabled={isUpdating}
@@ -999,7 +996,7 @@ const SuggestedJobs = () => {
                                 </div>
 
                                 <div className="relative mb-6 flex items-center gap-3">
-                                    {/* Search Bar */}
+
                                     <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
                                         <input
                                             type="text"
@@ -1014,7 +1011,7 @@ const SuggestedJobs = () => {
                                     </div>
                                 </div>
 
-                                {/* Active Filters */}
+
                                 {activeFilters.length > 0 && (
                                     <div className="flex flex-wrap gap-3 mb-6">
                                         {activeFilters.map((filter, index) => (
@@ -1030,11 +1027,11 @@ const SuggestedJobs = () => {
                                     </div>
                                 )}
 
-                                {/* Suggested Jobs Container */}
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {filteredJobs.length > 0 ? (
                                         filteredJobs.map((job) => {
-                                            // Get the role slug from the job category
+
                                             const roleSlug = categoryToSlugMap[job.category || ''] || 'other-roles';
 
                                             return (
@@ -1042,21 +1039,21 @@ const SuggestedJobs = () => {
                                                     key={job.id}
                                                     className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6"
                                                 >
-                                                    {/* Job Title */}
+
                                                     <div className="w-full h-[43px]">
                                                         <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
                                                             {job.title}
                                                         </div>
                                                     </div>
 
-                                                    {/* Job Type and Posted Date */}
+
                                                     <div className="w-full h-[35px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                                                         {job.type} - Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
                                                     </div>
 
-                                                    {/* Job Details Grid */}
+
                                                     <div className="mt-6 grid grid-cols-2 gap-4">
-                                                        {/* Match Score */}
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.matchPercentage ? `${job.matchPercentage}% Match` : 'N/A'}
@@ -1066,7 +1063,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        {/* Experience Level */}
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px] capitalize">
                                                                 {job.experience || 'Not specified'}
@@ -1076,7 +1073,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        {/* Application Deadline */}
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'Not specified'}
@@ -1086,7 +1083,7 @@ const SuggestedJobs = () => {
                                                             </div>
                                                         </div>
 
-                                                        {/* Location */}
+
                                                         <div className="flex flex-col">
                                                             <div className="h-5 text-[#6c6c6c] text-xs font-medium font-['Poppins'] leading-[35px]">
                                                                 {job.location}
@@ -1097,7 +1094,7 @@ const SuggestedJobs = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Arrow Image Swap on Hover */}
+
                                                     <Link
                                                         href={`/jobs/${roleSlug}/${job.id}`}
                                                         className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
@@ -1122,7 +1119,7 @@ const SuggestedJobs = () => {
                                                         </div>
                                                     </Link>
 
-                                                    {/* View Details Button with Gradient Hover Effect - Fixed Position */}
+
                                                     <div className="mt-6">
                                                         <Link
                                                             href={`/jobs/${roleSlug}/${job.id}`}
@@ -1156,7 +1153,7 @@ const SuggestedJobs = () => {
                 </div>
             </div>
 
-            {/* Modals */}
+
             {showAnalysisModal && <AnalysisModal />}
             {showUpdateSuccessModal && <UpdateSuccessModal />}
             {showUpdateErrorModal && <UpdateErrorModal />}

@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-// Modal Component for Messages
 const MessageModal = ({
     message,
     onClose,
@@ -61,7 +60,6 @@ const MessageModal = ({
     );
 };
 
-// Success Modal Component
 const SuccessModal = () => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="w-full max-w-[833px] h-auto bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] backdrop-blur-[20px] p-8 md:p-12 relative">
@@ -99,7 +97,6 @@ export default function ForgotPassword() {
             return;
         }
 
-        // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Please enter a valid email address');
@@ -120,20 +117,20 @@ export default function ForgotPassword() {
             const data = await response.json();
 
             if (response.ok) {
-                // Success - show success modal
+
                 setShowSuccess(true);
             } else {
-                // Handle different error cases
+
                 if (response.status === 404) {
-                    // User not found
+
                     setModalType('error');
                     setModalMessage(data.error || 'No account found with this email address. Please check your email or sign up for a new account.');
                 } else if (response.status === 400) {
-                    // OAuth user trying to reset password
+
                     setModalType('info');
                     setModalMessage(data.error || 'This account uses Google sign-in. Please use "Sign in with Google" to access your account.');
                 } else {
-                    // Other errors
+
                     setModalType('error');
                     setModalMessage(data.error || 'Failed to send reset email. Please try again.');
                 }
@@ -165,7 +162,7 @@ export default function ForgotPassword() {
                 <SuccessModal />
             )}
 
-            {/* Mobile/Tablet Layout */}
+
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -178,7 +175,7 @@ export default function ForgotPassword() {
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
                             <Link href="/">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={112}
                                     height={80}
@@ -239,7 +236,7 @@ export default function ForgotPassword() {
                 </div>
             </div>
 
-            {/* Desktop Layout */}
+
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -254,7 +251,7 @@ export default function ForgotPassword() {
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Link href="/">
                                         <Image
-                                            src="/logo.png"
+                                            src="/logo.webp"
                                             alt="Protonest Logo"
                                             width={112}
                                             height={80}
@@ -315,7 +312,7 @@ export default function ForgotPassword() {
                         <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
-                                    src="/login1.svg"
+                                    src="/login1.webp"
                                     alt="Welcome illustration"
                                     width={800}
                                     height={600}

@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-// Types
 type Job = {
     id: string;
     title: string;
@@ -49,7 +48,6 @@ type ErrorDialogProps = {
     onUploadCV?: () => void;
 };
 
-// Confirmation Dialog Component
 const ConfirmDialog = ({ type, jobTitle, onConfirm, onCancel }: ConfirmDialogProps) => {
     const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -130,7 +128,6 @@ const ConfirmDialog = ({ type, jobTitle, onConfirm, onCancel }: ConfirmDialogPro
     );
 };
 
-// Error Dialog Component
 const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
     const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -189,7 +186,6 @@ const ErrorDialog = ({ message, onClose, onUploadCV }: ErrorDialogProps) => {
     );
 };
 
-// Info Dialog Component (for already applied message)
 const InfoDialog = ({ message, onClose }: { message: string; onClose: () => void }) => {
     const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -227,7 +223,6 @@ const InfoDialog = ({ message, onClose }: { message: string; onClose: () => void
     );
 };
 
-// Success Popup Component
 const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => {
     const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -342,7 +337,6 @@ const SuccessPopup = ({ type, onClose, onViewSavedJobs }: SuccessPopupProps) => 
     );
 };
 
-// Memoized similar job card component
 const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
     <Link
         href={`/jobs/${role}/${job.id}`}
@@ -375,7 +369,7 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                 </div>
             </div>
 
-            {/* Arrow Image Swap on Hover */}
+            
             <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
                 <div className="w-full h-full group-hover:hidden">
                     <Image
@@ -404,7 +398,6 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
     </Link>
 );
 
-// Helper functions
 const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -463,7 +456,6 @@ export default function JobDetailPage() {
     const [hasCheckedPendingApplication, setHasCheckedPendingApplication] = useState(false);
     const [hasCheckedCVUpload, setHasCheckedCVUpload] = useState(false);
 
-    // User authentication check - listens to storage changes
     useEffect(() => {
         const updateUser = () => {
             const currentUser = getUser();
@@ -505,7 +497,6 @@ export default function JobDetailPage() {
         };
     }, []);
 
-    // Check job saved status
     const checkJobSavedStatus = useCallback(async () => {
         if (!user || !job) {
             setIsJobSaved(false);
@@ -538,7 +529,6 @@ export default function JobDetailPage() {
         }
     }, [user, job]);
 
-    // Check application status
     const checkApplicationStatus = useCallback(async () => {
         if (!user || !job) {
             setHasApplied(false);
@@ -580,7 +570,6 @@ export default function JobDetailPage() {
         }
     }, [user, job]);
 
-    // Effect to check job status when user or job changes
     useEffect(() => {
         if (user && job) {
             checkJobSavedStatus();
@@ -592,10 +581,9 @@ export default function JobDetailPage() {
         }
     }, [user, job, checkJobSavedStatus, checkApplicationStatus]);
 
-    // NEW: Check if user just uploaded CV for this job
     useEffect(() => {
         const checkCVUpload = async () => {
-            // Only run once and only when we have user and job
+
             if (!user || !job || hasCheckedCVUpload) {
                 return;
             }
@@ -606,25 +594,24 @@ export default function JobDetailPage() {
             if (cvUploadedStr) {
                 try {
                     const cvUploadData = JSON.parse(cvUploadedStr);
-                    // Check if it's for this job and within 5 minutes
+
                     const isForThisJob = cvUploadData.jobId === job.id;
                     const isRecent = Date.now() - cvUploadData.timestamp < 5 * 60 * 1000;
 
                     if (isForThisJob && isRecent) {
-                        // Clear the flag
+
                         sessionStorage.removeItem('cvUploadedForJob');
 
-                        // Check if already applied
                         const alreadyApplied = await checkApplicationStatus();
 
                         if (!alreadyApplied) {
-                            // Show apply confirmation dialog
+
                             setTimeout(() => {
                                 setShowConfirmDialog('apply');
                             }, 500);
                         }
                     } else {
-                        // Clear expired flag
+
                         sessionStorage.removeItem('cvUploadedForJob');
                     }
                 } catch (error) {
@@ -637,10 +624,9 @@ export default function JobDetailPage() {
         checkCVUpload();
     }, [user, job, hasCheckedCVUpload, checkApplicationStatus]);
 
-    // Check for pending application after sign in - handles both signup and signin flows
     useEffect(() => {
         const processPendingApplication = async () => {
-            // Only run once per page load and only when we have both user and job
+
             if (!user || !job || hasCheckedPendingApplication) {
                 return;
             }
@@ -655,21 +641,21 @@ export default function JobDetailPage() {
                     const isRecent = Date.now() - pending.timestamp < 10 * 60 * 1000;
 
                     if (isForThisJob && isRecent) {
-                        // Check if user has already applied
+
                         const alreadyApplied = await checkApplicationStatus();
 
                         if (alreadyApplied) {
-                            // User already applied to this job
+
                             setShowInfoDialog(`You have already applied for "${job.title}". Your application is under review.`);
                             localStorage.removeItem('pendingJobApplication');
                         } else {
-                            // User hasn't applied yet - show confirmation dialog
+
                             setTimeout(() => {
                                 setShowConfirmDialog('apply');
                             }, 500);
                         }
                     } else {
-                        // Expired or different job
+
                         localStorage.removeItem('pendingJobApplication');
                     }
                 } catch (error) {
@@ -682,7 +668,6 @@ export default function JobDetailPage() {
         processPendingApplication();
     }, [user, job, hasCheckedPendingApplication, checkApplicationStatus]);
 
-    // Check if user has uploaded CV
     const checkUserCV = useCallback(async (): Promise<boolean> => {
         if (!user) return false;
 
@@ -708,7 +693,6 @@ export default function JobDetailPage() {
         }
     }, [user]);
 
-    // Handle save job click (heart icon)
     const handleSaveJobClick = useCallback(() => {
         if (!user) {
             router.replace('/signin');
@@ -720,7 +704,6 @@ export default function JobDetailPage() {
         setShowConfirmDialog(isJobSaved ? 'unsave' : 'save');
     }, [user, job, isJobSaved, router]);
 
-    // Confirm save/unsave job
     const confirmSaveJob = useCallback(async () => {
         if (!job) return;
 
@@ -762,7 +745,6 @@ export default function JobDetailPage() {
         }
     }, [job, isJobSaved]);
 
-    // Handle apply job click
     const handleApplyJobClick = useCallback(() => {
         if (!user) {
             if (job && role) {
@@ -784,7 +766,6 @@ export default function JobDetailPage() {
         setShowConfirmDialog('apply');
     }, [user, job, hasApplied, role, router]);
 
-    // Confirm apply job
     const confirmApplyJob = useCallback(async () => {
         if (!job) return;
 
@@ -815,7 +796,6 @@ export default function JobDetailPage() {
                 setCanWithdraw(true);
                 setShowSuccessPopup('apply');
 
-                // Clear the pending job application from localStorage after successful application
                 localStorage.removeItem('pendingJobApplication');
             } else {
                 const errorData = await response.json();
@@ -829,13 +809,11 @@ export default function JobDetailPage() {
         }
     }, [job, checkUserCV]);
 
-    // Handle withdraw application click
     const handleWithdrawClick = useCallback(() => {
         if (!job) return;
         setShowConfirmDialog('withdraw');
     }, [job]);
 
-    // Confirm withdraw application
     const confirmWithdrawApplication = useCallback(async () => {
         if (!job) return;
 
@@ -890,7 +868,6 @@ export default function JobDetailPage() {
     const handleUploadCV = useCallback(() => {
         setShowErrorDialog(null);
 
-        // Keep the pending job application when redirecting to CV upload
         if (job && role) {
             const currentUrl = `/jobs/${Array.isArray(role) ? role[0] : role}/${job.id}`;
             localStorage.setItem('pendingJobApplication', JSON.stringify({
@@ -914,7 +891,7 @@ export default function JobDetailPage() {
     }, []);
 
     const closeConfirmDialog = useCallback(() => {
-        // Clear pending job application when user cancels apply confirmation
+
         if (showConfirmDialog === 'apply') {
             clearPendingApplication();
         }
@@ -930,7 +907,6 @@ export default function JobDetailPage() {
         setShowInfoDialog(null);
     }, []);
 
-    // Fetch job details
     useEffect(() => {
         const fetchJobDetails = async () => {
             if (!id) return;
@@ -969,7 +945,6 @@ export default function JobDetailPage() {
 
                     setJob(transformedJob);
 
-                    // Fetch similar jobs
                     const similarResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs?category=${encodeURIComponent(jobDetails.category)}&limit=3`);
 
                     if (similarResponse.ok) {
@@ -1010,7 +985,6 @@ export default function JobDetailPage() {
         fetchJobDetails();
     }, [id]);
 
-    // Memoized job details sections with Iconify icons
     const jobDetailItems = useMemo(() => [
         { icon: 'solar:document-outline', value: job?.type.replace('-', ' '), label: 'Job Type' },
         { icon: 'solar:map-point-wave-outline', value: job?.location, label: 'Location' },
@@ -1080,7 +1054,7 @@ export default function JobDetailPage() {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+            
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1093,19 +1067,19 @@ export default function JobDetailPage() {
             <Navbar />
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
-                {/* Job Title with Action Icons */}
+                
                 <div className="flex justify-between items-start mb-6">
                     <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat flex-1 pr-4">
                         {job.title}
                     </h1>
 
-                    {/* Action Icons - Different layout based on application status */}
+                    
                     {user && (
                         <div className="flex gap-3 items-center">
-                            {/* Show horizontal layout only when user has applied */}
+                            
                             {hasApplied ? (
                                 <>
-                                    {/* Applied Button */}
+                                    
                                     <button
                                         disabled
                                         className="px-6 py-2 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-sm font-semibold font-montserrat whitespace-nowrap"
@@ -1114,7 +1088,7 @@ export default function JobDetailPage() {
                                         Applied ✓
                                     </button>
 
-                                    {/* Withdraw Button */}
+                                    
                                     {canWithdraw && (
                                         <button
                                             onClick={handleWithdrawClick}
@@ -1126,7 +1100,7 @@ export default function JobDetailPage() {
                                         </button>
                                     )}
 
-                                    {/* Heart Icon */}
+                                    
                                     <button
                                         onClick={handleSaveJobClick}
                                         disabled={saveLoading}
@@ -1150,7 +1124,7 @@ export default function JobDetailPage() {
                                     </button>
                                 </>
                             ) : (
-                                /* Show only heart icon when user hasn't applied */
+                                
                                 <button
                                     onClick={handleSaveJobClick}
                                     disabled={saveLoading}
@@ -1177,7 +1151,7 @@ export default function JobDetailPage() {
                     )}
                 </div>
 
-                {/* Category and Posted Date */}
+                
                 <div className="items-center gap-8 mb-6">
                     <div className="text-[#6c6c6c] text-base font-normal font-poppins mb-2">
                         <span>Category: </span>
@@ -1188,7 +1162,7 @@ export default function JobDetailPage() {
                     </div>
                 </div>
 
-                {/* Job Details */}
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {jobDetailItems.map((item, index) => (
                         <div key={index} className="flex items-center gap-4">
@@ -1208,14 +1182,14 @@ export default function JobDetailPage() {
                     ))}
                 </div>
 
-                {/* Job Description */}
+                
                 <section className="mb-8">
                     <p className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                         {job.description}
                     </p>
                 </section>
 
-                {/* What You'll Be Doing */}
+                
                 {job.responsibilities && job.responsibilities.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What You&apos;ll Be Doing</h2>
@@ -1227,7 +1201,7 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                {/* What We're Looking For */}
+                
                 {job.requirements && job.requirements.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What We&apos;re Looking For</h2>
@@ -1239,7 +1213,7 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                {/* Apply/Withdraw Buttons - Bottom Section */}
+                
                 <div className="mb-6">
                     {user ? (
                         <div className="flex flex-wrap gap-4">
@@ -1298,7 +1272,7 @@ export default function JobDetailPage() {
                     )}
                 </div>
 
-                {/* Similar Jobs Section */}
+                
                 {similarJobs.length > 0 && (
                     <section className="pt-8">
                         <div className="flex justify-between items-center mb-6">
@@ -1325,7 +1299,7 @@ export default function JobDetailPage() {
                 )}
             </main>
 
-            {/* Confirmation Dialog */}
+            
             {showConfirmDialog && job && (
                 <ConfirmDialog
                     type={showConfirmDialog}
@@ -1341,7 +1315,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            {/* Error Dialog */}
+            
             {showErrorDialog && (
                 <ErrorDialog
                     message={showErrorDialog}
@@ -1350,7 +1324,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            {/* Info Dialog - for already applied message */}
+            
             {showInfoDialog && (
                 <InfoDialog
                     message={showInfoDialog}
@@ -1358,7 +1332,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            {/* Success Popup */}
+            
             {showSuccessPopup && (
                 <SuccessPopup
                     type={showSuccessPopup}

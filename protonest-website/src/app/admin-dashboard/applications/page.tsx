@@ -13,7 +13,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-// Updated interface to match CandidateManagement structure
 interface Candidate {
     id: string;
     user: {
@@ -61,6 +60,29 @@ interface PipelineStage {
     icon: string;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const ApplicationPipeline = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [expandedCandidate, setExpandedCandidate] = useState<string | null>(null);
@@ -75,10 +97,8 @@ const ApplicationPipeline = () => {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -102,14 +122,12 @@ const ApplicationPipeline = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Replace the existing useEffect that fetches candidates
     useEffect(() => {
         const fetchApplications = async () => {
             try {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
-                // Single API call to get all applications with job matches
                 const response = await fetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/applications/all`,
                     {
@@ -128,7 +146,6 @@ const ApplicationPipeline = () => {
                     const applicationsData = data.data?.applications || [];
                     setCandidates(applicationsData);
 
-                    // Extract job matches from the response
                     const matchesMap: { [userId: string]: JobMatch | null } = {};
                     applicationsData.forEach((app: Candidate) => {
                         if (app.user?._id && app.job_match) {
@@ -164,7 +181,6 @@ const ApplicationPipeline = () => {
         fetchApplications();
     }, []);
 
-    // Close sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -178,7 +194,6 @@ const ApplicationPipeline = () => {
         };
     }, [sidebarOpen]);
 
-    // Handle adding a filter
     const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchInput.trim()) {
             const trimmedInput = searchInput.trim();
@@ -189,12 +204,10 @@ const ApplicationPipeline = () => {
         }
     };
 
-    // Handle removing a filter
     const handleRemoveFilter = (filterToRemove: string) => {
         setActiveFilters(activeFilters.filter(filter => filter !== filterToRemove));
     };
 
-    // Updated to match CandidateManagement status mapping
     const getDisplayStatus = (status: string) => {
         const statusMap: { [key: string]: string } = {
             'applied': 'Applied',
@@ -207,7 +220,6 @@ const ApplicationPipeline = () => {
         return statusMap[status] || status;
     };
 
-    // Updated NDA status to match CandidateManagement
     const getNDAStatus = (candidate: Candidate) => {
         if (!candidate.nda_status) {
             return { text: 'Not Sent', color: 'text-red-600', icon: '❌' };
@@ -223,13 +235,11 @@ const ApplicationPipeline = () => {
         }
     };
 
-    // Updated pipeline stages based on the new status structure
     const generatePipelineStages = (candidate: Candidate): PipelineStage[] => {
         const stages: PipelineStage[] = [];
         const appliedDate = new Date(candidate.added_at);
         const updatedDate = new Date(candidate.updated_at);
 
-        // Always starts with CV Submitted
         stages.push({
             stage: 'CV Submitted',
             date: appliedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -237,7 +247,6 @@ const ApplicationPipeline = () => {
             icon: '📄'
         });
 
-        // Add stages based on status progression
         switch (candidate.status) {
             case 'applied':
                 stages.push({
@@ -292,7 +301,6 @@ const ApplicationPipeline = () => {
                     icon: '💬'
                 });
 
-                // Add NDA stage for interviewed candidates
                 if (candidate.nda_status) {
                     const ndaDate = candidate.nda_status.sent_on
                         ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -334,7 +342,6 @@ const ApplicationPipeline = () => {
                     icon: '💬'
                 });
 
-                // Add NDA stage for hired candidates
                 if (candidate.nda_status) {
                     const ndaDate = candidate.nda_status.sent_on
                         ? new Date(candidate.nda_status.sent_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -369,27 +376,20 @@ const ApplicationPipeline = () => {
         return stages;
     };
 
-    // Updated filter to match the new data structure with null safety
     const filteredCandidates = candidates.filter(candidate => {
         if (!candidate) return false;
 
-        // If no filters, show all candidates
         if (activeFilters.length === 0) return true;
 
-        // Check if candidate matches ANY of the active filters
         return activeFilters.some(filter => {
             const lowerFilter = filter.toLowerCase();
 
-            // Search in candidate name (with null check)
             if (candidate.user?.name && candidate.user.name.toLowerCase().includes(lowerFilter)) return true;
 
-            // Search in job title (with null check)
             if (candidate.job?.title && candidate.job.title.toLowerCase().includes(lowerFilter)) return true;
 
-            // Search in email (with null check)
             if (candidate.user?.email && candidate.user.email.toLowerCase().includes(lowerFilter)) return true;
 
-            // Search in status
             const statusMap: { [key: string]: string } = {
                 'applied': 'Applied',
                 'admin_moved': 'Admin Moved',
@@ -409,7 +409,6 @@ const ApplicationPipeline = () => {
         setExpandedCandidate(expandedCandidate === candidateId ? null : candidateId);
     };
 
-    // Format date function
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
         try {
@@ -476,7 +475,6 @@ const ApplicationPipeline = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -486,7 +484,6 @@ const ApplicationPipeline = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -516,19 +513,17 @@ const ApplicationPipeline = () => {
                 </div>
             )}
 
-            {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
 
-            {/* Header */}
             <header className="bg-white py-4">
                 <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -537,7 +532,6 @@ const ApplicationPipeline = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -549,7 +543,6 @@ const ApplicationPipeline = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -557,7 +550,7 @@ const ApplicationPipeline = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -612,7 +605,6 @@ const ApplicationPipeline = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -653,7 +645,6 @@ const ApplicationPipeline = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
                         <div className="flex items-center mb-6">
                             <button
@@ -686,7 +677,6 @@ const ApplicationPipeline = () => {
                             </p>
                         </div>
 
-                        {/* Search Bar */}
                         <div className="flex items-center gap-3 mb-6">
                             <div className="relative flex-1">
                                 <input
@@ -703,7 +693,6 @@ const ApplicationPipeline = () => {
                             </div>
                         </div>
 
-                        {/* Active Filters Display */}
                         {activeFilters.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-2">
@@ -729,9 +718,7 @@ const ApplicationPipeline = () => {
                             </div>
                         )}
 
-                        {/* Application Pipeline Table */}
                         <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
-                            {/* Table Header */}
                             <div className="px-4 py-3 bg-gray-50 grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                 <div className="col-span-12 md:col-span-2">Candidate Name</div>
                                 <div className="col-span-12 md:col-span-2 hidden md:block">Role Applied For</div>
@@ -741,7 +728,6 @@ const ApplicationPipeline = () => {
                                 <div className="col-span-12 md:col-span-2 hidden md:block">Actions</div>
                             </div>
 
-                            {/* Table Body */}
                             <div className="divide-y divide-gray-200">
                                 {filteredCandidates.length > 0 ? (
                                     filteredCandidates.map((candidate) => {
@@ -752,9 +738,7 @@ const ApplicationPipeline = () => {
 
                                         return (
                                             <div key={candidate.id} className="bg-white">
-                                                {/* Main Row */}
                                                 <div className="px-4 py-3 grid grid-cols-12 gap-4 hover:bg-gray-50 transition-colors">
-                                                    {/* Mobile Layout */}
                                                     <div className="col-span-12 md:hidden">
                                                         <div className="flex justify-between items-start mb-2">
                                                             <div>
@@ -781,7 +765,6 @@ const ApplicationPipeline = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Desktop Layout */}
                                                     <div className="col-span-2 hidden md:flex md:items-center">
                                                         <span className="text-[11px] font-medium font-poppins text-[#676767]">
                                                             {candidate.user?.name || 'N/A'}
@@ -818,7 +801,6 @@ const ApplicationPipeline = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Expanded Timeline */}
                                                 {expandedCandidate === candidate.id && (
                                                     <div className="px-4 py-6 bg-gray-50 border-t border-gray-200">
                                                         <h4 className="text-sm font-semibold text-gray-900 mb-4">Application Pipeline Progress</h4>
@@ -841,7 +823,6 @@ const ApplicationPipeline = () => {
                                                             ))}
                                                         </div>
 
-                                                        {/* NDA Status Details */}
                                                         {candidate.nda_status && (
                                                             <div className="mt-6 pt-4 border-t border-gray-200">
                                                                 <h5 className="text-sm font-medium text-gray-900 mb-3">NDA Progress Details</h5>
@@ -887,7 +868,6 @@ const ApplicationPipeline = () => {
                                                             </div>
                                                         )}
 
-                                                        {/* Match Details */}
                                                         {jobMatch && (
                                                             <div className="mt-6 pt-4 border-t border-gray-200">
                                                                 <h5 className="text-sm font-medium text-gray-900 mb-3">Job Match Details</h5>
@@ -934,7 +914,6 @@ const ApplicationPipeline = () => {
                                                             </div>
                                                         )}
 
-                                                        {/* Additional Candidate Info */}
                                                         <div className="mt-6 pt-4 border-t border-gray-200">
                                                             <h5 className="text-sm font-medium text-gray-900 mb-3">Candidate Information</h5>
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

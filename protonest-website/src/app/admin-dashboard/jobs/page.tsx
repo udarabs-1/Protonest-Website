@@ -19,7 +19,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-// Type definitions
 interface Job {
     id: string;
     title: string;
@@ -43,7 +42,6 @@ interface Job {
     status: string;
 }
 
-// Updated API Response interface to match new endpoint structure
 interface ApiResponse {
     status: string;
     message: string;
@@ -66,7 +64,6 @@ interface ApiResponse {
     timestamp: string;
 }
 
-// Add category to slug mapping
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
@@ -76,6 +73,29 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Embedded Systems': 'embedded-firmware',
     'Quality Assurance': 'quality-assurance',
     'Other': 'other-roles'
+};
+
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
 };
 
 const JobPostings = () => {
@@ -89,22 +109,18 @@ const JobPostings = () => {
     const [applicationCounts, setApplicationCounts] = useState<{ [key: string]: number }>({});
     const [loadingCounts, setLoadingCounts] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    // Job Suggestions Trigger States
     const [showTriggerDialog, setShowTriggerDialog] = useState(false);
     const [triggerLoading, setTriggerLoading] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-
+    const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -141,7 +157,6 @@ const JobPostings = () => {
         };
     }, [sidebarOpen]);
 
-    // Fetch application counts for each job
     const fetchApplicationCounts = useCallback(async (jobs: Job[]) => {
         const token = localStorage.getItem('adminToken');
         if (!token || !jobs || jobs.length === 0) return;
@@ -258,38 +273,44 @@ const JobPostings = () => {
     }, [applyFilters]);
 
     const handleDelete = async (jobId: string) => {
-        if (!confirm('Are you sure you want to delete this job posting?')) {
-            return;
-        }
+        setConfirmDialog({
+            title: 'Confirm Deletion',
+            message: 'Are you sure you want to delete this job posting?',
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                try {
+                    const adminToken = localStorage.getItem('adminToken');
+                    if (!adminToken) {
+                        throw new Error('Admin authentication required');
+                    }
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`,
+                        {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${adminToken}`
+                            }
+                        }
+                    );
 
-        try {
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
-                throw new Error('Admin authentication required');
+                    if (response.ok) {
+                        setJobPostings(prev => prev.filter(job => job.id !== jobId));
+                        setShowSuccessDialog(true);
+                    } else {
+                        const errorData = await response.json();
+                        const errorMessage = errorData.message || 'Failed to delete job posting';
+                        setErrorMessage('Failed to delete job posting: ' + errorMessage);
+                        setShowErrorDialog(true);
+                    }
+                } catch (err) {
+                    console.error('Error deleting job:', err);
+                    setErrorMessage('Failed to delete job posting: Network error');
+                    setShowErrorDialog(true);
+                }
             }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            alert('Job posting deleted successfully!');
-            fetchJobPostings();
-        } catch (err: unknown) {
-            console.error('Error deleting job:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to delete job posting';
-            alert('Failed to delete job posting: ' + errorMessage);
-        }
+        });
     };
 
-    // Handle manual trigger of job suggestions
     const handleTriggerJobSuggestions = async () => {
         setShowTriggerDialog(false);
         setTriggerLoading(true);
@@ -333,13 +354,13 @@ const JobPostings = () => {
     const getStatusIcon = (status: Job['publication_status']) => {
         switch (status) {
             case 'published':
-                return '✅';
+                return '';
             case 'draft':
-                return '⌛';
+                return '';
             case 'scheduled':
-                return '📅';
+                return '';
             default:
-                return '❓';
+                return '';
         }
     };
 
@@ -354,10 +375,10 @@ const JobPostings = () => {
     };
 
     const statusFilters = [
-        { label: 'All', value: 'all', icon: '📎' },
-        { label: 'Published', value: 'published', icon: '✅' },
-        { label: 'Draft', value: 'draft', icon: '⌛' },
-        { label: 'Scheduled', value: 'scheduled', icon: '📅' }
+        { label: 'All', value: 'all' },
+        { label: 'Published', value: 'published' },
+        { label: 'Draft', value: 'draft' },
+        { label: 'Scheduled', value: 'scheduled' }
     ];
 
     return (
@@ -385,7 +406,6 @@ const JobPostings = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -395,7 +415,6 @@ const JobPostings = () => {
                 </defs>
             </svg>
 
-            {/* Loading Overlay for Trigger */}
             {triggerLoading && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 text-center">
@@ -412,7 +431,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Trigger Confirmation Dialog */}
             {showTriggerDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -452,7 +470,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Success Dialog */}
             {showSuccessDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -495,7 +512,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Error Dialog */}
             {showErrorDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -526,7 +542,6 @@ const JobPostings = () => {
                 </div>
             )}
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -566,7 +581,7 @@ const JobPostings = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -593,7 +608,7 @@ const JobPostings = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -721,7 +736,6 @@ const JobPostings = () => {
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-                                {/* Send Job Suggestions Button */}
                                 <button
                                     onClick={() => setShowTriggerDialog(true)}
                                     disabled={triggerLoading}
@@ -732,7 +746,6 @@ const JobPostings = () => {
                                     Send Job Suggestions
                                 </button>
 
-                                {/* Create New Job Button */}
                                 <Link
                                     href="/admin-dashboard/jobs/create"
                                     className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
@@ -766,13 +779,13 @@ const JobPostings = () => {
                                 <button
                                     key={index}
                                     onClick={() => setActiveFilter(filter.value)}
-                                    className={`h-[34px] px-4 rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530FA] flex items-center transition-colors ${activeFilter === filter.value
+                                    className={`h-[34px] px-4 rounded-[57px] flex items-center transition-colors ${activeFilter === filter.value
                                         ? 'bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white'
-                                        : 'text-[#676767] bg-white hover:bg-gray-50'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
-                                    <span className="text-xs md:text-[11px] font-medium flex items-center gap-1">
-                                        {filter.icon} {filter.label}
+                                    <span className="text-xs md:text-[11px] font-medium">
+                                        {filter.label}
                                     </span>
                                 </button>
                             ))}
@@ -894,6 +907,36 @@ const JobPostings = () => {
                     </main>
                 </div>
             </div>
+
+            {confirmDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    onClick={() => setConfirmDialog(null)}
+                >
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                    <div
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{confirmDialog.title}</h3>
+                        <p className="text-gray-600 mb-6">{confirmDialog.message}</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setConfirmDialog(null)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDialog.onConfirm}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

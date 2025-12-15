@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-type ApplicationStatus = 'pending' | 'shortlisted' | 'rejected';
+type ApplicationStatus = 'pending' | 'rejected' | 'shortlisted' | 'interviewed' | 'hired';
 
 interface Application {
     _id: string;
@@ -102,6 +102,31 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const Dashboard = () => {
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -141,13 +166,11 @@ const Dashboard = () => {
     ];
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -348,31 +371,7 @@ const Dashboard = () => {
         }
     ];
 
-    const getStatusColor = (status: ApplicationStatus): string => {
-        switch (status) {
-            case 'pending':
-                return 'text-yellow-600';
-            case 'shortlisted':
-                return 'text-green-600';
-            case 'rejected':
-                return 'text-red-600';
-            default:
-                return 'text-gray-600';
-        }
-    };
 
-    const getStatusIcon = (status: ApplicationStatus): string => {
-        switch (status) {
-            case 'pending':
-                return '🟡';
-            case 'shortlisted':
-                return '✅';
-            case 'rejected':
-                return '❌';
-            default:
-                return '🟡';
-        }
-    };
 
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
@@ -427,7 +426,7 @@ const Dashboard = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -477,7 +476,7 @@ const Dashboard = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -536,7 +535,7 @@ const Dashboard = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -749,8 +748,8 @@ const Dashboard = () => {
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-left">
-                                                                    <div className={`text-[11px] font-medium font-poppins leading-none ${getStatusColor(app.status)}`}>
-                                                                        {getStatusIcon(app.status)} {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                                                                    <div className="text-[11px] font-medium font-poppins leading-none text-gray-600">
+                                                                        {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-left">

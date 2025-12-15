@@ -21,7 +21,6 @@ interface Content {
     updated_at: string;
 }
 
-// Function to calculate read time
 const calculateReadTime = (content: string): string => {
     const textContent = content.replace(/<[^>]*>/g, '');
     const wordCount = textContent.split(/\s+/).length;
@@ -30,7 +29,6 @@ const calculateReadTime = (content: string): string => {
     return `${minutes} min read`;
 };
 
-// Function to format date
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -184,33 +182,29 @@ export default function ProjectDetailPage() {
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
                 {content.cover_image && (
                     <div className="mb-8 lg:mb-12">
-                        <Image
-                            src={content.cover_image}
-                            alt={content.title}
-                            width={1125}
-                            height={390}
-                            className="w-full h-[200px] md:h-[390px] xl:h-[430px] rounded-[11px] object-cover"
-                            priority={true}
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                            }}
-                        />
+                        <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                            <Image
+                                src={content.cover_image}
+                                alt={content.title}
+                                fill
+                                className="object-cover"
+                                priority={true}
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                }}
+                            />
+                        </div>
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
-                    <h1 className="text-[#6c6c6c] text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight mb-4 sm:mb-0 sm:pr-8">
+                <div className="mb-8">
+                    <h1 className="text-[#6c6c6c] text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight mb-4">
                         {content.title}
                     </h1>
-                    <div className="flex flex-col sm:items-end text-sm text-[#83848b] font-poppins whitespace-nowrap">
-                        <span className="mb-1">{formatDate(publishDate)}</span>
-                        <span>{readTime}</span>
+                    <div className="text-sm text-[#83848b] font-poppins">
+                        <span>{formatDate(publishDate)}</span>
                     </div>
-                </div>
-
-                <div className="text-[#6c6c6c] text-base font-normal font-poppins mb-8">
-                    By {content.author}
                 </div>
 
                 <article className="prose prose-lg max-w-none">
@@ -243,7 +237,17 @@ export default function ProjectDetailPage() {
                 .prose h4 { font-size: 1.25rem; line-height: 1.4; }
                 
                 .prose p { margin-bottom: 1.5rem; line-height: 1.8; }
-                .prose ul, .prose ol { margin: 1.5rem 0; padding-left: 2rem; }
+                .prose ul {
+                    margin: 1.5rem 0;
+                    padding-left: 2rem;
+                    list-style-type: disc;
+                }
+
+                .prose ol {
+                    margin: 1.5rem 0;
+                    padding-left: 2rem;
+                    list-style-type: decimal;
+                }
                 .prose li { margin: 0.5rem 0; line-height: 1.7; }
                 .prose strong { font-weight: 600; color: #4a5568; }
                 

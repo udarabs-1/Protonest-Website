@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-// Google OAuth types - completely isolated to avoid conflicts
 interface SignUpGoogleOAuthConfig {
     client_id: string;
     callback: (response: GoogleCredentialResponse) => void;
@@ -64,12 +63,10 @@ interface DecodedGooglePayload {
     [key: string]: unknown;
 }
 
-// Helper functions to safely access window properties
 const getWindowGoogle = (): SignUpGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignUpGoogleAPI | undefined;
 };
 
-// Token management functions
 const clearExpiredTokens = (): void => {
     if (typeof window === 'undefined') return;
 
@@ -85,12 +82,11 @@ const clearExpiredTokens = (): void => {
 };
 
 const setTokenWithExpiration = (token: string): void => {
-    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours
+    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
     localStorage.setItem('jwtToken', token);
     localStorage.setItem('tokenExpiration', expirationTime.toString());
 };
 
-// Modal Component
 const MessageModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
@@ -113,7 +109,6 @@ const MessageModal = ({ message, onClose }: { message: string; onClose: () => vo
     </div>
 );
 
-// Memoized custom checkbox component
 const CustomCheckbox = ({
     checked,
     onChange,
@@ -157,18 +152,15 @@ export default function SignUp() {
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
 
-    // Memoized API configuration
     const apiConfig = useMemo(() => ({
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
         googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     }), []);
 
-    // Clear expired tokens on component mount
     useEffect(() => {
         clearExpiredTokens();
     }, []);
 
-    // Prevent back navigation
     useEffect(() => {
         window.history.replaceState(null, '', window.location.href);
 
@@ -184,7 +176,6 @@ export default function SignUp() {
         };
     }, []);
 
-    // Optimized event handlers with useCallback
     const togglePassword = useCallback(() => {
         setShowPassword(prev => !prev);
     }, []);
@@ -226,7 +217,6 @@ export default function SignUp() {
         setModalMessage('');
     }, []);
 
-    // Handle Google OAuth response with improved error handling
     const handleGoogleSignUp = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignUp called - SIGNUP flow');
         setIsLoading(true);
@@ -238,7 +228,7 @@ export default function SignUp() {
             const googleUserData = {
                 email: payload.email,
                 firstName: payload.given_name || '',
-                lastName: payload.family_name || '', // Handle missing last name
+                lastName: payload.family_name || '',
                 googleId: payload.sub,
                 verified: payload.email_verified
             };
@@ -305,9 +295,8 @@ export default function SignUp() {
                 localStorage.setItem('userData', JSON.stringify(signupData.data.user));
             }
 
-            // Create subscription
             try {
-                // Build full name, handling missing last name
+
                 const fullName = googleUserData.lastName
                     ? `${googleUserData.firstName} ${googleUserData.lastName}`.trim()
                     : googleUserData.firstName;
@@ -344,14 +333,12 @@ export default function SignUp() {
         }
     }, [apiConfig.apiUrl]);
 
-    // Use ref to store the latest callback
     const handleGoogleSignUpRef = useRef(handleGoogleSignUp);
 
     useEffect(() => {
         handleGoogleSignUpRef.current = handleGoogleSignUp;
     }, [handleGoogleSignUp]);
 
-    // Initialize Google OAuth with improved error handling
     useEffect(() => {
         if (typeof window !== 'undefined') {
             console.log('Initializing Google OAuth for SIGNUP');
@@ -370,7 +357,6 @@ export default function SignUp() {
 
                         console.log('Initializing Google with context: signup');
 
-                        // Always reinitialize to ensure correct callback
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
                             callback: (response: GoogleCredentialResponse) => {
@@ -399,7 +385,7 @@ export default function SignUp() {
 
             if (existingScript) {
                 console.log('Google script already exists, reinitializing for SIGNUP...');
-                // Wait a bit to ensure previous initialization is complete
+
                 setTimeout(initializeGoogle, 100);
             } else {
                 const script = document.createElement('script');
@@ -428,7 +414,6 @@ export default function SignUp() {
         }
     }, [apiConfig.googleClientId]);
 
-    // Check for pending job application on mount
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
@@ -624,7 +609,6 @@ export default function SignUp() {
         }
     }, [firstName, lastName, email, password, confirmPassword, agreedToTerms, jobUpdates, newsletter, apiConfig.apiUrl]);
 
-    // Memoized form validation
     const isFormValid = useMemo(() => {
         return email.trim() !== '' &&
             password.trim() !== '' &&
@@ -634,7 +618,6 @@ export default function SignUp() {
             agreedToTerms;
     }, [email, password, confirmPassword, firstName, lastName, agreedToTerms]);
 
-    // Memoized title component
     const getTitle = useCallback((): React.ReactElement => {
         if (pendingJob) {
             return (
@@ -659,26 +642,26 @@ export default function SignUp() {
         <div className="bg-white">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
-            {/* Mobile/Tablet Layout (sm to md) */}
+
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
-                    {/* Background Gradients */}
+
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
                             <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
                         </div>
                     </div>
 
-                    {/* Side Gradients for Visual Effect */}
+
                     <div className="absolute left-0 top-64 w-10 h-72 bg-gradient-to-r from-white/0 to-white sm:hidden pointer-events-none" />
                     <div className="absolute left-0 top-96 w-10 h-60 bg-gradient-to-r from-white/0 to-white hidden sm:block md:hidden pointer-events-none" />
 
-                    {/* Main Container */}
+
                     <div className="relative z-10 pb-8">
-                        {/* Header with Logo */}
+
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
                             <Image
-                                src="/logo.png"
+                                src="/logo.webp"
                                 alt="Protonest Logo"
                                 width={112}
                                 height={80}
@@ -687,18 +670,18 @@ export default function SignUp() {
                             />
                         </header>
 
-                        {/* Content Area */}
+
                         <main className="px-4 sm:px-8 md:px-16 pt-8 sm:pt-12 md:pt-16">
-                            {/* Title */}
+
                             <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-6 sm:mb-8 md:mb-10">
                                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
                                     {getTitle()}
                                 </h1>
                             </div>
 
-                            {/* Form Container with Scrollable Area */}
+
                             <form className="w-full max-h-[60vh] overflow-y-auto pr-2 space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
-                                {/* Google Sign In */}
+
                                 <button
                                     type="button"
                                     onClick={handleGoogleSignUpClick}
@@ -718,14 +701,14 @@ export default function SignUp() {
                                     </span>
                                 </button>
 
-                                {/* Divider */}
+
                                 <div className="flex items-center space-x-4 my-6 sm:my-8">
                                     <div className="flex-1 h-px bg-gray-300"></div>
                                     <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">or continue</span>
                                     <div className="flex-1 h-px bg-gray-300"></div>
                                 </div>
 
-                                {/* Name Inputs */}
+
                                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                                     <div className="w-full sm:w-1/2 h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
                                         <input
@@ -751,7 +734,7 @@ export default function SignUp() {
                                     </div>
                                 </div>
 
-                                {/* Email Input */}
+
                                 <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
                                     <input
                                         type="email"
@@ -764,7 +747,7 @@ export default function SignUp() {
                                     />
                                 </div>
 
-                                {/* Password Input */}
+
                                 <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
                                     <input
                                         type={showPassword ? "text" : "password"}
@@ -785,7 +768,7 @@ export default function SignUp() {
                                     </button>
                                 </div>
 
-                                {/* Confirm Password Input */}
+
                                 <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
@@ -806,7 +789,7 @@ export default function SignUp() {
                                     </button>
                                 </div>
 
-                                {/* Job Updates Subscription */}
+
                                 <div className="space-y-2">
                                     <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
                                         Would you like to subscribe to our careers page and receive updates of future job postings via email? You can change this any time.
@@ -825,7 +808,7 @@ export default function SignUp() {
                                     </div>
                                 </div>
 
-                                {/* Newsletter Subscription */}
+
                                 <div className="space-y-2">
                                     <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
                                         Would you like to subscribe to the Protonest Newsletter and receive updates on recent news and blog posts on our site? You can change this anytime.
@@ -844,7 +827,7 @@ export default function SignUp() {
                                     </div>
                                 </div>
 
-                                {/* Terms and Conditions */}
+
                                 <div className="flex items-center gap-3">
                                     <CustomCheckbox
                                         checked={agreedToTerms}
@@ -862,7 +845,7 @@ export default function SignUp() {
                                     </div>
                                 </div>
 
-                                {/* Error Message */}
+
                                 {error && (
                                     <div className="text-red-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']" role="alert">
                                         {error}
@@ -870,7 +853,7 @@ export default function SignUp() {
                                 )}
                             </form>
 
-                            {/* Continue Button */}
+
                             <div className="mt-6">
                                 <button
                                     onClick={handleSignUp}
@@ -881,7 +864,7 @@ export default function SignUp() {
                                 </button>
                             </div>
 
-                            {/* Sign In Link */}
+
                             <div className="w-full mt-6 sm:mt-8 md:mt-10">
                                 <div className="text-center">
                                     <span className="text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
@@ -895,25 +878,25 @@ export default function SignUp() {
                 </div>
             </div>
 
-            {/* Desktop Layout (lg and above) */}
+
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
-                    {/* Background Gradients */}
+
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                         <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
                             <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
                         </div>
                     </div>
 
-                    {/* Main Grid Container */}
+
                     <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
-                        {/* Left Side - Form */}
+
                         <div className="flex flex-col justify-center min-h-screen">
                             <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
-                                {/* Logo */}
+
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={112}
                                         height={80}
@@ -922,16 +905,16 @@ export default function SignUp() {
                                     />
                                 </header>
 
-                                {/* Title */}
+
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-medium font-['Montserrat'] leading-tight">
                                         {getTitle()}
                                     </h1>
                                 </div>
 
-                                {/* Form Container with Scrollable Area */}
+
                                 <form className="max-w-2xl max-h-[50vh] overflow-y-auto pr-4 space-y-4 lg:space-y-3 xl:space-y-4 2xl:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
-                                    {/* Google Sign In */}
+
                                     <button
                                         type="button"
                                         onClick={handleGoogleSignUpClick}
@@ -951,14 +934,14 @@ export default function SignUp() {
                                         </span>
                                     </button>
 
-                                    {/* Divider */}
+
                                     <div className="flex items-center space-x-4 my-6 lg:my-4 xl:my-6 2xl:my-8">
                                         <div className="flex-1 h-px bg-gray-300"></div>
                                         <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">or continue</span>
                                         <div className="flex-1 h-px bg-gray-300"></div>
                                     </div>
 
-                                    {/* Name Inputs */}
+
                                     <div className="flex gap-6">
                                         <div className="w-1/2 h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
                                             <input
@@ -984,7 +967,7 @@ export default function SignUp() {
                                         </div>
                                     </div>
 
-                                    {/* Email Input */}
+
                                     <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
                                         <input
                                             type="email"
@@ -997,7 +980,7 @@ export default function SignUp() {
                                         />
                                     </div>
 
-                                    {/* Password Input */}
+
                                     <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -1018,7 +1001,7 @@ export default function SignUp() {
                                         </button>
                                     </div>
 
-                                    {/* Confirm Password Input */}
+
                                     <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
                                         <input
                                             type={showConfirmPassword ? "text" : "password"}
@@ -1039,7 +1022,7 @@ export default function SignUp() {
                                         </button>
                                     </div>
 
-                                    {/* Job Updates Subscription */}
+
                                     <div className="space-y-2">
                                         <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             Would you like to subscribe to our careers page and receive updates of future job postings?
@@ -1058,7 +1041,7 @@ export default function SignUp() {
                                         </div>
                                     </div>
 
-                                    {/* Newsletter Subscription */}
+
                                     <div className="space-y-2">
                                         <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             Would you like to subscribe to our Newsletter and receive updates?
@@ -1077,7 +1060,7 @@ export default function SignUp() {
                                         </div>
                                     </div>
 
-                                    {/* Terms and Conditions */}
+
                                     <div className="flex items-center gap-3">
                                         <CustomCheckbox
                                             checked={agreedToTerms}
@@ -1095,7 +1078,7 @@ export default function SignUp() {
                                         </div>
                                     </div>
 
-                                    {/* Error Message */}
+
                                     {error && (
                                         <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']" role="alert">
                                             {error}
@@ -1103,7 +1086,7 @@ export default function SignUp() {
                                     )}
                                 </form>
 
-                                {/* Continue Button */}
+
                                 <div className="max-w-2xl mt-6">
                                     <button
                                         onClick={handleSignUp}
@@ -1114,7 +1097,7 @@ export default function SignUp() {
                                     </button>
                                 </div>
 
-                                {/* Sign In Link */}
+
                                 <div className="max-w-2xl mt-8 lg:mt-6 xl:mt-8 2xl:mt-12 flex justify-center">
                                     <div className="text-center">
                                         <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
@@ -1128,11 +1111,11 @@ export default function SignUp() {
                             </div>
                         </div>
 
-                        {/* Right Side - Image */}
+
                         <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
-                                    src="/signup1.svg"
+                                    src="/signup1.webp"
                                     alt="Welcome illustration"
                                     width={800}
                                     height={600}

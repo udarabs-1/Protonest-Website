@@ -2,11 +2,14 @@
 
 import { Icon } from '@iconify/react';
 import type { NodeViewRendererProps } from '@tiptap/core';
-import { mergeAttributes } from '@tiptap/core';
+import { Extension, mergeAttributes } from '@tiptap/core';
+import BulletList from '@tiptap/extension-bullet-list';
 import Color from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
 import ImageExtension from '@tiptap/extension-image';
 import LinkExtension from '@tiptap/extension-link';
+import ListItem from '@tiptap/extension-list-item';
+import OrderedList from '@tiptap/extension-ordered-list';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -32,7 +35,6 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
-// Custom TextStyle extension to support fontSize
 const CustomTextStyle = TextStyle.extend({
     addAttributes() {
         return {
@@ -53,6 +55,48 @@ const CustomTextStyle = TextStyle.extend({
     },
 });
 
+const LineHeight = Extension.create({
+    name: 'lineHeight',
+
+    addOptions() {
+        return {
+            types: ['paragraph', 'heading'],
+            defaultLineHeight: 'normal',
+        };
+    },
+
+    addGlobalAttributes() {
+        return [
+            {
+                types: this.options.types,
+                attributes: {
+                    lineHeight: {
+                        default: this.options.defaultLineHeight,
+                        parseHTML: (element: HTMLElement) => element.style.lineHeight || this.options.defaultLineHeight,
+                        renderHTML: (attributes: Record<string, any>) => {
+                            if (attributes.lineHeight === this.options.defaultLineHeight) {
+                                return {};
+                            }
+                            return { style: `line-height: ${attributes.lineHeight}` };
+                        },
+                    },
+                },
+            },
+        ];
+    },
+
+    addCommands() {
+        return {
+            setLineHeight: (lineHeight: string) => ({ commands }: { commands: any }) => {
+                return this.options.types.every((type: string) => commands.updateAttributes(type, { lineHeight }));
+            },
+            unsetLineHeight: () => ({ commands }: { commands: any }) => {
+                return this.options.types.every((type: string) => commands.resetAttributes(type, 'lineHeight'));
+            },
+        };
+    },
+});
+
 interface SelectedImageNode {
     node: {
         attrs: {
@@ -68,6 +112,29 @@ interface SelectedImageNode {
     img: HTMLImageElement;
 }
 
+const isAdminTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) return true;
+
+    try {
+        const payload = JSON.parse(atob(adminToken.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminInfo');
+        return true;
+    }
+};
+
 const CreateResearchProjectContent = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [contentType, setContentType] = useState<'research' | 'projects'>('research');
@@ -79,18 +146,20 @@ const CreateResearchProjectContent = () => {
     const [uploadingContentImage, setUploadingContentImage] = useState(false);
     const [selectedImageNode, setSelectedImageNode] = useState<SelectedImageNode | null>(null);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+    const [showPublishDialog, setShowPublishDialog] = useState(false);
+    const [showDraftDialog, setShowDraftDialog] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
-
     const typeFromUrl = searchParams.get('type') as 'research' | 'projects' || 'research';
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
+        if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
@@ -114,7 +183,6 @@ const CreateResearchProjectContent = () => {
         { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
     ];
 
-    // Custom resizable image extension
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
 
@@ -186,7 +254,6 @@ const CreateResearchProjectContent = () => {
                     ${node.attrs.style || ''}
                 `;
 
-                // Add resize handles
                 const resizeHandles = ['nw', 'ne', 'sw', 'se'].map(position => {
                     const handle = document.createElement('div');
                     handle.className = `resize-handle resize-${position}`;
@@ -233,7 +300,6 @@ const CreateResearchProjectContent = () => {
 
                 document.addEventListener('click', handleDocumentClick);
 
-                // Resize functionality
                 resizeHandles.forEach((handle, index) => {
                     handle.addEventListener('mousedown', (e) => {
                         e.preventDefault();
@@ -304,7 +370,15 @@ const CreateResearchProjectContent = () => {
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                bulletList: false,
+                orderedList: false,
+                listItem: false,
+            }),
+            BulletList,
+            OrderedList,
+            ListItem,
+            LineHeight,
             ResizableImage.configure({
                 HTMLAttributes: {
                     class: 'editor-image',
@@ -369,11 +443,6 @@ const CreateResearchProjectContent = () => {
                 return;
             }
 
-            if (file.size > 2 * 1024 * 1024) {
-                setError('File size should be less than 2MB');
-                return;
-            }
-
             setCoverImage(file);
 
             const reader = new FileReader();
@@ -414,11 +483,6 @@ const CreateResearchProjectContent = () => {
     const handleImageUploadToEditor = useCallback(async (file: File) => {
         if (!file.type.startsWith('image/')) {
             setError('Please select a valid image file (JPG, PNG)');
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            setError('Image size should be less than 2MB');
             return;
         }
 
@@ -528,10 +592,20 @@ const CreateResearchProjectContent = () => {
     }, [editor]);
 
     const handleSaveAsDraft = async () => {
-        await submitContent(false);
+        setShowDraftDialog(true);
     };
 
     const handlePublish = async () => {
+        setShowPublishDialog(true);
+    };
+
+    const confirmSaveAsDraft = async () => {
+        setShowDraftDialog(false);
+        await submitContent(false);
+    };
+
+    const confirmPublish = async () => {
+        setShowPublishDialog(false);
         await submitContent(true);
     };
 
@@ -583,7 +657,12 @@ const CreateResearchProjectContent = () => {
             const result = await response.json();
 
             if (result.status === 'success') {
-                router.push('/admin-dashboard/research');
+                setSuccessMessage(
+                    published
+                        ? `${contentType === 'research' ? 'Research article' : 'Project'} published successfully!`
+                        : `${contentType === 'research' ? 'Research article' : 'Project'} saved as draft successfully!`
+                );
+                setShowSuccessDialog(true);
             } else {
                 throw new Error(result.message || `Failed to create ${contentType.slice(0, -1)}`);
             }
@@ -636,7 +715,6 @@ const CreateResearchProjectContent = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition - Darker colors */}
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -646,7 +724,6 @@ const CreateResearchProjectContent = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
             {showLogoutDialog && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -676,6 +753,120 @@ const CreateResearchProjectContent = () => {
                 </div>
             )}
 
+            {showDiscardDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowDiscardDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Discard {contentType === 'research' ? 'Research' : 'Project'}</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to discard this {contentType === 'research' ? 'research article' : 'project'}? All unsaved changes will be lost.</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowDiscardDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    window.location.href = '/admin-dashboard/research';
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Discard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPublishDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowPublishDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Publish</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to publish this {contentType === 'research' ? 'research article' : 'project'}?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowPublishDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmPublish}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Publish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDraftDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowDraftDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Save as Draft</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to save this {contentType === 'research' ? 'research article' : 'project'} as a draft?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowDraftDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmSaveAsDraft}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Save as Draft
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showSuccessDialog && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Success</h3>
+                        <p className="text-gray-600 mb-6">{successMessage}</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => {
+                                    setShowSuccessDialog(false);
+                                    router.push('/admin-dashboard/research');
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {sidebarOpen && (
                 <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
             )}
@@ -686,7 +877,7 @@ const CreateResearchProjectContent = () => {
                         <div className="flex items-center">
                             <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={130}
                                     height={80}
@@ -695,7 +886,6 @@ const CreateResearchProjectContent = () => {
                             </Link>
                         </div>
 
-                        {/* Header Actions - Only Settings Button */}
                         <div className="flex items-center">
                             <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
                                 <Settings className="w-5 h-5 text-gray-600" />
@@ -707,7 +897,7 @@ const CreateResearchProjectContent = () => {
 
             <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile */}
+
                     <div
                         ref={sidebarRef}
                         className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -715,7 +905,7 @@ const CreateResearchProjectContent = () => {
                         <div className="flex justify-between items-center p-4">
                             <Link href="/" className="w-[100px] relative">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Protonest Logo"
                                     width={100}
                                     height={60}
@@ -752,7 +942,6 @@ const CreateResearchProjectContent = () => {
                                     </Link>
                                 ))}
                             </nav>
-
                             <div className="pt-8">
                                 <button
                                     onClick={() => setShowLogoutDialog(true)}
@@ -770,7 +959,6 @@ const CreateResearchProjectContent = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Desktop */}
                     <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden">
                             <nav className="p-4 space-y-1">
@@ -811,9 +999,8 @@ const CreateResearchProjectContent = () => {
                         </div>
                     </aside>
 
-                    {/* Main Content */}
                     <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        {/* Breadcrumb */}
+
                         <div className="flex items-center mb-6">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -830,7 +1017,6 @@ const CreateResearchProjectContent = () => {
                             </nav>
                         </div>
 
-                        {/* Page Header */}
                         <div className="mb-6">
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -848,7 +1034,6 @@ const CreateResearchProjectContent = () => {
                             </p>
                         </div>
 
-                        {/* Content Type Selection */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Content Type</h2>
                             <div className="inline-flex justify-start items-center gap-2">
@@ -860,7 +1045,7 @@ const CreateResearchProjectContent = () => {
                                         }`}
                                 >
                                     <span className="text-center text-xs font-semibold font-montserrat">
-                                        🔬 Research Article
+                                        Research
                                     </span>
                                 </button>
 
@@ -872,20 +1057,18 @@ const CreateResearchProjectContent = () => {
                                         }`}
                                 >
                                     <span className="text-center text-xs font-semibold font-montserrat">
-                                        🚀 Project Showcase
+                                        Project
                                     </span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* Error Message */}
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
                         )}
 
-                        {/* Title Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">
                                 {contentType === 'research' ? 'Research' : 'Project'} Title
@@ -901,12 +1084,11 @@ const CreateResearchProjectContent = () => {
                             </div>
                         </div>
 
-                        {/* Cover Image Upload Section */}
                         <div className="mb-6">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
                                 <div
-                                    className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] h-[327px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                                    className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] w-full aspect-video flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                                     onClick={() => fileInputRef.current?.click()}
                                     onDrop={handleDrop}
                                     onDragOver={handleDragOver}
@@ -931,7 +1113,6 @@ const CreateResearchProjectContent = () => {
                                                 Upload the file by drag and drop here or<br />
                                                 click on the browse button.<br />
                                                 Supported format: .JPG, PNG<br />
-                                                Max Size: 2MB
                                             </div>
                                             <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                                 Browse
@@ -949,15 +1130,13 @@ const CreateResearchProjectContent = () => {
                             </div>
                         </div>
 
-                        {/* Content Editor Section */}
                         <div className="mb-8">
                             <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Content Editor</h2>
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] overflow-hidden">
 
-                                {/* Toolbar */}
                                 <div className="border-b border-gray-200 p-4 bg-gray-50">
                                     <div className="flex flex-wrap gap-2">
-                                        {/* Text Formatting */}
+
                                         <button
                                             onClick={() => editor.chain().focus().toggleBold().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
@@ -982,7 +1161,6 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Family */}
                                         <select
                                             onChange={(e) => {
                                                 const fontFamily = e.target.value;
@@ -999,7 +1177,6 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Font Size */}
                                         <select
                                             onChange={(e) => {
                                                 const fontSize = e.target.value;
@@ -1024,7 +1201,26 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Headers for Structure */}
+                                        <select
+                                            onChange={(e) => {
+                                                const lineHeight = e.target.value;
+                                                if (lineHeight === 'default') {
+                                                    editor.chain().focus().unsetLineHeight().run();
+                                                } else {
+                                                    editor.chain().focus().setLineHeight(lineHeight).run();
+                                                }
+                                            }}
+                                            className="px-2 py-1 border border-gray-300 rounded text-sm ml-2"
+                                            title="Line Spacing"
+                                        >
+                                            <option value="default">Line Spacing</option>
+                                            <option value="1.0">1.0</option>
+                                            <option value="1.5">1.5</option>
+                                            <option value="2.0">2.0</option>
+                                        </select>
+
+                                        <div className="w-px h-8 bg-gray-300 mx-1" />
+
                                         <select
                                             onChange={(e) => {
                                                 const level = parseInt(e.target.value);
@@ -1051,7 +1247,6 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Lists */}
                                         <button
                                             onClick={() => editor.chain().focus().toggleBulletList().run()}
                                             className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
@@ -1069,32 +1264,32 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Alignment */}
-                                        <button
-                                            onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
-                                            title="Align Left"
-                                        >
-                                            <AlignLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
-                                            title="Align Center"
-                                        >
-                                            <AlignCenter className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
-                                            title="Align Right"
-                                        >
-                                            <AlignRight className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+                                                title="Align Left"
+                                            >
+                                                <AlignLeft className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+                                                title="Align Center"
+                                            >
+                                                <AlignCenter className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+                                                title="Align Right"
+                                            >
+                                                <AlignRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Links and Images */}
                                         <button
                                             onClick={addLink}
                                             className="p-2 hover:bg-gray-200 rounded"
@@ -1115,7 +1310,6 @@ const CreateResearchProjectContent = () => {
                                             )}
                                         </button>
 
-                                        {/* Image Controls - Show only when image is selected */}
                                         {selectedImageNode && (
                                             <>
                                                 <button
@@ -1151,7 +1345,6 @@ const CreateResearchProjectContent = () => {
 
                                         <div className="w-px h-8 bg-gray-300 mx-1" />
 
-                                        {/* Text Color */}
                                         <input
                                             type="color"
                                             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
@@ -1161,17 +1354,22 @@ const CreateResearchProjectContent = () => {
                                     </div>
                                 </div>
 
-                                {/* Editor */}
-                                <EditorContent editor={editor} className="min-h-[400px]" />
+                                <EditorContent editor={editor} className="h-[500px] overflow-y-auto" />
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex justify-end gap-2 mb-8">
+                        <div className="flex justify-end gap-4 mt-8">
+                            <button
+                                onClick={() => setShowDiscardDialog(true)}
+                                disabled={loading}
+                                className="px-6 py-4 rounded-[57px] border border-gray-300 cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Discard
+                            </button>
                             <button
                                 onClick={handleSaveAsDraft}
                                 disabled={loading}
-                                className="px-6 py-4 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="px-6 py-4 rounded-[57px] gradient-border cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                                 {loading ? 'Saving...' : 'Save as Draft'}
                             </button>
@@ -1188,160 +1386,171 @@ const CreateResearchProjectContent = () => {
             </div>
 
             <style jsx global>{`
-                .ProseMirror {
-                    outline: none;
-                    padding: 1.5rem;
-                    min-height: 400px;
-                    font-family: 'Poppins', sans-serif;
-                    line-height: 1.6;
-                }
-                
-                .ProseMirror h1 {
-                    font-size: 2rem;
-                    font-weight: bold;
-                    margin: 1rem 0;
-                }
-                
-                .ProseMirror h2 {
-                    font-size: 1.75rem;
-                    font-weight: bold;
-                    margin: 0.875rem 0;
-                }
-                
-                .ProseMirror h3 {
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    margin: 0.75rem 0;
-                }
-                
-                .ProseMirror h4 {
-                    font-size: 1.25rem;
-                    font-weight: bold;
-                    margin: 0.625rem 0;
-                }
-                
-                .ProseMirror ul, .ProseMirror ol {
-                    margin: 1rem 0;
-                    padding-left: 2rem;
-                }
-                
-                .ProseMirror li {
-                    margin: 0.5rem 0;
-                }
-                
-                .ProseMirror p {
-                    margin: 1rem 0;
-                }
-                
-                .ProseMirror a {
-                    color: #5530fa;
-                    text-decoration: underline;
-                }
-                
-                .ProseMirror .image-container {
-                    position: relative;
-                    display: inline-block;
-                    max-width: 100%;
-                    margin: 1rem 0;
-                    user-select: none;
-                }
-                
-                .ProseMirror .image-container img {
-                    max-width: 100%;
-                    height: auto;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: box-shadow 0.2s ease;
-                }
-                
-                .ProseMirror .image-container:hover img {
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                }
-                
-                .ProseMirror .resize-handle {
-                    position: absolute;
-                    width: 10px;
-                    height: 10px;
-                    background: #5530fa;
-                    border: 2px solid white;
-                    border-radius: 50%;
-                    display: none;
-                    z-index: 10;
-                }
-                
-                .ProseMirror .resize-handle:hover {
-                    background: #4520d9;
-                    transform: scale(1.2);
-                }
-                
-                .ProseMirror .resize-nw {
-                    top: -5px;
-                    left: -5px;
-                    cursor: nw-resize;
-                }
-                
-                .ProseMirror .resize-ne {
-                    top: -5px;
-                    right: -5px;
-                    cursor: ne-resize;
-                }
-                
-                .ProseMirror .resize-sw {
-                    bottom: -5px;
-                    left: -5px;
-                    cursor: sw-resize;
-                }
-                
-                .ProseMirror .resize-se {
-                    bottom: -5px;
-                    right: -5px;
-                    cursor: se-resize;
-                }
-                
-                .ProseMirror blockquote {
-                    border-left: 4px solid #e5e7eb;
-                    padding-left: 1rem;
-                    margin: 1rem 0;
-                    font-style: italic;
-                    background-color: #f9fafb;
-                    padding: 1rem;
-                    border-radius: 4px;
-                }
-                
-                .ProseMirror code {
-                    background-color: #f3f4f6;
-                    padding: 0.2rem 0.4rem;
-                    border-radius: 4px;
-                    font-family: 'Courier New', monospace;
-                }
-                
-                .ProseMirror pre {
-                    background-color: #1f2937;
-                    color: white;
-                    padding: 1rem;
-                    border-radius: 8px;
-                    overflow-x: auto;
-                    margin: 1rem 0;
-                }
-                
-                .ProseMirror pre code {
-                    background-color: transparent;
-                    color: inherit;
-                    padding: 0;
-                }
+            .ProseMirror {
+                outline: none;
+                padding: 1.5rem;
+                font-family: 'Poppins', sans-serif;
+                line-height: 1.6;
+            }
+            
+            .ProseMirror h1 {
+                font-size: 2rem;
+                font-weight: bold;
+                margin: 1rem 0;
+            }
+            
+            .ProseMirror h2 {
+                font-size: 1.75rem;
+                font-weight: bold;
+                margin: 0.875rem 0;
+            }
+            
+            .ProseMirror h3 {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin: 0.75rem 0;
+            }
+            
+            .ProseMirror h4 {
+                font-size: 1.25rem;
+                font-weight: bold;
+                margin: 0.625rem 0;
+            }
+            
+            .ProseMirror ul {
+                list-style-type: disc;
+                padding-left: 1.5em;
+                margin: 1rem 0;
+            }
+            
+            .ProseMirror ol {
+                list-style-type: decimal;
+                padding-left: 1.5em;
+                margin: 1rem 0;
+            }
+            
+            .ProseMirror li {
+                display: list-item;
+                margin-bottom: 0.5em;
+            }
+            
+            .ProseMirror li {
+                margin: 0.5rem 0;
+            }
+            
+            .ProseMirror p {
+                margin: 1rem 0;
+            }
+            
+            .ProseMirror a {
+                color: #5530fa;
+                text-decoration: underline;
+            }
+            
+            .ProseMirror .image-container {
+                position: relative;
+                display: inline-block;
+                max-width: 100%;
+                margin: 1rem 0;
+                user-select: none;
+            }
+            
+            .ProseMirror .image-container img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: box-shadow 0.2s ease;
+            }
+            
+            .ProseMirror .image-container:hover img {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .ProseMirror .resize-handle {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: #5530fa;
+                border: 2px solid white;
+                border-radius: 50%;
+                display: none;
+                z-index: 10;
+            }
+            
+            .ProseMirror .resize-handle:hover {
+                background: #4520d9;
+                transform: scale(1.2);
+            }
+            
+            .ProseMirror .resize-nw {
+                top: -5px;
+                left: -5px;
+                cursor: nw-resize;
+            }
+            
+            .ProseMirror .resize-ne {
+                top: -5px;
+                right: -5px;
+                cursor: ne-resize;
+            }
+            
+            .ProseMirror .resize-sw {
+                bottom: -5px;
+                left: -5px;
+                cursor: sw-resize;
+            }
+            
+            .ProseMirror .resize-se {
+                bottom: -5px;
+                right: -5px;
+                cursor: se-resize;
+            }
+            
+            .ProseMirror blockquote {
+                border-left: 4px solid #e5e7eb;
+                padding-left: 1rem;
+                margin: 1rem 0;
+                font-style: italic;
+                background-color: #f9fafb;
+                padding: 1rem;
+                border-radius: 4px;
+            }
+            
+            .ProseMirror code {
+                background-color: #f3f4f6;
+                padding: 0.2rem 0.4rem;
+                border-radius: 4px;
+                font-family: 'Courier New', monospace;
+            }
+            
+            .ProseMirror pre {
+                background-color: #1f2937;
+                color: white;
+                padding: 1rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                margin: 1rem 0;
+            }
+            
+            .ProseMirror pre code {
+                background-color: transparent;
+                color: inherit;
+                padding: 0;
+            }
 
-                .ProseMirror .image-container.dragging {
-                    opacity: 0.5;
-                }
-                
-                .ProseMirror:focus {
-                    outline: none;
-                }
-                
-                .ProseMirror ::selection {
-                    background: rgba(85, 48, 250, 0.2);
-                }
-            `}</style>
+            .ProseMirror .image-container.dragging {
+                opacity: 0.5;
+            }
+            
+            .ProseMirror:focus {
+                outline: none;
+            }
+            
+            .ProseMirror ::selection {
+                background: rgba(85, 48, 250, 0.2);
+            }
+        `}</style>
         </div>
     );
 };
@@ -1360,5 +1569,4 @@ const CreateResearchProject = () => {
         </Suspense>
     );
 };
-
 export default CreateResearchProject;

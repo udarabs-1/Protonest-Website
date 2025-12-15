@@ -22,7 +22,7 @@ interface AppliedJob {
         _id: string;
         title: string;
     };
-    status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired';
+    status: 'pending' | 'rejected' | 'shortlisted' | 'interviewed' | 'hired';
     updated_at: string;
     user_id: {
         _id: string;
@@ -71,24 +71,8 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Other': 'other-roles'
 };
 
-// Applied Jobs Card Component
 const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
-    const getStatusDisplay = (status: string) => {
-        switch (status) {
-            case 'pending':
-                return { emoji: '🟡', text: 'Pending', color: 'text-yellow-600' };
-            case 'reviewed':
-                return { emoji: '👀', text: 'Reviewed', color: 'text-blue-600' };
-            case 'shortlisted':
-                return { emoji: '✅', text: 'Shortlisted', color: 'text-green-600' };
-            case 'rejected':
-                return { emoji: '❌', text: 'Rejected', color: 'text-red-600' };
-            case 'hired':
-                return { emoji: '🎉', text: 'Hired', color: 'text-purple-600' };
-            default:
-                return { emoji: '🟡', text: 'Pending', color: 'text-yellow-600' };
-        }
-    };
+
 
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
@@ -110,9 +94,6 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
         });
     };
 
-    const statusDisplay = getStatusDisplay(job.status);
-
-    // Get the role slug from the job category
     const roleSlug = categoryToSlugMap[job.jobDetails?.category || ''] || 'other-roles';
 
     return (
@@ -156,8 +137,8 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
                 </div>
 
                 <div className="flex flex-col">
-                    <div className={`h-5 text-xs font-medium font-['Poppins'] leading-[35px] ${statusDisplay.color}`}>
-                        {statusDisplay.emoji} {statusDisplay.text}
+                    <div className="h-5 text-xs font-medium font-['Poppins'] leading-[35px] text-gray-600">
+                        {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                     </div>
                     <div className="h-[25px] text-[#6c6c6c] text-[9px] font-normal font-['Poppins'] leading-[35px]">
                         Status
@@ -207,12 +188,12 @@ const StatusFilter = ({
     onFilterChange: (filter: string) => void;
 }) => {
     const filters = [
-        { key: 'all', label: '📎 All', emoji: '📎' },
-        { key: 'pending', label: '🟡 Pending', emoji: '🟡' },
-        { key: 'reviewed', label: '👀 Reviewed', emoji: '👀' },
-        { key: 'shortlisted', label: '✅ Shortlisted', emoji: '✅' },
-        { key: 'rejected', label: '❌ Rejected', emoji: '❌' },
-        { key: 'hired', label: '🎉 Hired', emoji: '🎉' }
+        { key: 'all', label: 'All' },
+        { key: 'pending', label: 'Pending' },
+        { key: 'shortlisted', label: 'Shortlisted' },
+        { key: 'rejected', label: 'Rejected' },
+        { key: 'interviewed', label: 'Interviewed' },
+        { key: 'hired', label: 'Hired' }
     ];
 
     return (
@@ -221,9 +202,9 @@ const StatusFilter = ({
                 <button
                     key={filter.key}
                     onClick={() => onFilterChange(filter.key)}
-                    className={`px-4 py-2 rounded-[57px] outline-1 outline-offset-[-1px] outline-[#5530fa] flex items-center gap-2 whitespace-nowrap transition-all ${activeFilter === filter.key
+                    className={`px-4 py-2 rounded-[57px] flex items-center gap-2 whitespace-nowrap transition-all ${activeFilter === filter.key
                         ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'text-[#6c6c6c] hover:bg-gray-50'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     <span className="text-xs font-medium font-['Montserrat']">
@@ -233,6 +214,31 @@ const StatusFilter = ({
             ))}
         </div>
     );
+};
+
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
 };
 
 const AppliedJobs = () => {
@@ -273,15 +279,12 @@ const AppliedJobs = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -333,7 +336,6 @@ const AppliedJobs = () => {
         };
     }, [sidebarOpen, showProfileDropdown]);
 
-    // Fetch applied jobs data from API
     useEffect(() => {
         const jwtToken = localStorage.getItem('jwtToken');
         if (!jwtToken) {
@@ -353,11 +355,9 @@ const AppliedJobs = () => {
                 throw new Error('No authentication token found');
             }
 
-            // Try multiple possible endpoints
             let response;
             let applicationsData;
 
-            // First try the applications endpoint
             try {
                 response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                     headers: {
@@ -373,7 +373,7 @@ const AppliedJobs = () => {
                 applicationsData = await response.json();
             } catch {
                 console.log('Primary endpoint failed, trying fallback...');
-                // Try alternative endpoint structure
+
                 try {
                     response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/applications`, {
                         headers: {
@@ -392,7 +392,6 @@ const AppliedJobs = () => {
                 }
             }
 
-            // Handle different response structures
             const jobs: AppliedJob[] = applicationsData.data || applicationsData.applications || applicationsData || [];
 
             if (jobs.length === 0) {
@@ -402,7 +401,6 @@ const AppliedJobs = () => {
                 return;
             }
 
-            // Enrich jobs with job details
             const enrichedJobs = await Promise.all(
                 jobs.map(async (job) => {
                     try {
@@ -495,7 +493,7 @@ const AppliedJobs = () => {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -505,7 +503,7 @@ const AppliedJobs = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -546,7 +544,7 @@ const AppliedJobs = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -605,7 +603,7 @@ const AppliedJobs = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -772,7 +770,6 @@ const AppliedJobs = () => {
                                         ))
                                     ) : (
                                         <div className="col-span-full text-center py-12">
-                                            <div className="text-gray-400 text-lg mb-2">📭</div>
                                             <p className="text-gray-500">
                                                 {searchQuery || activeFilter !== 'all'
                                                     ? 'No applied jobs found matching your criteria.'

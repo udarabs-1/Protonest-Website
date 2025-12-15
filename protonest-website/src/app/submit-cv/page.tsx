@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
+import PageHero from '../components/page-hero';
 
 interface FormData {
     fullName: string;
@@ -56,7 +57,6 @@ interface PendingJobApplication {
     timestamp: number;
 }
 
-// All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
     'Anuradhapura',
@@ -85,7 +85,6 @@ const sriLankaDistricts: string[] = [
     'Vavuniya'
 ];
 
-// Work functions list
 const workFunctionsList: string[] = [
     'Engineering',
     'Design',
@@ -104,7 +103,6 @@ const workFunctionsList: string[] = [
     'Administration'
 ];
 
-// Optimized Background Component
 const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className: string }) => (
     <div className={className}>
         <Image
@@ -120,7 +118,6 @@ const BackgroundImage = ({ isMobile, className }: { isMobile: boolean; className
     </div>
 );
 
-// Optimized Modal Components
 const LoadingSpinner = () => (
     <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
         <div className="w-full h-full rounded-full"></div>
@@ -154,7 +151,6 @@ const ModalWrapper = ({
     </div>
 );
 
-// Error Dialog Component
 interface ErrorDialogProps {
     message: string;
     onClose: () => void;
@@ -219,6 +215,57 @@ const ErrorDialog = ({ message, onClose, onResubmitCV }: ErrorDialogProps) => {
     );
 };
 
+interface ConfirmDialogProps {
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+}
+
+const ConfirmDialog = ({ message, onConfirm, onCancel }: ConfirmDialogProps) => {
+    const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onCancel();
+        }
+    }, [onCancel]);
+
+    return (
+        <div
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 backdrop-blur-sm px-4"
+            onClick={handleBackgroundClick}
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                        <Icon icon="solar:question-circle-bold-duotone" className="w-10 h-10" />
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold text-[#6c6c6c] font-montserrat mb-4 text-center">
+                    Confirm Action
+                </h3>
+                <p className="text-base text-[#6c6c6c] font-poppins mb-6 text-center">
+                    {message}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 px-6 py-3 rounded-[57px] border-2 gradient-border text-[#6c6c6c] text-base font-medium font-poppins hover:bg-gray-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-montserrat transition-all"
+                    >
+                        Leave
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function OnboardingPage() {
     const router = useRouter();
     const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -239,38 +286,60 @@ export default function OnboardingPage() {
     const [suggestedJobs, setSuggestedJobs] = useState<SuggestedJob[]>([]);
     const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [, setWorkFunctionSearch] = useState('');
+    const [workFunctionSearch, setWorkFunctionSearch] = useState('');
+    const [districtSearch, setDistrictSearch] = useState('');
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [showJobApplicationSuccessModal, setShowJobApplicationSuccessModal] = useState(false);
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
     const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [redirectAfterSubmit, setRedirectAfterSubmit] = useState<string | null>(null);
     const [cvFullText, setCvFullText] = useState<string>('');
     const [totalYearsExperience, setTotalYearsExperience] = useState<number>(0);
 
+    useEffect(() => {
+        setDistrictSearch(formData.city || '');
+    }, [formData.city]);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Memoized dropdown refs
     const dropdownRefs = useMemo(() => ({
         city: { current: null as HTMLDivElement | null },
         workFunction: { current: null as HTMLDivElement | null },
     }), []);
 
-    // Debounced screen size check
+    const inputRefs = useMemo(() => ({
+        city: { current: null as HTMLInputElement | null },
+        workFunction: { current: null as HTMLInputElement | null },
+    }), []);
+
+    const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+
+
+    useEffect(() => {
+        if (highlightedIndex >= 0 && dropdownOpen.city) {
+            const item = document.getElementById(`city-item-${highlightedIndex}`);
+            item?.scrollIntoView({ block: 'nearest' });
+        }
+        if (highlightedIndex >= 0 && dropdownOpen.workFunction) {
+            const item = document.getElementById(`workFunction-item-${highlightedIndex}`);
+            item?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [highlightedIndex, dropdownOpen]);
+
     const checkIsMobile = useCallback(() => {
         return window.innerWidth < 640;
     }, []);
 
-    // Authentication check - MUST BE FIRST
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('jwtToken');
 
             if (!token) {
-                // Store current URL to redirect back after sign in
+
                 const currentPath = window.location.pathname;
                 if (currentPath !== '/signin') {
                     sessionStorage.setItem('redirectAfterSignIn', currentPath);
@@ -283,23 +352,17 @@ export default function OnboardingPage() {
         }
     }, [router]);
 
-    // Prevent back navigation - IMPORTANT: Only after auth check
     useEffect(() => {
         if (!isAuthChecking) {
-            // Replace history entry to prevent back navigation
+
             window.history.replaceState(null, '', window.location.href);
 
-            // Handle back button
             const handlePopState = (e: PopStateEvent) => {
                 e.preventDefault();
                 window.history.replaceState(null, '', window.location.href);
 
-                // Optional: Show a warning if they have unsaved changes
                 if (uploadedCV || formData.fullName || formData.email || formData.phoneNumber) {
-                    const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-                    if (confirmLeave) {
-                        router.replace('/dashboard');
-                    }
+                    setShowConfirmDialog(true);
                 }
             };
 
@@ -329,28 +392,27 @@ export default function OnboardingPage() {
 
     useEffect(() => {
         if (typeof window !== 'undefined' && !isAuthChecking) {
-            // Check for pending job application
+
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
             if (pendingJobStr) {
                 try {
                     const jobData = JSON.parse(pendingJobStr);
-                    // Check if the job application is still valid (within 24 hours)
+
                     const isValid = Date.now() - jobData.timestamp < 24 * 60 * 60 * 1000;
                     if (isValid) {
                         setPendingJob(jobData);
-                        // Store the redirect URL
+
                         setRedirectAfterSubmit(jobData.jobUrl || `/jobs/${jobData.role}/${jobData.jobId}`);
                     } else {
-                        // Remove expired job application
+
                         localStorage.removeItem('pendingJobApplication');
                     }
                 } catch {
-                    // Remove invalid job application data
+
                     localStorage.removeItem('pendingJobApplication');
                 }
             }
 
-            // Pre-populate user data if available
             const userStr = localStorage.getItem('userData');
             if (userStr) {
                 try {
@@ -367,7 +429,6 @@ export default function OnboardingPage() {
         }
     }, [isAuthChecking]);
 
-    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const isOutsideDropdown = Object.values(dropdownRefs).every(ref =>
@@ -409,7 +470,7 @@ export default function OnboardingPage() {
 
     const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
         if (field === 'workFunction') {
-            // Remove any duplicate functions when adding new ones
+
             const functionsArray = (value as string).split(',').filter(Boolean);
             const uniqueFunctions = [...new Set(functionsArray)].join(',');
             setFormData(prev => ({
@@ -423,13 +484,11 @@ export default function OnboardingPage() {
             }));
         }
 
-        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
     }, [errors]);
 
-    // One function handles everything - upload CV and get complete results
     const analyzeCV = useCallback(async (file: File): Promise<void> => {
         setShowAnalysisModal(true);
         try {
@@ -441,7 +500,6 @@ export default function OnboardingPage() {
                 throw new Error('User token not found. Please sign in first.');
             }
 
-            // Single endpoint call - gets EVERYTHING
             const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
                 method: 'POST',
                 headers: {
@@ -457,17 +515,16 @@ export default function OnboardingPage() {
             const data: AnalyzeResponse = await response.json();
 
             if (data.status === 'success') {
-                // Extract all skills
+
                 const allSkills: string[] = [];
                 Object.values(data.results.expertise_areas).forEach(skills => {
                     allSkills.push(...skills);
                 });
 
-                // Set everything from one response
                 setExtractedSkills(allSkills);
                 setExpertiseAreas(data.results.expertise_areas);
                 setSuggestedJobs(data.results.suggested_jobs);
-                setCvFullText(data.results.cv_full_text || '');  // ✅ Add this
+                setCvFullText(data.results.cv_full_text || '');
                 setTotalYearsExperience(data.results.total_years_experience || 0);
 
                 console.log(`✅ CV analyzed: ${allSkills.length} skills, ${data.results.suggested_jobs.length} jobs (70%+ match)`);
@@ -484,7 +541,6 @@ export default function OnboardingPage() {
         }
     }, []);
 
-    // On form submit - data is already there from CV analysis, just submit to backend
     const handleSubmit = useCallback(async (): Promise<void> => {
         if (!validateForm()) return;
 
@@ -492,7 +548,7 @@ export default function OnboardingPage() {
         setShowSubmissionModal(true);
 
         try {
-            // Use FormData to send both CV file and analysis results
+
             const submitData = new FormData();
             submitData.append('fullName', formData.fullName);
             submitData.append('email', formData.email);
@@ -508,11 +564,9 @@ export default function OnboardingPage() {
             submitData.append('totalYearsExperience', totalYearsExperience.toString());
             submitData.append('skip_talent_pool', 'false');
 
-            // CRITICAL: Tell backend NOT to analyze again - we already have results
-            submitData.append('skip_analysis', 'true'); // ← NEW FLAG
-            submitData.append('already_analyzed', 'true'); // ← BACKUP FLAG
+            submitData.append('skip_analysis', 'true');
+            submitData.append('already_analyzed', 'true');
 
-            // Send the CV file for storage only
             if (uploadedCV) {
                 submitData.append('cv', uploadedCV);
             }
@@ -522,12 +576,11 @@ export default function OnboardingPage() {
                 throw new Error('Authentication token not found. Please log in again.');
             }
 
-            // Submit to Go backend with multipart/form-data
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    // Don't set Content-Type - browser will set it with boundary for FormData
+
                 },
                 body: submitData,
             });
@@ -597,7 +650,7 @@ export default function OnboardingPage() {
     const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
         const file = event.target.files?.[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            if (file.size > 5 * 1024 * 1024) {
                 setErrors(prev => ({ ...prev, cv: 'File must be smaller than 5MB' }));
                 return;
             }
@@ -608,7 +661,6 @@ export default function OnboardingPage() {
             setExpertiseAreas({});
             setSuggestedJobs([]);
 
-            // Call the Python API to analyze the CV - ONLY ONCE HERE
             analyzeCV(file);
         }
     }, [analyzeCV]);
@@ -637,7 +689,6 @@ export default function OnboardingPage() {
         }));
     }, []);
 
-    // Get button text based on pending job
     const getButtonText = useCallback(() => {
         if (pendingJob) {
             return 'Submit CV and Apply for the Job';
@@ -646,7 +697,6 @@ export default function OnboardingPage() {
         }
     }, [pendingJob]);
 
-    // Check if all required fields are filled
     const isFormValid = useMemo(() => {
         return !!(
             formData.fullName.trim() &&
@@ -669,7 +719,6 @@ export default function OnboardingPage() {
         setShowErrorDialog(null);
     }, []);
 
-    // Analysis Modal Component
     const AnalysisModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -683,7 +732,6 @@ export default function OnboardingPage() {
         </ModalWrapper>
     );
 
-    // Submission Modal Component
     const SubmissionModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -701,7 +749,6 @@ export default function OnboardingPage() {
         </ModalWrapper>
     );
 
-    // Jobs Modal Component
     const JobsModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -773,7 +820,6 @@ export default function OnboardingPage() {
         );
     };
 
-    // No Match Modal Component
     const NoMatchModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -807,7 +853,7 @@ export default function OnboardingPage() {
                             <button
                                 className="flex-1 h-[45px] sm:h-[48px] md:h-[51px] px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-95"
                                 onClick={() => {
-                                    // Clear pending job application
+
                                     if (pendingJob) {
                                         localStorage.removeItem('pendingJobApplication');
                                     }
@@ -834,7 +880,6 @@ export default function OnboardingPage() {
         );
     };
 
-    // Job Application Success Modal Component
     const JobApplicationSuccessModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -849,12 +894,12 @@ export default function OnboardingPage() {
             >
                 <div className="p-6 sm:p-8 md:p-10">
                     <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
-                        {/* Success Icon */}
+
                         <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center gradient-icon">
                             <Icon icon="solar:check-circle-bold-duotone" className="w-full h-full" />
                         </div>
 
-                        {/* Success Message */}
+
                         <div className="text-center">
                             <h2 className="text-center text-[#6c6c6c] text-lg sm:text-xl md:text-[25px] font-normal font-poppins leading-[30px] mb-4">
                                 Application Submitted Successfully!
@@ -865,14 +910,14 @@ export default function OnboardingPage() {
                             </p>
                         </div>
 
-                        {/* Additional suggested jobs if available */}
+
                         {suggestedJobs && suggestedJobs.length > 0 && (
                             <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins leading-[30px] mt-4">
                                 We&apos;ve also found other roles that might interest you!
                             </div>
                         )}
 
-                        {/* Action Buttons */}
+
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[500px] mt-4">
                             {suggestedJobs && suggestedJobs.length > 0 ? (
                                 <>
@@ -944,7 +989,7 @@ export default function OnboardingPage() {
                 }
             `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -956,58 +1001,28 @@ export default function OnboardingPage() {
 
             <Navbar />
 
-            {/* Optimized Header Section */}
-            <header className="h-[400px] lg:h-[500px] xl:h-[439px] relative">
-                {/* Background Images */}
-                <BackgroundImage
-                    isMobile={true}
-                    className="absolute inset-0 -z-10 block sm:hidden"
-                />
-                <BackgroundImage
-                    isMobile={false}
-                    className="absolute inset-0 -z-10 hidden sm:block"
-                />
+            <PageHero
+                heading={{
+                    beforeGradient: "Submit Your CV and",
+                    gradientText: pendingJob ? `Apply for ${pendingJob.jobTitle}` : "Join Our Talent Network"
+                }}
+                description={
+                    pendingJob ? (
+                        <>Complete your application by uploading your CV.<br /></>
+                    ) : (
+                        <>Tell us a little about yourself.<br />We'll match your skills with any opportunities at Protonest according to your preferences</>
+                    )
+                }
+                height="h-[400px] lg:h-[500px] xl:h-[439px]"
+                paddingTop={true}
+            />
 
-                {/* Gradient Overlays */}
-                <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10" />
-                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10" />
-
-                {/* Hero Content */}
-                <div className="relative z-20 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 xl:px-0">
-                    <div className="text-center max-w-4xl xl:max-w-[1120px]">
-                        <h1 className="text-[24px] sm:text-[30px] md:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-['Montserrat'] leading-tight xl:leading-[55px] mb-4 sm:mb-6 lg:mb-8">
-                            <span className="text-[#6c6c6c]">Submit Your CV and</span>
-                            <br />
-                            {pendingJob ? (
-                                <>
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Apply for {pendingJob.jobTitle}</span>
-                                </>
-                            ) : (
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">Join Our Talent Network</span>
-                            )}
-                        </h1>
-                        <p className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] text-[#6c6c6c] font-normal font-['Poppins'] leading-6 sm:leading-[30px] max-w-2xl xl:max-w-[1120px] mx-auto">
-                            {pendingJob ? (
-                                <>
-                                    Complete your application by uploading your CV.<br />
-                                </>
-                            ) : (
-                                <>
-                                    Tell us a little about yourself.<br />
-                                    We&apos;ll match your skills with any opportunities at Protonest according to your preferences
-                                </>
-                            )}
-                        </p>
-                    </div>
-                </div>
-            </header>
-
-            <main className="min-h-screen relative overflow-hidden">
+            <main className="min-h-screen relative overflow-hidden py-8 sm:py-12 lg:py-16">
                 <div className="container mx-auto px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px]">
                     <div className="space-y-8">
-                        {/* Personal Information */}
+
                         <div className="grid grid-cols-1 gap-6">
-                            {/* Full Name - Always full width */}
+
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     Full Name
@@ -1022,9 +1037,9 @@ export default function OnboardingPage() {
                                 {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                             </div>
 
-                            {/* Email and Phone - Side by side on large screens */}
+
                             <div className="grid grid-cols-1 gap-6">
-                                {/* Email */}
+
                                 <div>
                                     <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                         Email
@@ -1039,13 +1054,13 @@ export default function OnboardingPage() {
                                     {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
                                 </div>
 
-                                {/* Phone Number */}
+
                                 <div>
                                     <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                         Phone Number
                                     </label>
                                     <div className="flex items-center">
-                                        {/* Country Code - Fixed for Sri Lanka */}
+
                                         <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
                                             <span className="mr-1">🇱🇰</span>
                                             <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
@@ -1063,41 +1078,80 @@ export default function OnboardingPage() {
                                 </div>
                             </div>
 
-                            {/* City Dropdown */}
+
                             <div>
                                 <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                     District
                                 </label>
                                 <div className="relative" ref={dropdownRefs.city}>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleDropdown('city');
-                                        }}
-                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                    >
-                                        <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                            {formData.city || 'Select district'}
-                                        </span>
-                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
-                                    </button>
+                                    <div className="relative">
+                                        <input
+                                            ref={(el) => { if (inputRefs.city) inputRefs.city.current = el; }}
+                                            type="text"
+                                            value={districtSearch}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setDistrictSearch(val);
+                                                setHighlightedIndex(-1);
+                                                if (!dropdownOpen.city) toggleDropdown('city');
+                                                if (sriLankaDistricts.includes(val)) {
+                                                    handleInputChange('city', val);
+                                                } else {
+                                                    handleInputChange('city', '');
+                                                }
+                                            }}
+                                            onFocus={() => {
+                                                if (!dropdownOpen.city) toggleDropdown('city');
+                                            }}
+                                            onKeyDown={(e) => {
+                                                const filteredDistricts = sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()));
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    setHighlightedIndex(prev => (prev < filteredDistricts.length - 1 ? prev + 1 : prev));
+                                                } else if (e.key === 'ArrowUp') {
+                                                    e.preventDefault();
+                                                    setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                } else if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (highlightedIndex >= 0 && highlightedIndex < filteredDistricts.length) {
+                                                        const selected = filteredDistricts[highlightedIndex];
+                                                        setDistrictSearch(selected);
+                                                        handleInputChange('city', selected);
+                                                        if (dropdownOpen.city) toggleDropdown('city');
+                                                        setHighlightedIndex(-1);
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Type or select district"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
+                                        />
+                                        <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.city ? 'rotate-180' : ''}`} />
+                                    </div>
                                     {dropdownOpen.city && (
                                         <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                            {sriLankaDistricts.map(district => (
-                                                <button
-                                                    key={district}
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleInputChange('city', district);
-                                                        toggleDropdown('city');
-                                                    }}
-                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                >
-                                                    {district}
-                                                </button>
-                                            ))}
+                                            {sriLankaDistricts
+                                                .filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()))
+                                                .map((district, index) => (
+                                                    <button
+                                                        key={district}
+                                                        id={`city-item-${index}`}
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setDistrictSearch(district);
+                                                            handleInputChange('city', district);
+                                                            toggleDropdown('city');
+                                                            setHighlightedIndex(-1);
+                                                            inputRefs.city.current?.focus();
+                                                        }}
+                                                        className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
+                                                    >
+                                                        {district}
+                                                    </button>
+                                                ))}
+                                            {sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
+                                                <div className="p-3 text-gray-500 text-sm font-['Poppins']">No districts found</div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1135,33 +1189,71 @@ export default function OnboardingPage() {
                                 )}
 
                                 <div className="relative" ref={dropdownRefs.workFunction}>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleDropdown('workFunction');
-                                        }}
-                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                    >
-                                        <span className={formData.workFunction ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                            Select preferred work functions
-                                        </span>
-                                        <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
-                                    </button>
+                                    <div className="relative">
+                                        <input
+                                            ref={(el) => { if (inputRefs.workFunction) inputRefs.workFunction.current = el; }}
+                                            type="text"
+                                            value={workFunctionSearch}
+                                            onChange={(e) => {
+                                                setWorkFunctionSearch(e.target.value);
+                                                setHighlightedIndex(-1);
+                                                if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                            }}
+                                            onFocus={() => {
+                                                if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                            }}
+                                            onKeyDown={(e) => {
+                                                const available = workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func));
+                                                const filtered = available.filter(f => f.toLowerCase().includes(workFunctionSearch.toLowerCase()));
+
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    setHighlightedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
+                                                } else if (e.key === 'ArrowUp') {
+                                                    e.preventDefault();
+                                                    setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                } else if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+                                                        const match = filtered[highlightedIndex];
+                                                        handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                        setWorkFunctionSearch('');
+                                                        setHighlightedIndex(-1);
+                                                        setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                    } else if (filtered.length > 0 && workFunctionSearch) {
+
+                                                        const match = filtered[0];
+                                                        handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                        setWorkFunctionSearch('');
+                                                        setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Type to search functions (Enter to select)"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
+                                        />
+                                        <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
+                                    </div>
 
                                     {dropdownOpen.workFunction && (
                                         <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                                             {workFunctionsList
                                                 .filter(func => !formData.workFunction.split(',').includes(func))
-                                                .map(func => (
+                                                .filter(func => func.toLowerCase().includes(workFunctionSearch.toLowerCase()))
+                                                .map((func, index) => (
                                                     <button
                                                         key={func}
+                                                        id={`workFunction-item-${index}`}
                                                         type="button"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
+                                                            setWorkFunctionSearch('');
+                                                            setHighlightedIndex(-1);
+                                                            setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                            inputRefs.workFunction.current?.focus();
                                                         }}
-                                                        className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
+                                                        className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
                                                     >
                                                         {func}
                                                     </button>
@@ -1179,7 +1271,7 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* CV Upload */}
+
                         <div className="space-y-4">
                             <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold font-['Poppins']">
                                 Upload CV
@@ -1228,7 +1320,7 @@ export default function OnboardingPage() {
                             {errors.cv && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.cv}</p>}
                         </div>
 
-                        {/* NDA Acknowledgment */}
+
                         <div className="flex items-start space-x-3">
                             <button
                                 type="button"
@@ -1255,8 +1347,8 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* Error Summary - Only show if form is not valid and has been submitted */}
-                        {!isFormValid && Object.keys(errors).length > 0 && (
+
+                        {!isFormValid && Object.values(errors).some(Boolean) && (
                             <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3">
                                 <div className="flex-shrink-0">
                                     <Icon icon="solar:danger-circle-bold" className="w-6 h-6 text-red-500" />
@@ -1269,7 +1361,7 @@ export default function OnboardingPage() {
                             </div>
                         )}
 
-                        {/* Action Buttons */}
+
                         <div className="flex flex-col sm:flex-row gap-4 pt-8">
                             <button
                                 type="button"
@@ -1292,19 +1384,30 @@ export default function OnboardingPage() {
                 </div>
             </main>
 
-            {/* Modals */}
+
             {showAnalysisModal && <AnalysisModal />}
             {showSubmissionModal && <SubmissionModal />}
             {showJobApplicationSuccessModal && <JobApplicationSuccessModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
 
-            {/* Error Dialog */}
+
             {showErrorDialog && (
                 <ErrorDialog
                     message={showErrorDialog}
                     onClose={closeErrorDialog}
                     onResubmitCV={showErrorDialog.toLowerCase().includes('already submitted') ? handleResubmitCV : undefined}
+                />
+            )}
+
+            {showConfirmDialog && (
+                <ConfirmDialog
+                    message="You have unsaved changes. Are you sure you want to leave?"
+                    onConfirm={() => {
+                        setShowConfirmDialog(false);
+                        router.replace('/dashboard');
+                    }}
+                    onCancel={() => setShowConfirmDialog(false)}
                 />
             )}
 

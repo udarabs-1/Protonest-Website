@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-// Google OAuth types - isolated to avoid conflicts
 interface SignInGoogleOAuthConfig {
     client_id: string;
     callback: (response: GoogleCredentialResponse) => void;
@@ -47,12 +46,10 @@ interface GoogleCredentialResponse {
     select_by: string;
 }
 
-// Helper functions to safely access window properties
 const getWindowGoogle = (): SignInGoogleAPI | undefined => {
     return (window as Record<string, unknown>)?.google as SignInGoogleAPI | undefined;
 };
 
-// Token management functions
 const clearExpiredTokens = (): void => {
     if (typeof window === 'undefined') return;
 
@@ -68,12 +65,11 @@ const clearExpiredTokens = (): void => {
 };
 
 const setTokenWithExpiration = (token: string): void => {
-    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours
+    const expirationTime = new Date().getTime() + (24 * 60 * 60 * 1000);
     localStorage.setItem('jwtToken', token);
     localStorage.setItem('tokenExpiration', expirationTime.toString());
 };
 
-// Modal Component
 const MessageModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
@@ -105,18 +101,15 @@ export default function ResponsiveSignIn() {
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
 
-    // Memoized API configuration
     const apiConfig = useMemo(() => ({
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
         googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     }), []);
 
-    // Clear expired tokens on component mount
     useEffect(() => {
         clearExpiredTokens();
     }, []);
 
-    // Prevent back navigation
     useEffect(() => {
         window.history.replaceState(null, '', window.location.href);
 
@@ -132,7 +125,6 @@ export default function ResponsiveSignIn() {
         };
     }, []);
 
-    // Optimized event handlers with useCallback
     const togglePasswordVisibility = useCallback(() => {
         setShowPassword(prev => !prev);
     }, []);
@@ -151,7 +143,6 @@ export default function ResponsiveSignIn() {
         setModalMessage('');
     }, []);
 
-    // Helper function to handle redirect after sign in
     const handlePostSignInRedirect = useCallback(async () => {
         const pendingApplication = localStorage.getItem('pendingJobApplication');
 
@@ -161,13 +152,13 @@ export default function ResponsiveSignIn() {
                 const isRecent = Date.now() - pending.timestamp < 10 * 60 * 1000;
 
                 if (isRecent) {
-                    // User has a pending job application - redirect to job details page
-                    // The job details page will handle CV check and show error dialog
+
+
                     const jobUrl = pending.jobUrl || `/jobs/${pending.role || 'all'}/${pending.jobId}`;
                     window.location.replace(jobUrl);
                     return;
                 } else {
-                    // Expired pending application
+
                     localStorage.removeItem('pendingJobApplication');
                 }
             } catch (error) {
@@ -176,10 +167,9 @@ export default function ResponsiveSignIn() {
             }
         }
 
-        // No pending application, go to dashboard
         window.location.replace('/dashboard');
     }, []);
-    // Handle Google OAuth response for sign-in with improved error handling
+
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignIn called - SIGNIN flow');
         setIsLoading(true);
@@ -234,14 +224,12 @@ export default function ResponsiveSignIn() {
         }
     }, [apiConfig.apiUrl, handlePostSignInRedirect]);
 
-    // Use ref to store the latest callback
     const handleGoogleSignInRef = useRef(handleGoogleSignIn);
 
     useEffect(() => {
         handleGoogleSignInRef.current = handleGoogleSignIn;
     }, [handleGoogleSignIn]);
 
-    // Initialize Google OAuth with improved error handling
     useEffect(() => {
         if (typeof window !== 'undefined') {
             console.log('Initializing Google OAuth for SIGNIN');
@@ -260,7 +248,6 @@ export default function ResponsiveSignIn() {
 
                         console.log('Initializing Google with context: signin');
 
-                        // Always reinitialize to ensure correct callback
                         google.accounts.id.initialize({
                             client_id: apiConfig.googleClientId,
                             callback: (response: GoogleCredentialResponse) => {
@@ -289,7 +276,7 @@ export default function ResponsiveSignIn() {
 
             if (existingScript) {
                 console.log('Google script already exists, reinitializing for SIGNIN...');
-                // Wait a bit to ensure previous initialization is complete
+
                 setTimeout(initializeGoogle, 100);
             } else {
                 const script = document.createElement('script');
@@ -442,7 +429,6 @@ export default function ResponsiveSignIn() {
         }
     }, [email, password, apiConfig.apiUrl, handlePostSignInRedirect]);
 
-    // Memoized form validation
     const isFormValid = useMemo(() => {
         return email.trim() !== '' && password.trim() !== '';
     }, [email, password]);
@@ -451,7 +437,7 @@ export default function ResponsiveSignIn() {
         <div className="bg-white">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
-            {/* Mobile/Tablet Layout (sm to md) */}
+
             <div className="block lg:hidden">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -466,7 +452,7 @@ export default function ResponsiveSignIn() {
                     <div className="relative z-10 pb-8">
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
                             <Image
-                                src="/logo.png"
+                                src="/logo.webp"
                                 alt="Protonest Logo"
                                 width={112}
                                 height={80}
@@ -579,7 +565,7 @@ export default function ResponsiveSignIn() {
                 </div>
             </div>
 
-            {/* Desktop Layout (lg and above) */}
+
             <div className="hidden lg:block">
                 <div className="relative w-full min-h-screen bg-white">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -593,7 +579,7 @@ export default function ResponsiveSignIn() {
                             <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={112}
                                         height={80}
@@ -706,7 +692,7 @@ export default function ResponsiveSignIn() {
                         <div className="flex items-stretch h-screen">
                             <div className="w-full p-6 lg:p-4 2xl:p-6 flex">
                                 <Image
-                                    src="/login1.svg"
+                                    src="/login1.webp"
                                     alt="Welcome illustration"
                                     width={800}
                                     height={600}

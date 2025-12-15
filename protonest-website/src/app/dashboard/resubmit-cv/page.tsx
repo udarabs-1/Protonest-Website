@@ -84,7 +84,6 @@ interface ExpertiseArea {
     [category: string]: string[];
 }
 
-// All districts in Sri Lanka
 const sriLankaDistricts: string[] = [
     'Ampara',
     'Anuradhapura',
@@ -113,7 +112,6 @@ const sriLankaDistricts: string[] = [
     'Vavuniya'
 ];
 
-// Work functions list
 const workFunctionsList: string[] = [
     'Engineering',
     'Design',
@@ -132,10 +130,34 @@ const workFunctionsList: string[] = [
     'Administration'
 ];
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 const ResubmitCVPage = () => {
     const router = useRouter();
     const pathname = usePathname();
-
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -171,7 +193,6 @@ const ResubmitCVPage = () => {
         isGoogleUser: false,
     });
 
-    // Form data states
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
         email: '',
@@ -182,17 +203,40 @@ const ResubmitCVPage = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
+    const [districtSearch, setDistrictSearch] = useState('');
+    const [workFunctionSearch, setWorkFunctionSearch] = useState('');
 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const profileDropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const cityRef = useRef<HTMLDivElement>(null);
-    const workFunctionRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setDistrictSearch(formData.city || '');
+    }, [formData.city]);
 
     const dropdownRefs = useMemo(() => ({
-        city: cityRef,
-        workFunction: workFunctionRef,
+        city: { current: null as HTMLDivElement | null },
+        workFunction: { current: null as HTMLDivElement | null },
     }), []);
+
+    const inputRefs = useMemo(() => ({
+        city: { current: null as HTMLInputElement | null },
+        workFunction: { current: null as HTMLInputElement | null },
+    }), []);
+
+    const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+
+
+    useEffect(() => {
+        if (highlightedIndex >= 0 && dropdownOpen.city) {
+            const item = document.getElementById(`city-item-${highlightedIndex}`);
+            item?.scrollIntoView({ block: 'nearest' });
+        }
+        if (highlightedIndex >= 0 && dropdownOpen.workFunction) {
+            const item = document.getElementById(`workFunction-item-${highlightedIndex}`);
+            item?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [highlightedIndex, dropdownOpen]);
 
     const sidebarItems = [
         { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
@@ -205,15 +249,12 @@ const ResubmitCVPage = () => {
         { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
     ];
 
-    // Authentication check
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
 
-    // Fetch user profile data
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('jwtToken');
@@ -265,17 +306,16 @@ const ResubmitCVPage = () => {
         populateUserData();
         fetchUserProfile();
 
-        // Check for pending job application
         const pendingJobStr = localStorage.getItem('pendingJobApplication');
         if (pendingJobStr) {
             try {
                 const jobData = JSON.parse(pendingJobStr);
-                // Check if the job application is still valid (within 10 minutes)
+
                 const isValid = Date.now() - jobData.timestamp < 10 * 60 * 1000;
                 if (isValid) {
                     setPendingJob(jobData);
                 } else {
-                    // Remove expired job application
+
                     localStorage.removeItem('pendingJobApplication');
                 }
             } catch {
@@ -405,7 +445,6 @@ const ResubmitCVPage = () => {
             }));
         }
 
-        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -458,7 +497,6 @@ const ResubmitCVPage = () => {
                         }
                     });
 
-                    // STORE ALL ANALYSIS RESULTS
                     setExtractedSkills(allSkills);
                     setExpertiseAreas(expertiseAreasData);
                     setSuggestedJobs(data.results.suggested_jobs || []);
@@ -513,11 +551,10 @@ const ResubmitCVPage = () => {
     const handleSubmit = async () => {
         setHasAttemptedSubmit(true);
 
-        // If user hasn't uploaded CV before, validate full form
         if (!hasCVUploaded) {
             if (!validateForm()) return;
         } else {
-            // If resubmitting, only require file
+
             if (!selectedFile) {
                 setError('Please select a file first.');
                 return;
@@ -538,18 +575,15 @@ const ResubmitCVPage = () => {
             const submitData = new FormData();
             submitData.append('cv', selectedFile!);
 
-            // CRITICAL: Tell backend to skip analysis - we already have results
             submitData.append('skip_analysis', 'true');
             submitData.append('already_analyzed', 'true');
 
-            // Add pre-analyzed data
             submitData.append('skills', JSON.stringify(extractedSkills));
             submitData.append('expertiseAreas', JSON.stringify(expertiseAreas));
             submitData.append('suggestedJobs', JSON.stringify(suggestedJobs));
             submitData.append('cvFullText', cvFullText);
             submitData.append('totalYearsExperience', totalYearsExperience.toString());
 
-            // Add form data only if it's first time upload
             if (!hasCVUploaded) {
                 submitData.append('fullName', formData.fullName);
                 submitData.append('email', formData.email);
@@ -591,16 +625,14 @@ const ResubmitCVPage = () => {
                 setTimeout(() => {
                     setShowSubmissionModal(false);
 
-                    // Check if this was for a pending job application
                     if (pendingJob && pendingJob.jobUrl) {
-                        // Set flag that CV has been uploaded
+
                         sessionStorage.setItem('cvUploadedForJob', JSON.stringify({
                             jobTitle: pendingJob.jobTitle,
                             jobId: pendingJob.jobId,
                             timestamp: Date.now()
                         }));
 
-                        // Redirect to job details page to continue application
                         window.location.replace(pendingJob.jobUrl);
                     } else if (cvData.suggested_jobs && cvData.suggested_jobs.length > 0) {
                         setShowJobsModal(true);
@@ -628,7 +660,6 @@ const ResubmitCVPage = () => {
                 return;
             }
 
-            // Fetch the CV file
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
                 headers: {
                     'Authorization': `Bearer ${jwtToken}`,
@@ -642,7 +673,6 @@ const ResubmitCVPage = () => {
 
             const blob = await response.blob();
 
-            // Get file extension from CV info or default to .pdf
             let extension = '.pdf';
             if (cvInfo && cvInfo.file_type) {
                 extension = cvInfo.file_type.toLowerCase().startsWith('.')
@@ -650,17 +680,15 @@ const ResubmitCVPage = () => {
                     : `.${cvInfo.file_type.toLowerCase()}`;
             }
 
-            // Generate filename using profile data
             let filename = 'CV.pdf';
             const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
 
             if (fullName) {
-                // Clean the name for filename - replace spaces with underscores
+
                 const cleanName = fullName.replace(/\s+/g, '_');
                 filename = `${cleanName}_CV${extension}`;
             }
 
-            // Create blob URL and trigger download
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = blobUrl;
@@ -669,7 +697,6 @@ const ResubmitCVPage = () => {
             document.body.appendChild(link);
             link.click();
 
-            // Cleanup
             setTimeout(() => {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
@@ -699,10 +726,8 @@ const ResubmitCVPage = () => {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
 
-                // Open in new tab
                 const newWindow = window.open(url, '_blank');
 
-                // Clean up the URL after a delay
                 if (newWindow) {
                     setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                 } else {
@@ -718,7 +743,6 @@ const ResubmitCVPage = () => {
         }
     };
 
-    // Check if form is valid (for first time upload)
     const isFormValid = useMemo(() => {
         if (hasCVUploaded) {
             return !!selectedFile;
@@ -735,7 +759,6 @@ const ResubmitCVPage = () => {
         );
     }, [formData, selectedFile, hasCVUploaded]);
 
-    // Loading Spinner Component
     const LoadingSpinner = () => (
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
             <div className="w-full h-full rounded-full"></div>
@@ -750,7 +773,6 @@ const ResubmitCVPage = () => {
         </div>
     );
 
-    // Modal Wrapper Component
     const ModalWrapper = ({
         children,
         onBackdropClick,
@@ -770,7 +792,6 @@ const ResubmitCVPage = () => {
         </div>
     );
 
-    // Analysis Modal Component
     const AnalysisModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -784,7 +805,6 @@ const ResubmitCVPage = () => {
         </ModalWrapper>
     );
 
-    // Submission Modal Component
     const SubmissionModal = () => (
         <ModalWrapper>
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 h-full">
@@ -804,7 +824,6 @@ const ResubmitCVPage = () => {
         </ModalWrapper>
     );
 
-    // Jobs Modal Component
     const JobsModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -883,7 +902,6 @@ const ResubmitCVPage = () => {
         );
     };
 
-    // No Match Modal Component
     const NoMatchModal = () => {
         const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             if (e.target === e.currentTarget) {
@@ -969,7 +987,7 @@ const ResubmitCVPage = () => {
             }
         `}</style>
 
-            {/* SVG Gradient Definition */}
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -979,7 +997,7 @@ const ResubmitCVPage = () => {
                 </defs>
             </svg>
 
-            {/* Logout Confirmation Dialog */}
+
             {showLogoutDialog && (
                 <div
                     className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -1020,7 +1038,7 @@ const ResubmitCVPage = () => {
                             <div className="flex items-center">
                                 <Link href="/" className="w-[100px] lg:w-[130px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={130}
                                         height={80}
@@ -1079,7 +1097,7 @@ const ResubmitCVPage = () => {
                             <div className="flex justify-between items-center p-4">
                                 <Link href="/" className="w-[100px] relative">
                                     <Image
-                                        src="/logo.png"
+                                        src="/logo.webp"
                                         alt="Protonest Logo"
                                         width={100}
                                         height={60}
@@ -1316,35 +1334,74 @@ const ResubmitCVPage = () => {
                                                 District
                                             </label>
                                             <div className="relative" ref={dropdownRefs.city}>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleDropdown('city');
-                                                    }}
-                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                                >
-                                                    <span className={formData.city ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                                        {formData.city || 'Select district'}
-                                                    </span>
-                                                    <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.city ? 'rotate-180' : ''}`} />
-                                                </button>
+                                                <div className="relative">
+                                                    <input
+                                                        ref={(el) => { if (inputRefs.city) inputRefs.city.current = el; }}
+                                                        type="text"
+                                                        value={districtSearch}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setDistrictSearch(val);
+                                                            setHighlightedIndex(-1);
+                                                            if (!dropdownOpen.city) toggleDropdown('city');
+                                                            if (sriLankaDistricts.includes(val)) {
+                                                                handleInputChange('city', val);
+                                                            } else {
+                                                                handleInputChange('city', '');
+                                                            }
+                                                        }}
+                                                        onFocus={() => {
+                                                            if (!dropdownOpen.city) toggleDropdown('city');
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            const filteredDistricts = sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()));
+                                                            if (e.key === 'ArrowDown') {
+                                                                e.preventDefault();
+                                                                setHighlightedIndex(prev => (prev < filteredDistricts.length - 1 ? prev + 1 : prev));
+                                                            } else if (e.key === 'ArrowUp') {
+                                                                e.preventDefault();
+                                                                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                            } else if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                if (highlightedIndex >= 0 && highlightedIndex < filteredDistricts.length) {
+                                                                    const selected = filteredDistricts[highlightedIndex];
+                                                                    setDistrictSearch(selected);
+                                                                    handleInputChange('city', selected);
+                                                                    if (dropdownOpen.city) toggleDropdown('city');
+                                                                    setHighlightedIndex(-1);
+                                                                }
+                                                            }
+                                                        }}
+                                                        placeholder="Type or select district"
+                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
+                                                    />
+                                                    <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.city ? 'rotate-180' : ''}`} />
+                                                </div>
                                                 {dropdownOpen.city && (
                                                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                        {sriLankaDistricts.map(district => (
-                                                            <button
-                                                                key={district}
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleInputChange('city', district);
-                                                                    toggleDropdown('city');
-                                                                }}
-                                                                className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
-                                                            >
-                                                                {district}
-                                                            </button>
-                                                        ))}
+                                                        {sriLankaDistricts
+                                                            .filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()))
+                                                            .map((district, index) => (
+                                                                <button
+                                                                    key={district}
+                                                                    id={`city-item-${index}`}
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setDistrictSearch(district);
+                                                                        handleInputChange('city', district);
+                                                                        toggleDropdown('city');
+                                                                        setHighlightedIndex(-1);
+                                                                        inputRefs.city.current?.focus();
+                                                                    }}
+                                                                    className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
+                                                                >
+                                                                    {district}
+                                                                </button>
+                                                            ))}
+                                                        {sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
+                                                            <div className="p-3 text-gray-500 text-sm font-['Poppins']">No districts found</div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -1356,7 +1413,7 @@ const ResubmitCVPage = () => {
                                                 What functions do you prefer to work in?
                                             </label>
 
-                                            {/* Display selected functions as tags ABOVE the dropdown */}
+
                                             {formData.workFunction && (
                                                 <div className="mb-3 flex flex-wrap gap-2">
                                                     {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
@@ -1383,33 +1440,70 @@ const ResubmitCVPage = () => {
                                             )}
 
                                             <div className="relative" ref={dropdownRefs.workFunction}>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleDropdown('workFunction');
-                                                    }}
-                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left flex justify-between items-center focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins']"
-                                                >
-                                                    <span className={formData.workFunction ? 'text-gray-700 text-sm sm:text-base md:text-base lg:text-base' : 'text-gray-400 text-sm sm:text-base md:text-base lg:text-base'}>
-                                                        {formData.workFunction ? 'Functions selected' : 'Select work functions'}
-                                                    </span>
-                                                    <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
-                                                </button>
+                                                <div className="relative">
+                                                    <input
+                                                        ref={(el) => { if (inputRefs.workFunction) inputRefs.workFunction.current = el; }}
+                                                        type="text"
+                                                        value={workFunctionSearch}
+                                                        onChange={(e) => {
+                                                            setWorkFunctionSearch(e.target.value);
+                                                            setHighlightedIndex(-1);
+                                                            if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                                        }}
+                                                        onFocus={() => {
+                                                            if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            const available = workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func));
+                                                            const filtered = available.filter(f => f.toLowerCase().includes(workFunctionSearch.toLowerCase()));
+
+                                                            if (e.key === 'ArrowDown') {
+                                                                e.preventDefault();
+                                                                setHighlightedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
+                                                            } else if (e.key === 'ArrowUp') {
+                                                                e.preventDefault();
+                                                                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                            } else if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+                                                                    const match = filtered[highlightedIndex];
+                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                                    setWorkFunctionSearch('');
+                                                                    setHighlightedIndex(-1);
+                                                                    setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                                } else if (filtered.length > 0 && workFunctionSearch) {
+                                                                    const match = filtered[0];
+                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                                    setWorkFunctionSearch('');
+                                                                    setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                                }
+                                                            }
+                                                        }}
+                                                        placeholder="Type to search functions (Enter to select)"
+                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
+                                                    />
+                                                    <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
+                                                </div>
 
                                                 {dropdownOpen.workFunction && (
                                                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                                                         {workFunctionsList
                                                             .filter(func => !formData.workFunction.split(',').includes(func))
-                                                            .map(func => (
+                                                            .filter(func => func.toLowerCase().includes(workFunctionSearch.toLowerCase()))
+                                                            .map((func, index) => (
                                                                 <button
                                                                     key={func}
+                                                                    id={`workFunction-item-${index}`}
                                                                     type="button"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
+                                                                        setWorkFunctionSearch('');
+                                                                        setHighlightedIndex(-1);
+                                                                        setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                                        inputRefs.workFunction.current?.focus();
                                                                     }}
-                                                                    className="w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base"
+                                                                    className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
                                                                 >
                                                                     {func}
                                                                 </button>
@@ -1555,6 +1649,7 @@ const ResubmitCVPage = () => {
                                                     workFunction: '',
                                                     ndaAcknowledged: false
                                                 });
+                                                setWorkFunctionSearch('');
                                                 setSelectedFile(null);
                                                 setExtractedSkills([]);
                                                 setErrors({});

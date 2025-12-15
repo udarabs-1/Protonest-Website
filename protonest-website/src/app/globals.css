@@ -141,7 +141,7 @@ body {
   border: none;
   overflow: hidden;
   z-index: 1;
-  /* Solid text color instead of gradient */
+
 }
 
 .gradient-button-static-2::before {
@@ -172,7 +172,7 @@ body {
   border: none;
   overflow: hidden;
   z-index: 1;
-  /* Solid text color instead of gradient */
+
 }
 
 .gradient-button-static-3::before {
@@ -213,7 +213,7 @@ body {
   z-index: -2;
 }
 
-/* Custom loading animations */
+
 @keyframes blink {
 
   0%,
@@ -290,7 +290,7 @@ body {
   }
 }
 
-/* Apply animations to logo classes */
+
 .logo-blink {
   animation: blink 1.5s infinite;
 }
@@ -307,7 +307,7 @@ body {
   animation: rotatePulse 3s infinite linear;
 }
 
-/* Enhanced loading screen styles */
+
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -327,7 +327,7 @@ body {
   pointer-events: none;
 }
 
-/* Progress bar with shimmer effect */
+
 .progress-bar {
   position: relative;
   width: 240px;
@@ -360,7 +360,7 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
-/* Skeleton loading styles */
+
 .skeleton {
   background: linear-gradient(90deg,
       #f0f0f0 25%,
@@ -380,7 +380,7 @@ body {
   }
 }
 
-/* Smooth transitions for components */
+
 .component-enter {
   opacity: 0;
   transform: translateY(20px);
@@ -392,7 +392,7 @@ body {
   transform: translateY(0);
 }
 
-/* Custom scrollbar for better loading experience */
+
 ::-webkit-scrollbar {
   width: 8px;
 }

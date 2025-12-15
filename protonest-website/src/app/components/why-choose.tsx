@@ -43,8 +43,8 @@ const WhyChooseProtonest = () => {
 
     return (
         <div className="my-20 lg:my-24 relative w-full">
-            {/* Background Images */}
-            {/* Mobile/SM/MD Background */}
+
+
             <div className="lg:hidden absolute inset-0 flex items-center justify-center">
                 <Image
                     src="/home-6-mobile.svg"
@@ -58,7 +58,7 @@ const WhyChooseProtonest = () => {
                 />
             </div>
 
-            {/* LG+ Background */}
+
             <div className="hidden lg:block absolute inset-0">
                 <div className="flex justify-center">
                     <Image
@@ -74,9 +74,9 @@ const WhyChooseProtonest = () => {
                 </div>
             </div>
 
-            {/* Content Container */}
+
             <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-                {/* Header */}
+
                 <div className="text-left mb-8 md:mb-12">
                     <h2 className="text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat mb-15">
                         <span className="text-[rgba(108,108,108,1)]">
@@ -103,7 +103,7 @@ const WhyChooseProtonest = () => {
                     </div>
                 </div>
 
-                {/* Features - Mobile/SM/MD Layout (Alternating Left/Right) */}
+
                 <div className="block lg:hidden space-y-8 pt-8">
                     {features.map((feature, index) => (
                         <FeatureItemAlternating
@@ -116,9 +116,9 @@ const WhyChooseProtonest = () => {
                     ))}
                 </div>
 
-                {/* Features - Large Screen Layout (LG/XL/2XL - 2 Rows Centered) */}
+
                 <div className="hidden lg:block pt-16">
-                    {/* First Row - 3 items centered */}
+
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24 mb-20">
                         {features.slice(0, 3).map((feature, index) => (
                             <FeatureItemGrid
@@ -129,7 +129,7 @@ const WhyChooseProtonest = () => {
                             />
                         ))}
                     </div>
-                    {/* Second Row - 4 items centered */}
+
                     <div className="flex justify-center items-start gap-16 xl:gap-20 2xl:gap-24">
                         {features.slice(3, 7).map((feature, index) => (
                             <FeatureItemGrid
@@ -146,7 +146,6 @@ const WhyChooseProtonest = () => {
     );
 };
 
-// Alternating Feature Item Component (Mobile/SM/MD)
 const FeatureItemAlternating = ({ icon, title, isLeft, index }: { icon: string, title: string, isLeft: boolean, index: number }) => {
     return (
         <div className={`flex items-center ${isLeft ? 'justify-start' : 'justify-end'}`}>
@@ -160,7 +159,6 @@ const FeatureItemAlternating = ({ icon, title, isLeft, index }: { icon: string, 
     );
 };
 
-// Grid Feature Item Component (LG+)
 const FeatureItemGrid = ({ icon, title, index }: { icon: string, title: string, index: number }) => {
     return (
         <div className="flex flex-col items-center text-center w-64 group">
@@ -174,7 +172,6 @@ const FeatureItemGrid = ({ icon, title, index }: { icon: string, title: string, 
     );
 };
 
-// Reusable Feature Circle Component
 const FeatureCircle = ({ icon, title, index }: { icon: string, title: string, index: number }) => {
     return (
         <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
