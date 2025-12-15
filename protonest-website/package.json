@@ -39,6 +39,7 @@
     "react-dom": "^19.2.1",
     "react-fast-marquee": "^1.6.5",
     "react-gradient-text": "^0.1.0",
+    "react-icons": "^5.5.0",
     "react-pdf": "^10.2.0",
     "react-slick": "^0.30.3",
     "resend": "^6.0.0",
