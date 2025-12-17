@@ -39,12 +39,83 @@ const formatDate = (dateString: string): string => {
     });
 };
 
+const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
+    const textContent = htmlContent.replace(/<[^>]*>/g, '');
+    const trimmed = textContent.trim();
+    if (trimmed.length <= maxLength) return trimmed;
+
+    const truncated = trimmed.substring(0, maxLength);
+    const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+    return lastSpaceIndex > -1
+        ? truncated.substring(0, lastSpaceIndex) + '...'
+        : truncated + '...';
+};
+
+const BlogCard = ({ blog }: { blog: Blog }) => {
+    const excerpt = extractExcerpt(blog.content);
+    const readTime = calculateReadTime(blog.content);
+
+    return (
+        <Link href={`/blog/${blog.slug}`} passHref>
+            <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
+                <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
+                    <Image
+                        src={blog.cover_image || '/default-blog-image.jpg'}
+                        alt={blog.title}
+                        width={472}
+                        height={164}
+                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:grayscale"
+                        quality={90}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/default-blog-image.jpg';
+                        }}
+                    />
+
+                    <button className="absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
+                            Read More
+                        </span>
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <h3 className="text-[16px] xl:text-[18px] font-medium font-poppins leading-[1.4] transition-all duration-300 text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
+                        {blog.title}
+                    </h3>
+
+                    <div className="flex flex-wrap gap-2">
+                        {blog.categories.map((tag: string, index: number) => (
+                            <div key={`${tag}-${index}`} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
+                                <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
+                                    {tag}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
+                        {excerpt}
+                    </p>
+
+                    <div className="text-[#83848b] text-[10px] font-normal font-poppins">
+                        {readTime}
+                    </div>
+                </div>
+            </article>
+        </Link>
+    );
+};
+
 export default function BlogDetailPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
 
     const [blog, setBlog] = useState<Blog | null>(null);
+    const [suggestedBlogs, setSuggestedBlogs] = useState<Blog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +145,31 @@ export default function BlogDetailPage() {
 
                 if (result.status === 'success') {
                     setBlog(result.data);
+
+                    try {
+                        const blogsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+
+                        if (blogsResponse.ok) {
+                            const blogsResult = await blogsResponse.json();
+                            if (blogsResult.status === 'success') {
+                                const allBlogs = blogsResult.data || [];
+                                const currentBlogData = result.data;
+
+                                const otherBlogs = allBlogs.filter((b: Blog) => b.id !== currentBlogData.id);
+
+                                const shuffled = otherBlogs.sort(() => Math.random() - 0.5);
+                                const suggested = shuffled.slice(0, 2);
+                                setSuggestedBlogs(suggested);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error fetching suggested blogs:', err);
+                    }
                 } else {
                     throw new Error(result.message || 'Failed to fetch blog post');
                 }
@@ -233,7 +329,31 @@ export default function BlogDetailPage() {
             <Navbar />
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
-
+                <button
+                    onClick={() => router.back()}
+                    className="flex items-center gap-2 text-[#6c6c6c] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#5530FA] hover:to-[#F51DA5] transition-all mb-6 group cursor-pointer"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="group-hover:stroke-[url(#gradient)] lg:w-6 lg:h-6"
+                    >
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#5530FA" />
+                                <stop offset="100%" stopColor="#F51DA5" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    <span className="font-poppins text-sm lg:text-base font-medium">Back</span>
+                </button>
 
                 {blog.cover_image && (
                     <div className="mb-8 lg:mb-12">
@@ -282,6 +402,26 @@ export default function BlogDetailPage() {
                         dangerouslySetInnerHTML={{ __html: blog.content }}
                     />
                 </article>
+
+                {suggestedBlogs.length > 0 && (
+                    <section className="pt-12">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Articles</h2>
+                            <Link
+                                href="/blog"
+                                className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                            >
+                                <span className="underline">View more</span> &gt;
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {suggestedBlogs.map(suggestedBlog => (
+                                <BlogCard key={suggestedBlog.id} blog={suggestedBlog} />
+                            ))}
+                        </div>
+                    </section>
+                )}
 
             </div>
 

@@ -262,67 +262,19 @@ const ManageAlertsPage = () => {
         }
     };
 
-    const handleSavePreferences = async () => {
-        const success = await updatePreferences(jobAlertsEnabled, newsletterEnabled);
-        if (success) {
-            showSuccessMessage('Preferences saved successfully! Your subscription settings have been updated.');
 
-            setTimeout(() => {
-                fetchUserData();
-            }, 1000);
-        }
-    };
 
-    const handleNewsletterToggle = (enabled: boolean) => {
+    const handleNewsletterToggle = async (enabled: boolean) => {
         setNewsletterEnabled(enabled);
+        await updatePreferences(jobAlertsEnabled, enabled);
     };
 
-    const handleJobAlertsToggle = (enabled: boolean) => {
+    const handleJobAlertsToggle = async (enabled: boolean) => {
         setJobAlertsEnabled(enabled);
+        await updatePreferences(enabled, newsletterEnabled);
     };
 
-    const RadioButton = ({
-        checked,
-        onChange,
-        label,
-        name,
-        value
-    }: {
-        checked: boolean;
-        onChange: (value: boolean) => void;
-        label: string;
-        name: string;
-        value: boolean;
-    }) => (
-        <div className="flex items-center space-x-4">
-            <div className="relative flex items-center justify-center">
-                <input
-                    type="radio"
-                    name={name}
-                    checked={checked}
-                    onChange={() => onChange(value)}
-                    className="sr-only"
-                />
-                <div
-                    className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors flex items-center justify-center ${checked
-                        ? 'border-[#5530fa] bg-white'
-                        : 'border-[#6c6c6c] bg-white'
-                        }`}
-                    onClick={() => onChange(value)}
-                >
-                    {checked && (
-                        <div className="w-2 h-2 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full" />
-                    )}
-                </div>
-            </div>
-            <label
-                className="text-[#6c6c6c]/80 text-sm sm:text-base font-normal font-['Poppins'] leading-[30px] cursor-pointer flex-1"
-                onClick={() => onChange(value)}
-            >
-                {label}
-            </label>
-        </div>
-    );
+
 
     return (
         <div>
@@ -663,61 +615,49 @@ const ManageAlertsPage = () => {
 
 
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
-                                <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
-                                    Manage Job Alerts via Email
-                                </h3>
-                                <div className="space-y-4">
-                                    <RadioButton
-                                        checked={jobAlertsEnabled}
-                                        onChange={() => handleJobAlertsToggle(true)}
-                                        label="Turn on"
-                                        name="jobAlerts"
-                                        value={true}
-                                    />
-                                    <RadioButton
-                                        checked={!jobAlertsEnabled}
-                                        onChange={() => handleJobAlertsToggle(false)}
-                                        label="Turn off"
-                                        name="jobAlerts"
-                                        value={false}
-                                    />
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins']">
+                                        Manage Job Alerts via Email
+                                    </h3>
+                                    <button
+                                        onClick={() => handleJobAlertsToggle(!jobAlertsEnabled)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${jobAlertsEnabled
+                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                            : 'bg-gray-300'
+                                            }`}
+                                        title={jobAlertsEnabled ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${jobAlertsEnabled ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
                                 </div>
                             </div>
 
 
                             <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-6 lg:p-12 mb-8">
-                                <h3 className="text-lg font-medium text-[#6c6c6c] mb-6 font-['Poppins']">
-                                    Manage Email Notifications from the Newsletter
-                                </h3>
-                                <div className="space-y-4">
-                                    <RadioButton
-                                        checked={newsletterEnabled}
-                                        onChange={() => handleNewsletterToggle(true)}
-                                        label="Turn on"
-                                        name="newsletter"
-                                        value={true}
-                                    />
-                                    <RadioButton
-                                        checked={!newsletterEnabled}
-                                        onChange={() => handleNewsletterToggle(false)}
-                                        label="Turn off"
-                                        name="newsletter"
-                                        value={false}
-                                    />
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins']">
+                                        Manage Email Notifications from the Newsletter
+                                    </h3>
+                                    <button
+                                        onClick={() => handleNewsletterToggle(!newsletterEnabled)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${newsletterEnabled
+                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                            : 'bg-gray-300'
+                                            }`}
+                                        title={newsletterEnabled ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                    >
+                                        <span
+                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newsletterEnabled ? 'translate-x-6' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
                                 </div>
                             </div>
 
 
-                            <div className="flex justify-center lg:justify-end">
-                                <button
-                                    onClick={handleSavePreferences}
-                                    disabled={loading}
-                                    className={`w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                                        }`}
-                                >
-                                    {loading ? 'Saving...' : 'Save My Preferences'}
-                                </button>
-                            </div>
                         </main>
                     </div>
                 </div>

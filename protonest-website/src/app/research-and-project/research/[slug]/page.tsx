@@ -38,12 +38,34 @@ const formatDate = (dateString: string): string => {
     });
 };
 
+const ContentCard = ({ item }: { item: Content }) => {
+    return (
+        <Link href={`/research-and-project/research/${item.slug}?tab=research`} passHref>
+            <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
+                <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
+                    <Image
+                        src={item.cover_image || ''}
+                        alt={item.title}
+                        width={374}
+                        height={164}
+                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:grayscale"
+                    />
+                </div>
+                <h3 className="text-[#6c6c6c] text-base font-medium font-poppins leading-[1.4] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#5530FA] group-hover:to-[#F51DA5] transition-all duration-300">
+                    {item.title}
+                </h3>
+            </article>
+        </Link>
+    );
+};
+
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
 
     const [content, setContent] = useState<Content | null>(null);
+    const [suggestedResearch, setSuggestedResearch] = useState<Content[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -73,6 +95,31 @@ export default function ProjectDetailPage() {
 
                 if (result.status === 'success') {
                     setContent(result.data);
+
+                    try {
+                        const researchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/research?published=true`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+
+                        if (researchResponse.ok) {
+                            const researchResult = await researchResponse.json();
+                            if (researchResult.status === 'success') {
+                                const allResearch = researchResult.data || [];
+                                const currentResearchData = result.data;
+
+                                const otherResearch = allResearch.filter((r: Content) => r.id !== currentResearchData.id);
+
+                                const shuffled = otherResearch.sort(() => Math.random() - 0.5);
+                                const suggested = shuffled.slice(0, 2);
+                                setSuggestedResearch(suggested);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error fetching suggested research:', err);
+                    }
                 } else {
                     throw new Error(result.message || 'Failed to fetch research');
                 }
@@ -180,6 +227,31 @@ export default function ProjectDetailPage() {
             <Navbar />
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
+                <button
+                    onClick={() => router.back()}
+                    className="flex items-center gap-2 text-[#6c6c6c] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#5530FA] hover:to-[#F51DA5] transition-all mb-6 group cursor-pointer"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="group-hover:stroke-[url(#gradient)] lg:w-6 lg:h-6"
+                    >
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#5530FA" />
+                                <stop offset="100%" stopColor="#F51DA5" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    <span className="font-poppins text-sm lg:text-base font-medium">Back</span>
+                </button>
                 {content.cover_image && (
                     <div className="mb-8 lg:mb-12">
                         <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
@@ -213,6 +285,26 @@ export default function ProjectDetailPage() {
                         dangerouslySetInnerHTML={{ __html: content.content }}
                     />
                 </article>
+
+                {suggestedResearch.length > 0 && (
+                    <section className="pt-12">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Research</h2>
+                            <Link
+                                href="/research-and-project?tab=research"
+                                className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                            >
+                                <span className="underline">View more</span> &gt;
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {suggestedResearch.map(research => (
+                                <ContentCard key={research.id} item={research} />
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
 
             <Footer />

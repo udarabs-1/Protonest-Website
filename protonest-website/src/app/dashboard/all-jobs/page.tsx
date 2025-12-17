@@ -23,6 +23,7 @@ interface Job {
     experience: string;
     category: string;
     created_at: string;
+    is_active?: boolean;
 }
 
 interface ProfileData {
@@ -348,7 +349,8 @@ const AllJobsPage = () => {
 
                 const data = await response.json();
                 const jobsData = data.data || [];
-                setJobs(jobsData);
+                const activeJobs = jobsData.filter((job: Job) => job.is_active !== false);
+                setJobs(activeJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
 
@@ -861,7 +863,7 @@ const AllJobsPage = () => {
 
 
                                     <div className="relative w-full mb-8 lg:mb-12">
-                                        <div className="w-full h-10 lg:h-12 opacity-50 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] overflow-hidden flex items-center px-4">
+                                        <div className="w-full h-10 lg:h-12 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] border border-gray-300 overflow-hidden flex items-center px-4">
                                             <input
                                                 type="text"
                                                 placeholder="Search for the job role you are looking for"

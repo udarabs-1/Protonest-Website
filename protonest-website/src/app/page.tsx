@@ -8,12 +8,12 @@ import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/news-and-blogs";
 import ProjectSlider from "./components/projects-slider";
+import SectionHeader from "./components/section-header";
 import ServicesSection from "./components/services";
+import StatsSection from "./components/stats-section";
 import TestimonialSection from "./components/testimonials";
 import { useOnScreen } from "./components/use-on-screen";
 import WhyChooseProtonest from "./components/why-choose";
-import StatsSection from "./components/stats-section";
-import SectionHeader from "./components/section-header";
 
 const HIGHLIGHT_STATS = [
   { value: 100, suffix: "+", label: "Projects" },
@@ -40,9 +40,7 @@ function LargeScreenHome() {
 
   return (
     <div className="hidden lg:block">
-      {/* Hero Section */}
       <div className="mt-[100px] h-full relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-1.webp"
@@ -55,7 +53,6 @@ function LargeScreenHome() {
           />
         </div>
 
-        {/* Top Gradient Overlay */}
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10">
@@ -229,12 +226,10 @@ function SmallScreenHome() {
 
   return (
     <div className="lg:hidden">
-      {/* Hero Section */}
       <div className="mt-12 sm:mt-6 h-[450px] sm:h-[520px] relative">
-        {/* Background Image */}
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/home-1.svg"
+            src="/home-1.webp"
             alt="Hero background"
             fill
             priority={true}
@@ -244,7 +239,6 @@ function SmallScreenHome() {
           />
         </div>
 
-        {/* Top Gradient Overlay */}
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
@@ -403,12 +397,10 @@ function SmallScreenHome() {
 
       <ServicesSection />
 
-      {/* Stats Section with scroll-triggered animation */}
       <div
         ref={ref}
-        className={`py-20 sm:py-16 w-full min-h-[200px] flex items-center transition-all duration-500 ${
-          isMobile && isVisible ? "bg-black" : "bg-[#FAFAFA]"
-        }`}
+        className={`py-20 sm:py-16 w-full min-h-[200px] flex items-center transition-all duration-500 ${isMobile && isVisible ? "bg-black" : "bg-[#FAFAFA]"
+          }`}
       >
         <div className="flex flex-col sm:flex-row justify-center items-center gap-24 sm:gap-12 md:gap-16 max-w-screen-xl mx-auto px-4">
           {HIGHLIGHT_STATS.map(({ label, value, suffix = "" }) => (
@@ -418,11 +410,10 @@ function SmallScreenHome() {
                 {suffix}
               </div>
               <div
-                className={`text-transparent bg-clip-text text-[14px] lg:text-[16px] font-normal font-poppins transition-all duration-500 ${
-                  isMobile && isVisible
-                    ? "bg-gradient-to-r from-[#B4B4B4] to-[#4E4E4E]"
-                    : "bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4]"
-                }`}
+                className={`text-transparent bg-clip-text text-[14px] lg:text-[16px] font-normal font-poppins transition-all duration-500 ${isMobile && isVisible
+                  ? "bg-gradient-to-r from-[#B4B4B4] to-[#4E4E4E]"
+                  : "bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4]"
+                  }`}
               >
                 {label}
               </div>

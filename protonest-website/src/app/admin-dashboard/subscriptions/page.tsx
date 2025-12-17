@@ -534,20 +534,34 @@ const SubscriptionManagement = () => {
                                                     {subscription.email}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={subscription.newsletter}
-                                                        onChange={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
-                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 rounded cursor-pointer accent-[#5530fa]"
-                                                    />
+                                                    <button
+                                                        onClick={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
+                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.newsletter
+                                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                                            : 'bg-gray-300'
+                                                            }`}
+                                                        title={subscription.newsletter ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                                    >
+                                                        <span
+                                                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.newsletter ? 'translate-x-4.5' : 'translate-x-0.5'
+                                                                }`}
+                                                        />
+                                                    </button>
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={subscription.career_updates}
-                                                        onChange={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
-                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 rounded cursor-pointer accent-[#5530fa]"
-                                                    />
+                                                    <button
+                                                        onClick={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
+                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.career_updates
+                                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                                            : 'bg-gray-300'
+                                                            }`}
+                                                        title={subscription.career_updates ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                                    >
+                                                        <span
+                                                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.career_updates ? 'translate-x-4.5' : 'translate-x-0.5'
+                                                                }`}
+                                                        />
+                                                    </button>
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                     {new Date(subscription.created_at).toLocaleDateString()}

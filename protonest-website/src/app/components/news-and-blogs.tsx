@@ -2,8 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { useOnScreen } from "./use-on-screen";
 import SectionHeader from "./section-header";
+import { useOnScreen } from "./use-on-screen";
 
 const truncateToSentences = (
   text: string,
@@ -118,11 +118,10 @@ const BlogCard = ({
     <Link href={blog.link} className="block w-full max-w-[345px]">
       <div
         ref={ref}
-        className={`group w-full h-auto min-h-[350px] sm:min-h-[420px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${
-          shouldShowEffects
-            ? "shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]"
-            : ""
-        }`}
+        className={`group w-full h-auto min-h-[350px] sm:min-h-[420px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects
+          ? "shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]"
+          : ""
+          }`}
       >
         <div className="relative w-full max-w-[279px] h-[140px] sm:h-[164px] mx-auto rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6">
           <Image
@@ -132,17 +131,15 @@ const BlogCard = ({
             priority={index === 0}
             quality={index === 0 ? 85 : 75}
             sizes="(max-width: 768px) 279px, (max-width: 1024px) 345px, 279px"
-            className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${
-              shouldShowEffects ? "scale-105 grayscale" : ""
-            }`}
+            className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? "scale-105 grayscale" : ""
+              }`}
           />
 
           <div
-            className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 flex items-center justify-center ${
-              shouldShowEffects
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
-            }`}
+            className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 flex items-center justify-center ${shouldShowEffects
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-4"
+              }`}
           >
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
               Read More
@@ -151,11 +148,10 @@ const BlogCard = ({
         </div>
 
         <h3
-          className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${
-            shouldShowEffects
-              ? "text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
-              : "text-[#4d4d4d]"
-          }`}
+          className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects
+            ? "text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
+            : "text-[#4d4d4d]"
+            }`}
         >
           {blog.title}
         </h3>
@@ -171,7 +167,7 @@ const BlogCard = ({
               {isTruncated && "... "}
               {isTruncated && (
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-medium">
-                  Read more
+                  Read More
                 </span>
               )}
             </p>
