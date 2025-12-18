@@ -43,7 +43,7 @@ interface JobDetails {
 }
 
 interface EnrichedAppliedJob extends AppliedJob {
-    jobDetails?: JobDetails;
+    jobDetails: JobDetails;
 }
 
 interface ProfileData {
@@ -417,12 +417,24 @@ const AppliedJobs = () => {
                     } catch (error) {
                         console.error('Error fetching job details:', error);
                     }
-                    return job;
+                    return {
+                        ...job,
+                        jobDetails: {
+                            id: job.job_id._id,
+                            title: job.job_id.title,
+                            location: 'Not available',
+                            type: 'Not available',
+                            description: 'This job is no longer available',
+                            experience: 'Not specified',
+                            deadline: 'Not specified',
+                            category: 'Other'
+                        }
+                    };
                 })
             );
 
-            setAppliedJobs(enrichedJobs);
-            setFilteredJobs(enrichedJobs);
+            setAppliedJobs(enrichedJobs as EnrichedAppliedJob[]);
+            setFilteredJobs(enrichedJobs as EnrichedAppliedJob[]);
         } catch (err) {
             console.error('Error fetching applied jobs:', err);
             setError('Failed to load applied jobs data');
@@ -746,7 +758,7 @@ const AppliedJobs = () => {
                                 </div>
 
                                 <div className="relative mb-6 flex items-center gap-3">
-                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
+                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
                                         <input
                                             type="text"
                                             placeholder="Search for applied jobs..."
@@ -771,19 +783,8 @@ const AppliedJobs = () => {
                                     ) : (
                                         <div className="col-span-full text-center py-12">
                                             <p className="text-gray-500">
-                                                {searchQuery || activeFilter !== 'all'
-                                                    ? 'No applied jobs found matching your criteria.'
-                                                    : 'You haven\'t applied to any jobs yet.'
-                                                }
+                                                No applied jobs found matching your criteria.
                                             </p>
-                                            {!searchQuery && activeFilter === 'all' && appliedJobs.length === 0 && (
-                                                <Link
-                                                    href="/dashboard/suggested-jobs"
-                                                    className="text-purple-600 hover:text-purple-700 mt-2 inline-block"
-                                                >
-                                                    Browse suggested jobs →
-                                                </Link>
-                                            )}
                                         </div>
                                     )}
                                 </div>

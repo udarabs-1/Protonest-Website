@@ -40,6 +40,7 @@ interface Job {
     posted: string;
     hired_candidate_id?: string;
     status: string;
+    is_active: boolean;
 }
 
 interface ApiResponse {
@@ -112,6 +113,7 @@ const JobPostings = () => {
     const [showTriggerDialog, setShowTriggerDialog] = useState(false);
     const [triggerLoading, setTriggerLoading] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
@@ -250,7 +252,13 @@ const JobPostings = () => {
         let filtered = [...jobsArray];
 
         if (activeFilter !== 'all') {
-            filtered = filtered.filter(job => job.publication_status === activeFilter);
+            if (activeFilter === 'active') {
+                filtered = filtered.filter(job => job.is_active === true);
+            } else if (activeFilter === 'inactive') {
+                filtered = filtered.filter(job => job.is_active === false);
+            } else {
+                filtered = filtered.filter(job => job.publication_status === activeFilter);
+            }
         }
 
         if (searchQuery) {
@@ -295,6 +303,10 @@ const JobPostings = () => {
 
                     if (response.ok) {
                         setJobPostings(prev => prev.filter(job => job.id !== jobId));
+                        setSuccessMessage({
+                            title: 'Job Deleted Successfully!',
+                            description: 'The job posting has been permanently removed from the system.'
+                        });
                         setShowSuccessDialog(true);
                     } else {
                         const errorData = await response.json();
@@ -309,6 +321,44 @@ const JobPostings = () => {
                 }
             }
         });
+    };
+
+    const handleToggleActive = async (jobId: string, currentStatus: boolean) => {
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                throw new Error('Admin authentication required');
+            }
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ is_active: !currentStatus }),
+                }
+            );
+
+            if (response.ok) {
+                setJobPostings(prev =>
+                    prev.map(job =>
+                        job.id === jobId ? { ...job, is_active: !currentStatus } : job
+                    )
+                );
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.message || 'Failed to update job status';
+                setErrorMessage('Failed to update job status: ' + errorMessage);
+                setShowErrorDialog(true);
+            }
+        } catch (err) {
+            console.error('Error toggling job status:', err);
+            setErrorMessage('Failed to update job status: Network error');
+            setShowErrorDialog(true);
+        }
     };
 
     const handleTriggerJobSuggestions = async () => {
@@ -338,8 +388,12 @@ const JobPostings = () => {
             }
 
             const result = await response.json();
-            console.log('Trigger response:', result);
+            console.log('Job suggestions triggered:', result);
 
+            setSuccessMessage({
+                title: 'Job Suggestions Triggered Successfully!',
+                description: 'Job suggestion emails are being processed in the background. Talent pool users with matching jobs will receive personalized recommendations shortly.'
+            });
             setShowSuccessDialog(true);
         } catch (err: unknown) {
             console.error('Error triggering job suggestions:', err);
@@ -376,6 +430,8 @@ const JobPostings = () => {
 
     const statusFilters = [
         { label: 'All', value: 'all' },
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
         { label: 'Published', value: 'published' },
         { label: 'Draft', value: 'draft' },
         { label: 'Scheduled', value: 'scheduled' }
@@ -496,10 +552,10 @@ const JobPostings = () => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                Job Suggestions Triggered Successfully!
+                                {successMessage.title || 'Success!'}
                             </h3>
                             <p className="text-gray-600 mb-6">
-                                Job suggestion emails are being processed in the background. Talent pool users with matching jobs will receive personalized recommendations shortly.
+                                {successMessage.description || 'Operation completed successfully.'}
                             </p>
                             <button
                                 onClick={() => setShowSuccessDialog(false)}
@@ -526,7 +582,7 @@ const JobPostings = () => {
                                 <X className="h-8 w-8 text-red-600" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                Failed to Send Job Suggestions
+                                Failed to Update Job Status
                             </h3>
                             <p className="text-gray-600 mb-6">
                                 {errorMessage || 'An error occurred while triggering job suggestions. Please try again later.'}
@@ -824,6 +880,9 @@ const JobPostings = () => {
                                                 Published On
                                             </th>
                                             <th className="px-4 py-3 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                                Active Status
+                                            </th>
+                                            <th className="px-4 py-3 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
@@ -861,6 +920,21 @@ const JobPostings = () => {
                                                             {job.publication_status === 'published' ? formatDate(job.created_at) : '-'}
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap text-center">
+                                                            <button
+                                                                onClick={() => handleToggleActive(job.id, job.is_active)}
+                                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.is_active
+                                                                    ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                                                    : 'bg-gray-300'
+                                                                    }`}
+                                                                title={job.is_active ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                                            >
+                                                                <span
+                                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${job.is_active ? 'translate-x-6' : 'translate-x-1'
+                                                                        }`}
+                                                                />
+                                                            </button>
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-center">
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <Link
                                                                     href={`/jobs/${roleSlug}/${job.id}`}
@@ -890,7 +964,7 @@ const JobPostings = () => {
                                             })
                                         ) : (
                                             <tr>
-                                                <td colSpan={6} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                                <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                     {searchQuery
                                                         ? `No job postings found matching "${searchQuery}"`
                                                         : activeFilter !== 'all'

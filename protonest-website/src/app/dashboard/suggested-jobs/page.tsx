@@ -40,6 +40,7 @@ interface PublicJobResponse {
     status: string;
     created_by: string;
     created_at: string;
+    is_active?: boolean;
 }
 
 interface Job {
@@ -273,6 +274,10 @@ const SuggestedJobs = () => {
                         if (jobResponse.ok) {
                             const jobData = await jobResponse.json();
                             const publicJob: PublicJobResponse = jobData.data;
+
+                            if (publicJob.is_active === false) {
+                                return null;
+                            }
 
                             return {
                                 id: publicJob.id,
@@ -997,7 +1002,7 @@ const SuggestedJobs = () => {
 
                                 <div className="relative mb-6 flex items-center gap-3">
 
-                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
+                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
                                         <input
                                             type="text"
                                             placeholder="Search for the job you are looking for"

@@ -18,6 +18,7 @@ type Job = {
     experience: string;
     category: string;
     created_at: string;
+    is_active?: boolean;
 };
 
 interface ApiJobData {
@@ -33,6 +34,7 @@ interface ApiJobData {
     responsibilities?: string[];
     requirements?: string[];
     overview?: string;
+    is_active?: boolean;
 }
 
 interface ApiResponse {
@@ -286,7 +288,8 @@ export default function RolePage() {
                             deadline: formatDate(job.deadline || new Date().toISOString()),
                             experience: job.experience || 'junior',
                             category: job.category || category,
-                            created_at: job.created_at || new Date().toISOString()
+                            created_at: job.created_at || new Date().toISOString(),
+                            is_active: job.is_active
                         };
                     } catch (transformError) {
                         console.error('Error transforming job:', job, transformError);
@@ -299,12 +302,14 @@ export default function RolePage() {
                             deadline: 'Unknown',
                             experience: 'junior',
                             category: category || 'Unknown',
-                            created_at: new Date().toISOString()
+                            created_at: new Date().toISOString(),
+                            is_active: false
                         };
                     }
                 });
 
-                setJobs(transformedJobs);
+                const activeJobs = transformedJobs.filter(job => job.is_active !== false);
+                setJobs(activeJobs);
 
             } catch (error) {
                 console.error('Error fetching jobs:', error);

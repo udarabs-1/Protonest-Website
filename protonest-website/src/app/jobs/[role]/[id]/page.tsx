@@ -369,7 +369,7 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                 </div>
             </div>
 
-            
+
             <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
                 <div className="w-full h-full group-hover:hidden">
                     <Image
@@ -920,7 +920,13 @@ export default function JobDetailPage() {
                 const jobResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${jobId}`);
 
                 if (!jobResponse.ok) {
-                    throw new Error(`Failed to fetch job: ${jobResponse.status}`);
+                    if (jobResponse.status === 404) {
+                        setError('This job is no longer available. It may have been removed or is currently inactive.');
+                    } else {
+                        setError(`Unable to load job details. Please try again later.`);
+                    }
+                    setLoading(false);
+                    return;
                 }
 
                 const jobData = await jobResponse.json();
@@ -972,11 +978,11 @@ export default function JobDetailPage() {
                         }
                     }
                 } else {
-                    throw new Error('Invalid job response format');
+                    setError('Unable to load job details. Please try again later.');
                 }
             } catch (err) {
                 console.error('Error fetching job details:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load job details');
+                setError('Unable to load job details. Please check your connection and try again.');
             } finally {
                 setLoading(false);
             }
@@ -1012,13 +1018,16 @@ export default function JobDetailPage() {
             <div className="min-h-screen relative bg-white overflow-x-hidden">
                 <Navbar />
                 <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-                    <p className="text-red-600 text-lg mb-4">{error || 'Job not found.'}</p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Job Not Available</h2>
+                    <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+                        {error || 'This job posting is no longer available.'}
+                    </p>
+                    <Link
+                        href="/careers"
+                        className="inline-block bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white px-8 py-3 rounded-[57px] font-semibold hover:opacity-90 transition-opacity"
                     >
-                        Try Again
-                    </button>
+                        Browse Available Jobs
+                    </Link>
                 </div>
                 <Footer />
             </div>
@@ -1054,7 +1063,7 @@ export default function JobDetailPage() {
                 }
             `}</style>
 
-            
+
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1067,19 +1076,19 @@ export default function JobDetailPage() {
             <Navbar />
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-8 lg:py-12">
-                
+
                 <div className="flex justify-between items-start mb-6">
                     <h1 className="text-[#6c6c6c] text-[20px] sm:text-[24px] lg:text-[26px] xl:text-3xl font-medium font-montserrat flex-1 pr-4">
                         {job.title}
                     </h1>
 
-                    
+
                     {user && (
                         <div className="flex gap-3 items-center">
-                            
+
                             {hasApplied ? (
                                 <>
-                                    
+
                                     <button
                                         disabled
                                         className="px-6 py-2 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white text-sm font-semibold font-montserrat whitespace-nowrap"
@@ -1088,7 +1097,7 @@ export default function JobDetailPage() {
                                         Applied ✓
                                     </button>
 
-                                    
+
                                     {canWithdraw && (
                                         <button
                                             onClick={handleWithdrawClick}
@@ -1100,7 +1109,7 @@ export default function JobDetailPage() {
                                         </button>
                                     )}
 
-                                    
+
                                     <button
                                         onClick={handleSaveJobClick}
                                         disabled={saveLoading}
@@ -1124,7 +1133,7 @@ export default function JobDetailPage() {
                                     </button>
                                 </>
                             ) : (
-                                
+
                                 <button
                                     onClick={handleSaveJobClick}
                                     disabled={saveLoading}
@@ -1151,7 +1160,7 @@ export default function JobDetailPage() {
                     )}
                 </div>
 
-                
+
                 <div className="items-center gap-8 mb-6">
                     <div className="text-[#6c6c6c] text-base font-normal font-poppins mb-2">
                         <span>Category: </span>
@@ -1162,7 +1171,7 @@ export default function JobDetailPage() {
                     </div>
                 </div>
 
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {jobDetailItems.map((item, index) => (
                         <div key={index} className="flex items-center gap-4">
@@ -1182,14 +1191,14 @@ export default function JobDetailPage() {
                     ))}
                 </div>
 
-                
+
                 <section className="mb-8">
                     <p className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                         {job.description}
                     </p>
                 </section>
 
-                
+
                 {job.responsibilities && job.responsibilities.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What You&apos;ll Be Doing</h2>
@@ -1201,7 +1210,7 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                
+
                 {job.requirements && job.requirements.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What We&apos;re Looking For</h2>
@@ -1213,7 +1222,7 @@ export default function JobDetailPage() {
                     </section>
                 )}
 
-                
+
                 <div className="mb-6">
                     {user ? (
                         <div className="flex flex-wrap gap-4">
@@ -1272,7 +1281,7 @@ export default function JobDetailPage() {
                     )}
                 </div>
 
-                
+
                 {similarJobs.length > 0 && (
                     <section className="pt-8">
                         <div className="flex justify-between items-center mb-6">
@@ -1299,7 +1308,7 @@ export default function JobDetailPage() {
                 )}
             </main>
 
-            
+
             {showConfirmDialog && job && (
                 <ConfirmDialog
                     type={showConfirmDialog}
@@ -1315,7 +1324,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            
+
             {showErrorDialog && (
                 <ErrorDialog
                     message={showErrorDialog}
@@ -1324,7 +1333,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            
+
             {showInfoDialog && (
                 <InfoDialog
                     message={showInfoDialog}
@@ -1332,7 +1341,7 @@ export default function JobDetailPage() {
                 />
             )}
 
-            
+
             {showSuccessPopup && (
                 <SuccessPopup
                     type={showSuccessPopup}

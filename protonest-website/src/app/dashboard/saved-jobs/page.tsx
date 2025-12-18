@@ -31,6 +31,7 @@ interface Job {
     matchPercentage?: number;
     matchedSkills?: string[];
     missingSkills?: string[];
+    is_active?: boolean;
 }
 
 interface SavedJob {
@@ -359,8 +360,10 @@ const SavedJobs = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setSavedJobs(data.data || []);
-                    setFilteredJobs(data.data || []);
+                    const allSavedJobs = data.data || [];
+                    const activeSavedJobs = allSavedJobs.filter((job: SavedJob) => job.job_details.is_active !== false);
+                    setSavedJobs(activeSavedJobs);
+                    setFilteredJobs(activeSavedJobs);
                 } else {
                     console.error('Failed to fetch saved jobs');
                 }
@@ -736,7 +739,7 @@ const SavedJobs = () => {
 
                                 <div className="relative mb-6 flex items-center gap-3">
 
-                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm overflow-hidden">
+                                    <div className="relative w-full bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
                                         <input
                                             type="text"
                                             placeholder="Search for the job you have saved"

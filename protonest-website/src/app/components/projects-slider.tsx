@@ -10,10 +10,34 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 const projects = [
-    { id: 1, title: 'Compact GPS Tracker', image: '/project1.png', slug: 'compact-gps-tracker-prototype-for-adam-healy' },
-    { id: 2, title: 'Smart Door Lock', image: '/project2.png', slug: 'smart-door-lock-system-for-entryphone,-uk' },
-    { id: 3, title: 'Smart WiFi Rebooter', image: '/project3.png', slug: 'wifi-rebooter-system-for-perseo-srls,-italy' },
-    { id: 4, title: 'Soap Dose Tracking System', image: '/project4.png', slug: 'soap-dose-tracking-system-for-1001cleanbox' },
+    {
+        id: 1,
+        title: 'Compact GPS Tracker',
+        image: '/project1.png',
+        slug: 'compact-gps-tracker-prototype-for-adam-healy',
+        description: 'This handheld GPS tracker sends its location every 30 seconds using a unique device ID with indicators for network status, cloud connection and satellite lock. Its small case makes it easy to carry in a pocket or bag.'
+    },
+    {
+        id: 2,
+        title: 'Smart Door Lock',
+        image: '/project2.png',
+        slug: 'smart-door-lock-system-for-entryphone,-uk',
+        description: 'The system manages smart locks, and manages all permissions through an admin and super admin portal.'
+    },
+    {
+        id: 3,
+        title: 'Smart WiFi Rebooter',
+        image: '/project3.png',
+        slug: 'wifi-rebooter-system-for-perseo-srls,-italy',
+        description: 'This device monitors internet connectivity and restores access by rebooting the router when outages occur. It uses AP Mode for setup and STA Mode for daily use. A simple inbuilt web interface allows configuration and status checks.'
+    },
+    {
+        id: 4,
+        title: 'Soap Dose Tracking System',
+        image: '/project4.png',
+        slug: 'soap-dose-tracking-system-for-1001cleanbox',
+        description: 'This device tracks dose count, temperature and UV index in real time. It displays cloud-synced messages and can be controlled through a simple web app.'
+    },
 ];
 
 export default function ProjectSlider() {
@@ -121,9 +145,15 @@ export default function ProjectSlider() {
                                             />
                                         </div>
                                         <div className="p-6">
-                                            <h3 className="text-[#333333] text-sm font-medium font-poppins">
+                                            <h3 className="text-[#333333] text-sm font-medium font-poppins mb-2">
                                                 {project.title}
                                             </h3>
+                                            <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3">
+                                                {project.description}
+                                            </p>
+                                            <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline">
+                                                Read More
+                                            </button>
                                         </div>
                                     </div>
                                 </Link>
@@ -246,9 +276,15 @@ export default function ProjectSlider() {
                                                 />
                                             </div>
                                             <div className="p-5">
-                                                <h3 className="text-[#333333] text-sm font-medium font-poppins">
+                                                <h3 className="text-[#333333] text-sm font-medium font-poppins mb-2">
                                                     {project.title}
                                                 </h3>
+                                                <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3">
+                                                    {project.description}
+                                                </p>
+                                                <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline">
+                                                    Read More
+                                                </button>
                                             </div>
                                         </div>
                                     </Link>
