@@ -1,22 +1,17 @@
 'use client';
 
-import Footer from '@/app/components/footer';
 import { Icon } from '@iconify/react';
 import {
     ChevronDown,
-    ChevronRight,
     Download,
     Eye,
-    LogOut,
-    Menu,
     Upload,
-    User,
     X
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import DashboardLayout from '@/app/components/dashboard-layout';
 
 interface CVInfoResponse {
     status: string;
@@ -158,7 +153,8 @@ const isUserTokenExpired = (): boolean => {
 const ResubmitCVPage = () => {
     const router = useRouter();
     const pathname = usePathname();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -173,8 +169,7 @@ const ResubmitCVPage = () => {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
     const [expertiseAreas, setExpertiseAreas] = useState<ExpertiseArea>({});
     const [cvFullText, setCvFullText] = useState<string>('');
     const [totalYearsExperience, setTotalYearsExperience] = useState<number>(0);
@@ -206,13 +201,7 @@ const ResubmitCVPage = () => {
     const [districtSearch, setDistrictSearch] = useState('');
     const [workFunctionSearch, setWorkFunctionSearch] = useState('');
 
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const profileDropdownRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        setDistrictSearch(formData.city || '');
-    }, [formData.city]);
 
     const dropdownRefs = useMemo(() => ({
         city: { current: null as HTMLDivElement | null },
@@ -226,7 +215,6 @@ const ResubmitCVPage = () => {
 
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-
     useEffect(() => {
         if (highlightedIndex >= 0 && dropdownOpen.city) {
             const item = document.getElementById(`city-item-${highlightedIndex}`);
@@ -238,16 +226,14 @@ const ResubmitCVPage = () => {
         }
     }, [highlightedIndex, dropdownOpen]);
 
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
-        { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
-        { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
-        { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
-        { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-        { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
-        { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
+    const breadcrumbItems = [
+        { label: 'User Dashboard', href: '/dashboard' },
+        { label: 'Resubmit CV', href: '/dashboard/resubmit-cv', active: true }
     ];
+
+    useEffect(() => {
+        setDistrictSearch(formData.city || '');
+    }, [formData.city]);
 
     useEffect(() => {
         if (isUserTokenExpired()) {
@@ -377,14 +363,6 @@ const ResubmitCVPage = () => {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-
-            if (showProfileDropdown && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
-                setShowProfileDropdown(false);
-            }
-
             const isOutsideDropdown = Object.values(dropdownRefs).every(ref =>
                 ref.current && !ref.current.contains(event.target as Node)
             );
@@ -398,15 +376,7 @@ const ResubmitCVPage = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, showProfileDropdown, dropdownOpen, dropdownRefs]);
-
-    const handleLogout = () => {
-        localStorage.removeItem('jwtToken');
-        localStorage.removeItem('userData');
-        setShowProfileDropdown(false);
-        setShowLogoutDialog(false);
-        router.push('/careers');
-    };
+    }, [dropdownOpen, dropdownRefs]);
 
     const validateForm = useCallback((): boolean => {
         const newErrors: FormErrors = {};
@@ -959,7 +929,7 @@ const ResubmitCVPage = () => {
     };
 
     return (
-        <div>
+        <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
             <style jsx global>{`
             .gradient-icon svg {
                 width: 100%;
@@ -997,691 +967,488 @@ const ResubmitCVPage = () => {
                 </defs>
             </svg>
 
-
-            {showLogoutDialog && (
-                <div
-                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
+            <div className="sticky top-0 z-10 bg-white pb-6 pt-1 flex flex-col gap-6">
+                <div className="flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex flex-col justify-start items-start gap-2.5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                    <Icon
+                                        icon="solar:cloud-upload-bold-duotone"
+                                        className="w-7 h-7"
+                                    />
+                                </div>
+                                <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
+                                    {pendingJob ? `Upload CV to Apply for ${pendingJob.jobTitle}` : hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
+                                </h1>
+                            </div>
+                            <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
+                                {pendingJob ? (
+                                    `Complete your application for ${pendingJob.jobTitle} by uploading your CV. After upload, you'll be redirected to continue the application process.`
+                                ) : hasCVUploaded
+                                    ? 'Keep your CV up to date so we can better match you with the right freelance projects at Protonest.'
+                                    : 'Upload your CV to join our talent pool and get matched with the right freelance projects at Protonest.'
+                                }
+                            </p>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
 
-            <div className="font-poppins min-h-screen bg-white relative">
-                {sidebarOpen && (
-                    <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
+            <div className="pb-8">
+                {error && (
+                    <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                        {error}
+                    </div>
+                )}
+                {success && (
+                    <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                        {success}
+                    </div>
                 )}
 
-                <header className="bg-white py-4">
-                    <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center">
-                                <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={130}
-                                        height={80}
-                                        className="object-contain"
-                                    />
-                                </Link>
+                {hasCVUploaded && !pendingJob && (
+                    <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12 mb-8">
+                        <div className="flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-6 text-center lg:text-left">
+                            <div className="flex-1">
+                                <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">Current CV Status</h3>
+                                <div className="space-y-1 text-[#6c6c6c]">
+                                    <p className="text-base">
+                                        <span className="font-medium">Last Submitted:</span> {lastSubmitted}
+                                    </p>
+                                </div>
                             </div>
-
-                            <div className="flex items-center relative" ref={profileDropdownRef}>
+                            <div className="flex flex-col gap-3 justify-center items-center lg:items-stretch w-[160px]">
                                 <button
-                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                                    className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-offset-2"
+                                    onClick={handlePreviewCV}
+                                    disabled={!cvInfo}
+                                    className="flex h-[40px] sm:h-[50px] w-full items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white cursor-pointer font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
                                 >
-                                    <Image
-                                        src={profileData.profileImage}
-                                        alt="User Avatar"
-                                        width={40}
-                                        height={40}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    Preview CV
                                 </button>
-
-                                {showProfileDropdown && (
-                                    <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                        <Link
-                                            href="/dashboard/profile"
-                                            onClick={() => setShowProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <User className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Profile</span>
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                setShowProfileDropdown(false);
-                                                setShowLogoutDialog(true);
-                                            }}
-                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Logout</span>
-                                        </button>
-                                    </div>
-                                )}
+                                <button
+                                    onClick={handleDownloadCV}
+                                    disabled={!cvInfo}
+                                    className="flex h-[40px] sm:h-[50px] w-full items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-4 rounded-[57px] gradient-border text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
+                                >
+                                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    Download CV
+                                </button>
                             </div>
                         </div>
                     </div>
-                </header>
+                )}
 
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        <div
-                            ref={sidebarRef}
-                            className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                        >
-                            <div className="flex justify-between items-center p-4">
-                                <Link href="/" className="w-[100px] relative">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={100}
-                                        height={60}
-                                        className="object-contain"
-                                    />
-                                </Link>
-                                <button
-                                    onClick={() => setSidebarOpen(false)}
-                                    className="p-2 rounded-full hover:bg-gray-100"
-                                >
-                                    <X className="w-5 h-5 text-gray-600" />
-                                </button>
-                            </div>
+                {/* Form Section */}
+                {(!hasCVUploaded || (hasCVUploaded && !pendingJob)) && (
+                    <>
+                        {!hasCVUploaded && (
+                            <div className="space-y-8 mb-8">
+                                <div className="grid grid-cols-1 gap-6">
+                                    {/* Full Name */}
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.fullName}
+                                            onChange={(e) => handleInputChange('fullName', e.target.value)}
+                                            placeholder="Your Full Name"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                        />
+                                        {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
+                                    </div>
 
-                            <div className="overflow-y-auto h-full p-4">
-                                <nav className="space-y-1">
-                                    {sidebarItems.map((item, index) => (
-                                        <Link
-                                            key={index}
-                                            href={item.path}
-                                            onClick={() => setSidebarOpen(false)}
-                                            className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                                ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                                : 'text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                                <Icon
-                                                    icon={item.icon}
-                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                                />
+                                    {/* Email */}
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => handleInputChange('email', e.target.value)}
+                                            placeholder="you@company.com"
+                                            className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
+                                        />
+                                        {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
+                                    </div>
+
+                                    {/* Phone Number */}
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            Phone Number
+                                        </label>
+                                        <div className="flex items-center">
+                                            <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
+                                                <span className="mr-1">🇱🇰</span>
+                                                <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
                                             </div>
-                                            <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                        </Link>
-                                    ))}
-                                </nav>
 
-                                <div className="p-4 pt-8">
-                                    <button
-                                        onClick={() => setShowLogoutDialog(true)}
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    >
-                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                            <Icon
-                                                icon="solar:login-3-bold-duotone"
-                                                className="w-5 h-5"
+                                            <input
+                                                type="tel"
+                                                value={formData.phoneNumber}
+                                                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                                placeholder="For faster communication"
+                                                className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
                                             />
                                         </div>
-                                        <span className="font-normal">Logout</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                                        {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
+                                    </div>
 
-                        <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                                <nav className="p-4 space-y-1">
-                                    {sidebarItems.map((item, index) => (
-                                        <Link
-                                            key={index}
-                                            href={item.path}
-                                            className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                                ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                                : 'text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                                <Icon
-                                                    icon={item.icon}
-                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                    {/* District */}
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            District
+                                        </label>
+                                        <div className="relative" ref={dropdownRefs.city}>
+                                            <div className="relative">
+                                                <input
+                                                    ref={(el) => { if (inputRefs.city) inputRefs.city.current = el; }}
+                                                    type="text"
+                                                    value={districtSearch}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setDistrictSearch(val);
+                                                        setHighlightedIndex(-1);
+                                                        if (!dropdownOpen.city) toggleDropdown('city');
+                                                        if (sriLankaDistricts.includes(val)) {
+                                                            handleInputChange('city', val);
+                                                        } else {
+                                                            handleInputChange('city', '');
+                                                        }
+                                                    }}
+                                                    onFocus={() => {
+                                                        if (!dropdownOpen.city) toggleDropdown('city');
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        const filteredDistricts = sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()));
+                                                        if (e.key === 'ArrowDown') {
+                                                            e.preventDefault();
+                                                            setHighlightedIndex(prev => (prev < filteredDistricts.length - 1 ? prev + 1 : prev));
+                                                        } else if (e.key === 'ArrowUp') {
+                                                            e.preventDefault();
+                                                            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                        } else if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            if (highlightedIndex >= 0 && highlightedIndex < filteredDistricts.length) {
+                                                                const selected = filteredDistricts[highlightedIndex];
+                                                                setDistrictSearch(selected);
+                                                                handleInputChange('city', selected);
+                                                                if (dropdownOpen.city) toggleDropdown('city');
+                                                                setHighlightedIndex(-1);
+                                                            }
+                                                        }
+                                                    }}
+                                                    placeholder="Type or select district"
+                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
                                                 />
+                                                <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.city ? 'rotate-180' : ''}`} />
                                             </div>
-                                            <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                        </Link>
-                                    ))}
-                                </nav>
-
-                                <div className="p-4 pt-8">
-                                    <button
-                                        onClick={() => setShowLogoutDialog(true)}
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    >
-                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                            <Icon
-                                                icon="solar:login-3-bold-duotone"
-                                                className="w-5 h-5"
-                                            />
+                                            {dropdownOpen.city && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                                    {sriLankaDistricts
+                                                        .filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()))
+                                                        .map((district, index) => (
+                                                            <button
+                                                                key={district}
+                                                                id={`city-item-${index}`}
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDistrictSearch(district);
+                                                                    handleInputChange('city', district);
+                                                                    toggleDropdown('city');
+                                                                    setHighlightedIndex(-1);
+                                                                    inputRefs.city.current?.focus();
+                                                                }}
+                                                                className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
+                                                            >
+                                                                {district}
+                                                            </button>
+                                                        ))}
+                                                    {sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
+                                                        <div className="p-3 text-gray-500 text-sm font-['Poppins']">No districts found</div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                        <span className="font-normal">Logout</span>
-                                    </button>
+                                        {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
+                                    </div>
+
+                                    {/* Work Functions */}
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
+                                            What functions do you prefer to work in?
+                                        </label>
+
+                                        {formData.workFunction && (
+                                            <div className="mb-3 flex flex-wrap gap-2">
+                                                {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
+                                                    >
+                                                        <span>{func}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const updatedFunctions = formData.workFunction.split(',')
+                                                                    .filter(f => f !== func)
+                                                                    .join(',');
+                                                                handleInputChange('workFunction', updatedFunctions);
+                                                            }}
+                                                            className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="relative" ref={dropdownRefs.workFunction}>
+                                            <div className="relative">
+                                                <input
+                                                    ref={(el) => { if (inputRefs.workFunction) inputRefs.workFunction.current = el; }}
+                                                    type="text"
+                                                    value={workFunctionSearch}
+                                                    onChange={(e) => {
+                                                        setWorkFunctionSearch(e.target.value);
+                                                        setHighlightedIndex(-1);
+                                                        if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                                    }}
+                                                    onFocus={() => {
+                                                        if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        const available = workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func));
+                                                        const filtered = available.filter(f => f.toLowerCase().includes(workFunctionSearch.toLowerCase()));
+
+                                                        if (e.key === 'ArrowDown') {
+                                                            e.preventDefault();
+                                                            setHighlightedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
+                                                        } else if (e.key === 'ArrowUp') {
+                                                            e.preventDefault();
+                                                            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                                                        } else if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+                                                                const match = filtered[highlightedIndex];
+                                                                handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                                setWorkFunctionSearch('');
+                                                                setHighlightedIndex(-1);
+                                                                setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                            } else if (filtered.length > 0 && workFunctionSearch) {
+                                                                const match = filtered[0];
+                                                                handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
+                                                                setWorkFunctionSearch('');
+                                                                setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                            }
+                                                        }
+                                                    }}
+                                                    placeholder="Type to search functions (Enter to select)"
+                                                    className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
+                                                />
+                                                <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
+                                            </div>
+
+                                            {dropdownOpen.workFunction && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                                    {workFunctionsList
+                                                        .filter(func => !formData.workFunction.split(',').includes(func))
+                                                        .filter(func => func.toLowerCase().includes(workFunctionSearch.toLowerCase()))
+                                                        .map((func, index) => (
+                                                            <button
+                                                                key={func}
+                                                                id={`workFunction-item-${index}`}
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
+                                                                    setWorkFunctionSearch('');
+                                                                    setHighlightedIndex(-1);
+                                                                    setDropdownOpen(prev => ({ ...prev, workFunction: false }));
+                                                                    inputRefs.workFunction.current?.focus();
+                                                                }}
+                                                                className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
+                                                            >
+                                                                {func}
+                                                            </button>
+                                                        ))}
+                                                    {workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func)).length === 0 && (
+                                                        <div className="p-3 text-gray-500 text-sm text-center font-['Poppins']">
+                                                            All functions selected
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {errors.workFunction && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.workFunction}</p>}
+                                    </div>
                                 </div>
                             </div>
-                        </aside>
+                        )}
 
-                        <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            <div className="flex items-center mb-6">
-                                <button
-                                    onClick={() => setSidebarOpen(true)}
-                                    className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
+                        <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">
+                                    {hasCVUploaded ? 'Upload a New Version' : 'Upload Your CV'}
+                                </h3>
+                                <p className="text-base text-[#6c6c6c] leading-[30px]">
+                                    {pendingJob ? (
+                                        `Upload your CV to complete your application for ${pendingJob.jobTitle}. Your CV should be in PDF format and highlight your relevant skills and experience.`
+                                    ) : hasCVUploaded
+                                        ? 'Upload your latest resume in PDF format. Include any new skills, experience, or portfolio links that reflect your current expertise.'
+                                        : 'Upload your resume in PDF format. Include your skills, experience, and portfolio links that reflect your expertise.'
+                                    }
+                                </p>
+                            </div>
+
+                            <div className="mb-6">
+                                <div
+                                    className={`relative rounded-[20px] border-2 border-dashed transition-all duration-300 ${isDragging
+                                        ? 'border-[#5530fa] bg-[#5530fa]/5'
+                                        : selectedFile
+                                            ? 'border-green-500 bg-green-50'
+                                            : 'border-[#6c6c6c] bg-white'
+                                        }`}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
                                 >
-                                    <Menu className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                    <Link href="/dashboard" className="hover:text-gray-700">User Dashboard</Link>
-                                    <ChevronRight className="w-4 h-4" />
-                                    <span className="text-[#5C4EC9]">{hasCVUploaded ? 'Resubmit CV' : 'Upload CV'}</span>
-                                </nav>
+                                    <div className="flex flex-col items-center justify-center py-12 px-6">
+                                        {selectedFile ? (
+                                            <div className="space-y-4 text-center">
+                                                <div className="w-16 h-16 gradient-icon rounded-full flex items-center justify-center mx-auto">
+                                                    <Icon icon="solar:file-check-bold-duotone" className="w-10 h-10" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[#6c6c6c] font-medium text-base">{selectedFile.name}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4 text-center">
+                                                <Upload className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-4 text-gray-400" />
+                                                <div>
+                                                    <p className="text-[#6c6c6c] text-xs sm:text-sm lg:text-base mb-4">
+                                                        Click the Upload button to upload your CV.<br />
+                                                        You can add an updated CV at any time.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center mt-6">
+                                    <button
+                                        onClick={handleBrowseClick}
+                                        className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins'] transition-all duration-300"
+                                    >
+                                        Browse
+                                    </button>
+                                </div>
+
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={handleFileInputChange}
+                                    className="hidden"
+                                />
                             </div>
 
-                            <div className="mb-8">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                    <div className="flex flex-col justify-start items-start gap-2.5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                                <Icon
-                                                    icon="solar:cloud-upload-bold-duotone"
-                                                    className="w-7 h-7"
-                                                />
-                                            </div>
-                                            <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
-                                                {pendingJob ? `Upload CV to Apply for ${pendingJob.jobTitle}` : hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
-                                            </h1>
-                                        </div>
-                                        <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
-                                            {pendingJob ? (
-                                                `Complete your application for ${pendingJob.jobTitle} by uploading your CV. After upload, you'll be redirected to continue the application process.`
-                                            ) : hasCVUploaded
-                                                ? 'Keep your CV up to date so we can better match you with the right freelance projects at Protonest.'
-                                                : 'Upload your CV to join our talent pool and get matched with the right freelance projects at Protonest.'
-                                            }
+                            {!hasCVUploaded && (
+                                <div className="flex items-start space-x-3 mb-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInputChange('ndaAcknowledged', !formData.ndaAcknowledged)}
+                                        className={`w-5 h-5 lg:w-6 lg:h-6 rounded-full border-2 flex-shrink-0 mt-1 transition-colors ${formData.ndaAcknowledged
+                                            ? 'bg-[rgba(85,48,250,1)] border-[rgba(85,48,250,1)]'
+                                            : 'border-gray-400'
+                                            }`}
+                                    >
+                                        {formData.ndaAcknowledged && (
+                                            <svg className="w-3 h-3 lg:w-4 lg:h-4 text-white m-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <div>
+                                        <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-1 font-['Poppins']">
+                                            NDA Acknowledgment
+                                        </label>
+                                        <p className="text-gray-500 text-xs sm:text-sm font-['Poppins'] leading-relaxed">
+                                            In the case that I am selected for a role, I understand that I must sign a Non-disclosure agreement before detailed project discussions.
+                                        </p>
+                                        {errors.nda && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.nda}</p>}
+                                    </div>
+                                </div>
+                            )}
+
+                            {!hasCVUploaded && !isFormValid && hasAttemptedSubmit && (
+                                <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3 mb-6">
+                                    <div className="flex-shrink-0">
+                                        <Icon icon="solar:danger-circle-bold" className="w-6 h-6 text-red-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-red-600 text-sm font-['Poppins']">
+                                            Please complete all required fields before submitting.
                                         </p>
                                     </div>
                                 </div>
-                            </div>
-
-                            {error && (
-                                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                                    {error}
-                                </div>
-                            )}
-                            {success && (
-                                <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                                    {success}
-                                </div>
                             )}
 
-                            {hasCVUploaded && !pendingJob && (
-                                <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12 mb-8">
-                                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">Current CV Status</h3>
-                                            <div className="space-y-1 text-[#6c6c6c]">
-                                                <p className="text-base">
-                                                    <span className="font-medium">Last Submitted:</span> {lastSubmitted}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-3 justify-center max-w-[300px]">
-                                            <button
-                                                onClick={handlePreviewCV}
-                                                disabled={!cvInfo}
-                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white cursor-pointer font-semibold font-['Montserrat'] hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                Preview CV
-                                            </button>
-                                            <button
-                                                onClick={handleDownloadCV}
-                                                disabled={!cvInfo}
-                                                className="flex h-[50px] items-center justify-center gap-2 px-6 py-4 rounded-[57px] gradient-border text-[#4d4d4d] font-medium font-['Poppins'] hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Download className="w-4 h-4" />
-                                                Download CV
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!hasCVUploaded && (
-                                <div className="space-y-8 mb-8">
-                                    <div className="grid grid-cols-1 gap-6">
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                Full Name
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.fullName}
-                                                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                                placeholder="Your Full Name"
-                                                className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                            />
-                                            {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                Email
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                                placeholder="you@company.com"
-                                                className="w-full p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                            />
-                                            {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                Phone Number
-                                            </label>
-                                            <div className="flex items-center">
-                                                <div className="flex items-center p-3 border-b-2 border-gray-300 bg-transparent mr-2 flex-shrink-0">
-                                                    <span className="mr-1">🇱🇰</span>
-                                                    <span className="text-gray-700 text-sm sm:text-base md:text-base lg:text-base">+94</span>
-                                                </div>
-
-                                                <input
-                                                    type="tel"
-                                                    value={formData.phoneNumber}
-                                                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                                                    placeholder="For faster communication"
-                                                    className="flex-1 p-3 border-b-2 border-gray-300 bg-transparent focus:border-[rgba(85,48,250,1)] outline-none transition-colors font-['Poppins'] placeholder:font-['Poppins'] placeholder-gray-400 text-sm sm:text-base md:text-base lg:text-base"
-                                                />
-                                            </div>
-                                            {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                District
-                                            </label>
-                                            <div className="relative" ref={dropdownRefs.city}>
-                                                <div className="relative">
-                                                    <input
-                                                        ref={(el) => { if (inputRefs.city) inputRefs.city.current = el; }}
-                                                        type="text"
-                                                        value={districtSearch}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            setDistrictSearch(val);
-                                                            setHighlightedIndex(-1);
-                                                            if (!dropdownOpen.city) toggleDropdown('city');
-                                                            if (sriLankaDistricts.includes(val)) {
-                                                                handleInputChange('city', val);
-                                                            } else {
-                                                                handleInputChange('city', '');
-                                                            }
-                                                        }}
-                                                        onFocus={() => {
-                                                            if (!dropdownOpen.city) toggleDropdown('city');
-                                                        }}
-                                                        onKeyDown={(e) => {
-                                                            const filteredDistricts = sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()));
-                                                            if (e.key === 'ArrowDown') {
-                                                                e.preventDefault();
-                                                                setHighlightedIndex(prev => (prev < filteredDistricts.length - 1 ? prev + 1 : prev));
-                                                            } else if (e.key === 'ArrowUp') {
-                                                                e.preventDefault();
-                                                                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
-                                                            } else if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                if (highlightedIndex >= 0 && highlightedIndex < filteredDistricts.length) {
-                                                                    const selected = filteredDistricts[highlightedIndex];
-                                                                    setDistrictSearch(selected);
-                                                                    handleInputChange('city', selected);
-                                                                    if (dropdownOpen.city) toggleDropdown('city');
-                                                                    setHighlightedIndex(-1);
-                                                                }
-                                                            }
-                                                        }}
-                                                        placeholder="Type or select district"
-                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
-                                                    />
-                                                    <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.city ? 'rotate-180' : ''}`} />
-                                                </div>
-                                                {dropdownOpen.city && (
-                                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                        {sriLankaDistricts
-                                                            .filter(district => district.toLowerCase().includes(districtSearch.toLowerCase()))
-                                                            .map((district, index) => (
-                                                                <button
-                                                                    key={district}
-                                                                    id={`city-item-${index}`}
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setDistrictSearch(district);
-                                                                        handleInputChange('city', district);
-                                                                        toggleDropdown('city');
-                                                                        setHighlightedIndex(-1);
-                                                                        inputRefs.city.current?.focus();
-                                                                    }}
-                                                                    className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
-                                                                >
-                                                                    {district}
-                                                                </button>
-                                                            ))}
-                                                        {sriLankaDistricts.filter(district => district.toLowerCase().includes(districtSearch.toLowerCase())).length === 0 && (
-                                                            <div className="p-3 text-gray-500 text-sm font-['Poppins']">No districts found</div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
-                                                What functions do you prefer to work in?
-                                            </label>
-
-
-                                            {formData.workFunction && (
-                                                <div className="mb-3 flex flex-wrap gap-2">
-                                                    {formData.workFunction.split(',').filter(Boolean).map((func, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                                        >
-                                                            <span>{func}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const updatedFunctions = formData.workFunction.split(',')
-                                                                        .filter(f => f !== func)
-                                                                        .join(',');
-                                                                    handleInputChange('workFunction', updatedFunctions);
-                                                                }}
-                                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            <div className="relative" ref={dropdownRefs.workFunction}>
-                                                <div className="relative">
-                                                    <input
-                                                        ref={(el) => { if (inputRefs.workFunction) inputRefs.workFunction.current = el; }}
-                                                        type="text"
-                                                        value={workFunctionSearch}
-                                                        onChange={(e) => {
-                                                            setWorkFunctionSearch(e.target.value);
-                                                            setHighlightedIndex(-1);
-                                                            if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
-                                                        }}
-                                                        onFocus={() => {
-                                                            if (!dropdownOpen.workFunction) toggleDropdown('workFunction');
-                                                        }}
-                                                        onKeyDown={(e) => {
-                                                            const available = workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func));
-                                                            const filtered = available.filter(f => f.toLowerCase().includes(workFunctionSearch.toLowerCase()));
-
-                                                            if (e.key === 'ArrowDown') {
-                                                                e.preventDefault();
-                                                                setHighlightedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
-                                                            } else if (e.key === 'ArrowUp') {
-                                                                e.preventDefault();
-                                                                setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
-                                                            } else if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
-                                                                    const match = filtered[highlightedIndex];
-                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
-                                                                    setWorkFunctionSearch('');
-                                                                    setHighlightedIndex(-1);
-                                                                    setDropdownOpen(prev => ({ ...prev, workFunction: false }));
-                                                                } else if (filtered.length > 0 && workFunctionSearch) {
-                                                                    const match = filtered[0];
-                                                                    handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${match}` : match);
-                                                                    setWorkFunctionSearch('');
-                                                                    setDropdownOpen(prev => ({ ...prev, workFunction: false }));
-                                                                }
-                                                            }
-                                                        }}
-                                                        placeholder="Type to search functions (Enter to select)"
-                                                        className="w-full p-3 border-b-2 border-gray-300 bg-transparent text-left outline-none transition-colors font-['Poppins'] focus:border-[rgba(85,48,250,1)] text-gray-700 text-sm sm:text-base md:text-base lg:text-base pr-8"
-                                                    />
-                                                    <ChevronDown className={`absolute right-3 top-3.5 w-4 h-4 transition-transform pointer-events-none text-gray-400 ${dropdownOpen.workFunction ? 'rotate-180' : ''}`} />
-                                                </div>
-
-                                                {dropdownOpen.workFunction && (
-                                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                        {workFunctionsList
-                                                            .filter(func => !formData.workFunction.split(',').includes(func))
-                                                            .filter(func => func.toLowerCase().includes(workFunctionSearch.toLowerCase()))
-                                                            .map((func, index) => (
-                                                                <button
-                                                                    key={func}
-                                                                    id={`workFunction-item-${index}`}
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleInputChange('workFunction', formData.workFunction ? `${formData.workFunction},${func}` : func);
-                                                                        setWorkFunctionSearch('');
-                                                                        setHighlightedIndex(-1);
-                                                                        setDropdownOpen(prev => ({ ...prev, workFunction: false }));
-                                                                        inputRefs.workFunction.current?.focus();
-                                                                    }}
-                                                                    className={`w-full p-3 text-left hover:bg-gray-100 font-['Poppins'] text-sm md:text-base lg:text-base ${index === highlightedIndex ? 'bg-gray-100' : ''}`}
-                                                                >
-                                                                    {func}
-                                                                </button>
-                                                            ))}
-                                                        {workFunctionsList.filter(func => !formData.workFunction.split(',').includes(func)).length === 0 && (
-                                                            <div className="p-3 text-gray-500 text-sm text-center font-['Poppins']">
-                                                                All functions selected
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {errors.workFunction && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.workFunction}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-6 lg:p-12">
-                                <div className="mb-6">
-                                    <h3 className="text-xl font-medium text-[#6c6c6c] mb-4">
-                                        {hasCVUploaded ? 'Upload a New Version' : 'Upload Your CV'}
-                                    </h3>
-                                    <p className="text-base text-[#6c6c6c] leading-[30px]">
-                                        {pendingJob ? (
-                                            `Upload your CV to complete your application for ${pendingJob.jobTitle}. Your CV should be in PDF format and highlight your relevant skills and experience.`
-                                        ) : hasCVUploaded
-                                            ? 'Upload your latest resume in PDF format. Include any new skills, experience, or portfolio links that reflect your current expertise.'
-                                            : 'Upload your resume in PDF format. Include your skills, experience, and portfolio links that reflect your expertise.'
-                                        }
-                                    </p>
-                                </div>
-
-                                <div className="mb-6">
-                                    <div
-                                        className={`relative rounded-[20px] border-2 border-dashed transition-all duration-300 ${isDragging
-                                            ? 'border-[#5530fa] bg-[#5530fa]/5'
-                                            : selectedFile
-                                                ? 'border-green-500 bg-green-50'
-                                                : 'border-[#6c6c6c] bg-white'
-                                            }`}
-                                        onDragOver={handleDragOver}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={handleDrop}
-                                    >
-                                        <div className="flex flex-col items-center justify-center py-12 px-6">
-                                            {selectedFile ? (
-                                                <div className="space-y-4 text-center">
-                                                    <div className="w-16 h-16 gradient-icon rounded-full flex items-center justify-center mx-auto">
-                                                        <Icon icon="solar:file-check-bold-duotone" className="w-10 h-10" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[#6c6c6c] font-medium text-base">{selectedFile.name}</p>
-                                                        <p className="text-sm text-gray-500">
-                                                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-4 text-center">
-                                                    <Upload className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-4 text-gray-400" />
-                                                    <div>
-                                                        <p className="text-[#6c6c6c] text-xs sm:text-sm lg:text-base mb-4">
-                                                            Click the Upload button to upload your CV.<br />
-                                                            You can add an updated CV at any time.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-center mt-6">
-                                        <button
-                                            onClick={handleBrowseClick}
-                                            className="px-6 py-2 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-medium text-sm sm:text-base font-['Poppins'] transition-all duration-300"
-                                        >
-                                            Browse
-                                        </button>
-                                    </div>
-
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept=".pdf"
-                                        onChange={handleFileInputChange}
-                                        className="hidden"
-                                    />
-                                </div>
-
-                                {!hasCVUploaded && (
-                                    <div className="flex items-start space-x-3 mb-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleInputChange('ndaAcknowledged', !formData.ndaAcknowledged)}
-                                            className={`w-5 h-5 lg:w-6 lg:h-6 rounded-full border-2 flex-shrink-0 mt-1 transition-colors ${formData.ndaAcknowledged
-                                                ? 'bg-[rgba(85,48,250,1)] border-[rgba(85,48,250,1)]'
-                                                : 'border-gray-400'
-                                                }`}
-                                        >
-                                            {formData.ndaAcknowledged && (
-                                                <svg className="w-3 h-3 lg:w-4 lg:h-4 text-white m-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )}
-                                        </button>
-                                        <div>
-                                            <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-1 font-['Poppins']">
-                                                NDA Acknowledgment
-                                            </label>
-                                            <p className="text-gray-500 text-xs sm:text-sm font-['Poppins'] leading-relaxed">
-                                                In the case that I am selected for a role, I understand that I must sign a Non-disclosure agreement before detailed project discussions.
-                                            </p>
-                                            {errors.nda && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.nda}</p>}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {!hasCVUploaded && !isFormValid && hasAttemptedSubmit && (
-                                    <div className="bg-white rounded-lg border-2 border-red-200 p-4 flex items-start gap-3 mb-6">
-                                        <div className="flex-shrink-0">
-                                            <Icon icon="solar:danger-circle-bold" className="w-6 h-6 text-red-500" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-red-600 text-sm font-['Poppins']">
-                                                Please complete all required fields before submitting.
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-col sm:flex-row gap-4 pt-8 justify-end">
-                                    {!hasCVUploaded && !pendingJob && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData({
-                                                    fullName: '',
-                                                    email: '',
-                                                    phoneNumber: '',
-                                                    city: '',
-                                                    workFunction: '',
-                                                    ndaAcknowledged: false
-                                                });
-                                                setWorkFunctionSearch('');
-                                                setSelectedFile(null);
-                                                setExtractedSkills([]);
-                                                setErrors({});
-                                                setHasAttemptedSubmit(false);
-                                            }}
-                                            disabled={isSubmitting}
-                                            className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
-                                        >
-                                            Reset
-                                        </button>
-                                    )}
+                            <div className="flex flex-col sm:flex-row gap-4 pt-8 justify-end">
+                                {!hasCVUploaded && !pendingJob && (
                                     <button
-                                        onClick={handleSubmit}
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({
+                                                fullName: '',
+                                                email: '',
+                                                phoneNumber: '',
+                                                city: '',
+                                                workFunction: '',
+                                                ndaAcknowledged: false
+                                            });
+                                            setWorkFunctionSearch('');
+                                            setSelectedFile(null);
+                                            setExtractedSkills([]);
+                                            setErrors({});
+                                            setHasAttemptedSubmit(false);
+                                        }}
                                         disabled={isSubmitting}
-                                        className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
+                                        className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 border-2 gradient-border text-gray-600 rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 text-sm sm:text-base transition-all duration-300 hover:bg-purple-50"
                                     >
-                                        {isSubmitting ? 'Submitting...' : pendingJob ? `Submit CV and Continue Application` : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV and Join Talent Pool'}
+                                        Reset
                                     </button>
-                                </div>
+                                )}
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className="w-full sm:w-auto px-6 py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] text-white rounded-full font-semibold hover:cursor-pointer font-['Montserrat'] disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none text-sm sm:text-base transition-all duration-300"
+                                >
+                                    {isSubmitting ? 'Submitting...' : pendingJob ? `Submit CV and Continue Application` : hasCVUploaded ? 'Submit Updated CV' : 'Submit CV and Join Talent Pool'}
+                                </button>
                             </div>
-                        </main>
-                    </div>
-                </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {showAnalysisModal && <AnalysisModal />}
             {showSubmissionModal && <SubmissionModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
-
-            <Footer />
-        </div>
+        </DashboardLayout>
     );
 };
 
