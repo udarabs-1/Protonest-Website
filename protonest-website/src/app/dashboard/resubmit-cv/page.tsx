@@ -242,10 +242,10 @@ const ResubmitCVPage = () => {
     }, [router]);
 
     const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -270,9 +270,12 @@ const ResubmitCVPage = () => {
                         isGoogleUser: userData.is_oauth_user || false,
                     });
                 }
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -327,16 +330,13 @@ const ResubmitCVPage = () => {
     };
 
     const fetchCVInfo = async () => {
-        try {
-            const jwtToken = localStorage.getItem('jwtToken');
-            if (!jwtToken) {
-                setError('Please log in to access this feature');
-                return;
-            }
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
                 headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
@@ -352,11 +352,14 @@ const ResubmitCVPage = () => {
                 setCvInfo(null);
                 setLastSubmitted('Never');
                 setHasCVUploaded(false);
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             } else {
                 throw new Error('Failed to fetch CV info');
             }
         } catch {
-            console.error('Error fetching CV info');
+            // Silently handle errors to prevent console messages during logout
             setHasCVUploaded(false);
         }
     };

@@ -148,10 +148,10 @@ const Dashboard = () => {
     }, [router]);
 
     const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -176,20 +176,26 @@ const Dashboard = () => {
                         isGoogleUser: userData.is_oauth_user || false,
                     });
                 }
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            // Silently handle errors to prevent console messages during logout
         }
     };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+
             try {
                 setLoading(true);
 
                 const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -204,7 +210,7 @@ const Dashboard = () => {
 
                 const savedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs/count`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -215,7 +221,7 @@ const Dashboard = () => {
 
                 const appliedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/count`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -226,7 +232,7 @@ const Dashboard = () => {
 
                 const applicationsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications?limit=5`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -249,7 +255,7 @@ const Dashboard = () => {
                                     };
                                 }
                             } catch {
-                                console.error('Error fetching job details');
+                                // Silently handle job detail fetch errors
                             }
                             return app;
                         })
@@ -259,7 +265,7 @@ const Dashboard = () => {
 
                 const suggestedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/suggested-jobs`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -288,7 +294,7 @@ const Dashboard = () => {
                                 };
                             }
                         } catch {
-                            console.error('Error fetching job details');
+                            // Silently handle job detail fetch errors
                         }
                         return null;
                     });
@@ -297,7 +303,7 @@ const Dashboard = () => {
                     setSuggestedJobs(jobDetails.filter(job => job !== null) as Job[]);
                 }
             } catch {
-                console.error('Error fetching dashboard data');
+                // Silently handle errors to prevent console messages during logout
             } finally {
                 setLoading(false);
             }

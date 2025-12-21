@@ -122,6 +122,11 @@ const ProfilePage = () => {
         });
 
         if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                window.location.href = '/signin';
+                return;
+            }
             const errorData = await response.json().catch(() => ({ error: 'Network error' }));
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
@@ -130,6 +135,9 @@ const ProfilePage = () => {
     };
 
     const loadProfile = useCallback(async () => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -162,7 +170,6 @@ const ProfilePage = () => {
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load profile');
-            console.error('Error loading profile');
         } finally {
             setLoading(false);
         }

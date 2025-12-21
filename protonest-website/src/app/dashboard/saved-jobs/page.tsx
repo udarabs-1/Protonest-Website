@@ -279,10 +279,10 @@ const SavedJobs = () => {
     }, [router]);
 
     const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -307,9 +307,12 @@ const SavedJobs = () => {
                         isGoogleUser: userData.is_oauth_user || false,
                     });
                 }
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -317,11 +320,14 @@ const SavedJobs = () => {
 
     useEffect(() => {
         const fetchSavedJobs = async () => {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+
             try {
                 setLoading(true);
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -331,11 +337,12 @@ const SavedJobs = () => {
                     const activeSavedJobs = allSavedJobs.filter((job: SavedJob) => job.job_details.is_active !== false);
                     setSavedJobs(activeSavedJobs);
                     setFilteredJobs(activeSavedJobs);
-                } else {
-                    console.error('Failed to fetch saved jobs');
+                } else if (response.status === 401) {
+                    localStorage.removeItem('jwtToken');
+                    router.push('/signin');
                 }
             } catch {
-                console.error('Error fetching saved jobs');
+                // Silently handle errors to prevent console messages during logout
             } finally {
                 setLoading(false);
             }

@@ -81,9 +81,10 @@ const ManageAlertsPage = () => {
     }, [router]);
 
     const fetchUserData = useCallback(async () => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
         try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
@@ -114,9 +115,10 @@ const ManageAlertsPage = () => {
             } else if (response.status === 401) {
                 localStorage.removeItem('jwtToken');
                 router.push('/signin');
+                return;
             }
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            // Silently handle errors to prevent console messages during logout
         }
     }, [router]);
 

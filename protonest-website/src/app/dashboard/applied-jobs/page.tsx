@@ -268,10 +268,10 @@ const AppliedJobs = () => {
     }, [router]);
 
     const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -296,9 +296,12 @@ const AppliedJobs = () => {
                         isGoogleUser: userData.is_oauth_user || false,
                     });
                 }
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -314,14 +317,12 @@ const AppliedJobs = () => {
     }, []);
 
     const fetchAppliedJobs = async () => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
         try {
             setLoading(true);
             setError(null);
-            const token = localStorage.getItem('jwtToken');
-
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
 
             let response;
             let applicationsData;
@@ -334,9 +335,12 @@ const AppliedJobs = () => {
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (response.status === 401) {
+                    localStorage.removeItem('jwtToken');
+                    router.push('/signin');
+                    return;
                 }
+                throw new Error(`HTTP error! status: ${response.status}`);
 
                 applicationsData = await response.json();
             } catch {
@@ -404,8 +408,7 @@ const AppliedJobs = () => {
             setAppliedJobs(enrichedJobs as EnrichedAppliedJob[]);
             setFilteredJobs(enrichedJobs as EnrichedAppliedJob[]);
         } catch (err) {
-            console.error('Error fetching applied jobs:', err);
-            setError('Failed to load applied jobs data');
+            setError(err instanceof Error ? err.message : 'Failed to fetch applied jobs');
         } finally {
             setLoading(false);
         }
