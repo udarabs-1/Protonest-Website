@@ -2175,7 +2175,7 @@ const CandidateManagement = () => {
                                 <button
                                     onClick={handleSendInterview}
                                     disabled={sendingInterview}
-                                    className="w-full sm:w-[222px] h-[51px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] flex justify-center items-center gap-2 text-white text-sm sm:text-base font-semibold font-montserrat order-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full sm:w-[222px] h-[51px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] cursor-pointer rounded-[57px] flex justify-center items-center gap-2 text-white text-sm sm:text-base font-semibold font-montserrat order-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {sendingInterview ? (
                                         <>
@@ -2193,7 +2193,7 @@ const CandidateManagement = () => {
                                         setInterviewSubject('');
                                         setInterviewBody('');
                                     }}
-                                    className="w-full sm:w-[206px] h-[51px] px-6 py-4 rounded-[57px] border border-[#5530fa] flex justify-center items-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2"
+                                    className="w-full sm:w-[206px] h-[51px] px-6 py-4 rounded-[57px] gradient-border cursor-pointer flex justify-center items-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2"
                                 >
                                     Cancel
                                 </button>
@@ -2416,7 +2416,7 @@ const CandidateManagement = () => {
                                 <button
                                     onClick={handleSendNda}
                                     disabled={sendingNDA || uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] cursor-pointer rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {sendingNDA ? (
                                         <>
@@ -2438,7 +2438,7 @@ const CandidateManagement = () => {
                                         setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
                                     }}
                                     disabled={uploadingNDA}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] cursor-pointer gradient-border text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                 >
                                     Cancel
                                 </button>

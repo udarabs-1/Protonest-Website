@@ -87,7 +87,7 @@ const JobCard = ({ job }: { job: Job }) => {
     return (
         <Link
             href={`/jobs/${roleSlug}/${job.id}`}
-            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
         >
             <article>
                 <div className="flex justify-between">
@@ -147,9 +147,9 @@ const JobCard = ({ job }: { job: Job }) => {
                     </div>
                 </div>
 
-                <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 cursor-pointer">
+                <div className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 cursor-pointer">
                     View Details
-                </button>
+                </div>
             </article>
         </Link>
     );

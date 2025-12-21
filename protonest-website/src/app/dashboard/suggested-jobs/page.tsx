@@ -816,9 +816,10 @@ const SuggestedJobs = () => {
                             const roleSlug = categoryToSlugMap[job.category || ''] || 'other-roles';
 
                             return (
-                                <div
+                                <Link
                                     key={job.id}
-                                    className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6 cursor-pointer"
+                                    href={`/jobs/${roleSlug}/${job.id}`}
+                                    className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6 cursor-pointer block"
                                 >
 
                                     <div className="w-full h-[43px]">
@@ -876,8 +877,7 @@ const SuggestedJobs = () => {
                                     </div>
 
 
-                                    <Link
-                                        href={`/jobs/${roleSlug}/${job.id}`}
+                                    <div
                                         className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
                                     >
                                         <div className="w-full h-full group-hover:hidden">
@@ -898,18 +898,17 @@ const SuggestedJobs = () => {
                                                 className="w-full h-full object-contain"
                                             />
                                         </div>
-                                    </Link>
+                                    </div>
 
 
                                     <div className="mt-6">
-                                        <Link
-                                            href={`/jobs/${roleSlug}/${job.id}`}
+                                        <div
                                             className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 block"
                                         >
                                             View Details
-                                        </Link>
+                                        </div>
                                     </div>
-                                </div>
+                                </Link>
                             );
                         })
                     ) : (

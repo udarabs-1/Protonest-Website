@@ -99,7 +99,10 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
     const roleSlug = categoryToSlugMap[job.job_details.category || ''] || 'other-roles';
 
     return (
-        <div className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6">
+        <Link
+            href={`/jobs/${roleSlug}/${job.job_id}`}
+            className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6 block cursor-pointer"
+        >
 
             <div className="absolute left-3 top-6 z-10" ref={menuRef}>
                 <button
@@ -186,8 +189,7 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
             </div>
 
 
-            <Link
-                href={`/jobs/${roleSlug}/${job.job_id}`}
+            <div
                 className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
             >
                 <div className="w-full h-full group-hover:hidden">
@@ -208,16 +210,15 @@ const JobCard = ({ job, onRemove }: { job: SavedJob, onRemove: (jobId: string) =
                         className="w-full h-full object-contain"
                     />
                 </div>
-            </Link>
+            </div>
 
 
-            <Link
-                href={`/jobs/${roleSlug}/${job.job_id}`}
+            <div
                 className="absolute bottom-6 left-6 right-6 bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300"
             >
                 View Details
-            </Link>
-        </div>
+            </div>
+        </Link>
     );
 };
 

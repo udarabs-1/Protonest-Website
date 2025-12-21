@@ -90,7 +90,11 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
     const roleSlug = categoryToSlugMap[job.jobDetails?.category || ''] || 'other-roles';
 
     return (
-        <div className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6">
+        <Link
+            key={job.applied_at}
+            href={`/jobs/${roleSlug}/${job.job_id._id}`}
+            className="group relative w-full h-[350px] bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-md overflow-hidden hover:shadow-lg transition-shadow p-6 block cursor-pointer"
+        >
             <div className="w-full h-[43px] mt-8">
                 <div className="w-full h-full text-[#6c6c6c] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] group-hover:font-medium text-base font-normal font-['Poppins'] leading-[35px] line-clamp-1 transition-none">
                     {job.job_id.title}
@@ -139,8 +143,7 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
                 </div>
             </div>
 
-            <Link
-                href={`/jobs/${roleSlug}/${job.job_id._id}`}
+            <div
                 className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300"
             >
                 <div className="w-full h-full group-hover:hidden">
@@ -161,15 +164,14 @@ const AppliedJobCard = ({ job }: { job: EnrichedAppliedJob }) => {
                         className="w-full h-full object-contain"
                     />
                 </div>
-            </Link>
+            </div>
 
-            <Link
-                href={`/jobs/${roleSlug}/${job.job_id._id}`}
+            <div
                 className="absolute bottom-6 left-6 right-6 bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300"
             >
                 View Details
-            </Link>
-        </div>
+            </div>
+        </Link>
     );
 };
 
@@ -347,7 +349,7 @@ const AppliedJobs = () => {
                 console.log('Primary endpoint failed, trying fallback...');
 
                 try {
-                    response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/applications`, {
+                    response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
