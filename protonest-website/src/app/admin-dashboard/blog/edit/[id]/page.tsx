@@ -1,5 +1,6 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import type { NodeViewRendererProps } from '@tiptap/core';
 import { Extension, mergeAttributes } from '@tiptap/core';
@@ -19,20 +20,16 @@ import {
     AlignLeft,
     AlignRight,
     Bold,
-    ChevronRight,
     Image as ImageIcon,
     Italic,
     Link as LinkIcon,
     List,
-    Menu,
-    Settings,
     Underline,
     Upload,
     X
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const CustomTextStyle = TextStyle.extend({
@@ -94,7 +91,6 @@ const isAdminTokenExpired = (): boolean => {
 };
 
 const EditBlogPost = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string>('');
@@ -105,15 +101,12 @@ const EditBlogPost = () => {
     const [error, setError] = useState<string | null>(null);
     const [uploadingContentImage, setUploadingContentImage] = useState(false);
     const [selectedImageNode, setSelectedImageNode] = useState<SelectedImageNode | null>(null);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showDiscardDialog, setShowDiscardDialog] = useState(false);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [showDraftDialog, setShowDraftDialog] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const pathname = usePathname();
     const router = useRouter();
     const params = useParams();
     const blogId = params.id as string;
@@ -124,10 +117,6 @@ const EditBlogPost = () => {
         }
     }, [router]);
 
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        router.push('/admin-signin');
-    };
 
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
@@ -414,19 +403,6 @@ const EditBlogPost = () => {
         },
     });
 
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
-    ];
 
     const addCategory = (categoryText: string) => {
         const trimmed = categoryText.trim();
@@ -709,18 +685,6 @@ const EditBlogPost = () => {
         }
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen]);
 
     useEffect(() => {
         if (editor && blogId) {
@@ -751,7 +715,13 @@ const EditBlogPost = () => {
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
+        <AdminLayout
+            breadcrumbItems={[
+                { label: 'Admin Portal', href: '/admin-dashboard' },
+                { label: 'Blog Manager', href: '/admin-dashboard/blog' },
+                { label: 'Edit Blog Post' }
+            ]}
+        >
             <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
@@ -784,668 +754,374 @@ const EditBlogPost = () => {
                 </defs>
             </svg>
 
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
-                        </div>
+
+            <div className="mb-6">
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                        <Icon
+                            icon="solar:document-add-bold-duotone"
+                            className="w-7 h-7"
+                        />
                     </div>
+                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                        Edit Blog Post
+                    </h1>
+                </div>
+                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
+                    Update your blog post content, images, and publishing status.
+                </p>
+            </div>
+
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 text-sm">{error}</p>
                 </div>
             )}
 
-            {showDiscardDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowDiscardDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Discard Changes</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to discard your changes? All unsaved work will be lost.</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowDiscardDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    window.location.href = '/admin-dashboard/blog';
-                                }}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Discard
-                            </button>
-                        </div>
-                    </div>
+            <div className="mb-6">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Title</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80"
+                        placeholder="Enter a clear and concise title for the blog post."
+                    />
                 </div>
-            )}
+            </div>
 
-            {showPublishDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowPublishDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Publish</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to update and publish this blog post?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowPublishDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            <div className="mb-6">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Categories</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
+                    <input
+                        type="text"
+                        value={categoryInput}
+                        onChange={(e) => setCategoryInput(e.target.value)}
+                        onKeyPress={handleCategoryKeyPress}
+                        className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80 mb-4"
+                        placeholder="Type a category and press Enter to add"
+                    />
+
+                    <div className="flex flex-wrap gap-2">
+                        {categories.map((category, index) => (
+                            <div
+                                key={index}
+                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
                             >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmPublish}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Publish
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showDraftDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowDraftDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Save as Draft</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to save these changes as a draft?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowDraftDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmSaveAsDraft}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Save as Draft
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showSuccessDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Success</h3>
-                        <p className="text-gray-600 mb-6">{successMessage}</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => {
-                                    setShowSuccessDialog(false);
-                                    router.push('/admin-dashboard/blog');
-                                }}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
-
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={130}
-                                    height={80}
-                                    className="object-contain"
-                                />
-                            </Link>
-                        </div>
-
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    <div
-                        ref={sidebarRef}
-                        className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={100}
-                                    height={60}
-                                    className="object-contain"
-                                />
-                            </Link>
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="pt-8">
+                                <span>{category}</span>
                                 <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    type="button"
+                                    onClick={() => removeCategory(category)}
+                                    className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
                                 >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
+                                    <X className="w-3 h-3" />
                                 </button>
                             </div>
-                        </div>
+                        ))}
                     </div>
 
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
+                    {categories.length === 0 && (
+                        <p className="text-xs text-[#6c6c6c]/60 mt-2">
+                            Add categories to help readers discover your blog post
+                        </p>
+                    )}
+                </div>
+            </div>
 
-                            <div className="p-4 pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <Menu className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <Link href="/admin-dashboard/blog" className="hover:text-gray-700">Blog Manager</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">Edit Blog Post</span>
-                            </nav>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:document-add-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
+            <div className="mb-6">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
+                    <div
+                        className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] h-[327px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                    >
+                        {coverImagePreview ? (
+                            <div className="w-full h-full relative rounded-[35px] overflow-hidden">
+                                <Image
+                                    src={coverImagePreview}
+                                    alt="Cover preview"
+                                    width={500}
+                                    height={327}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                    <span className="text-white text-sm">Click to change image</span>
                                 </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    Edit Blog Post
-                                </h1>
                             </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                                Update your blog post content, images, and publishing status.
-                            </p>
-                        </div>
-
-                        {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-red-600 text-sm">{error}</p>
-                            </div>
+                        ) : (
+                            <>
+                                <Upload className="w-[75px] h-24 text-gray-400 mb-4" />
+                                <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins">
+                                    Upload the file by drag and drop here or<br />
+                                    click on the browse button.<br />
+                                    Supported format: .JPG, PNG<br />
+                                </div>
+                                <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
+                                    Browse
+                                </button>
+                            </>
                         )}
-
-                        <div className="mb-6">
-                            <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Title</h2>
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80"
-                                    placeholder="Enter a clear and concise title for the blog post."
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Categories</h2>
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
-                                <input
-                                    type="text"
-                                    value={categoryInput}
-                                    onChange={(e) => setCategoryInput(e.target.value)}
-                                    onKeyPress={handleCategoryKeyPress}
-                                    className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80 mb-4"
-                                    placeholder="Type a category and press Enter to add"
-                                />
-
-                                <div className="flex flex-wrap gap-2">
-                                    {categories.map((category, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
-                                        >
-                                            <span>{category}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCategory(category)}
-                                                className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {categories.length === 0 && (
-                                    <p className="text-xs text-[#6c6c6c]/60 mt-2">
-                                        Add categories to help readers discover your blog post
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
-                                <div
-                                    className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] h-[327px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    onDrop={handleDrop}
-                                    onDragOver={handleDragOver}
-                                >
-                                    {coverImagePreview ? (
-                                        <div className="w-full h-full relative rounded-[35px] overflow-hidden">
-                                            <Image
-                                                src={coverImagePreview}
-                                                alt="Cover preview"
-                                                width={500}
-                                                height={327}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                <span className="text-white text-sm">Click to change image</span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-[75px] h-24 text-gray-400 mb-4" />
-                                            <div className="text-center text-[#6c6c6c] text-base font-normal font-poppins">
-                                                Upload the file by drag and drop here or<br />
-                                                click on the browse button.<br />
-                                                Supported format: .JPG, PNG<br />
-                                            </div>
-                                            <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
-                                                Browse
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mb-8">
-                            <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Content Editor</h2>
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] overflow-hidden">
-
-                                <div className="border-b border-gray-200 p-4 bg-gray-50">
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            onClick={() => editor.chain().focus().toggleBold().run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
-                                            title="Bold"
-                                        >
-                                            <Bold className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => editor.chain().focus().toggleItalic().run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
-                                            title="Italic"
-                                        >
-                                            <Italic className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => editor.chain().focus().toggleStrike().run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('strike') ? 'bg-gray-200' : ''}`}
-                                            title="Strikethrough"
-                                        >
-                                            <Underline className="w-4 h-4" />
-                                        </button>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <select
-                                            onChange={(e) => {
-                                                const fontFamily = e.target.value;
-                                                if (fontFamily) {
-                                                    editor.chain().focus().setFontFamily(fontFamily).run();
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
-                                        >
-                                            <option value="">Font</option>
-                                            <option value="Poppins">Poppins</option>
-                                            <option value="Montserrat">Montserrat</option>
-                                        </select>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <select
-                                            onChange={(e) => {
-                                                const fontSize = e.target.value;
-                                                if (fontSize) {
-                                                    editor.chain().focus().setMark('textStyle', { fontSize }).run();
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
-                                        >
-                                            <option value="">Size</option>
-                                            <option value="12px">12px</option>
-                                            <option value="14px">14px</option>
-                                            <option value="16px">16px</option>
-                                            <option value="18px">18px</option>
-                                            <option value="20px">20px</option>
-                                            <option value="24px">24px</option>
-                                            <option value="28px">28px</option>
-                                            <option value="32px">32px</option>
-                                            <option value="36px">36px</option>
-                                            <option value="48px">48px</option>
-                                        </select>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <select
-                                            onChange={(e) => {
-                                                const level = parseInt(e.target.value);
-                                                if (level === 0) {
-                                                    editor.chain().focus().setParagraph().run();
-                                                } else {
-                                                    editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 }).run();
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-gray-300 rounded text-sm"
-                                            value={
-                                                editor.isActive('heading', { level: 1 }) ? '1' :
-                                                    editor.isActive('heading', { level: 2 }) ? '2' :
-                                                        editor.isActive('heading', { level: 3 }) ? '3' :
-                                                            editor.isActive('heading', { level: 4 }) ? '4' : '0'
-                                            }
-                                        >
-                                            <option value="0">Paragraph</option>
-                                            <option value="1">Heading 1</option>
-                                            <option value="2">Heading 2</option>
-                                            <option value="3">Heading 3</option>
-                                            <option value="4">Heading 4</option>
-                                        </select>
-
-                                        <select
-                                            onChange={(e) => {
-                                                const lineHeight = e.target.value;
-                                                if (lineHeight === 'default') {
-                                                    editor.chain().focus().unsetLineHeight().run();
-                                                } else {
-                                                    editor.chain().focus().setLineHeight(lineHeight).run();
-                                                }
-                                            }}
-                                            className="px-2 py-1 border border-gray-300 rounded text-sm ml-2"
-                                            title="Line Spacing"
-                                        >
-                                            <option value="default">Line Spacing</option>
-                                            <option value="1.0">1.0</option>
-                                            <option value="1.5">1.5</option>
-                                            <option value="2.0">2.0</option>
-                                        </select>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <button
-                                            onClick={() => editor.chain().focus().toggleBulletList().run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
-                                            title="Bullet List"
-                                        >
-                                            <List className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                                            className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
-                                            title="Numbered List"
-                                        >
-                                            <span className="text-sm font-bold">1.</span>
-                                        </button>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
-                                                title="Align Left"
-                                            >
-                                                <AlignLeft className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
-                                                title="Align Center"
-                                            >
-                                                <AlignCenter className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
-                                                title="Align Right"
-                                            >
-                                                <AlignRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <button
-                                            onClick={addLink}
-                                            className="p-2 hover:bg-gray-200 rounded"
-                                            title="Insert Link"
-                                        >
-                                            <LinkIcon className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={addImage}
-                                            disabled={uploadingContentImage}
-                                            className="p-2 hover:bg-gray-200 rounded disabled:opacity-50"
-                                            title="Insert Image"
-                                        >
-                                            {uploadingContentImage ? (
-                                                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <ImageIcon className="w-4 h-4" />
-                                            )}
-                                        </button>
-
-                                        {selectedImageNode && (
-                                            <>
-                                                <button
-                                                    onClick={alignImageLeft}
-                                                    className="p-2 hover:bg-gray-200 rounded"
-                                                    title="Align Image Left"
-                                                >
-                                                    <span className="text-xs font-bold">⬅️</span>
-                                                </button>
-                                                <button
-                                                    onClick={alignImageCenter}
-                                                    className="p-2 hover:bg-gray-200 rounded"
-                                                    title="Center Image"
-                                                >
-                                                    <span className="text-xs font-bold">⬆️</span>
-                                                </button>
-                                                <button
-                                                    onClick={alignImageRight}
-                                                    className="p-2 hover:bg-gray-200 rounded"
-                                                    title="Align Image Right"
-                                                >
-                                                    <span className="text-xs font-bold">➡️</span>
-                                                </button>
-                                                <button
-                                                    onClick={deleteSelectedImage}
-                                                    className="p-2 hover:bg-red-200 rounded text-red-600"
-                                                    title="Delete Image"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </>
-                                        )}
-
-                                        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-                                        <input
-                                            type="color"
-                                            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
-                                            className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
-                                            title="Text Color"
-                                        />
-                                    </div>
-                                </div>
-
-                                <EditorContent editor={editor} className="h-[500px] overflow-y-auto" />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-4 mt-8">
-                            <button
-                                onClick={() => setShowDiscardDialog(true)}
-                                disabled={loading}
-                                className="px-6 py-4 rounded-[57px] border border-gray-300 cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
-                            >
-                                Discard
-                            </button>
-                            <button
-                                onClick={handleSaveAsDraft}
-                                disabled={loading}
-                                className="px-6 py-4 rounded-[57px] gradient-border cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
-                            >
-                                {loading ? 'Saving...' : 'Save as Draft'}
-                            </button>
-                            <button
-                                onClick={handlePublish}
-                                disabled={loading}
-                                className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow disabled:opacity-50"
-                            >
-                                {loading ? 'Updating...' : 'Update & Publish'}
-                            </button>
-                        </div>
-                    </main>
+                    </div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                    />
                 </div>
+            </div>
+
+            <div className="mb-8">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Content Editor</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] overflow-hidden">
+
+                    <div className="border-b border-gray-200 p-4 bg-gray-50">
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => editor.chain().focus().toggleBold().run()}
+                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+                                title="Bold"
+                            >
+                                <Bold className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => editor.chain().focus().toggleItalic().run()}
+                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+                                title="Italic"
+                            >
+                                <Italic className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => editor.chain().focus().toggleStrike().run()}
+                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('strike') ? 'bg-gray-200' : ''}`}
+                                title="Strikethrough"
+                            >
+                                <Underline className="w-4 h-4" />
+                            </button>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <select
+                                onChange={(e) => {
+                                    const fontFamily = e.target.value;
+                                    if (fontFamily) {
+                                        editor.chain().focus().setFontFamily(fontFamily).run();
+                                    }
+                                }}
+                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                            >
+                                <option value="">Font</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Montserrat">Montserrat</option>
+                            </select>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <select
+                                onChange={(e) => {
+                                    const fontSize = e.target.value;
+                                    if (fontSize) {
+                                        editor.chain().focus().setMark('textStyle', { fontSize }).run();
+                                    }
+                                }}
+                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                            >
+                                <option value="">Size</option>
+                                <option value="12px">12px</option>
+                                <option value="14px">14px</option>
+                                <option value="16px">16px</option>
+                                <option value="18px">18px</option>
+                                <option value="20px">20px</option>
+                                <option value="24px">24px</option>
+                                <option value="28px">28px</option>
+                                <option value="32px">32px</option>
+                                <option value="36px">36px</option>
+                                <option value="48px">48px</option>
+                            </select>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <select
+                                onChange={(e) => {
+                                    const level = parseInt(e.target.value);
+                                    if (level === 0) {
+                                        editor.chain().focus().setParagraph().run();
+                                    } else {
+                                        editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 | 4 | 5 | 6 }).run();
+                                    }
+                                }}
+                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                value={
+                                    editor.isActive('heading', { level: 1 }) ? '1' :
+                                        editor.isActive('heading', { level: 2 }) ? '2' :
+                                            editor.isActive('heading', { level: 3 }) ? '3' :
+                                                editor.isActive('heading', { level: 4 }) ? '4' : '0'
+                                }
+                            >
+                                <option value="0">Paragraph</option>
+                                <option value="1">Heading 1</option>
+                                <option value="2">Heading 2</option>
+                                <option value="3">Heading 3</option>
+                                <option value="4">Heading 4</option>
+                            </select>
+
+                            <select
+                                onChange={(e) => {
+                                    const lineHeight = e.target.value;
+                                    if (lineHeight === 'default') {
+                                        editor.chain().focus().unsetLineHeight().run();
+                                    } else {
+                                        editor.chain().focus().setLineHeight(lineHeight).run();
+                                    }
+                                }}
+                                className="px-2 py-1 border border-gray-300 rounded text-sm ml-2"
+                                title="Line Spacing"
+                            >
+                                <option value="default">Line Spacing</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2.0">2.0</option>
+                            </select>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <button
+                                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+                                title="Bullet List"
+                            >
+                                <List className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                                className={`p-2 hover:bg-gray-200 rounded ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+                                title="Numbered List"
+                            >
+                                <span className="text-sm font-bold">1.</span>
+                            </button>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                                    className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+                                    title="Align Left"
+                                >
+                                    <AlignLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                                    className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+                                    title="Align Center"
+                                >
+                                    <AlignCenter className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                                    className={`p-2 hover:bg-gray-200 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+                                    title="Align Right"
+                                >
+                                    <AlignRight className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <button
+                                onClick={addLink}
+                                className="p-2 hover:bg-gray-200 rounded"
+                                title="Insert Link"
+                            >
+                                <LinkIcon className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={addImage}
+                                disabled={uploadingContentImage}
+                                className="p-2 hover:bg-gray-200 rounded disabled:opacity-50"
+                                title="Insert Image"
+                            >
+                                {uploadingContentImage ? (
+                                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <ImageIcon className="w-4 h-4" />
+                                )}
+                            </button>
+
+                            {selectedImageNode && (
+                                <>
+                                    <button
+                                        onClick={alignImageLeft}
+                                        className="p-2 hover:bg-gray-200 rounded"
+                                        title="Align Image Left"
+                                    >
+                                        <span className="text-xs font-bold">⬅️</span>
+                                    </button>
+                                    <button
+                                        onClick={alignImageCenter}
+                                        className="p-2 hover:bg-gray-200 rounded"
+                                        title="Center Image"
+                                    >
+                                        <span className="text-xs font-bold">⬆️</span>
+                                    </button>
+                                    <button
+                                        onClick={alignImageRight}
+                                        className="p-2 hover:bg-gray-200 rounded"
+                                        title="Align Image Right"
+                                    >
+                                        <span className="text-xs font-bold">➡️</span>
+                                    </button>
+                                    <button
+                                        onClick={deleteSelectedImage}
+                                        className="p-2 hover:bg-red-200 rounded text-red-600"
+                                        title="Delete Image"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </>
+                            )}
+
+                            <div className="w-px h-8 bg-gray-300 mx-1" />
+
+                            <input
+                                type="color"
+                                onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+                                className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+                                title="Text Color"
+                            />
+                        </div>
+                    </div>
+
+                    <EditorContent editor={editor} className="h-[500px] overflow-y-auto" />
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-8">
+                <button
+                    onClick={() => setShowDiscardDialog(true)}
+                    disabled={loading}
+                    className="px-6 py-4 rounded-[57px] border border-gray-300 cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                    Discard
+                </button>
+                <button
+                    onClick={handleSaveAsDraft}
+                    disabled={loading}
+                    className="px-6 py-4 rounded-[57px] gradient-border cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                    {loading ? 'Saving...' : 'Save as Draft'}
+                </button>
+                <button
+                    onClick={handlePublish}
+                    disabled={loading}
+                    className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow disabled:opacity-50"
+                >
+                    {loading ? 'Updating...' : 'Update & Publish'}
+                </button>
             </div>
 
             <style jsx global>{`
@@ -1617,7 +1293,120 @@ const EditBlogPost = () => {
                     background: rgba(85, 48, 250, 0.2);
                 }
             `}</style>
-        </div>
+            {showDiscardDialog && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowDiscardDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Discard Changes</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to discard your changes? All unsaved work will be lost.</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowDiscardDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    window.location.href = '/admin-dashboard/blog';
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Discard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPublishDialog && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowPublishDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Publish</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to update and publish this blog post?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowPublishDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmPublish}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Publish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDraftDialog && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setShowDraftDialog(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Save as Draft</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to save these changes as a draft?</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowDraftDialog(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmSaveAsDraft}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Save as Draft
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showSuccessDialog && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Success</h3>
+                        <p className="text-gray-600 mb-6">{successMessage}</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => {
+                                    setShowSuccessDialog(false);
+                                    router.push('/admin-dashboard/blog');
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </AdminLayout>
     );
 };
 

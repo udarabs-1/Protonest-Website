@@ -28,7 +28,7 @@ const DashboardHeader = ({ profileImage, onLogout }: DashboardHeaderProps) => {
     }, [showProfileDropdown]);
 
     return (
-        <header className="bg-white py-4 flex-shrink-0">
+        <header className="bg-white py-4 flex-shrink-0 border-b border-gray-100">
             <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center">

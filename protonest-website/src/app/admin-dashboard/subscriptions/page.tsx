@@ -1,17 +1,10 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
-import {
-    ChevronRight,
-    Menu,
-    Search,
-    Settings,
-    X
-} from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface Subscription {
     id: string;
@@ -47,31 +40,11 @@ const isAdminTokenExpired = (): boolean => {
 
 const SubscriptionManagement = () => {
     const router = useRouter();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
-
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
-    ];
 
     useEffect(() => {
         if (isAdminTokenExpired()) {
@@ -146,26 +119,7 @@ const SubscriptionManagement = () => {
         setSubscriptions(filtered);
     }, [searchTerm, allSubscriptions]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-            if (dropdownOpen && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setDropdownOpen(false);
-            }
-        };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen, dropdownOpen]);
-
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        router.push('/admin-signin');
-    };
 
     const toggleSubscriptionStatus = async (id: string, currentStatus: boolean, type: 'career_updates' | 'newsletter') => {
         setAllSubscriptions(prev => prev.map(sub =>
@@ -241,7 +195,12 @@ const SubscriptionManagement = () => {
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
+        <AdminLayout
+            breadcrumbItems={[
+                { label: 'Admin Portal', href: '/admin-dashboard' },
+                { label: 'Subscription Management' }
+            ]}
+        >
             <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
@@ -276,306 +235,117 @@ const SubscriptionManagement = () => {
             </svg>
 
 
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
-                        </div>
+
+
+
+            <div className="mb-6">
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                        <Icon
+                            icon="solar:bell-bold-duotone"
+                            className="w-7 h-7"
+                        />
                     </div>
+                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                        Subscription Management
+                    </h1>
                 </div>
-            )}
+                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                    View and manage freelancers subscribed to job alert notifications.
+                </p>
+            </div>
 
-
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
-
-
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={130}
-                                    height={80}
-                                    className="object-contain"
-                                />
-                            </Link>
-                        </div>
-
-
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
+                        placeholder="Search by name or email"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-gray-400" />
                     </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-
-                    <div
-                        ref={sidebarRef}
-                        className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={100}
-                                    height={60}
-                                    className="object-contain"
-                                />
-                            </Link>
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-
-                            <div className="pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-
-                            <div className="p-4 pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <Menu className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">Subscription Management</span>
-                            </nav>
-                        </div>
-
-
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:bell-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
-                                </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    Subscription Management
-                                </h1>
-                            </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                                View and manage freelancers subscribed to job alert notifications.
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
-                                    placeholder="Search by name or email"
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
-                            {subscriptions.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">
-                                    No subscriptions found.
-                                </div>
-                            ) : (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead>
-                                        <tr>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                                Subscriber Name
-                                            </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                                Email
-                                            </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                                Newsletter
-                                            </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                                Career Updates
-                                            </th>
-                                            <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                                Created At
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {subscriptions.map((subscription) => (
-                                            <tr key={subscription.id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {subscription.name}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {subscription.email}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
-                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.newsletter
-                                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
-                                                            : 'bg-gray-300'
-                                                            }`}
-                                                        title={subscription.newsletter ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
-                                                    >
-                                                        <span
-                                                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.newsletter ? 'translate-x-4.5' : 'translate-x-0.5'
-                                                                }`}
-                                                        />
-                                                    </button>
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
-                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.career_updates
-                                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
-                                                            : 'bg-gray-300'
-                                                            }`}
-                                                        title={subscription.career_updates ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
-                                                    >
-                                                        <span
-                                                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.career_updates ? 'translate-x-4.5' : 'translate-x-0.5'
-                                                                }`}
-                                                        />
-                                                    </button>
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {new Date(subscription.created_at).toLocaleDateString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </main>
                 </div>
             </div>
-        </div>
+
+
+            <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
+                {subscriptions.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                        No subscriptions found.
+                    </div>
+                ) : (
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Subscriber Name
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Email
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Newsletter
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Career Updates
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Created At
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {subscriptions.map((subscription) => (
+                                <tr key={subscription.id} className="hover:bg-gray-50">
+                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                        {subscription.name}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                        {subscription.email}
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                                        <button
+                                            onClick={() => toggleSubscriptionStatus(subscription.id, subscription.newsletter, 'newsletter')}
+                                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.newsletter
+                                                ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                                : 'bg-gray-300'
+                                                }`}
+                                            title={subscription.newsletter ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                        >
+                                            <span
+                                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.newsletter ? 'translate-x-4.5' : 'translate-x-0.5'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                                        <button
+                                            onClick={() => toggleSubscriptionStatus(subscription.id, subscription.career_updates, 'career_updates')}
+                                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${subscription.career_updates
+                                                ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
+                                                : 'bg-gray-300'
+                                                }`}
+                                            title={subscription.career_updates ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
+                                        >
+                                            <span
+                                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${subscription.career_updates ? 'translate-x-4.5' : 'translate-x-0.5'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                        {new Date(subscription.created_at).toLocaleDateString()}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </AdminLayout>
     );
 };
 
