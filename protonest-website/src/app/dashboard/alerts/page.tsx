@@ -256,7 +256,7 @@ const ManageAlertsPage = () => {
                     </div>
                 )}
 
-                <div className="sticky top-0 z-10 bg-white pb-6 pt-1 flex flex-col gap-6">
+                <div className="bg-white pb-6 pt-1 flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
                             <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">

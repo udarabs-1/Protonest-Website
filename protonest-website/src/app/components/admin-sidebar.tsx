@@ -81,12 +81,12 @@ const AdminSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef 
                 className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden flex flex-col ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 <div className="flex justify-between items-center p-4 flex-shrink-0">
-                    <Link href="/" className="w-[80px] relative">
+                    <Link href="/" className="w-[60px] relative">
                         <Image
                             src="/logo.webp"
                             alt="Protonest Logo"
-                            width={80}
-                            height={50}
+                            width={60}
+                            height={40}
                             className="object-contain"
                         />
                     </Link>

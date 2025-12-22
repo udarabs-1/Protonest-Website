@@ -287,7 +287,7 @@ const ContactFormMessages = () => {
                 </div>
             )}
 
-            <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+            <div className="bg-white pb-2 pt-1 font-montserrat">
                 <div className="mb-4">
                     <div className="flex items-center gap-3 mb-1">
                         <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">

@@ -740,9 +740,9 @@ const SuggestedJobs = () => {
 
 
             <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
-                <div className="sticky top-0 z-10 bg-white pb-1 pt-1">
+                <div className="bg-white pb-1 pt-1">
                     <div className="mb-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div className="flex flex-col justify-start items-start gap-2.5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">

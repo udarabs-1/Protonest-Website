@@ -826,7 +826,7 @@ const TalentPool = () => {
                     )
                 }
 
-                <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+                <div className="bg-white pb-2 pt-1 font-montserrat">
                     <div className="mb-4">
                         <div className="flex items-center gap-3 mb-1">
                             <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -1153,7 +1153,7 @@ const TalentPool = () => {
             {showHistoryModal && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-3xl bg-opacity-50 p-4 overflow-y-auto">
                     <div className="w-full max-w-6xl bg-white rounded-[25px] shadow-xl my-8">
-                        <div className="sticky top-0 bg-white rounded-t-[25px] border-b border-gray-200 p-6 z-10">
+                        <div className="bg-white rounded-t-[25px] border-b border-gray-200 p-6">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">

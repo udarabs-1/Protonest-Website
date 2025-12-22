@@ -970,7 +970,7 @@ const ResubmitCVPage = () => {
                 </defs>
             </svg>
 
-            <div className="sticky top-0 z-10 bg-white pb-6 pt-1 flex flex-col gap-6">
+            <div className="bg-white pb-6 pt-1 flex flex-col gap-6">
                 <div className="flex-shrink-0">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex flex-col justify-start items-start gap-2.5">

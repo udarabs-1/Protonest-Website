@@ -329,7 +329,7 @@ const ResearchProjectsManager = () => {
 
 
 
-            <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+            <div className="bg-white pb-2 pt-1 font-montserrat">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 gap-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
@@ -347,9 +347,9 @@ const ResearchProjectsManager = () => {
                             Manage and publish R&D content, technical showcases, and innovation projects from the Protonest team.
                         </p>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex justify-end">
                         <Link href={getCreateUrl()}>
-                            <button className="w-full lg:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
+                            <button className="max-w-[180px] lg:w-auto lg:max-w-none px-4 py-2.5 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-sm font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                 + New {activeContentType === 'research' ? 'Research' : 'Project'}
                             </button>
                         </Link>

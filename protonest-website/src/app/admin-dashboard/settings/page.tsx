@@ -895,7 +895,7 @@ const AdminSettings = () => {
 
 
 
-            <div className="sticky top-0 z-40 bg-white pb-4 pt-1 mb-4">
+            <div className="bg-white pb-4 pt-1 mb-4">
                 <div className="flex items-center gap-3 mb-1">
                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
                         <Icon
@@ -1002,9 +1002,9 @@ const AdminSettings = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
                             <input type="text" value={ndaDescription} onChange={(e) => setNdaDescription(e.target.value)} placeholder="e.g., Updated terms for 2025" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" maxLength={200} />
                         </div>
-                        <button onClick={() => ndaFileInputRef.current?.click()} disabled={uploadingNDA} className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                        <button onClick={() => ndaFileInputRef.current?.click()} disabled={uploadingNDA} className="h-[45px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
                             <Upload className="w-5 h-5" />
-                            {uploadingNDA ? 'Uploading...' : 'Upload New NDA (PDF, Max 10MB)'}
+                            {uploadingNDA ? 'Uploading...' : 'Upload New NDA'}
                         </button>
                         <input ref={ndaFileInputRef} type="file" accept=".pdf" onChange={handleUploadNDA} className="hidden" />
                     </div>

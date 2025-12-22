@@ -493,7 +493,7 @@ const JobCreator = () => {
                 )}
 
                 <main>
-                    <div className="sticky top-0 z-40 bg-white pb-6 flex items-center">
+                    <div className="bg-white pb-6 flex items-center">
                         <button
                             onClick={() => router.back()}
                             className="p-2 rounded-full hover:bg-gray-100 mr-2"

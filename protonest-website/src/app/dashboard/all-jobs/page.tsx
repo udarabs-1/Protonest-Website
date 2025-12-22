@@ -437,7 +437,7 @@ const AllJobsPage = () => {
 
     return (
         <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
-            <div className="sticky top-0 z-10 bg-white pb-1 pt-1">
+            <div className="bg-white pb-1 pt-1">
                 <div className="flex-shrink-0 mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex flex-col justify-start items-start gap-2.5">

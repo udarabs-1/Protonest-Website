@@ -564,8 +564,8 @@ const JobPostings = () => {
                     </div>
                 )}
                 <main>
-                    <div className="sticky top-0 z-40 bg-white pb-4">
-                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
+                    <div className="bg-white pb-4">
+                        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between mb-6 gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-1">
                                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
@@ -582,20 +582,20 @@ const JobPostings = () => {
                                     View, create, and manage all open freelance roles at Protonest. You can edit, publish or delete postings at any time.
                                 </p>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 items-center sm:justify-end xl:justify-start">
                                 <button
                                     onClick={() => setShowTriggerDialog(true)}
                                     disabled={triggerLoading}
-                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full max-w-xs sm:max-w-[240px] xl:w-auto xl:max-w-none px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-[57px] text-white text-sm font-semibold font-montserrat hover:shadow-lg transition-shadow inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Send job suggestions to talent pool users"
                                 >
-                                    <Bell className="w-5 h-5" />
+                                    <Bell className="w-4 h-4" />
                                     Send Job Suggestions
                                 </button>
 
                                 <Link
                                     href="/admin-dashboard/jobs/create"
-                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
+                                    className="w-full max-w-xs sm:max-w-[240px] xl:w-auto xl:max-w-none px-4 py-2.5 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-sm font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
                                 >
                                     + Create New Job
                                 </Link>

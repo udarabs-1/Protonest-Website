@@ -10,16 +10,16 @@ interface AdminHeaderProps {
 
 const AdminHeader = ({ onSettingsClick }: AdminHeaderProps) => {
     return (
-        <header className="bg-white py-4 flex-shrink-0 border-b border-gray-100">
+        <header className="bg-white py-3 flex-shrink-0 border-b border-gray-100">
             <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center">
-                        <Link href="/" className="w-[80px] lg:w-[110px] relative">
+                        <Link href="/" className="w-[60px] lg:w-[80px] relative">
                             <Image
                                 src="/logo.webp"
                                 alt="Protonest Logo"
-                                width={110}
-                                height={70}
+                                width={80}
+                                height={50}
                                 className="object-contain"
                             />
                         </Link>
