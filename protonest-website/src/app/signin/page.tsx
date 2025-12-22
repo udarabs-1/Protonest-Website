@@ -451,14 +451,16 @@ export default function ResponsiveSignIn() {
 
                     <div className="relative z-10 pb-8">
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Image
-                                src="/logo.webp"
-                                alt="Protonest Logo"
-                                width={112}
-                                height={80}
-                                priority
-                                className="w-25 sm:w-30 md:w-35 object-contain"
-                            />
+                            <Link href="/">
+                                <Image
+                                    src="/logo.webp"
+                                    alt="Protonest Logo"
+                                    width={112}
+                                    height={80}
+                                    priority
+                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
+                                />
+                            </Link>
                         </header>
 
                         <main className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
@@ -519,7 +521,7 @@ export default function ResponsiveSignIn() {
                                     <button
                                         type="button"
                                         onClick={togglePasswordVisibility}
-                                        className="absolute right-4 sm:right-5 md:right-6 top-1/2 transform -translate-y-1/2 text-gray-400 rounded"
+                                        className="absolute right-4 sm:right-5 md:right-6 top-1/2 transform -translate-y-1/2 text-gray-400 rounded cursor-pointer"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -534,7 +536,7 @@ export default function ResponsiveSignIn() {
                                     )}
                                     <Link
                                         href="/forgot-password"
-                                        className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded"
+                                        className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded ml-auto"
                                     >
                                         Forgot Password?
                                     </Link>
@@ -549,11 +551,11 @@ export default function ResponsiveSignIn() {
                                 </button>
 
                                 <div className="w-full mt-6 text-center">
-                                    <div className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">
+                                    <div className="text-gray-500 text-sm sm:text-base font-medium font-['Poppins']">
                                         If you don&apos;t already have an account,{' '}
                                         <Link
                                             href="/signup"
-                                            className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300"
+                                            className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent"
                                         >
                                             Sign Up
                                         </Link>
@@ -574,23 +576,25 @@ export default function ResponsiveSignIn() {
                         </div>
                     </div>
 
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
-                        <div className="flex flex-col justify-center min-h-screen">
-                            <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
+                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
+                        <div className="flex flex-col justify-center items-center min-h-screen">
+                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={112}
-                                        height={80}
-                                        priority
-                                        className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain"
-                                    />
+                                    <Link href="/">
+                                        <Image
+                                            src="/logo.webp"
+                                            alt="Protonest Logo"
+                                            width={112}
+                                            height={80}
+                                            priority
+                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
+                                        />
+                                    </Link>
                                 </header>
 
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
                                     <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
-                                        <span className="text-gray-400">Sign In</span>
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign In</span>
                                     </h1>
                                 </div>
 
@@ -645,7 +649,7 @@ export default function ResponsiveSignIn() {
                                         <button
                                             type="button"
                                             onClick={togglePasswordVisibility}
-                                            className="absolute right-5 lg:right-4 xl:right-5 2xl:right-7 top-1/2 transform -translate-y-1/2 text-gray-400 rounded"
+                                            className="absolute right-5 lg:right-4 xl:right-5 2xl:right-7 top-1/2 transform -translate-y-1/2 text-gray-400 rounded cursor-pointer"
                                             aria-label={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -660,7 +664,7 @@ export default function ResponsiveSignIn() {
                                         )}
                                         <Link
                                             href="/forgot-password"
-                                            className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded"
+                                            className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded ml-auto"
                                         >
                                             Forgot Password?
                                         </Link>
@@ -669,17 +673,17 @@ export default function ResponsiveSignIn() {
                                     <button
                                         type="submit"
                                         disabled={isLoading || !isFormValid}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full cursor-pointer text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isLoading ? 'Signing In...' : 'Sign In'}
                                     </button>
 
                                     <div className="w-full text-center pt-4">
-                                        <div className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                        <div className="text-gray-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             If you don&apos;t already have an account,{' '}
                                             <Link
                                                 href="/signup"
-                                                className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300"
+                                                className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent"
                                             >
                                                 Sign Up
                                             </Link>
@@ -689,8 +693,8 @@ export default function ResponsiveSignIn() {
                             </div>
                         </div>
 
-                        <div className="flex items-stretch h-screen">
-                            <div className="w-full p-6 lg:p-4 2xl:p-6 flex">
+                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
+                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
                                     src="/login1.webp"
                                     alt="Welcome illustration"

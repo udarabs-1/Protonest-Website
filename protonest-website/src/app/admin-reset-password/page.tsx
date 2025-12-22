@@ -3,6 +3,7 @@
 import { Icon } from '@iconify/react';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -173,20 +174,22 @@ function AdminResetPasswordContent() {
 
                     <div className="relative z-10 pb-8">
                         <div className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Image
-                                src="/logo.webp"
-                                alt="Protonest Logo"
-                                width={112}
-                                height={80}
-                                priority
-                                className="w-25 sm:w-30 md:w-35 object-contain"
-                            />
+                            <Link href="/">
+                                <Image
+                                    src="/logo.webp"
+                                    alt="Protonest Logo"
+                                    width={112}
+                                    height={80}
+                                    priority
+                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
+                                />
+                            </Link>
                         </div>
 
                         <div className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
                             <div className="w-full mb-8 sm:mb-12 md:mb-16">
-                                <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#6c6c6c] font-medium font-['Montserrat'] leading-tight">
-                                    Reset Your Admin Password
+                                <h1 className="text-2xl sm:text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] font-medium font-['Montserrat'] leading-tight">
+                                    Reset Admin Password
                                 </h1>
                             </div>
 
@@ -207,7 +210,7 @@ function AdminResetPasswordContent() {
                                     />
                                     <button
                                         onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="text-gray-400"
+                                        className="text-gray-400 cursor-pointer"
                                         disabled={isLoading}
                                     >
                                         {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -226,7 +229,7 @@ function AdminResetPasswordContent() {
                                     />
                                     <button
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="text-gray-400"
+                                        className="text-gray-400 cursor-pointer"
                                         disabled={isLoading}
                                     >
                                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -242,7 +245,7 @@ function AdminResetPasswordContent() {
                                 <button
                                     onClick={handleResetPassword}
                                     disabled={isLoading}
-                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base sm:text-lg md:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer text-white text-base sm:text-lg md:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLoading ? 'Resetting...' : 'Reset Password'}
                                 </button>
@@ -268,23 +271,25 @@ function AdminResetPasswordContent() {
                         </div>
                     </div>
 
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
-                        <div className="flex flex-col justify-center min-h-screen">
-                            <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
+                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
+                        <div className="flex flex-col justify-center items-center min-h-screen">
+                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
                                 <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={112}
-                                        height={80}
-                                        priority
-                                        className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain"
-                                    />
+                                    <Link href="/">
+                                        <Image
+                                            src="/logo.webp"
+                                            alt="Protonest Logo"
+                                            width={112}
+                                            height={80}
+                                            priority
+                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
+                                        />
+                                    </Link>
                                 </div>
 
                                 <div className="mb-6 lg:mb-4 xl:mb-6 2xl:mb-8">
-                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl text-[#6c6c6c] font-medium font-['Montserrat'] leading-tight">
-                                        Reset Your Admin Password
+                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] font-medium font-['Montserrat'] leading-tight">
+                                        Reset Admin Password
                                     </h1>
                                 </div>
 
@@ -305,7 +310,7 @@ function AdminResetPasswordContent() {
                                         />
                                         <button
                                             onClick={() => setShowNewPassword(!showNewPassword)}
-                                            className="text-gray-400"
+                                            className="text-gray-400 cursor-pointer"
                                             disabled={isLoading}
                                         >
                                             {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -324,7 +329,7 @@ function AdminResetPasswordContent() {
                                         />
                                         <button
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="text-gray-400"
+                                            className="text-gray-400 cursor-pointer"
                                             disabled={isLoading}
                                         >
                                             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -340,7 +345,7 @@ function AdminResetPasswordContent() {
                                     <button
                                         onClick={handleResetPassword}
                                         disabled={isLoading}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isLoading ? 'Resetting...' : 'Reset Password'}
                                     </button>
@@ -348,7 +353,7 @@ function AdminResetPasswordContent() {
                             </div>
                         </div>
 
-                        <div className="flex items-stretch min-h-screen">
+                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
                                     src="/login1.webp"
