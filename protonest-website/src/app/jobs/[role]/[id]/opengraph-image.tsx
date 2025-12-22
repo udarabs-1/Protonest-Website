@@ -103,30 +103,20 @@ export default async function Image({ params }: { params: { role: string; id: st
                     <div
                         style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: 50,
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontSize: 40,
-                                fontWeight: '600',
-                                fontFamily: 'Poppins',
-                                color: '#6c6c6c',
-                            }}
-                        >
-                            Protonest
-                        </div>
-                    </div>
-
-                    <div
-                        style={{
-                            display: 'flex',
                             flexDirection: 'column',
                             flex: 1,
                             justifyContent: 'center',
                         }}
                     >
+                        <div style={{ display: 'flex', marginBottom: 30 }}>
+                            <img
+                                src="https://protonest.co/logo.webp"
+                                alt="Protonest"
+                                width={200}
+                                style={{ objectFit: 'contain' }}
+                            />
+                        </div>
+
                         <div
                             style={{
                                 fontSize: 56,
@@ -151,10 +141,10 @@ export default async function Image({ params }: { params: { role: string; id: st
                         >
                             {jobData.type && (
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ fontSize: 18, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 24, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
                                         Job Type
                                     </div>
-                                    <div style={{ fontSize: 24, color: '#6c6c6c', fontWeight: '600', textTransform: 'capitalize', fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 32, color: '#6c6c6c', fontWeight: '600', textTransform: 'capitalize', fontFamily: 'Poppins' }}>
                                         {jobData.type.replace('-', ' ')}
                                     </div>
                                 </div>
@@ -162,10 +152,10 @@ export default async function Image({ params }: { params: { role: string; id: st
 
                             {jobData.location && (
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ fontSize: 18, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 24, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
                                         Location
                                     </div>
-                                    <div style={{ fontSize: 24, color: '#6c6c6c', fontWeight: '600', fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 32, color: '#6c6c6c', fontWeight: '600', fontFamily: 'Poppins' }}>
                                         {truncateText(jobData.location, 25)}
                                     </div>
                                 </div>
@@ -173,10 +163,10 @@ export default async function Image({ params }: { params: { role: string; id: st
 
                             {jobData.experience && (
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ fontSize: 18, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 24, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
                                         Experience
                                     </div>
-                                    <div style={{ fontSize: 24, color: '#6c6c6c', fontWeight: '600', textTransform: 'capitalize', fontFamily: 'Poppins' }}>
+                                    <div style={{ fontSize: 32, color: '#6c6c6c', fontWeight: '600', textTransform: 'capitalize', fontFamily: 'Poppins' }}>
                                         {jobData.experience}
                                     </div>
                                 </div>
@@ -192,7 +182,7 @@ export default async function Image({ params }: { params: { role: string; id: st
                             marginTop: 40,
                         }}
                     >
-                        <div style={{ fontSize: 24, color: '#6c6c6c', fontWeight: '500', fontFamily: 'Poppins' }}>
+                        <div style={{ fontSize: 32, color: '#6c6c6c', fontWeight: '500', fontFamily: 'Poppins' }}>
                             Apply now at protonest.co/careers
                         </div>
                     </div>
