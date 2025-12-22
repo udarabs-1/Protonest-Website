@@ -375,40 +375,37 @@ const AppliedJobs = () => {
                 return;
             }
 
-            const enrichedJobs = await Promise.all(
+            const enrichedJobs = (await Promise.all(
                 jobs.map(async (job) => {
                     try {
-                        const jobResponse = await fetch(
-                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${job.job_id._id}`
+                        let jobResponse = await fetch(
+                            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/details/${job.job_id._id}`
                         );
+
+                        if (!jobResponse.ok && jobResponse.status !== 404) {
+                            jobResponse = await fetch(
+                                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${job.job_id._id}`
+                            );
+                        }
+
                         if (jobResponse.ok) {
                             const jobData = await jobResponse.json();
                             return {
                                 ...job,
                                 jobDetails: jobData.data
                             };
+                        } else if (jobResponse.status === 404) {
+                            return null;
                         }
                     } catch (error) {
                         console.error('Error fetching job details:', error);
                     }
-                    return {
-                        ...job,
-                        jobDetails: {
-                            id: job.job_id._id,
-                            title: job.job_id.title,
-                            location: 'Not available',
-                            type: 'Not available',
-                            description: 'This job is no longer available',
-                            experience: 'Not specified',
-                            deadline: 'Not specified',
-                            category: 'Other'
-                        }
-                    };
+                    return null;
                 })
-            );
+            )).filter((job): job is EnrichedAppliedJob => job !== null);
 
-            setAppliedJobs(enrichedJobs as EnrichedAppliedJob[]);
-            setFilteredJobs(enrichedJobs as EnrichedAppliedJob[]);
+            setAppliedJobs(enrichedJobs);
+            setFilteredJobs(enrichedJobs);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch applied jobs');
         } finally {
