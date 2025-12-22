@@ -710,7 +710,7 @@ const JobPostings = () => {
                                                     <td className="px-4 py-3 whitespace-nowrap text-center">
                                                         <button
                                                             onClick={() => handleToggleActive(job.id, job.is_active)}
-                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.is_active
+                                                            className={`cursor-pointer relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.is_active
                                                                 ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]'
                                                                 : 'bg-gray-300'
                                                                 }`}
