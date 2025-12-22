@@ -1914,7 +1914,6 @@ const CandidateManagement = () => {
 
                                     <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6 sm:mb-8">
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            {/* Left: Editable Email Body */}
                                             <div>
                                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">Edit Email Body</h3>
                                                 <p className="text-xs font-light font-poppins text-[#6c6c6c]/80 mb-4">
@@ -1937,7 +1936,6 @@ const CandidateManagement = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Right: Full Email Preview */}
                                             <div>
                                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">Email Preview</h3>
                                                 <p className="text-xs font-light font-poppins text-[#6c6c6c]/80 mb-4">Live preview</p>
@@ -2147,7 +2145,6 @@ const CandidateManagement = () => {
 
                                     <div className="mb-6 sm:mb-8">
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            {/* Left: Editable Email Body */}
                                             <div>
                                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Edit Email Body</h3>
                                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -2162,7 +2159,6 @@ const CandidateManagement = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Right: Full Email Preview */}
                                             <div>
                                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Preview</h3>
                                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">

@@ -118,7 +118,6 @@ const ManageAlertsPage = () => {
                 return;
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         }
     }, [router]);
 

@@ -75,7 +75,6 @@ const AdminSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef 
                 </defs>
             </svg>
 
-            {/* Mobile Sidebar */}
             <div
                 ref={sidebarRef}
                 className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden flex flex-col ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -141,7 +140,6 @@ const AdminSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef 
                 </div>
             </div>
 
-            {/* Desktop Sidebar */}
             <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 flex-shrink-0">
                 <div className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col">
                     <nav className="p-4 space-y-1 flex-1 overflow-y-auto pr-1 custom-scrollbar">

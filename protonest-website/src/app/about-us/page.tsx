@@ -9,8 +9,8 @@ import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import OurTeamSection from "../components/our-team";
 import PageHero from "../components/page-hero";
-import { useOnScreen } from "../components/use-on-screen";
 import SectionHeader from "../components/section-header";
+import { useOnScreen } from "../components/use-on-screen";
 
 type ValueType = {
   title: string;
@@ -27,14 +27,12 @@ const ValueCard = ({ value }: { value: ValueType }) => {
   return (
     <div
       ref={ref}
-      className={`group w-[280px] sm:w-[200px] md:w-[220px] lg:w-64 h-[280px] sm:h-[320px] md:h-[340px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[30px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] flex flex-col items-center relative transition-all duration-300 md:hover:shadow-xl ${
-        shouldShowEffects ? "shadow-xl" : ""
-      }`}
+      className={`group w-[280px] sm:w-[200px] md:w-[220px] lg:w-64 h-[280px] sm:h-[320px] md:h-[340px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[30px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] flex flex-col items-center relative transition-all duration-300 md:hover:shadow-xl ${shouldShowEffects ? "shadow-xl" : ""
+        }`}
     >
       <div
-        className={`h-[180px] lg:h-[240px] flex items-center justify-center transition-transform duration-300 md:group-hover:-rotate-7 md:group-hover:scale-115 ${
-          shouldShowEffects ? "-rotate-7 scale-115" : ""
-        }`}
+        className={`h-[180px] lg:h-[240px] flex items-center justify-center transition-transform duration-300 md:group-hover:-rotate-7 md:group-hover:scale-115 ${shouldShowEffects ? "-rotate-7 scale-115" : ""
+          }`}
       >
         <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
           <Icon
@@ -46,11 +44,10 @@ const ValueCard = ({ value }: { value: ValueType }) => {
 
       <div className="flex-1 flex flex-col items-center justify-start pt-2 px-4">
         <h3
-          className={`text-sm sm:text-base font-normal font-poppins mb-3 text-center transition-all duration-300 md:text-[#4E4E4E] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[rgba(85,48,250,1)] md:to-[rgba(245,29,165,1)] ${
-            shouldShowEffects
+          className={`text-sm sm:text-base font-normal font-poppins mb-3 text-center transition-all duration-300 md:text-[#4E4E4E] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[rgba(85,48,250,1)] md:to-[rgba(245,29,165,1)] ${shouldShowEffects
               ? "text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)]"
               : "text-[#4E4E4E]"
-          }`}
+            }`}
         >
           {value.title}
         </h3>
@@ -180,9 +177,7 @@ export default function About() {
 
           <div className="absolute left-0 md:left-[5%] lg:left-[10%] 2xl:left-[11%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] px-4 lg:px-0">
             <div className="relative flex gap-6">
-              {/* Content */}
               <div className="flex flex-col gap-12 text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px]">
-                {/* Item 1 */}
                 <div className="relative">
                   <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#5530FA]" />
                   Founded in June 2023 by an electronic engineer passionate
@@ -190,14 +185,12 @@ export default function About() {
                   prototyping.
                 </div>
 
-                {/* Item 2 */}
                 <div className="relative">
                   <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#F51DA5]" />
                   Today, we&apos;re a growing team of 20+ members consisting of
                   engineers, designers, and thinkers, united by a shared goal.
                 </div>
 
-                {/* Item 3 */}
                 <div className="relative">
                   <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#6C9AE1]" />
                   What started as one idea has become a collaborative hub for

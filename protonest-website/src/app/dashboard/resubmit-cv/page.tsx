@@ -275,7 +275,6 @@ const ResubmitCVPage = () => {
                 router.push('/signin');
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -359,7 +358,6 @@ const ResubmitCVPage = () => {
                 throw new Error('Failed to fetch CV info');
             }
         } catch {
-            // Silently handle errors to prevent console messages during logout
             setHasCVUploaded(false);
         }
     };
@@ -1043,13 +1041,11 @@ const ResubmitCVPage = () => {
                     </div>
                 )}
 
-                {/* Form Section */}
                 {(!hasCVUploaded || (hasCVUploaded && !pendingJob)) && (
                     <>
                         {!hasCVUploaded && (
                             <div className="space-y-8 mb-8">
                                 <div className="grid grid-cols-1 gap-6">
-                                    {/* Full Name */}
                                     <div>
                                         <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                             Full Name
@@ -1064,7 +1060,6 @@ const ResubmitCVPage = () => {
                                         {errors.fullName && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.fullName}</p>}
                                     </div>
 
-                                    {/* Email */}
                                     <div>
                                         <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                             Email
@@ -1079,7 +1074,6 @@ const ResubmitCVPage = () => {
                                         {errors.email && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.email}</p>}
                                     </div>
 
-                                    {/* Phone Number */}
                                     <div>
                                         <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                             Phone Number
@@ -1101,7 +1095,6 @@ const ResubmitCVPage = () => {
                                         {errors.phoneNumber && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.phoneNumber}</p>}
                                     </div>
 
-                                    {/* District */}
                                     <div>
                                         <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                             District
@@ -1181,7 +1174,6 @@ const ResubmitCVPage = () => {
                                         {errors.city && <p className="text-red-500 text-sm mt-1 font-['Poppins']">{errors.city}</p>}
                                     </div>
 
-                                    {/* Work Functions */}
                                     <div>
                                         <label className="block text-gray-600 text-base sm:text-lg md:text-lg lg:text-lg font-semibold mb-2 font-['Poppins']">
                                             What functions do you prefer to work in?

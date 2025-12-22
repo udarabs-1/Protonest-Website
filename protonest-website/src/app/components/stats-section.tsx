@@ -42,14 +42,12 @@ const StatsSection = ({
     stats.map(() => 0)
   );
 
-  // Start the count-up once the block is visible on screen.
   useEffect(() => {
     if (isVisible && !hasStarted) {
       setHasStarted(true);
     }
   }, [isVisible, hasStarted]);
 
-  // Animate every value simultaneously using a single rAF timeline.
   useEffect(() => {
     if (!hasStarted) {
       return;

@@ -232,7 +232,6 @@ const SuggestedJobs = () => {
                 router.push('/signin');
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -298,7 +297,6 @@ const SuggestedJobs = () => {
                 router.push('/signin');
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         } finally {
             setLoading(false);
         }

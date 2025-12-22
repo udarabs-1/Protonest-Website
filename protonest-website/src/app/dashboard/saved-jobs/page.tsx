@@ -313,7 +313,6 @@ const SavedJobs = () => {
                 router.push('/signin');
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -343,7 +342,6 @@ const SavedJobs = () => {
                     router.push('/signin');
                 }
             } catch {
-                // Silently handle errors to prevent console messages during logout
             } finally {
                 setLoading(false);
             }

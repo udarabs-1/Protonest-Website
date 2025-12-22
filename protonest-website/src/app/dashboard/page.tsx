@@ -181,7 +181,6 @@ const Dashboard = () => {
                 router.push('/signin');
             }
         } catch (error) {
-            // Silently handle errors to prevent console messages during logout
         }
     };
 
@@ -255,7 +254,6 @@ const Dashboard = () => {
                                     };
                                 }
                             } catch {
-                                // Silently handle job detail fetch errors
                             }
                             return app;
                         })
@@ -294,7 +292,6 @@ const Dashboard = () => {
                                 };
                             }
                         } catch {
-                            // Silently handle job detail fetch errors
                         }
                         return null;
                     });
@@ -303,7 +300,6 @@ const Dashboard = () => {
                     setSuggestedJobs(jobDetails.filter(job => job !== null) as Job[]);
                 }
             } catch {
-                // Silently handle errors to prevent console messages during logout
             } finally {
                 setLoading(false);
             }
