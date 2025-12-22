@@ -2,7 +2,6 @@
 
 import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
-import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -238,34 +237,36 @@ const SubscriptionManagement = () => {
 
 
 
-            <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
-                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                        <Icon
-                            icon="solar:bell-bold-duotone"
-                            className="w-7 h-7"
-                        />
+            <div className="sticky top-0 z-40 bg-white pb-2 pt-1">
+                <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                            <Icon
+                                icon="solar:bell-bold-duotone"
+                                className="w-7 h-7"
+                            />
+                        </div>
+                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                            Subscription Management
+                        </h1>
                     </div>
-                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                        Subscription Management
-                    </h1>
+                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                        View and manage freelancers subscribed to job alert notifications.
+                    </p>
                 </div>
-                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                    View and manage freelancers subscribed to job alert notifications.
-                </p>
-            </div>
 
-            <div className="flex items-center gap-3 mb-6">
-                <div className="relative flex-1">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
-                        placeholder="Search by name or email"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                            placeholder="Search by name or email"
+                        />
+                        <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,6 @@
 import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import {
-    Search,
     X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -430,63 +429,65 @@ const ApplicationPipeline = () => {
                 </defs>
             </svg>
 
-            <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
-                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                        <Icon
-                            icon="mingcute:refresh-3-line"
-                            className="w-7 h-7"
+            <div className="sticky top-0 z-40 bg-white pb-2 pt-1">
+                <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                            <Icon
+                                icon="mingcute:refresh-3-line"
+                                className="w-7 h-7"
+                            />
+                        </div>
+                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                            Application Pipeline
+                        </h1>
+                    </div>
+                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
+                        Track each candidate&apos;s journey through the application process. View their current stage and pipeline progress.
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                        <input
+                            type="text"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            onKeyDown={handleAddFilter}
+                            className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                            placeholder="Type and press Enter to add filter"
                         />
-                    </div>
-                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                        Application Pipeline
-                    </h1>
-                </div>
-                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                    Track each candidate&apos;s journey through the application process. View their current stage and pipeline progress.
-                </p>
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-                <div className="relative flex-1">
-                    <input
-                        type="text"
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        onKeyDown={handleAddFilter}
-                        className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                        placeholder="Type and press Enter to add filter (name, role, email, status...)"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-gray-400" />
+                        <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
                 </div>
-            </div>
 
-            {activeFilters.length > 0 && (
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-medium text-gray-600">Current Filters:</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {activeFilters.map((filter, index) => (
-                            <div
-                                key={index}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
-                            >
-                                <span>{filter}</span>
-                                <button
-                                    onClick={() => handleRemoveFilter(filter)}
-                                    className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                                    aria-label={`Remove filter: ${filter}`}
+                {activeFilters.length > 0 && (
+                    <div className="">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {activeFilters.map((filter, index) => (
+                                <div
+                                    key={index}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
                                 >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ))}
+                                    <span>{filter}</span>
+                                    <button
+                                        onClick={() => handleRemoveFilter(filter)}
+                                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                        aria-label={`Remove filter: ${filter}`}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">

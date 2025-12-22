@@ -92,7 +92,7 @@ const ProfilePage = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Profile', active: true }
+        { label: 'Profile' }
     ];
 
     useEffect(() => {

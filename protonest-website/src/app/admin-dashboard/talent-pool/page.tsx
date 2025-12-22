@@ -8,7 +8,6 @@ import {
     Clock,
     FileText,
     History,
-    Search,
     Trash2,
     X
 } from 'lucide-react';
@@ -827,147 +826,149 @@ const TalentPool = () => {
                     )
                 }
 
-                <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                            <Icon
-                                icon="solar:users-group-two-rounded-bold-duotone"
-                                className="w-7 h-7"
-                            />
+                <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+                    <div className="mb-4">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:users-group-two-rounded-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                Talent Pool – Freelancer CVs
+                            </h1>
                         </div>
-                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                            Talent Pool – Freelancer CVs
-                        </h1>
+                        <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                            View and manage CVs submitted by freelancers. Use filters to shortlist profiles for upcoming IoT projects.
+                        </p>
                     </div>
-                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                        View and manage CVs submitted by freelancers. Use filters to shortlist profiles for upcoming IoT projects.
-                    </p>
-                </div>
 
-                <div className="flex flex-col gap-3 mb-6">
-                    <div className="relative">
-                        <input
-                            ref={searchInputRef}
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => {
-                                handleSearch(e);
-                                setShowRoleSuggestions(true);
-                            }}
-                            onFocus={() => setShowRoleSuggestions(true)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    const matchingRole = getUniqueRoles().find(
-                                        role => role.toLowerCase() === searchTerm.toLowerCase()
-                                    );
-                                    if (matchingRole && !roleFilters.includes(matchingRole)) {
-                                        setRoleFilters([...roleFilters, matchingRole]);
-                                        setSearchTerm('');
+                    <div className="flex flex-col gap-3 mb-3">
+                        <div className="relative bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    handleSearch(e);
+                                    setShowRoleSuggestions(true);
+                                }}
+                                onFocus={() => setShowRoleSuggestions(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const matchingRole = getUniqueRoles().find(
+                                            role => role.toLowerCase() === searchTerm.toLowerCase()
+                                        );
+                                        if (matchingRole && !roleFilters.includes(matchingRole)) {
+                                            setRoleFilters([...roleFilters, matchingRole]);
+                                            setSearchTerm('');
+                                            setShowRoleSuggestions(false);
+                                        }
+                                    }
+                                    if (e.key === 'Escape') {
                                         setShowRoleSuggestions(false);
                                     }
-                                }
-                                if (e.key === 'Escape') {
-                                    setShowRoleSuggestions(false);
-                                }
-                            }}
-                            className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                            placeholder="Search by name, email, or preferred role..."
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                                }}
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                placeholder="Search by name, email, or preferred role..."
+                            />
+                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+
+                            {showRoleSuggestions && searchTerm && getUniqueRoles().filter(role =>
+                                role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role)
+                            ).length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
+                                        {getUniqueRoles()
+                                            .filter(role => role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role))
+                                            .map(role => (
+                                                <button
+                                                    key={role}
+                                                    onClick={() => {
+                                                        setRoleFilters([...roleFilters, role]);
+                                                        setSearchTerm('');
+                                                        setShowRoleSuggestions(false);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 text-gray-700 flex items-center justify-between"
+                                                >
+                                                    <span>{role}</span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {getCandidateCountForRole(role)}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                    </div>
+                                )}
                         </div>
 
-                        {showRoleSuggestions && searchTerm && getUniqueRoles().filter(role =>
-                            role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role)
-                        ).length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
-                                    {getUniqueRoles()
-                                        .filter(role => role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role))
-                                        .map(role => (
-                                            <button
-                                                key={role}
-                                                onClick={() => {
-                                                    setRoleFilters([...roleFilters, role]);
-                                                    setSearchTerm('');
-                                                    setShowRoleSuggestions(false);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 text-gray-700 flex items-center justify-between"
-                                            >
-                                                <span>{role}</span>
-                                                <span className="text-xs text-gray-400">
-                                                    {getCandidateCountForRole(role)}
-                                                </span>
-                                            </button>
-                                        ))}
-                                </div>
-                            )}
+                        {roleFilters.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                {roleFilters.map(role => (
+                                    <div key={role} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
+                                        <span>{role}</span>
+                                        <button
+                                            onClick={() => setRoleFilters(roleFilters.filter(r => r !== role))}
+                                            className="hover:bg-purple-200 rounded-full p-0.5"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {roleFilters.length > 1 && (
+                                    <button
+                                        onClick={() => setRoleFilters([])}
+                                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                                    >
+                                        Clear all
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {roleFilters.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2">
-                            {roleFilters.map(role => (
-                                <div key={role} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
-                                    <span>{role}</span>
+                    {
+                        selectedUsers.size > 0 && (
+                            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-montserrat">
+                                <span className="text-sm text-purple-700 font-medium">
+                                    {selectedUsers.size} user(s) selected
+                                </span>
+                                <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => setRoleFilters(roleFilters.filter(r => r !== role))}
-                                        className="hover:bg-purple-200 rounded-full p-0.5"
+                                        onClick={() => {
+                                            setShowBulkMoveDialog(true);
+                                            fetchAvailableJobs();
+                                        }}
+                                        disabled={bulkMoving}
+                                        className="px-3 py-1.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                                     >
-                                        <X className="w-3 h-3" />
+                                        <Briefcase className="w-4 h-4" />
+                                        <span>Move to Job</span>
+                                    </button>
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        disabled={bulkDeleting}
+                                        className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {bulkDeleting ? (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        ) : (
+                                            <Trash2 className="w-4 h-4" />
+                                        )}
+                                        <span>Delete Selected</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedUsers(new Set())}
+                                        className="px-3 py-1.5 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                                    >
+                                        Clear Selection
                                     </button>
                                 </div>
-                            ))}
-                            {roleFilters.length > 1 && (
-                                <button
-                                    onClick={() => setRoleFilters([])}
-                                    className="text-xs text-gray-500 hover:text-gray-700 underline"
-                                >
-                                    Clear all
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {
-                    selectedUsers.size > 0 && (
-                        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <span className="text-sm text-purple-700 font-medium">
-                                {selectedUsers.size} user(s) selected
-                            </span>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => {
-                                        setShowBulkMoveDialog(true);
-                                        fetchAvailableJobs();
-                                    }}
-                                    disabled={bulkMoving}
-                                    className="px-3 py-1.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    <Briefcase className="w-4 h-4" />
-                                    <span>Move to Job</span>
-                                </button>
-                                <button
-                                    onClick={handleBulkDelete}
-                                    disabled={bulkDeleting}
-                                    className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    {bulkDeleting ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    ) : (
-                                        <Trash2 className="w-4 h-4" />
-                                    )}
-                                    <span>Delete Selected</span>
-                                </button>
-                                <button
-                                    onClick={() => setSelectedUsers(new Set())}
-                                    className="px-3 py-1.5 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
-                                >
-                                    Clear Selection
-                                </button>
                             </div>
-                        </div>
-                    )
-                }
+                        )
+                    }
+                </div>
 
                 <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
                     <table className="w-full divide-y divide-gray-200">

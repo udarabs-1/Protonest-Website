@@ -19,6 +19,7 @@ import {
     AlignCenter,
     AlignLeft,
     AlignRight,
+    ArrowLeft,
     Bold,
     Image as ImageIcon,
     Italic,
@@ -696,8 +697,14 @@ const CreateResearchProjectContent = () => {
 
 
 
-            <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
+            <div className="sticky top-0 z-40 bg-white pb-6 flex items-center">
+                <button
+                    onClick={() => router.back()}
+                    className="p-2 rounded-full hover:bg-gray-100 mr-2"
+                >
+                    <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-3">
                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
                         <Icon
                             icon="solar:magnifer-bold-duotone"
@@ -708,10 +715,10 @@ const CreateResearchProjectContent = () => {
                         Create New {contentType === 'research' ? 'Research Article' : 'Project'}
                     </h1>
                 </div>
-                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                    Share your {contentType === 'research' ? 'research findings and technical insights' : 'project details and development showcases'} with the community.
-                </p>
             </div>
+            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px] mb-6">
+                Share your {contentType === 'research' ? 'research findings and technical insights' : 'project details and development showcases'} with the community.
+            </p>
 
             <div className="mb-6">
                 <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Content Type</h2>

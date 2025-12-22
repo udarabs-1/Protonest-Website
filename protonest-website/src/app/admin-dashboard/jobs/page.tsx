@@ -6,9 +6,7 @@ import {
     Bell,
     Edit,
     Eye,
-    Search,
     Send,
-    SlidersHorizontal,
     Trash2,
     X
 } from 'lucide-react';
@@ -566,79 +564,75 @@ const JobPostings = () => {
                     </div>
                 )}
                 <main>
-
-
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:document-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
+                    <div className="sticky top-0 z-40 bg-white pb-4">
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                        <Icon
+                                            icon="solar:document-bold-duotone"
+                                            className="w-7 h-7"
+                                        />
+                                    </div>
+                                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                        Job Postings
+                                    </h1>
                                 </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    Job Postings
-                                </h1>
+                                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                                    View, create, and manage all open freelance roles at Protonest. You can edit, publish or delete postings at any time.
+                                </p>
                             </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                                View, create, and manage all open freelance roles at Protonest. You can edit, publish or delete postings at any time.
-                            </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-                            <button
-                                onClick={() => setShowTriggerDialog(true)}
-                                disabled={triggerLoading}
-                                className="w-full sm:w-auto px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Send job suggestions to talent pool users"
-                            >
-                                <Bell className="w-5 h-5" />
-                                Send Job Suggestions
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                                <button
+                                    onClick={() => setShowTriggerDialog(true)}
+                                    disabled={triggerLoading}
+                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Send job suggestions to talent pool users"
+                                >
+                                    <Bell className="w-5 h-5" />
+                                    Send Job Suggestions
+                                </button>
 
-                            <Link
-                                href="/admin-dashboard/jobs/create"
-                                className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
-                            >
-                                + Create New Job
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                placeholder="Search by job title or category"
-                            />
-                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-gray-400" />
+                                <Link
+                                    href="/admin-dashboard/jobs/create"
+                                    className="w-full sm:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow inline-block text-center"
+                                >
+                                    + Create New Job
+                                </Link>
                             </div>
                         </div>
 
-                        <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                            <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                        </button>
-                    </div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                    placeholder="Search by job title or category"
+                                />
+                                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
 
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {statusFilters.map((filter, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setActiveFilter(filter.value)}
-                                className={`h-[34px] px-4 rounded-[57px] flex items-center transition-colors ${activeFilter === filter.value
-                                    ? 'bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                <span className="text-xs md:text-[11px] font-medium">
-                                    {filter.label}
-                                </span>
-                            </button>
-                        ))}
+                        <div className="flex flex-wrap gap-2">
+                            {statusFilters.map((filter, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setActiveFilter(filter.value)}
+                                    className={`h-[34px] px-4 rounded-[57px] flex items-center transition-colors ${activeFilter === filter.value
+                                        ? 'bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    <span className="text-xs md:text-[11px] font-medium">
+                                        {filter.label}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {error && (

@@ -5,7 +5,6 @@ import { Icon } from '@iconify/react';
 import {
     Eye,
     Mail,
-    Search,
     X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -288,71 +287,71 @@ const ContactFormMessages = () => {
                 </div>
             )}
 
-            <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
-                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                        <Icon
-                            icon="solar:dialog-2-bold-duotone"
-                            className="w-7 h-7"
+            <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+                <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                            <Icon
+                                icon="solar:dialog-2-bold-duotone"
+                                className="w-7 h-7"
+                            />
+                        </div>
+                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                            Contact Form Messages
+                        </h1>
+                    </div>
+                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                        View and respond to messages sent via the Contact Us form. Use the reply button to respond via email.
+                    </p>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center gap-3 mb-2">
+                    <div className="relative flex-1 w-full h-[40px] bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden flex items-center">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            className="w-full h-[40px] pl-4 pr-12 text-gray-600 focus:outline-none"
+                            placeholder="Search by name, email, or message content"
                         />
+                        <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
-                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                        Contact Form Messages
-                    </h1>
-                </div>
-                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                    View and respond to messages sent via the Contact Us form. Use the reply button to respond via email.
-                </p>
-            </div>
 
-            {error && (
-                <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {error}
-                    <button
-                        onClick={() => setError(null)}
-                        className="float-right text-red-800 font-bold"
-                    >
-                        ×
-                    </button>
-                </div>
-            )}
-
-
-            <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
-                <div className="relative flex-1 w-full">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={handleSearch}
-                        className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none"
-                        placeholder="Search by name, email, or message content"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-gray-400" />
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <select
-                            value={statusFilter}
-                            onChange={handleStatusFilterChange}
-                            className="px-4 py-2 pr-10 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none border-none bg-white text-[#6c6c6c] text-sm font-medium font-poppins cursor-pointer appearance-none"
-                            style={{ direction: 'ltr' }}
-                        >
-                            <option value="all">All Status</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Replied">Replied</option>
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-4 h-4 text-[#6c6c6c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
+                    <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                        <div className="relative w-full md:w-auto h-[40px]">
+                            <select
+                                value={statusFilter}
+                                onChange={handleStatusFilterChange}
+                                className="w-full md:w-[160px] h-full px-4 pr-10 rounded-[20px] shadow-sm border border-gray-300 bg-white text-[#6c6c6c] text-sm font-medium font-poppins cursor-pointer appearance-none focus:outline-none"
+                                style={{ direction: 'ltr' }}
+                            >
+                                <option value="all">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Replied">Replied</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <svg className="w-4 h-4 text-[#6c6c6c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {error && (
+                <div className="mb-4 mt-2 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex justify-between items-center font-montserrat">
+                    <span>{error}</span>
+                    <button
+                        onClick={() => setError(null)}
+                        className="text-red-800 font-bold hover:text-red-900 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
 
             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
                 <div className="overflow-x-auto">

@@ -270,7 +270,7 @@ const SavedJobs = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Saved Jobs', href: '/dashboard/saved-jobs', active: true }
+        { label: 'Saved Jobs' }
     ];
 
     useEffect(() => {
@@ -471,7 +471,7 @@ const SavedJobs = () => {
                             placeholder="Search for the job"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                            className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
                         />
                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>

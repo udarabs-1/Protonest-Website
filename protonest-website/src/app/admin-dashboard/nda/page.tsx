@@ -5,7 +5,6 @@ import { Icon } from '@iconify/react';
 import {
     Edit,
     Eye,
-    Search,
     Upload,
     X
 } from 'lucide-react';
@@ -682,102 +681,104 @@ const NDAComplianceLog = () => {
             </svg>
 
             <main>
-                <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                            <Icon
-                                icon="solar:pen-new-square-bold-duotone"
-                                className="w-7 h-7"
+                <div className="sticky top-0 z-40 bg-white pb-2 pt-1">
+                    <div className="mb-4">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:pen-new-square-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                NDA & Compliance Log
+                            </h1>
+                        </div>
+                        <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                            View and track all NDA requests and submissions across job roles. This helps ensure that freelancers complete compliance requirements before onboarding.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                            onClick={() => setNdaStatusFilter('all')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'all'
+                                ? 'bg-gradient-to-r from-[#5530FA] cursor-pointer to-[#F51DA5] text-white'
+                                : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            All ({getStatusCounts().all})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('submitted')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'submitted'
+                                ? 'bg-green-500 cursor-pointer text-white'
+                                : 'bg-green-50 cursor-pointer text-green-700 hover:bg-green-100'
+                                }`}
+                        >
+                            Signed ({getStatusCounts().submitted})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('sent')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'sent'
+                                ? 'bg-yellow-500 cursor-pointer text-white'
+                                : 'bg-yellow-50 cursor-pointer text-yellow-700 hover:bg-yellow-100'
+                                }`}
+                        >
+                            Sent & Not Submitted ({getStatusCounts().sent})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('not_sent')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'not_sent'
+                                ? 'bg-gray-500 cursor-pointer text-white'
+                                : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Not Sent ({getStatusCounts().not_sent})
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                            <input
+                                type="text"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={handleAddFilter}
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                placeholder="Type and press Enter to add filter"
                             />
-                        </div>
-                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                            NDA & Compliance Log
-                        </h1>
-                    </div>
-                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                        View and track all NDA requests and submissions across job roles. This helps ensure that freelancers complete compliance requirements before onboarding.
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                    <button
-                        onClick={() => setNdaStatusFilter('all')}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'all'
-                            ? 'bg-gradient-to-r from-[#5530FA] cursor-pointer to-[#F51DA5] text-white'
-                            : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        All ({getStatusCounts().all})
-                    </button>
-                    <button
-                        onClick={() => setNdaStatusFilter('submitted')}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'submitted'
-                            ? 'bg-green-500 cursor-pointer text-white'
-                            : 'bg-green-50 cursor-pointer text-green-700 hover:bg-green-100'
-                            }`}
-                    >
-                        Signed ({getStatusCounts().submitted})
-                    </button>
-                    <button
-                        onClick={() => setNdaStatusFilter('sent')}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'sent'
-                            ? 'bg-yellow-500 cursor-pointer text-white'
-                            : 'bg-yellow-50 cursor-pointer text-yellow-700 hover:bg-yellow-100'
-                            }`}
-                    >
-                        Sent & Not Submitted ({getStatusCounts().sent})
-                    </button>
-                    <button
-                        onClick={() => setNdaStatusFilter('not_sent')}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'not_sent'
-                            ? 'bg-gray-500 cursor-pointer text-white'
-                            : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        Not Sent ({getStatusCounts().not_sent})
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="relative flex-1">
-                        <input
-                            type="text"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={handleAddFilter}
-                            className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                            placeholder="Type and press Enter to add filter (name, role, email, status...)"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
                     </div>
-                </div>
 
-                {activeFilters.length > 0 && (
-                    <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-medium text-gray-600">Current Filters:</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {activeFilters.map((filter, index) => (
-                                <div
-                                    key={index}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
-                                >
-                                    <span>{filter}</span>
-                                    <button
-                                        onClick={() => handleRemoveFilter(filter)}
-                                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                                        aria-label={`Remove filter: ${filter}`}
+                    {activeFilters.length > 0 && (
+                        <div className="">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {activeFilters.map((filter, index) => (
+                                    <div
+                                        key={index}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
                                     >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
+                                        <span>{filter}</span>
+                                        <button
+                                            onClick={() => handleRemoveFilter(filter)}
+                                            className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                            aria-label={`Remove filter: ${filter}`}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">

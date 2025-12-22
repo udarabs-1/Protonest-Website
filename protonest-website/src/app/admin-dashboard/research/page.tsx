@@ -5,8 +5,6 @@ import { Icon } from '@iconify/react';
 import {
     Edit,
     Eye,
-    Search,
-    SlidersHorizontal,
     Trash2
 } from 'lucide-react';
 import Link from 'next/link';
@@ -331,116 +329,114 @@ const ResearchProjectsManager = () => {
 
 
 
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
-                <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                            <Icon
-                                icon="solar:magnifer-bold-duotone"
-                                className="w-7 h-7"
-                            />
+            <div className="sticky top-0 z-40 bg-white pb-2 pt-1 font-montserrat">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 gap-4">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:magnifer-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                Research & Projects Manager
+                            </h1>
                         </div>
-                        <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                            Research & Projects Manager
-                        </h1>
+                        <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
+                            Manage and publish R&D content, technical showcases, and innovation projects from the Protonest team.
+                        </p>
                     </div>
-                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                        Manage and publish R&D content, technical showcases, and innovation projects from the Protonest team.
-                    </p>
-                </div>
-                <div className="flex-shrink-0">
-                    <Link href={getCreateUrl()}>
-                        <button className="w-full lg:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
-                            + New {activeContentType === 'research' ? 'Research' : 'Project'}
-                        </button>
-                    </Link>
-                </div>
-            </div>
-
-
-            <div className="inline-flex justify-start items-center gap-2 mb-6">
-                <button
-                    onClick={() => setActiveContentType('research')}
-                    className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeContentType === 'research'
-                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                >
-                    <span className="text-center text-xs font-semibold font-montserrat">
-                        Research
-                    </span>
-                </button>
-
-                <button
-                    onClick={() => setActiveContentType('projects')}
-                    className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeContentType === 'projects'
-                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                >
-                    <span className="text-center text-xs font-semibold font-montserrat">
-                        Projects
-                    </span>
-                </button>
-            </div>
-
-
-            <div className="flex items-center gap-3 mb-4">
-                <div className="relative flex-1">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                        placeholder={`Search by ${activeContentType} title or author`}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-gray-400" />
+                    <div className="flex-shrink-0">
+                        <Link href={getCreateUrl()}>
+                            <button className="w-full lg:w-auto px-6 py-4 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
+                                + New {activeContentType === 'research' ? 'Research' : 'Project'}
+                            </button>
+                        </Link>
                     </div>
                 </div>
 
-                <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                </button>
-            </div>
+
+                <div className="inline-flex justify-start items-center gap-2 mb-4">
+                    <button
+                        onClick={() => setActiveContentType('research')}
+                        className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeContentType === 'research'
+                            ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        <span className="text-center text-xs font-semibold font-montserrat">
+                            Research
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveContentType('projects')}
+                        className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeContentType === 'projects'
+                            ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        <span className="text-center text-xs font-semibold font-montserrat">
+                            Projects
+                        </span>
+                    </button>
+                </div>
 
 
-            <div className="inline-flex justify-start items-center gap-2 mb-6">
-                <button
-                    onClick={() => handleFilterChange('all')}
-                    className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'all'
-                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                >
-                    <span className="text-center text-xs font-semibold font-montserrat">
-                        All
-                    </span>
-                </button>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden flex items-center">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-[40px] pl-4 pr-12 text-gray-600 focus:outline-none"
+                            placeholder={`Search by ${activeContentType} title or author`}
+                        />
+                        <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
 
-                <button
-                    onClick={() => handleFilterChange('published')}
-                    className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'published'
-                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                >
-                    <span className="text-center text-[11px] font-medium font-poppins">
-                        Published
-                    </span>
-                </button>
 
-                <button
-                    onClick={() => handleFilterChange('draft')}
-                    className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'draft'
-                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                >
-                    <span className="text-center text-[11px] font-medium font-poppins">
-                        Draft
-                    </span>
-                </button>
+                <div className="inline-flex justify-start items-center gap-2 mb-2">
+                    <button
+                        onClick={() => handleFilterChange('all')}
+                        className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'all'
+                            ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        <span className="text-center text-xs font-semibold font-montserrat">
+                            All
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={() => handleFilterChange('published')}
+                        className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'published'
+                            ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        <span className="text-center text-[11px] font-medium font-poppins">
+                            Published
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={() => handleFilterChange('draft')}
+                        className={`h-[34px] py-4 px-4 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeFilter === 'draft'
+                            ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        <span className="text-center text-[11px] font-medium font-poppins">
+                            Draft
+                        </span>
+                    </button>
+                </div>
             </div>
 
 

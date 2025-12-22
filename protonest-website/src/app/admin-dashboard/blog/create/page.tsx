@@ -19,6 +19,7 @@ import {
     AlignCenter,
     AlignLeft,
     AlignRight,
+    ArrowLeft,
     Bold,
     Image as ImageIcon,
     Italic,
@@ -693,8 +694,14 @@ const CreateBlogPost = () => {
 
 
 
-            <div className="mb-6">
-                <div className="flex items-center gap-3 mb-1">
+            <div className="sticky top-0 z-40 bg-white pb-6 flex items-center">
+                <button
+                    onClick={() => router.back()}
+                    className="p-2 rounded-full hover:bg-gray-100 mr-2"
+                >
+                    <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-3">
                     <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
                         <Icon
                             icon="solar:document-add-bold-duotone"
@@ -705,10 +712,10 @@ const CreateBlogPost = () => {
                         Add New Blog Post
                     </h1>
                 </div>
-                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                    Create a blog post to share product updates, IoT insights, or company news with the Protonest community.
-                </p>
             </div>
+            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px] mb-6">
+                Create a blog post to share product updates, IoT insights, or company news with the Protonest community.
+            </p>
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

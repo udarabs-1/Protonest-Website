@@ -228,7 +228,7 @@ const ResubmitCVPage = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Resubmit CV', href: '/dashboard/resubmit-cv', active: true }
+        { label: 'Resubmit CV' }
     ];
 
     useEffect(() => {
@@ -1021,7 +1021,7 @@ const ResubmitCVPage = () => {
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-3 justify-center items-center lg:items-stretch w-[160px]">
+                            <div className="flex flex-col gap-3 justify-center items-center lg:items-stretch w-[160px] sm:w-[200px]">
                                 <button
                                     onClick={handlePreviewCV}
                                     disabled={!cvInfo}

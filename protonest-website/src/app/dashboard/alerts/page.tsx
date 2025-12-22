@@ -71,7 +71,7 @@ const ManageAlertsPage = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Manage Alerts', href: '/dashboard/alerts', active: true }
+        { label: 'Manage Alerts' }
     ];
 
     useEffect(() => {

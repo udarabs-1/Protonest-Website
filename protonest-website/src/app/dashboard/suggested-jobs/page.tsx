@@ -4,6 +4,7 @@ import DashboardLayout from '@/app/components/dashboard-layout';
 import { Icon } from '@iconify/react';
 import {
     RefreshCw,
+    Search,
     X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -699,7 +700,7 @@ const SuggestedJobs = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Suggested Jobs', href: '/dashboard/suggested-jobs' }
+        { label: 'Suggested Jobs' }
     ];
 
     return (
@@ -779,11 +780,9 @@ const SuggestedJobs = () => {
                                 placeholder="Search for the job"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
                             />
-                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         </div>
                     </div>
 

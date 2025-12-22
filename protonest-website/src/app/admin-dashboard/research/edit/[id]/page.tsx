@@ -19,6 +19,7 @@ import {
     AlignCenter,
     AlignLeft,
     AlignRight,
+    ArrowLeft,
     Bold,
     Image as ImageIcon,
     Italic,
@@ -705,16 +706,10 @@ const EditResearchProjectContent = () => {
         return <div>Loading editor...</div>;
     }
 
+
     return (
         <>
-            <AdminLayout
-                breadcrumbItems={[
-                    { label: 'Admin Portal', href: '/admin-dashboard' },
-                    { label: 'Research & Projects Manager', href: '/admin-dashboard/research' },
-                    { label: `Edit ${contentType === 'research' ? 'Research' : 'Project'}` }
-                ]}
-            >
-                <style jsx global>{`
+            <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
                     height: 100%;
@@ -737,22 +732,35 @@ const EditResearchProjectContent = () => {
                 }
             `}</style>
 
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#4520E0" />
+                        <stop offset="100%" stopColor="#D01888" />
+                    </linearGradient>
+                </defs>
+            </svg>
 
-                <svg width="0" height="0" style={{ position: 'absolute' }}>
-                    <defs>
-                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#4520E0" />
-                            <stop offset="100%" stopColor="#D01888" />
-                        </linearGradient>
-                    </defs>
-                </svg>
+            <AdminLayout
+                breadcrumbItems={[
+                    { label: 'Admin Portal', href: '/admin-dashboard' },
+                    { label: 'Research & Projects Manager', href: '/admin-dashboard/research' },
+                    { label: `Edit ${contentType === 'research' ? 'Research' : 'Project'}` }
+                ]}
+            >
 
 
 
 
 
-                <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-1">
+                <div className="sticky top-0 z-40 bg-white pb-6 flex items-center">
+                    <button
+                        onClick={() => router.back()}
+                        className="p-2 rounded-full hover:bg-gray-100 mr-2"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-gray-600" />
+                    </button>
+                    <div className="flex items-center gap-3">
                         <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
                             <Icon
                                 icon="solar:magnifer-bold-duotone"
@@ -763,10 +771,10 @@ const EditResearchProjectContent = () => {
                             Edit {contentType === 'research' ? 'Research Article' : 'Project'}
                         </h1>
                     </div>
-                    <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px]">
-                        Update your {contentType === 'research' ? 'research findings and technical insights' : 'project details and development showcases'}.
-                    </p>
                 </div>
+                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat max-w-[653px] mb-6">
+                    Update your {contentType === 'research' ? 'research findings and technical insights' : 'project details and development showcases'}.
+                </p>
 
 
                 <div className="mb-6">
