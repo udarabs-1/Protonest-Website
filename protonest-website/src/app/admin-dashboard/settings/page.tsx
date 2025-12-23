@@ -1,27 +1,23 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import {
     AlertCircle,
     CheckCircle,
-    ChevronRight,
     Download,
     Edit2,
     FileText,
     Info,
     Lock,
     Mail,
-    Menu,
-    Settings,
     Shield,
     Trash2,
     Upload,
     User,
     X
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface Admin {
@@ -70,7 +66,6 @@ const isAdminTokenExpired = (): boolean => {
 };
 
 const AdminSettings = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [admins, setAdmins] = useState<Admin[]>([]);
     const [newAdminEmail, setNewAdminEmail] = useState('');
@@ -90,29 +85,12 @@ const AdminSettings = () => {
     const [resetLinkError, setResetLinkError] = useState('');
     const [deleteAdmin, setDeleteAdmin] = useState<Admin | null>(null);
     const [deleteNDAConfirm, setDeleteNDAConfirm] = useState<NDADocument | null>(null);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [newAdminFirstName, setNewAdminFirstName] = useState('');
     const [newAdminLastName, setNewAdminLastName] = useState('');
     const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
     const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const ndaFileInputRef = useRef<HTMLInputElement>(null);
-    const pathname = usePathname();
     const router = useRouter();
-
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/pipeline' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
-    ];
 
     useEffect(() => {
         if (isAdminTokenExpired()) {
@@ -120,10 +98,7 @@ const AdminSettings = () => {
         }
     }, [router]);
 
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        router.push('/admin-signin');
-    };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -165,16 +140,7 @@ const AdminSettings = () => {
         fetchData();
     }, [router]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-        };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [sidebarOpen]);
 
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
@@ -553,7 +519,12 @@ const AdminSettings = () => {
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
+        <AdminLayout
+            breadcrumbItems={[
+                { label: 'Admin Portal', href: '/admin-dashboard' },
+                { label: 'Settings' }
+            ]}
+        >
             <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
@@ -585,36 +556,6 @@ const AdminSettings = () => {
                     </linearGradient>
                 </defs>
             </svg>
-
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
-                    <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {successDialog && (
                 <div
@@ -952,328 +893,219 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
 
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image src="/logo.webp" alt="Protonest Logo" width={130} height={80} className="object-contain" />
-                            </Link>
-                        </div>
 
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
+            <div className="bg-white pb-4 pt-1 mb-4">
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                        <Icon
+                            icon="solar:settings-bold-duotone"
+                            className="w-7 h-7"
+                        />
                     </div>
+                    <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">Settings</h1>
                 </div>
-            </header>
+                <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">Configure Protonest&apos;s system preferences, branding, and other admin-only features.</p>
+            </div>
 
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    <div ref={sidebarRef} className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image src="/logo.webp" alt="Protonest Logo" width={100} height={60} className="object-contain" />
-                            </Link>
-                            <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link key={index} href={item.path} onClick={() => setSidebarOpen(false)} className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-                            <div className="pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
+            <div className="mb-8">
+                <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Admin Users & Access Control</h2>
+
+
+                {!isSuperAdmin() && (
+                    <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-amber-900 mb-1">Limited Access</h4>
+                                <p className="text-sm text-amber-800">
+                                    Only super admins can create new admin users or delete existing admins. Contact your super admin if you need to manage admin users.
+                                </p>
                             </div>
                         </div>
                     </div>
+                )}
 
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link key={index} href={item.path} className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-                            <div className="p-4 pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        <div className="flex items-center mb-6">
-                            <button onClick={() => setSidebarOpen(true)} className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100">
-                                <Menu className="w-5 h-5 text-gray-600" />
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-base font-semibold text-[#6c6c6c]/80 font-poppins">Current Admin Users ({admins.length})</h3>
+                        {isSuperAdmin() && (
+                            <button
+                                onClick={openAddAdminDialog}
+                                className="px-4 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-montserrat hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                            >
+                                <User className="w-4 h-4" />
+                                Add New Admin
                             </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">Settings</span>
-                            </nav>
-                        </div>
+                        )}
+                    </div>
 
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:settings-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
-                                </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">Settings</h1>
-                            </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">Configure Protonest&apos;s system preferences, branding, and other admin-only features.</p>
-                        </div>
-
-                        <div className="mb-8">
-                            <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Admin Users & Access Control</h2>
-
-
-                            {!isSuperAdmin() && (
-                                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <div className="flex items-start gap-3">
-                                        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-semibold text-amber-900 mb-1">Limited Access</h4>
-                                            <p className="text-sm text-amber-800">
-                                                Only super admins can create new admin users or delete existing admins. Contact your super admin if you need to manage admin users.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-base font-semibold text-[#6c6c6c]/80 font-poppins">Current Admin Users ({admins.length})</h3>
-                                    {isSuperAdmin() && (
-                                        <button
-                                            onClick={openAddAdminDialog}
-                                            className="px-4 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-montserrat hover:opacity-90 transition-opacity inline-flex items-center gap-2"
-                                        >
-                                            <User className="w-4 h-4" />
-                                            Add New Admin
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full">
-                                        <thead>
-                                            <tr className="border-b border-gray-200">
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Admin Name</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Email</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Role</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Last Login</th>
-                                                <th className="px-4 py-3 text-center text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-200">
-                                            {admins.map((admin) => (
-                                                <tr key={admin.id}>
-                                                    <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.first_name} {admin.last_name}</td>
-                                                    <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.email}</td>
-                                                    <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">
-                                                        <span className={`px-2 py-1 rounded-full text-xs ${admin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                                                            {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{formatDate(admin.last_login || admin.created_at)}</td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            {isSuperAdmin() && admin.role !== 'super_admin' && admin.id !== getCurrentAdmin()?.id && (
-                                                                <button
-                                                                    onClick={() => setDeleteAdmin(admin)}
-                                                                    className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                                                                    title="Delete admin"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            )}
-                                                            {admin.role === 'super_admin' && (
-                                                                <span className="text-xs text-gray-400 italic">Protected</span>
-                                                            )}
-                                                            {admin.id === getCurrentAdmin()?.id && admin.role !== 'super_admin' && (
-                                                                <span className="text-xs text-gray-400 italic">You</span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mb-8">
-                            <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Compliance & Legal - NDA Management</h2>
-
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-6">
-                                <h3 className="text-base font-semibold text-[#6c6c6c]/80 mb-4 font-poppins flex items-center gap-2">
-                                    <Upload className="w-5 h-5" />
-                                    Upload New NDA Document
-                                </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
-                                        <input type="text" value={ndaDescription} onChange={(e) => setNdaDescription(e.target.value)} placeholder="e.g., Updated terms for 2025" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" maxLength={200} />
-                                    </div>
-                                    <button onClick={() => ndaFileInputRef.current?.click()} disabled={uploadingNDA} className="px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
-                                        <Upload className="w-5 h-5" />
-                                        {uploadingNDA ? 'Uploading...' : 'Upload New NDA (PDF, Max 10MB)'}
-                                    </button>
-                                    <input ref={ndaFileInputRef} type="file" accept=".pdf" onChange={handleUploadNDA} className="hidden" />
-                                </div>
-                            </div>
-
-                            {activeNDA && (
-                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-4 sm:p-6 lg:p-8 mb-6 border-2 border-green-200">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
-                                        <h3 className="text-lg font-semibold text-green-800 font-poppins">Currently Active NDA</h3>
-                                    </div>
-                                    <div className="bg-white rounded-xl p-4 space-y-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <FileText className="w-5 h-5 text-[#5530FA]" />
-                                                    <p className="text-base font-semibold text-gray-800">{activeNDA.file_name}</p>
-                                                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">v{activeNDA.version}</span>
-                                                </div>
-                                                <div className="text-sm text-gray-600 space-y-1 ml-7">
-                                                    <p>Size: {formatFileSize(activeNDA.file_size)}</p>
-                                                    <p>Uploaded: {formatDate(activeNDA.uploaded_at)}</p>
-                                                    {activeNDA.description && <p className="text-gray-700 italic">&quot;{activeNDA.description}&quot;</p>}
-                                                </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead>
+                                <tr className="border-b border-gray-200">
+                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Admin Name</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Email</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Role</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Last Login</th>
+                                    <th className="px-4 py-3 text-center text-[11px] font-medium text-[#4e4e4e] uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {admins.map((admin) => (
+                                    <tr key={admin.id}>
+                                        <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.first_name} {admin.last_name}</td>
+                                        <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{admin.email}</td>
+                                        <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">
+                                            <span className={`px-2 py-1 rounded-full text-xs ${admin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-[11px] font-medium text-[#676767]">{formatDate(admin.last_login || admin.created_at)}</td>
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {isSuperAdmin() && admin.role !== 'super_admin' && admin.id !== getCurrentAdmin()?.id && (
+                                                    <button
+                                                        onClick={() => setDeleteAdmin(admin)}
+                                                        className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                        title="Delete admin"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {admin.role === 'super_admin' && (
+                                                    <span className="text-xs text-gray-400 italic">Protected</span>
+                                                )}
+                                                {admin.id === getCurrentAdmin()?.id && admin.role !== 'super_admin' && (
+                                                    <span className="text-xs text-gray-400 italic">You</span>
+                                                )}
                                             </div>
-                                            <button onClick={() => handleDownloadNDA(activeNDA.download_url)} className="ml-4 p-2 text-[#5530FA] hover:bg-purple-50 rounded-lg transition-colors" title="Download NDA">
-                                                <Download className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
-                                <h3 className="text-base font-semibold text-[#6c6c6c]/80 mb-4 font-poppins">All NDA Documents ({ndaDocuments.length})</h3>
-                                <div className="space-y-4">
-                                    {ndaDocuments.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                            <p>No NDA documents uploaded yet</p>
-                                        </div>
-                                    ) : (
-                                        ndaDocuments.map((doc) => (
-                                            <div key={doc.id} className={`border rounded-xl p-4 transition-all ${doc.is_active ? 'border-green-300 bg-green-50/50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
-                                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <FileText className="w-5 h-5 text-[#5530FA] flex-shrink-0" />
-                                                            <p className="text-sm font-semibold text-gray-800 truncate">{doc.file_name}</p>
-                                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${doc.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>v{doc.version}</span>
-                                                            {doc.is_active && <span className="px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded-full flex-shrink-0">ACTIVE</span>}
-                                                        </div>
-                                                        <div className="text-xs text-gray-600 space-y-1 ml-7">
-                                                            <p>Size: {formatFileSize(doc.file_size)} • Uploaded: {formatDate(doc.uploaded_at)}</p>
-                                                            {editingDescription === doc.id ? (
-                                                                <div className="flex items-center gap-2 mt-2">
-                                                                    <input type="text" value={descriptionText} onChange={(e) => setDescriptionText(e.target.value)} className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" placeholder="Enter description" maxLength={200} />
-                                                                    <button onClick={() => handleUpdateDescription(doc.id)} disabled={updatingDescription} className="px-3 py-1 bg-[#5530FA] text-white text-xs rounded hover:opacity-90 disabled:opacity-50">{updatingDescription ? 'Saving...' : 'Save'}</button>
-                                                                    <button onClick={() => { setEditingDescription(null); setDescriptionText(''); }} className="px-3 py-1 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50">Cancel</button>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex items-center gap-2">
-                                                                    <p className="text-gray-700 italic">{doc.description || 'No description'}</p>
-                                                                    <button onClick={() => { setEditingDescription(doc.id); setDescriptionText(doc.description || ''); }} className="text-[#5530FA] hover:text-[#4520d9] p-1" title="Edit description">
-                                                                        <Edit2 className="w-3 h-3" />
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                                        <button onClick={() => handleDownloadNDA(doc.download_url)} className="p-2 text-[#5530FA] hover:bg-purple-50 rounded-lg transition-colors" title="Download">
-                                                            <Download className="w-5 h-5" />
-                                                        </button>
-                                                        {!doc.is_active && (
-                                                            <>
-                                                                <button onClick={() => handleSetActiveNDA(doc.id)} disabled={activatingNDA === doc.id} className="px-3 py-2 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap" title="Set as active">{activatingNDA === doc.id ? 'Activating...' : 'Set Active'}</button>
-                                                                <button onClick={() => setDeleteNDAConfirm(doc)} disabled={deletingNDA === doc.id} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" title="Delete">
-                                                                    <Trash2 className="w-5 h-5" />
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mb-8">
-                            <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Account & Security</h2>
-                            <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
-                                <button onClick={() => setPasswordResetDialog(true)} className="w-full text-left px-6 py-4 text-[#6c6c6c]/80 text-base font-normal font-poppins hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
-                                    <Lock className="w-5 h-5" />
-                                    Reset Password
-                                </button>
-                            </div>
-                        </div>
-                    </main>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div className="mb-8">
+                <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Compliance & Legal - NDA Management</h2>
+
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-6">
+                    <h3 className="text-base font-semibold text-[#6c6c6c]/80 mb-4 font-poppins flex items-center gap-2">
+                        <Upload className="w-5 h-5" />
+                        Upload New NDA Document
+                    </h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                            <input type="text" value={ndaDescription} onChange={(e) => setNdaDescription(e.target.value)} placeholder="e.g., Updated terms for 2025" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" maxLength={200} />
+                        </div>
+                        <button onClick={() => ndaFileInputRef.current?.click()} disabled={uploadingNDA} className="h-[45px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                            <Upload className="w-5 h-5" />
+                            {uploadingNDA ? 'Uploading...' : 'Upload New NDA'}
+                        </button>
+                        <input ref={ndaFileInputRef} type="file" accept=".pdf" onChange={handleUploadNDA} className="hidden" />
+                    </div>
+                </div>
+
+                {activeNDA && (
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] p-4 sm:p-6 lg:p-8 mb-6 border-2 border-green-200">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                            <h3 className="text-lg font-semibold text-green-800 font-poppins">Currently Active NDA</h3>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 space-y-3">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-5 h-5 text-[#5530FA]" />
+                                        <p className="text-base font-semibold text-gray-800">{activeNDA.file_name}</p>
+                                        <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">v{activeNDA.version}</span>
+                                    </div>
+                                    <div className="text-sm text-gray-600 space-y-1 ml-7">
+                                        <p>Size: {formatFileSize(activeNDA.file_size)}</p>
+                                        <p>Uploaded: {formatDate(activeNDA.uploaded_at)}</p>
+                                        {activeNDA.description && <p className="text-gray-700 italic">&quot;{activeNDA.description}&quot;</p>}
+                                    </div>
+                                </div>
+                                <button onClick={() => handleDownloadNDA(activeNDA.download_url)} className="ml-4 p-2 text-[#5530FA] hover:bg-purple-50 rounded-lg transition-colors" title="Download NDA">
+                                    <Download className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
+                    <h3 className="text-base font-semibold text-[#6c6c6c]/80 mb-4 font-poppins">All NDA Documents ({ndaDocuments.length})</h3>
+                    <div className="space-y-4">
+                        {ndaDocuments.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                                <p>No NDA documents uploaded yet</p>
+                            </div>
+                        ) : (
+                            ndaDocuments.map((doc) => (
+                                <div key={doc.id} className={`border rounded-xl p-4 transition-all ${doc.is_active ? 'border-green-300 bg-green-50/50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <FileText className="w-5 h-5 text-[#5530FA] flex-shrink-0" />
+                                                <p className="text-sm font-semibold text-gray-800 truncate">{doc.file_name}</p>
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${doc.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>v{doc.version}</span>
+                                                {doc.is_active && <span className="px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded-full flex-shrink-0">ACTIVE</span>}
+                                            </div>
+                                            <div className="text-xs text-gray-600 space-y-1 ml-7">
+                                                <p>Size: {formatFileSize(doc.file_size)} • Uploaded: {formatDate(doc.uploaded_at)}</p>
+                                                {editingDescription === doc.id ? (
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <input type="text" value={descriptionText} onChange={(e) => setDescriptionText(e.target.value)} className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none" placeholder="Enter description" maxLength={200} />
+                                                        <button onClick={() => handleUpdateDescription(doc.id)} disabled={updatingDescription} className="px-3 py-1 bg-[#5530FA] text-white text-xs rounded hover:opacity-90 disabled:opacity-50">{updatingDescription ? 'Saving...' : 'Save'}</button>
+                                                        <button onClick={() => { setEditingDescription(null); setDescriptionText(''); }} className="px-3 py-1 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50">Cancel</button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-gray-700 italic">{doc.description || 'No description'}</p>
+                                                        <button onClick={() => { setEditingDescription(doc.id); setDescriptionText(doc.description || ''); }} className="text-[#5530FA] hover:text-[#4520d9] p-1" title="Edit description">
+                                                            <Edit2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <button onClick={() => handleDownloadNDA(doc.download_url)} className="p-2 text-[#5530FA] hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                                                <Download className="w-5 h-5" />
+                                            </button>
+                                            {!doc.is_active && (
+                                                <>
+                                                    <button onClick={() => handleSetActiveNDA(doc.id)} disabled={activatingNDA === doc.id} className="px-3 py-2 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap" title="Set as active">{activatingNDA === doc.id ? 'Activating...' : 'Set Active'}</button>
+                                                    <button onClick={() => setDeleteNDAConfirm(doc)} disabled={deletingNDA === doc.id} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" title="Delete">
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="mb-8">
+                <h2 className="text-lg md:text-[22px] font-medium text-[#6c6c6c] mb-4 font-poppins">Account & Security</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8">
+                    <button onClick={() => setPasswordResetDialog(true)} className="w-full text-left px-6 py-4 text-[#6c6c6c]/80 text-base font-normal font-poppins hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
+                        <Lock className="w-5 h-5" />
+                        Reset Password
+                    </button>
+                </div>
+            </div>
+        </AdminLayout>
     );
 };
 

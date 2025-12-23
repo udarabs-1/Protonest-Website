@@ -59,6 +59,11 @@ const TestimonialSection = () => {
     arrows: false,
     autoplay: true,
     autoplaySpeed: 3000,
+    pauseOnHover: false,
+    pauseOnFocus: false,
+    swipeToSlide: true,
+    touchThreshold: 10,
+    cssEase: 'ease-in-out',
   };
 
   const desktopCarouselSettings = {
@@ -71,12 +76,16 @@ const TestimonialSection = () => {
     autoplay: true,
     autoplaySpeed: 3000,
     pauseOnHover: true,
+    swipeToSlide: true,
+    touchThreshold: 10,
+    cssEase: 'ease-in-out',
     responsive: [
       {
         breakpoint: 1280,
         settings: {
           slidesToShow: 2,
           slidesToScroll: 1,
+          swipeToSlide: true,
         },
       },
     ],
@@ -202,10 +211,10 @@ const TestimonialCard = ({
 }) => {
   const cardProps = isMobile
     ? {
-        onTouchStart: onInteractionStart,
-        onTouchEnd: onInteractionEnd,
-        onTouchMove: onInteractionStart,
-      }
+      onTouchStart: onInteractionStart,
+      onTouchEnd: onInteractionEnd,
+      onTouchMove: onInteractionStart,
+    }
     : {};
 
   return (

@@ -1,13 +1,12 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  FiZap,
-  FiCpu,
-  FiCode,
   FiCheckCircle,
-  FiSettings,
+  FiCode,
+  FiCpu,
   FiGlobe,
+  FiSettings,
+  FiZap,
 } from "react-icons/fi";
 import SectionHeader from "./section-header";
 
@@ -82,7 +81,6 @@ const ServiceCard = ({
       <div
         className={`h-16 w-16 rounded-2xl ${iconBg} ring-1 ring-inset ${iconRing} flex items-center justify-center transition duration-300 group-hover:rotate-15`}
       >
-        {/* render react-icon node */}
         {icon}
       </div>
       <h3 className="text-[20px] font-montserrat font-medium leading-snug bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">

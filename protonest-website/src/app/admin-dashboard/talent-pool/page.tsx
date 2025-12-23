@@ -1,22 +1,17 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import {
     Briefcase,
     ChevronDown,
-    ChevronRight,
     Clock,
     FileText,
     History,
-    Menu,
-    Search,
-    Settings,
     Trash2,
     X
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface FreelancerData {
@@ -108,7 +103,6 @@ const isAdminTokenExpired = (): boolean => {
 
 const TalentPool = () => {
     const router = useRouter();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [freelancers, setFreelancers] = useState<FreelancerData[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -121,7 +115,6 @@ const TalentPool = () => {
     const [jobSearchTerm, setJobSearchTerm] = useState('');
     const [sendNDA, setSendNDA] = useState(false);
     const [assigningJob, setAssigningJob] = useState(false);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [applicationHistory, setApplicationHistory] = useState<ApplicationHistoryResponse | null>(null);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -136,24 +129,8 @@ const TalentPool = () => {
     const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
     const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
     const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
-    const pathname = usePathname();
-
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
-    ];
 
     useEffect(() => {
         if (isAdminTokenExpired()) {
@@ -163,10 +140,6 @@ const TalentPool = () => {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-
             if (showJobDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowJobDropdown(false);
             }
@@ -180,7 +153,7 @@ const TalentPool = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [sidebarOpen, showJobDropdown, showRoleSuggestions]);
+    }, [showJobDropdown, showRoleSuggestions]);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -716,8 +689,14 @@ const TalentPool = () => {
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
-            <style jsx global>{`
+        <>
+            <AdminLayout
+                breadcrumbItems={[
+                    { label: 'Admin Portal', href: '/admin-dashboard' },
+                    { label: 'Talent Pool' }
+                ]}
+            >
+                <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
                     height: 100%;
@@ -740,49 +719,362 @@ const TalentPool = () => {
                 }
             `}</style>
 
-            <svg width="0" height="0" style={{ position: 'absolute' }}>
-                <defs>
-                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#4520E0" />
-                        <stop offset="100%" stopColor="#D01888" />
-                    </linearGradient>
-                </defs>
-            </svg>
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <defs>
+                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#4520E0" />
+                            <stop offset="100%" stopColor="#D01888" />
+                        </linearGradient>
+                    </defs>
+                </svg>
 
 
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+
+                {successDialog && (
                     <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                        onClick={() => setSuccessDialog(null)}
                     >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                        <div
+                            className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
+                            <p className="text-gray-600 mb-6">{successDialog.message}</p>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setSuccessDialog(null)}
+                                    className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                >
+                                    OK
+                                </button>
+                            </div>
                         </div>
                     </div>
+                )}
+
+                {errorDialog && (
+                    <div
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                        onClick={() => setErrorDialog(null)}
+                    >
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                        <div
+                            className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
+                            <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setErrorDialog(null)}
+                                    className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {confirmDialog && (
+                    <div
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                        onClick={() => setConfirmDialog(null)}
+                    >
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                        <div
+                            className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">{confirmDialog.title}</h3>
+                            <p className="text-gray-600 mb-6">{confirmDialog.message}</p>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setConfirmDialog(null)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDialog.onConfirm}
+                                    className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+
+
+
+
+                {
+                    error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-600 text-sm">{error}</p>
+                            <button
+                                onClick={fetchFreelancers}
+                                className="mt-2 text-red-600 text-sm underline hover:no-underline"
+                            >
+                                Try again
+                            </button>
+                        </div>
+                    )
+                }
+
+                <div className="bg-white pb-2 pt-1 font-montserrat">
+                    <div className="mb-4">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:users-group-two-rounded-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                Talent Pool – Freelancer CVs
+                            </h1>
+                        </div>
+                        <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                            View and manage CVs submitted by freelancers. Use filters to shortlist profiles for upcoming IoT projects.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-3 mb-3">
+                        <div className="relative bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    handleSearch(e);
+                                    setShowRoleSuggestions(true);
+                                }}
+                                onFocus={() => setShowRoleSuggestions(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const matchingRole = getUniqueRoles().find(
+                                            role => role.toLowerCase() === searchTerm.toLowerCase()
+                                        );
+                                        if (matchingRole && !roleFilters.includes(matchingRole)) {
+                                            setRoleFilters([...roleFilters, matchingRole]);
+                                            setSearchTerm('');
+                                            setShowRoleSuggestions(false);
+                                        }
+                                    }
+                                    if (e.key === 'Escape') {
+                                        setShowRoleSuggestions(false);
+                                    }
+                                }}
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                placeholder="Search by name, email, or preferred role..."
+                            />
+                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+
+                            {showRoleSuggestions && searchTerm && getUniqueRoles().filter(role =>
+                                role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role)
+                            ).length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
+                                        {getUniqueRoles()
+                                            .filter(role => role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role))
+                                            .map(role => (
+                                                <button
+                                                    key={role}
+                                                    onClick={() => {
+                                                        setRoleFilters([...roleFilters, role]);
+                                                        setSearchTerm('');
+                                                        setShowRoleSuggestions(false);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 text-gray-700 flex items-center justify-between"
+                                                >
+                                                    <span>{role}</span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {getCandidateCountForRole(role)}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                    </div>
+                                )}
+                        </div>
+
+                        {roleFilters.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                {roleFilters.map(role => (
+                                    <div key={role} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
+                                        <span>{role}</span>
+                                        <button
+                                            onClick={() => setRoleFilters(roleFilters.filter(r => r !== role))}
+                                            className="hover:bg-purple-200 rounded-full p-0.5"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {roleFilters.length > 1 && (
+                                    <button
+                                        onClick={() => setRoleFilters([])}
+                                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                                    >
+                                        Clear all
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {
+                        selectedUsers.size > 0 && (
+                            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-montserrat">
+                                <span className="text-sm text-purple-700 font-medium">
+                                    {selectedUsers.size} user(s) selected
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowBulkMoveDialog(true);
+                                            fetchAvailableJobs();
+                                        }}
+                                        disabled={bulkMoving}
+                                        className="px-3 py-1.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        <Briefcase className="w-4 h-4" />
+                                        <span>Move to Job</span>
+                                    </button>
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        disabled={bulkDeleting}
+                                        className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {bulkDeleting ? (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        ) : (
+                                            <Trash2 className="w-4 h-4" />
+                                        )}
+                                        <span>Delete Selected</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedUsers(new Set())}
+                                        className="px-3 py-1.5 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                                    >
+                                        Clear Selection
+                                    </button>
+                                </div>
+                            </div>
+                        )
+                    }
                 </div>
-            )}
+
+                <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
+                    <table className="w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-2 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider w-12">
+                                    <input
+                                        type="checkbox"
+                                        checked={filteredFreelancers.length > 0 && selectedUsers.size === filteredFreelancers.length}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
+                                    />
+                                </th>
+                                <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Freelancer Name
+                                </th>
+                                <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Email
+                                </th>
+                                <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Preferred Role
+                                </th>
+                                <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Last Updated
+                                </th>
+                                <th className="px-4 py-2 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredFreelancers.length > 0 ? (
+                                filteredFreelancers.map((freelancer) => (
+                                    <tr key={freelancer.id} className={`hover:bg-gray-50 ${selectedUsers.has(freelancer.userId) ? 'bg-purple-50' : ''}`}>
+                                        <td className="px-4 py-2 whitespace-nowrap text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedUsers.has(freelancer.userId)}
+                                                onChange={() => toggleUserSelection(freelancer.userId)}
+                                                className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
+                                            />
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                            {freelancer.name}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                            {freelancer.email}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                            {freelancer.title}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                            {freelancer.lastUpdated}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleViewCV(freelancer)}
+                                                    className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
+                                                    title="View CV"
+                                                >
+                                                    View CV
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleViewHistory(freelancer)}
+                                                    className="px-3 py-1 rounded-[15px] bg-blue-500 text-white text-[10px] font-medium font-poppins hover:bg-blue-600 transition-colors flex items-center gap-1"
+                                                    title="View Application History"
+                                                >
+                                                    <History className="w-3 h-3" />
+                                                    History
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleMoveToJob(freelancer)}
+                                                    className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
+                                                >
+                                                    Move to Job
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDeleteFreelancer(freelancer)}
+                                                    className="p-1.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                                    title="Delete freelancer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-6 text-center text-[#676767] text-sm font-poppins">
+                                        {searchTerm || roleFilters.length > 0 ? 'No freelancers found matching your filters.' : 'No freelancers found in talent pool.'}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </AdminLayout>
 
             {successDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center p-4"
                     onClick={() => setSuccessDialog(null)}
                 >
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
@@ -806,7 +1098,7 @@ const TalentPool = () => {
 
             {errorDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center p-4"
                     onClick={() => setErrorDialog(null)}
                 >
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
@@ -830,7 +1122,7 @@ const TalentPool = () => {
 
             {confirmDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center p-4"
                     onClick={() => setConfirmDialog(null)}
                 >
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
@@ -858,17 +1150,10 @@ const TalentPool = () => {
                 </div>
             )}
 
-
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
-
-
             {showHistoryModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-3xl bg-opacity-50 p-4 overflow-y-auto">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-3xl bg-opacity-50 p-4 overflow-y-auto">
                     <div className="w-full max-w-6xl bg-white rounded-[25px] shadow-xl my-8">
-
-                        <div className="sticky top-0 bg-white rounded-t-[25px] border-b border-gray-200 p-6 z-10">
+                        <div className="bg-white rounded-t-[25px] border-b border-gray-200 p-6">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
@@ -895,7 +1180,6 @@ const TalentPool = () => {
                                     <X className="w-5 h-5 text-gray-500" />
                                 </button>
                             </div>
-
 
                             {applicationHistory && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -934,7 +1218,6 @@ const TalentPool = () => {
                                 </div>
                             )}
 
-
                             <div className="mt-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Filter by Status
@@ -956,7 +1239,6 @@ const TalentPool = () => {
                                 </select>
                             </div>
                         </div>
-
 
                         <div className="p-6 max-h-[60vh] overflow-y-auto">
                             {loadingHistory ? (
@@ -987,7 +1269,6 @@ const TalentPool = () => {
                                             className={`border rounded-lg p-5 hover:shadow-md transition-shadow ${app.job_deleted ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
                                                 }`}
                                         >
-
                                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-start gap-3">
@@ -1024,15 +1305,12 @@ const TalentPool = () => {
                                                 </div>
                                             </div>
 
-
                                             <div className="space-y-3 text-sm">
-
                                                 <div>
                                                     <p className="text-gray-600 line-clamp-2">
                                                         {app.job_details.description}
                                                     </p>
                                                 </div>
-
 
                                                 {app.job_details.required_skills && app.job_details.required_skills.length > 0 && (
                                                     <div>
@@ -1050,7 +1328,6 @@ const TalentPool = () => {
                                                     </div>
                                                 )}
 
-
                                                 {app.job_details.deadline && (
                                                     <div className="flex items-center gap-2 text-gray-600">
                                                         <FileText className="w-4 h-4" />
@@ -1058,7 +1335,6 @@ const TalentPool = () => {
                                                         <span>{app.job_details.deadline}</span>
                                                     </div>
                                                 )}
-
 
                                                 <div className="pt-3 border-t border-gray-200">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
@@ -1099,7 +1375,6 @@ const TalentPool = () => {
                             )}
                         </div>
 
-
                         <div className="sticky bottom-0 bg-white rounded-b-[25px] border-t border-gray-200 p-6">
                             <button
                                 onClick={resetHistoryModal}
@@ -1112,17 +1387,15 @@ const TalentPool = () => {
                 </div>
             )}
 
-
             {showAssignPopup && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-2xl bg-opacity-50 p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-2xl bg-opacity-50 p-4"
                     onClick={() => setShowAssignPopup(false)}
                 >
                     <div
                         className="w-full max-w-[600px] bg-white rounded-[25px] shadow-xl p-6 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-xl font-semibold text-[#6c6c6c] mb-2">
@@ -1141,7 +1414,6 @@ const TalentPool = () => {
                             </button>
                         </div>
 
-
                         <div className="mb-6">
                             <label className="block text-[#6c6c6c] text-base font-medium mb-3">
                                 Freelancer Name
@@ -1158,7 +1430,6 @@ const TalentPool = () => {
                                 </div>
                             </div>
                         </div>
-
 
                         <div className="mb-6" ref={dropdownRef}>
                             <label className="block text-[#6c6c6c] text-base font-medium mb-3">
@@ -1185,7 +1456,6 @@ const TalentPool = () => {
                                 >
                                     <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showJobDropdown ? 'rotate-180' : ''}`} />
                                 </button>
-
 
                                 {showJobDropdown && (
                                     <div className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-[200px] overflow-y-auto z-20 mt-1">
@@ -1216,7 +1486,6 @@ const TalentPool = () => {
                                 )}
                             </div>
 
-
                             {selectedJob && (
                                 <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                                     <div className="font-medium text-blue-800">Selected: {selectedJob.title}</div>
@@ -1226,7 +1495,6 @@ const TalentPool = () => {
                                 </div>
                             )}
                         </div>
-
 
                         <div className="flex flex-col sm:flex-row gap-3">
                             <button
@@ -1250,7 +1518,7 @@ const TalentPool = () => {
 
             {showBulkMoveDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-2xl bg-opacity-50 p-4"
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-2xl bg-opacity-50 p-4"
                     onClick={() => setShowBulkMoveDialog(false)}
                 >
                     <div
@@ -1378,7 +1646,7 @@ const TalentPool = () => {
                                     setJobSearchTerm('');
                                 }}
                                 disabled={bulkMoving}
-                                className="flex-1 px-6 py-3 border border-[#5530FA] text-[#5530FA] rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="flex-1 px-6 py-3 border border-[#5530FA] text-[#5530FA] rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
                             >
                                 Cancel
                             </button>
@@ -1386,411 +1654,7 @@ const TalentPool = () => {
                     </div>
                 </div>
             )}
-
-
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={130}
-                                    height={80}
-                                    className="object-contain"
-                                />
-                            </Link>
-                        </div>
-
-
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-
-                    <div
-                        ref={sidebarRef}
-                        className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={100}
-                                    height={60}
-                                    className="object-contain"
-                                />
-                            </Link>
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="p-4 pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <Menu className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">Talent Pool</span>
-                            </nav>
-                        </div>
-
-                        {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-red-600 text-sm">{error}</p>
-                                <button
-                                    onClick={fetchFreelancers}
-                                    className="mt-2 text-red-600 text-sm underline hover:no-underline"
-                                >
-                                    Try again
-                                </button>
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:users-group-two-rounded-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
-                                </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    Talent Pool – Freelancer CVs
-                                </h1>
-                            </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                                View and manage CVs submitted by freelancers. Use filters to shortlist profiles for upcoming IoT projects.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-3 mb-6">
-                            <div className="relative">
-                                <input
-                                    ref={searchInputRef}
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        handleSearch(e);
-                                        setShowRoleSuggestions(true);
-                                    }}
-                                    onFocus={() => setShowRoleSuggestions(true)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            const matchingRole = getUniqueRoles().find(
-                                                role => role.toLowerCase() === searchTerm.toLowerCase()
-                                            );
-                                            if (matchingRole && !roleFilters.includes(matchingRole)) {
-                                                setRoleFilters([...roleFilters, matchingRole]);
-                                                setSearchTerm('');
-                                                setShowRoleSuggestions(false);
-                                            }
-                                        }
-                                        if (e.key === 'Escape') {
-                                            setShowRoleSuggestions(false);
-                                        }
-                                    }}
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Search by name, email, or preferred role..."
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
-
-                                {showRoleSuggestions && searchTerm && getUniqueRoles().filter(role =>
-                                    role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role)
-                                ).length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
-                                            {getUniqueRoles()
-                                                .filter(role => role.toLowerCase().includes(searchTerm.toLowerCase()) && !roleFilters.includes(role))
-                                                .map(role => (
-                                                    <button
-                                                        key={role}
-                                                        onClick={() => {
-                                                            setRoleFilters([...roleFilters, role]);
-                                                            setSearchTerm('');
-                                                            setShowRoleSuggestions(false);
-                                                        }}
-                                                        className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 text-gray-700 flex items-center justify-between"
-                                                    >
-                                                        <span>{role}</span>
-                                                        <span className="text-xs text-gray-400">
-                                                            {getCandidateCountForRole(role)}
-                                                        </span>
-                                                    </button>
-                                                ))}
-                                        </div>
-                                    )}
-                            </div>
-
-                            {roleFilters.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {roleFilters.map(role => (
-                                        <div key={role} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
-                                            <span>{role}</span>
-                                            <button
-                                                onClick={() => setRoleFilters(roleFilters.filter(r => r !== role))}
-                                                className="hover:bg-purple-200 rounded-full p-0.5"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {roleFilters.length > 1 && (
-                                        <button
-                                            onClick={() => setRoleFilters([])}
-                                            className="text-xs text-gray-500 hover:text-gray-700 underline"
-                                        >
-                                            Clear all
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {selectedUsers.size > 0 && (
-                            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                <span className="text-sm text-purple-700 font-medium">
-                                    {selectedUsers.size} user(s) selected
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => {
-                                            setShowBulkMoveDialog(true);
-                                            fetchAvailableJobs();
-                                        }}
-                                        disabled={bulkMoving}
-                                        className="px-3 py-1.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        <Briefcase className="w-4 h-4" />
-                                        <span>Move to Job</span>
-                                    </button>
-                                    <button
-                                        onClick={handleBulkDelete}
-                                        disabled={bulkDeleting}
-                                        className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {bulkDeleting ? (
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        ) : (
-                                            <Trash2 className="w-4 h-4" />
-                                        )}
-                                        <span>Delete Selected</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedUsers(new Set())}
-                                        className="px-3 py-1.5 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
-                                    >
-                                        Clear Selection
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
-                            <table className="w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider w-12">
-                                            <input
-                                                type="checkbox"
-                                                checked={filteredFreelancers.length > 0 && selectedUsers.size === filteredFreelancers.length}
-                                                onChange={toggleSelectAll}
-                                                className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
-                                            />
-                                        </th>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Freelancer Name
-                                        </th>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Preferred Role
-                                        </th>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Last Updated
-                                        </th>
-                                        <th className="px-4 py-2 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredFreelancers.length > 0 ? (
-                                        filteredFreelancers.map((freelancer) => (
-                                            <tr key={freelancer.id} className={`hover:bg-gray-50 ${selectedUsers.has(freelancer.userId) ? 'bg-purple-50' : ''}`}>
-                                                <td className="px-4 py-2 whitespace-nowrap text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedUsers.has(freelancer.userId)}
-                                                        onChange={() => toggleUserSelection(freelancer.userId)}
-                                                        className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {freelancer.name}
-                                                </td>
-                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {freelancer.email}
-                                                </td>
-                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {freelancer.title}
-                                                </td>
-                                                <td className="px-4 py-2 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                    {freelancer.lastUpdated}
-                                                </td>
-                                                <td className="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleViewCV(freelancer)}
-                                                            className="px-3 py-1 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[15px] text-white text-[10px] font-medium font-poppins hover:opacity-90 transition-opacity"
-                                                            title="View CV"
-                                                        >
-                                                            View CV
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => handleViewHistory(freelancer)}
-                                                            className="px-3 py-1 rounded-[15px] bg-blue-500 text-white text-[10px] font-medium font-poppins hover:bg-blue-600 transition-colors flex items-center gap-1"
-                                                            title="View Application History"
-                                                        >
-                                                            <History className="w-3 h-3" />
-                                                            History
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => handleMoveToJob(freelancer)}
-                                                            className="px-3 py-1 rounded-[15px] border border-[#5530FA] text-[#5530FA] text-[10px] font-medium font-poppins hover:bg-[#5530FA] hover:text-white transition-colors"
-                                                        >
-                                                            Move to Job
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => handleDeleteFreelancer(freelancer)}
-                                                            className="p-1.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                            title="Delete freelancer"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={6} className="px-4 py-6 text-center text-[#676767] text-sm font-poppins">
-                                                {searchTerm || roleFilters.length > 0 ? 'No freelancers found matching your filters.' : 'No freelancers found in talent pool.'}
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </main>
-                </div>
-            </div>
-        </div>
+        </>
     );
 };
 

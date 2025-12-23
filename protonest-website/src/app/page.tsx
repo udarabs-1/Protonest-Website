@@ -197,7 +197,6 @@ function LargeScreenHome() {
 
       <ServicesSection />
 
-      {/* Stats Section */}
       <StatsSection stats={HIGHLIGHT_STATS} />
     </div>
   );

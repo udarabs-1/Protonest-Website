@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from 'lucide-react';
+import { Check, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -116,22 +116,25 @@ const CustomCheckbox = ({
 }: {
     checked: boolean;
     onChange: () => void;
-    label: string;
+    label: string | React.ReactNode;
 }) => (
     <button
         type="button"
         onClick={onChange}
-        className="flex items-center gap-2"
+        className="flex items-start gap-3 text-left group"
         aria-checked={checked}
         role="checkbox"
-        aria-label={label}
+        aria-label={typeof label === 'string' ? label : 'checkbox'}
     >
-        <div className={`w-4 h-4 rounded-xl outline-2 outline-offset-[-2px] ${checked ? 'outline-[#5530fa]' : 'outline-[#949494]'}`}>
+        <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 transition-all duration-200 flex items-center justify-center mt-0.5 ${checked
+            ? 'bg-[#5530fa] border-transparent shadow-md'
+            : 'border-gray-300 bg-white group-hover:border-[#5530fa] group-hover:shadow-sm'
+            }`}>
             {checked && (
-                <div className="w-2.5 h-2.5 mx-auto mt-[3px] bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full" />
+                <Check size={16} className="text-white" strokeWidth={3} />
             )}
         </div>
-        <span className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">{label}</span>
+        <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-normal font-['Poppins'] leading-relaxed">{label}</span>
     </button>
 );
 
@@ -660,14 +663,16 @@ export default function SignUp() {
                     <div className="relative z-10 pb-8">
 
                         <header className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Image
-                                src="/logo.webp"
-                                alt="Protonest Logo"
-                                width={112}
-                                height={80}
-                                priority
-                                className="w-25 sm:w-30 md:w-35 object-contain"
-                            />
+                            <Link href="/">
+                                <Image
+                                    src="/logo.webp"
+                                    alt="Protonest Logo"
+                                    width={112}
+                                    height={80}
+                                    priority
+                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
+                                />
+                            </Link>
                         </header>
 
 
@@ -680,7 +685,7 @@ export default function SignUp() {
                             </div>
 
 
-                            <form className="w-full max-h-[60vh] overflow-y-auto pr-2 space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+                            <form className="w-full pr-2 space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
 
                                 <button
                                     type="button"
@@ -761,7 +766,7 @@ export default function SignUp() {
                                     <button
                                         type="button"
                                         onClick={togglePassword}
-                                        className="text-gray-400"
+                                        className="text-gray-400 cursor-pointer"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -782,7 +787,7 @@ export default function SignUp() {
                                     <button
                                         type="button"
                                         onClick={toggleConfirmPassword}
-                                        className="text-gray-400"
+                                        className="text-gray-400 cursor-pointer"
                                         aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                     >
                                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -791,58 +796,40 @@ export default function SignUp() {
 
 
                                 <div className="space-y-2">
-                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                        Would you like to subscribe to our careers page and receive updates of future job postings via email? You can change this any time.
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <CustomCheckbox
-                                            checked={jobUpdates}
-                                            onChange={() => setJobUpdates(true)}
-                                            label="Yes"
-                                        />
-                                        <CustomCheckbox
-                                            checked={!jobUpdates}
-                                            onChange={() => setJobUpdates(false)}
-                                            label="No"
-                                        />
-                                    </div>
+                                    <CustomCheckbox
+                                        checked={jobUpdates}
+                                        onChange={() => setJobUpdates(prev => !prev)}
+                                        label="Subscribe to our careers page and receive updates of future job postings via email."
+                                    />
                                 </div>
 
 
                                 <div className="space-y-2">
-                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                        Would you like to subscribe to the Protonest Newsletter and receive updates on recent news and blog posts on our site? You can change this anytime.
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <CustomCheckbox
-                                            checked={newsletter}
-                                            onChange={() => setNewsletter(true)}
-                                            label="Yes"
-                                        />
-                                        <CustomCheckbox
-                                            checked={!newsletter}
-                                            onChange={() => setNewsletter(false)}
-                                            label="No"
-                                        />
-                                    </div>
+                                    <CustomCheckbox
+                                        checked={newsletter}
+                                        onChange={() => setNewsletter(prev => !prev)}
+                                        label="Subscribe to the Protonest Newsletter and receive updates on recent news and blog posts."
+                                    />
                                 </div>
 
 
-                                <div className="flex items-center gap-3">
+                                <div className="space-y-2">
                                     <CustomCheckbox
                                         checked={agreedToTerms}
                                         onChange={toggleAgreedToTerms}
-                                        label=""
+                                        label={(
+                                            <span>
+                                                I understand and agree to the{' '}
+                                                <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">
+                                                    Protonest Terms and Conditions
+                                                </Link>{' '}
+                                                and{' '}
+                                                <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">
+                                                    Privacy Policy
+                                                </Link>
+                                            </span>
+                                        )}
                                     />
-                                    <div className="text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                        I understand and agree to the{' '}
-                                        <Link href="/terms-and-conditions" className="underline">
-                                            Protonest Terms and Conditions
-                                        </Link> and{' '}
-                                        <Link href="/privacy-policy" className="underline">
-                                            Privacy Policy
-                                        </Link>
-                                    </div>
                                 </div>
 
 
@@ -867,8 +854,8 @@ export default function SignUp() {
 
                             <div className="w-full mt-6 sm:mt-8 md:mt-10">
                                 <div className="text-center">
-                                    <span className="text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
-                                    <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent transition-all duration-300">
+                                    <span className="text-gray-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
+                                    <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
                                         Sign In
                                     </Link>
                                 </div>
@@ -889,20 +876,22 @@ export default function SignUp() {
                     </div>
 
 
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-[3fr_2fr] xl:grid-cols-[3fr_2fr] 2xl:grid-cols-[1fr_1fr]">
+                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
 
-                        <div className="flex flex-col justify-center min-h-screen">
-                            <div className="lg:pl-16 xl:pl-24 2xl:pl-32 py-8">
+                        <div className="flex flex-col justify-center items-center min-h-screen">
+                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
 
                                 <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={112}
-                                        height={80}
-                                        priority
-                                        className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain"
-                                    />
+                                    <Link href="/">
+                                        <Image
+                                            src="/logo.webp"
+                                            alt="Protonest Logo"
+                                            width={112}
+                                            height={80}
+                                            priority
+                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
+                                        />
+                                    </Link>
                                 </header>
 
 
@@ -913,7 +902,7 @@ export default function SignUp() {
                                 </div>
 
 
-                                <form className="max-w-2xl max-h-[50vh] overflow-y-auto pr-4 space-y-4 lg:space-y-3 xl:space-y-4 2xl:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+                                <form className="max-w-2xl space-y-4 lg:space-y-3 xl:space-y-4 2xl:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
 
                                     <button
                                         type="button"
@@ -994,7 +983,7 @@ export default function SignUp() {
                                         <button
                                             type="button"
                                             onClick={togglePassword}
-                                            className="text-gray-400"
+                                            className="text-gray-400 cursor-pointer"
                                             aria-label={showPassword ? "Hide password" : "Show password"}
                                         >
                                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -1015,7 +1004,7 @@ export default function SignUp() {
                                         <button
                                             type="button"
                                             onClick={toggleConfirmPassword}
-                                            className="text-gray-400"
+                                            className="text-gray-400 cursor-pointer"
                                             aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                         >
                                             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -1024,58 +1013,40 @@ export default function SignUp() {
 
 
                                     <div className="space-y-2">
-                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Would you like to subscribe to our careers page and receive updates of future job postings?
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <CustomCheckbox
-                                                checked={jobUpdates}
-                                                onChange={() => setJobUpdates(true)}
-                                                label="Yes"
-                                            />
-                                            <CustomCheckbox
-                                                checked={!jobUpdates}
-                                                onChange={() => setJobUpdates(false)}
-                                                label="No"
-                                            />
-                                        </div>
+                                        <CustomCheckbox
+                                            checked={jobUpdates}
+                                            onChange={() => setJobUpdates(prev => !prev)}
+                                            label="Subscribe to our careers page and receive updates of future job postings."
+                                        />
                                     </div>
 
 
                                     <div className="space-y-2">
-                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Would you like to subscribe to our Newsletter and receive updates?
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <CustomCheckbox
-                                                checked={newsletter}
-                                                onChange={() => setNewsletter(true)}
-                                                label="Yes"
-                                            />
-                                            <CustomCheckbox
-                                                checked={!newsletter}
-                                                onChange={() => setNewsletter(false)}
-                                                label="No"
-                                            />
-                                        </div>
+                                        <CustomCheckbox
+                                            checked={newsletter}
+                                            onChange={() => setNewsletter(prev => !prev)}
+                                            label="Subscribe to our Newsletter and receive updates."
+                                        />
                                     </div>
 
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="space-y-2">
                                         <CustomCheckbox
                                             checked={agreedToTerms}
                                             onChange={toggleAgreedToTerms}
-                                            label=""
+                                            label={(
+                                                <span>
+                                                    I understand and agree to the{' '}
+                                                    <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">
+                                                        Protonest Terms and Conditions
+                                                    </Link>{' '}
+                                                    and{' '}
+                                                    <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">
+                                                        Privacy Policy
+                                                    </Link>
+                                                </span>
+                                            )}
                                         />
-                                        <div className="text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            I understand and agree to the{' '}
-                                            <Link href="/terms-and-conditions" className="underline">
-                                                Protonest Terms and Conditions
-                                            </Link> and{' '}
-                                            <Link href="/privacy-policy" className="underline">
-                                                Privacy Policy
-                                            </Link>
-                                        </div>
                                     </div>
 
 
@@ -1091,7 +1062,7 @@ export default function SignUp() {
                                     <button
                                         onClick={handleSignUp}
                                         disabled={isLoading || !isFormValid}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] outline outline-offset-[-1px] text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer outline outline-offset-[-1px] text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isLoading ? 'Processing...' : 'Sign up and Continue to Upload CV'}
                                     </button>
@@ -1100,7 +1071,7 @@ export default function SignUp() {
 
                                 <div className="max-w-2xl mt-8 lg:mt-6 xl:mt-8 2xl:mt-12 flex justify-center">
                                     <div className="text-center">
-                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
+                                        <span className="text-gray-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
                                             Already have an account?
                                         </span>
                                         <Link href="/signin" className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
@@ -1112,7 +1083,7 @@ export default function SignUp() {
                         </div>
 
 
-                        <div className="flex items-stretch h-screen">
+                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
                             <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
                                 <Image
                                     src="/signup1.webp"

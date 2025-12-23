@@ -1,17 +1,11 @@
 "use client";
 
-import Footer from '@/app/components/footer';
+import DashboardLayout from '@/app/components/dashboard-layout';
 import { Icon } from '@iconify/react';
-import {
-    ChevronRight,
-    LogOut,
-    Menu,
-    User,
-    X
-} from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface Job {
@@ -56,32 +50,6 @@ const FILTER_OPTIONS = {
     datePosted: ['Newest', 'Oldest']
 } as const;
 
-const FilterCheckbox = ({
-    isSelected,
-    onClick,
-    label
-}: {
-    isSelected: boolean;
-    onClick: () => void;
-    label: string;
-}) => (
-    <div className="flex items-center mb-2">
-        <button
-            className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 ${isSelected ? 'outline-2 outline-offset-[-2px] outline-[#5530fa]' : 'border-[#6c6c6c]'
-                }`}
-            onClick={onClick}
-            aria-checked={isSelected}
-            role="checkbox"
-            aria-label={`Filter by ${label}`}
-        >
-            {isSelected && (
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-[#5530fa] to-[#f51da5] rounded-full"></div>
-            )}
-        </button>
-        <span className="text-[13px] font-poppins text-[#6c6c6c] capitalize">{label}</span>
-    </div>
-);
-
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
@@ -119,7 +87,7 @@ const JobCard = ({ job }: { job: Job }) => {
     return (
         <Link
             href={`/jobs/${roleSlug}/${job.id}`}
-            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
+            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
         >
             <article>
                 <div className="flex justify-between">
@@ -179,9 +147,9 @@ const JobCard = ({ job }: { job: Job }) => {
                     </div>
                 </div>
 
-                <button className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
+                <div className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300 cursor-pointer">
                     View Details
-                </button>
+                </div>
             </article>
         </Link>
     );
@@ -214,16 +182,15 @@ const isUserTokenExpired = (): boolean => {
 
 const AllJobsPage = () => {
     const router = useRouter();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [visibleJobsCount, setVisibleJobsCount] = useState(3);
     const [isMobile, setIsMobile] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -243,20 +210,8 @@ const AllJobsPage = () => {
         jobType: [],
         category: []
     });
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const profileDropdownRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
 
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
-        { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
-        { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
-        { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
-        { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-        { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-        { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
-        { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
-    ];
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const checkIsMobile = useCallback(() => {
         setIsMobile(window.innerWidth < 1024);
@@ -279,16 +234,27 @@ const AllJobsPage = () => {
     }, [checkIsMobile]);
 
     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
         if (isUserTokenExpired()) {
             router.push('/signin');
         }
     }, [router]);
 
     const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
+        try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -313,27 +279,13 @@ const AllJobsPage = () => {
                         isGoogleUser: userData.is_oauth_user || false,
                     });
                 }
+            } else if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
         }
     };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-            if (showProfileDropdown && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
-                setShowProfileDropdown(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen, showProfileDropdown]);
 
     useEffect(() => {
         const fetchAllJobs = async () => {
@@ -377,24 +329,6 @@ const AllJobsPage = () => {
         fetchUserProfile();
     }, []);
 
-    const handleFilterToggle = useCallback((filterType: FilterType, value: string) => {
-        setFilters(prev => {
-            const currentFilters = [...prev[filterType]];
-            const index = currentFilters.indexOf(value);
-
-            if (index > -1) {
-                currentFilters.splice(index, 1);
-            } else {
-                currentFilters.push(value);
-            }
-
-            return {
-                ...prev,
-                [filterType]: currentFilters
-            };
-        });
-    }, []);
-
     const clearAllFilters = useCallback(() => {
         setFilters({
             experience: [],
@@ -403,14 +337,11 @@ const AllJobsPage = () => {
             jobType: [],
             category: []
         });
+        setOpenDropdown(null);
     }, []);
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
-    }, []);
-
-    const toggleMobileFilters = useCallback(() => {
-        setShowMobileFilters(prev => !prev);
     }, []);
 
     const loadMoreJobs = useCallback(() => {
@@ -453,21 +384,19 @@ const AllJobsPage = () => {
 
     useEffect(() => {
         setVisibleJobsCount(3);
+        setCurrentPage(1);
     }, [filters, searchQuery]);
 
-    const jobsToShow = isMobile ? filteredJobs.slice(0, visibleJobsCount) : filteredJobs;
-    const hasMoreJobs = isMobile && visibleJobsCount < filteredJobs.length;
+    const JOBS_PER_PAGE = 8;
+    const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
+    const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
+    const endIndex = startIndex + JOBS_PER_PAGE;
+    const jobsToShow = filteredJobs.slice(startIndex, endIndex);
+    const hasMoreJobs = false;
 
     const uniqueCategories = useMemo(() => {
         return Array.from(new Set(jobs.map(job => job.category)));
     }, [jobs]);
-
-    const handleLogout = () => {
-        localStorage.removeItem('jwtToken');
-        setShowProfileDropdown(false);
-        setShowLogoutDialog(false);
-        router.push('/careers');
-    };
 
     if (loading) {
         return (
@@ -500,574 +429,480 @@ const AllJobsPage = () => {
         );
     }
 
+    const breadcrumbItems = [
+        { label: 'User Dashboard', href: '/dashboard' },
+        { label: 'All Jobs' }
+    ];
+
     return (
-        <div>
-            <style jsx global>{`
-                .gradient-icon svg {
-                    width: 100%;
-                    height: 100%;
-                }
-                
-                .gradient-icon svg path {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg circle {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg rect {
-                    fill: url(#icon-gradient) !important;
-                }
-                
-                .gradient-icon svg polygon {
-                    fill: url(#icon-gradient) !important;
-                }
-            `}</style>
-
-
-            <svg width="0" height="0" style={{ position: 'absolute' }}>
-                <defs>
-                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#4520E0" />
-                        <stop offset="100%" stopColor="#D01888" />
-                    </linearGradient>
-                </defs>
-            </svg>
-
-
-            {showLogoutDialog && (
-                <div
-                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                            >
-                                Logout
-                            </button>
+        <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
+            <div className="bg-white pb-1 pt-1">
+                <div className="flex-shrink-0 mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex flex-col justify-start items-start gap-2.5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                    <Icon
+                                        icon="solar:folder-with-files-bold-duotone"
+                                        className="w-7 h-7"
+                                    />
+                                </div>
+                                <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
+                                    All Jobs
+                                </h1>
+                            </div>
+                            <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
+                                Browse all available job opportunities at Protonest
+                            </p>
                         </div>
                     </div>
                 </div>
-            )}
 
-            <div className="font-poppins min-h-screen bg-white relative">
-                {sidebarOpen && (
-                    <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-                )}
+                <div className="flex-shrink-0 mb-4">
+                    <div className="flex gap-3">
+                        <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                            <input
+                                type="text"
+                                placeholder="Search for the job"
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                            />
+                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
 
-                <header className="bg-white py-4">
-                    <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center">
-                                <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={130}
-                                        height={80}
-                                        className="object-contain"
-                                    />
-                                </Link>
+                        <button
+                            onClick={() => setShowMobileFilters(true)}
+                            className="md:hidden px-4 py-3 bg-white border border-gray-300 rounded-[20px] shadow-sm hover:border-gray-400 transition-colors flex items-center gap-2"
+                        >
+                            <SlidersHorizontal className="w-5 h-5 text-gray-600" />
+                            <span className="text-sm font-poppins text-gray-600">Filters</span>
+                        </button>
+                    </div>
+                </div>
+
+                {showMobileFilters && (
+                    <div className="md:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
+                        <div className="bg-white w-full rounded-t-3xl max-h-[80vh] overflow-y-auto">
+                            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-gray-800 font-poppins">Filters</h3>
+                                <button
+                                    onClick={() => setShowMobileFilters(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
 
-                            <div className="flex items-center relative" ref={profileDropdownRef}>
-                                <button
-                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                                    className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-offset-2"
-                                >
-                                    <Image
-                                        src={profileData.profileImage}
-                                        alt="User Avatar"
-                                        width={40}
-                                        height={40}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </button>
-
-                                {showProfileDropdown && (
-                                    <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                        <Link
-                                            href="/dashboard/profile"
-                                            onClick={() => setShowProfileDropdown(false)}
-                                            className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <User className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Profile</span>
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                setShowProfileDropdown(false);
-                                                setShowLogoutDialog(true);
-                                            }}
-                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Logout</span>
-                                        </button>
+                            <div className="p-4 space-y-4">
+                                {uniqueCategories.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2 font-poppins">Category</h4>
+                                        <div className="space-y-2">
+                                            {uniqueCategories.map(category => (
+                                                <label key={category} className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.category.includes(category)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setFilters(prev => ({ ...prev, category: [...prev.category, category] }));
+                                                            } else {
+                                                                setFilters(prev => ({ ...prev, category: prev.category.filter(c => c !== category) }));
+                                                            }
+                                                        }}
+                                                        className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                                    />
+                                                    <span className="ml-2 text-sm text-gray-700 font-poppins">{category}</span>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                    </div>
-                </header>
 
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex flex-col lg:flex-row gap-8">
-
-                        <div
-                            ref={sidebarRef}
-                            className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                        >
-                            <div className="flex justify-between items-center p-4">
-                                <Link href="/" className="w-[100px] relative">
-                                    <Image
-                                        src="/logo.webp"
-                                        alt="Protonest Logo"
-                                        width={100}
-                                        height={60}
-                                        className="object-contain"
-                                    />
-                                </Link>
-                                <button
-                                    onClick={() => setSidebarOpen(false)}
-                                    className="p-2 rounded-full hover:bg-gray-100"
-                                >
-                                    <X className="w-5 h-5 text-gray-600" />
-                                </button>
-                            </div>
-
-                            <div className="overflow-y-auto h-full p-4">
-                                <nav className="space-y-1">
-                                    {sidebarItems.map((item, index) => (
-                                        <Link
-                                            key={index}
-                                            href={item.path}
-                                            onClick={() => setSidebarOpen(false)}
-                                            className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                                ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                                : 'text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                                <Icon
-                                                    icon={item.icon}
-                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2 font-poppins">Experience Level</h4>
+                                    <div className="space-y-2">
+                                        {FILTER_OPTIONS.experience.map(level => (
+                                            <label key={level} className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={filters.experience.includes(level)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setFilters(prev => ({ ...prev, experience: [...prev.experience, level] }));
+                                                        } else {
+                                                            setFilters(prev => ({ ...prev, experience: prev.experience.filter(l => l !== level) }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
                                                 />
-                                            </div>
-                                            <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                        </Link>
-                                    ))}
-                                </nav>
-
-                                <div className="p-4 pt-8">
-                                    <button
-                                        onClick={() => setShowLogoutDialog(true)}
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    >
-                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                            <Icon
-                                                icon="solar:login-3-bold-duotone"
-                                                className="w-5 h-5"
-                                            />
-                                        </div>
-                                        <span className="font-normal">Logout</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                                <nav className="p-4 space-y-1">
-                                    {sidebarItems.map((item, index) => (
-                                        <Link
-                                            key={index}
-                                            href={item.path}
-                                            className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                                ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                                : 'text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                                <Icon
-                                                    icon={item.icon}
-                                                    className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                                />
-                                            </div>
-                                            <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                        </Link>
-                                    ))}
-                                </nav>
-
-                                <div className="p-4 pt-8">
-                                    <button
-                                        onClick={() => setShowLogoutDialog(true)}
-                                        className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    >
-                                        <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                            <Icon
-                                                icon="solar:login-3-bold-duotone"
-                                                className="w-5 h-5"
-                                            />
-                                        </div>
-                                        <span className="font-normal">Logout</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </aside>
-
-
-                        <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                            <div className="flex items-center mb-6">
-                                <button
-                                    onClick={() => setSidebarOpen(true)}
-                                    className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                                >
-                                    <Menu className="w-5 h-5 text-gray-600" />
-                                </button>
-                                <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                    <Link href="/dashboard" className="hover:text-gray-700">User Dashboard</Link>
-                                    <ChevronRight className="w-4 h-4" />
-                                    <span className="text-[#5C4EC9]">All Jobs</span>
-                                </nav>
-                            </div>
-
-                            <div className="mb-8">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                    <div className="flex flex-col justify-start items-start gap-2.5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                                <Icon
-                                                    icon="solar:folder-with-files-bold-duotone"
-                                                    className="w-7 h-7"
-                                                />
-                                            </div>
-                                            <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
-                                                All Jobs
-                                            </h1>
-                                        </div>
-                                        <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
-                                            Browse all available job opportunities at Protonest
-                                        </p>
+                                                <span className="ml-2 text-sm text-gray-700 font-poppins capitalize">{level}</span>
+                                            </label>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex flex-col lg:flex-row gap-8">
-
-                                <aside className="w-full lg:w-1/4 hidden lg:block">
-                                    <div className="bg-white rounded-xl p-6 shadow-lg">
-                                        <h2 className="text-xl font-medium font-poppins text-[#6c6c6c] mb-6">Filter Jobs by</h2>
-
-                                        <button
-                                            onClick={clearAllFilters}
-                                            className="text-sm font-poppins text-[#6c6c6c] mb-6 hover:text-[#5530fa] transition-colors focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                                        >
-                                            Clear All Filters
-                                        </button>
-
-
-                                        <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h3>
-                                            {FILTER_OPTIONS.experience.map(level => (
-                                                <FilterCheckbox
-                                                    key={level}
-                                                    isSelected={filters.experience.includes(level)}
-                                                    onClick={() => handleFilterToggle('experience', level)}
-                                                    label={level}
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2 font-poppins">Location</h4>
+                                    <div className="space-y-2">
+                                        {FILTER_OPTIONS.location.map(location => (
+                                            <label key={location} className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={filters.location.includes(location)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setFilters(prev => ({ ...prev, location: [...prev.location, location] }));
+                                                        } else {
+                                                            setFilters(prev => ({ ...prev, location: prev.location.filter(l => l !== location) }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
                                                 />
-                                            ))}
-                                        </div>
+                                                <span className="ml-2 text-sm text-gray-700 font-poppins">{location}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
 
-
-                                        {uniqueCategories.length > 0 && (
-                                            <div className="mb-8">
-                                                <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h3>
-                                                {uniqueCategories.map(category => (
-                                                    <FilterCheckbox
-                                                        key={category}
-                                                        isSelected={filters.category.includes(category)}
-                                                        onClick={() => handleFilterToggle('category', category)}
-                                                        label={category}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-
-
-                                        <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h3>
-                                            {FILTER_OPTIONS.location.map(location => (
-                                                <FilterCheckbox
-                                                    key={location}
-                                                    isSelected={filters.location.includes(location)}
-                                                    onClick={() => handleFilterToggle('location', location)}
-                                                    label={location}
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2 font-poppins">Job Type</h4>
+                                    <div className="space-y-2">
+                                        {FILTER_OPTIONS.jobType.map(type => (
+                                            <label key={type} className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={filters.jobType.includes(type)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setFilters(prev => ({ ...prev, jobType: [...prev.jobType, type] }));
+                                                        } else {
+                                                            setFilters(prev => ({ ...prev, jobType: prev.jobType.filter(t => t !== type) }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
                                                 />
-                                            ))}
-                                        </div>
-
-
-                                        <div className="mb-8">
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h3>
-                                            {FILTER_OPTIONS.datePosted.map(date => (
-                                                <FilterCheckbox
-                                                    key={date}
-                                                    isSelected={filters.datePosted.includes(date)}
-                                                    onClick={() => handleFilterToggle('datePosted', date)}
-                                                    label={date}
-                                                />
-                                            ))}
-                                        </div>
-
-
-                                        <div>
-                                            <h3 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h3>
-                                            {FILTER_OPTIONS.jobType.map(type => (
-                                                <FilterCheckbox
-                                                    key={type}
-                                                    isSelected={filters.jobType.includes(type)}
-                                                    onClick={() => handleFilterToggle('jobType', type)}
-                                                    label={type === 'project-based' ? 'Project Based' :
+                                                <span className="ml-2 text-sm text-gray-700 font-poppins">
+                                                    {type === 'project-based' ? 'Project Based' :
                                                         type === 'full-time' ? 'Full Time' :
                                                             type === 'hourly' ? 'Hourly' :
                                                                 type === 'internship' ? 'Internship' :
                                                                     type}
-                                                />
-                                            ))}
-                                        </div>
+                                                </span>
+                                            </label>
+                                        ))}
                                     </div>
-                                </aside>
+                                </div>
 
-
-                                <div className="w-full lg:w-3/4">
-                                    <h2 className="w-full text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-6">
-                                        Explore Variety of Jobs
-                                    </h2>
-
-
-                                    <div className="relative w-full mb-8 lg:mb-12">
-                                        <div className="w-full h-10 lg:h-12 bg-white rounded-[20px] shadow-[5px_5px_20px_rgba(0,0,0,0.1)] border border-gray-300 overflow-hidden flex items-center px-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Search for the job role you are looking for"
-                                                className="w-full bg-transparent border-none outline-none text-sm text-[#6c6c6c] font-poppins"
-                                                value={searchQuery}
-                                                onChange={handleSearchChange}
-                                                aria-label="Search jobs"
-                                            />
-                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
-                                                <Image
-                                                    src="/search.svg"
-                                                    alt=""
-                                                    width={24}
-                                                    height={24}
-                                                    className="w-full h-full text-[#6c6c6c]"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    <div className="lg:hidden mb-6">
-                                        <h3 className="text-[#6c6c6c] text-xl font-medium font-poppins leading-[38px] mb-4">
-                                            Filter Your Fit
-                                        </h3>
-
-                                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                            <div className="relative h-12 w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden">
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2 font-poppins">Date Posted</h4>
+                                    <div className="space-y-2">
+                                        {FILTER_OPTIONS.datePosted.map(date => (
+                                            <label key={date} className="flex items-center">
                                                 <input
-                                                    type="text"
-                                                    className="w-full h-full pl-4 pr-10 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins focus:outline-none"
-                                                    readOnly
-                                                    placeholder="Filter options"
+                                                    type="checkbox"
+                                                    checked={filters.datePosted.includes(date)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setFilters(prev => ({ ...prev, datePosted: [...prev.datePosted, date] }));
+                                                        } else {
+                                                            setFilters(prev => ({ ...prev, datePosted: prev.datePosted.filter(d => d !== date) }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
                                                 />
-                                                <button
-                                                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                                                    onClick={toggleMobileFilters}
-                                                    aria-label="Toggle filters"
-                                                >
-                                                    <Image
-                                                        src="/down-arrow.svg"
-                                                        width={24}
-                                                        height={24}
-                                                        alt=""
-                                                        className={`cursor-pointer transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
-                                                    />
-                                                </button>
-                                            </div>
-                                        </div>
-
-
-                                        {showMobileFilters && (
-                                            <div className="w-full bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] p-6 mb-6 relative">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-[#6c6c6c] text-xl font-medium font-poppins">
-                                                        Filter
-                                                    </h4>
-                                                    <button
-                                                        className="text-[#6c6c6c] text-sm font-normal font-poppins"
-                                                        onClick={toggleMobileFilters}
-                                                        aria-label="Close filters"
-                                                    >
-                                                        <Image
-                                                            src="/close.svg"
-                                                            width={24}
-                                                            height={24}
-                                                            alt=""
-                                                        />
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-8">
-
-                                                    <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Experience Level</h5>
-                                                        {FILTER_OPTIONS.experience.map(level => (
-                                                            <FilterCheckbox
-                                                                key={level}
-                                                                isSelected={filters.experience.includes(level)}
-                                                                onClick={() => handleFilterToggle('experience', level)}
-                                                                label={level}
-                                                            />
-                                                        ))}
-                                                    </div>
-
-
-                                                    {uniqueCategories.length > 0 && (
-                                                        <div>
-                                                            <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Category</h5>
-                                                            {uniqueCategories.map(category => (
-                                                                <FilterCheckbox
-                                                                    key={category}
-                                                                    isSelected={filters.category.includes(category)}
-                                                                    onClick={() => handleFilterToggle('category', category)}
-                                                                    label={category}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    )}
-
-
-                                                    <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Location</h5>
-                                                        {FILTER_OPTIONS.location.map(location => (
-                                                            <FilterCheckbox
-                                                                key={location}
-                                                                isSelected={filters.location.includes(location)}
-                                                                onClick={() => handleFilterToggle('location', location)}
-                                                                label={location}
-                                                            />
-                                                        ))}
-                                                    </div>
-
-
-                                                    <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Date Posted</h5>
-                                                        {FILTER_OPTIONS.datePosted.map(date => (
-                                                            <FilterCheckbox
-                                                                key={date}
-                                                                isSelected={filters.datePosted.includes(date)}
-                                                                onClick={() => handleFilterToggle('datePosted', date)}
-                                                                label={date}
-                                                            />
-                                                        ))}
-                                                    </div>
-
-
-                                                    <div>
-                                                        <h5 className="text-base font-medium font-poppins text-[#6c6c6c] mb-3">Job Type</h5>
-                                                        {FILTER_OPTIONS.jobType.map(type => (
-                                                            <FilterCheckbox
-                                                                key={type}
-                                                                isSelected={filters.jobType.includes(type)}
-                                                                onClick={() => handleFilterToggle('jobType', type)}
-                                                                label={type === 'project-based' ? 'Project Based' :
-                                                                    type === 'full-time' ? 'Full Time' :
-                                                                        type === 'hourly' ? 'Hourly' :
-                                                                            type === 'internship' ? 'Internship' :
-                                                                                type}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-8 flex justify-between">
-                                                    <button
-                                                        className="text-[#6c6c6c] text-sm font-normal font-poppins focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                                                        onClick={clearAllFilters}
-                                                    >
-                                                        Clear All
-                                                    </button>
-                                                    <button
-                                                        className="h-[40px] px-6 font-semibold text-sm font-montserrat text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                                                        onClick={toggleMobileFilters}
-                                                    >
-                                                        Apply
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+                                                <span className="ml-2 text-sm text-gray-700 font-poppins">{date}</span>
+                                            </label>
+                                        ))}
                                     </div>
-
-
-                                    {jobsToShow.length > 0 ? (
-                                        <>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {jobsToShow.map(job => (
-                                                    <JobCard
-                                                        key={job.id}
-                                                        job={job}
-                                                    />
-                                                ))}
-                                            </div>
-
-
-                                            {hasMoreJobs && (
-                                                <div className="mt-8 flex justify-center">
-                                                    <button
-                                                        onClick={loadMoreJobs}
-                                                        className="w-full md:w-auto bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 px-8 text-white text-sm font-semibold font-montserrat text-center hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                                                    >
-                                                        Load More Jobs
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="text-center py-12">
-                                            <p className="text-gray-600 text-lg font-poppins">
-                                                {searchQuery || Object.values(filters).some(arr => arr.length > 0)
-                                                    ? 'No jobs match your filters. Try adjusting your search criteria.'
-                                                    : 'Currently no open positions available. Check back later!'}
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
-                        </main>
+
+                            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-4 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        clearAllFilters();
+                                        setShowMobileFilters(false);
+                                    }}
+                                    className="flex-1 px-4 py-3 border border-gray-300 rounded-[57px] text-gray-700 font-medium font-poppins hover:bg-gray-50 transition-colors"
+                                >
+                                    Clear All
+                                </button>
+                                <button
+                                    onClick={() => setShowMobileFilters(false)}
+                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[57px] text-white font-medium font-poppins hover:opacity-90 transition-opacity"
+                                >
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex-shrink-0 hidden md:block mb-2" ref={dropdownRef}>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {uniqueCategories.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
+                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg font-poppins text-gray-600 bg-white hover:border-gray-400 transition-colors flex items-center gap-2 min-w-[140px] justify-between"
+                                >
+                                    <span>
+                                        {filters.category.length > 0
+                                            ? `Category (${filters.category.length})`
+                                            : 'Category'}
+                                    </span>
+                                    <svg className={`w-4 h-4 transition-transform ${openDropdown === 'category' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {openDropdown === 'category' && (
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-full max-h-[250px] overflow-y-auto">
+                                        {uniqueCategories.map(category => (
+                                            <label key={category} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={filters.category.includes(category)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setFilters(prev => ({ ...prev, category: [...prev.category, category] }));
+                                                        } else {
+                                                            setFilters(prev => ({ ...prev, category: prev.category.filter(c => c !== category) }));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700 font-poppins">{category}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="relative">
+                            <button
+                                onClick={() => setOpenDropdown(openDropdown === 'experience' ? null : 'experience')}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg font-poppins text-gray-600 bg-white hover:border-gray-400 transition-colors flex items-center gap-2 min-w-[160px] justify-between"
+                            >
+                                <span>
+                                    {filters.experience.length > 0
+                                        ? `Experience (${filters.experience.length})`
+                                        : 'Experience Level'}
+                                </span>
+                                <svg className={`w-4 h-4 transition-transform ${openDropdown === 'experience' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            {openDropdown === 'experience' && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-full">
+                                    {FILTER_OPTIONS.experience.map(level => (
+                                        <label key={level} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={filters.experience.includes(level)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFilters(prev => ({ ...prev, experience: [...prev.experience, level] }));
+                                                    } else {
+                                                        setFilters(prev => ({ ...prev, experience: prev.experience.filter(l => l !== level) }));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700 font-poppins capitalize">{level}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative">
+                            <button
+                                onClick={() => setOpenDropdown(openDropdown === 'location' ? null : 'location')}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg font-poppins text-gray-600 bg-white hover:border-gray-400 transition-colors flex items-center gap-2 min-w-[140px] justify-between"
+                            >
+                                <span>
+                                    {filters.location.length > 0
+                                        ? `Location (${filters.location.length})`
+                                        : 'Location'}
+                                </span>
+                                <svg className={`w-4 h-4 transition-transform ${openDropdown === 'location' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            {openDropdown === 'location' && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-full">
+                                    {FILTER_OPTIONS.location.map(location => (
+                                        <label key={location} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={filters.location.includes(location)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFilters(prev => ({ ...prev, location: [...prev.location, location] }));
+                                                    } else {
+                                                        setFilters(prev => ({ ...prev, location: prev.location.filter(l => l !== location) }));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700 font-poppins">{location}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative">
+                            <button
+                                onClick={() => setOpenDropdown(openDropdown === 'jobType' ? null : 'jobType')}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg font-poppins text-gray-600 bg-white hover:border-gray-400 transition-colors flex items-center gap-2 min-w-[140px] justify-between"
+                            >
+                                <span>
+                                    {filters.jobType.length > 0
+                                        ? `Job Type (${filters.jobType.length})`
+                                        : 'Job Type'}
+                                </span>
+                                <svg className={`w-4 h-4 transition-transform ${openDropdown === 'jobType' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            {openDropdown === 'jobType' && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-full">
+                                    {FILTER_OPTIONS.jobType.map(type => (
+                                        <label key={type} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={filters.jobType.includes(type)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFilters(prev => ({ ...prev, jobType: [...prev.jobType, type] }));
+                                                    } else {
+                                                        setFilters(prev => ({ ...prev, jobType: prev.jobType.filter(t => t !== type) }));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700 font-poppins">
+                                                {type === 'project-based' ? 'Project Based' :
+                                                    type === 'full-time' ? 'Full Time' :
+                                                        type === 'hourly' ? 'Hourly' :
+                                                            type === 'internship' ? 'Internship' :
+                                                                type}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative">
+                            <button
+                                onClick={() => setOpenDropdown(openDropdown === 'datePosted' ? null : 'datePosted')}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg font-poppins text-gray-600 bg-white hover:border-gray-400 transition-colors flex items-center gap-2 min-w-[140px] justify-between"
+                            >
+                                <span>
+                                    {filters.datePosted.length > 0
+                                        ? `Date (${filters.datePosted.length})`
+                                        : 'Date Posted'}
+                                </span>
+                                <svg className={`w-4 h-4 transition-transform ${openDropdown === 'datePosted' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            {openDropdown === 'datePosted' && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-full">
+                                    {FILTER_OPTIONS.datePosted.map(date => (
+                                        <label key={date} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={filters.datePosted.includes(date)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setFilters(prev => ({ ...prev, datePosted: [...prev.datePosted, date] }));
+                                                    } else {
+                                                        setFilters(prev => ({ ...prev, datePosted: prev.datePosted.filter(d => d !== date) }));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-[#5530fa] border-gray-300 rounded"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700 font-poppins">{date}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {(filters.experience.length > 0 || filters.category.length > 0 || filters.location.length > 0 || filters.jobType.length > 0 || filters.datePosted.length > 0) && (
+                            <button
+                                onClick={clearAllFilters}
+                                className="ml-auto px-4 py-2 text-xs font-medium text-white bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[57px] hover:opacity-90 transition-opacity font-poppins"
+                            >
+                                Clear All
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                <div className="flex-shrink-0">
+                    <p className="text-sm text-gray-600 font-poppins py-2">
+                        Showing {jobsToShow.length} of {filteredJobs.length} jobs
+                    </p>
+                </div>
             </div>
-            <Footer />
-        </div>
+            <div className="pb-8">
+
+
+                {jobsToShow.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {jobsToShow.map(job => (
+                                <JobCard key={job.id} job={job} />
+                            ))}
+                        </div>
+
+                        {totalPages > 1 && (
+                            <div className="flex justify-between items-center mt-6 pb-8">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Previous
+                                </button>
+
+                                <span className="text-sm font-medium text-gray-700 font-poppins">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-12">
+                        <p className="text-gray-600 text-lg font-poppins">
+                            No jobs found matching your criteria. Try adjusting your filters.
+                        </p>
+                    </div>
+                )}
+            </div>
+
+
+        </DashboardLayout>
     );
-};
+}
 
 export default AllJobsPage;

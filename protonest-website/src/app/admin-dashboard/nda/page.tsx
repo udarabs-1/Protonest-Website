@@ -1,19 +1,14 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import {
-    ChevronRight,
     Edit,
     Eye,
-    Menu,
-    Search,
-    Settings,
     Upload,
     X
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface NDARecord {
@@ -63,31 +58,7 @@ interface NDADocument {
     uploaded_at: string;
 }
 
-const isAdminTokenExpired = (): boolean => {
-    if (typeof window === 'undefined') return true;
-
-    const adminToken = localStorage.getItem('adminToken');
-    if (!adminToken) return true;
-
-    try {
-        const payload = JSON.parse(atob(adminToken.split('.')[1]));
-
-        if (payload.exp && Date.now() >= payload.exp * 1000) {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminInfo');
-            return true;
-        }
-
-        return false;
-    } catch {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminInfo');
-        return true;
-    }
-};
-
 const NDAComplianceLog = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [ndaRecords, setNdaRecords] = useState<NDARecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -96,7 +67,6 @@ const NDAComplianceLog = () => {
     const [ndaStatusFilter, setNdaStatusFilter] = useState<'all' | 'submitted' | 'sent' | 'not_sent'>('all');
     const [editingNote, setEditingNote] = useState<{ id: string; note: string } | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [ndaDialog, setNdaDialog] = useState<NDARecord | null>(null);
     const [selectedNda, setSelectedNda] = useState<'template' | 'upload'>('template');
     const [ndaDocuments, setNdaDocuments] = useState<NDADocument[]>([]);
@@ -109,34 +79,12 @@ const NDAComplianceLog = () => {
     const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
     const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const pathname = usePathname();
     const router = useRouter();
 
-    useEffect(() => {
-        if (isAdminTokenExpired()) {
-            router.push('/admin-signin');
-        }
-    }, [router]);
-
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        router.push('/admin-signin');
-    };
-
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
+    const breadcrumbItems = [
+        { label: 'Admin Portal', href: '/admin-dashboard' },
+        { label: 'NDA & Compliance Log' }
     ];
 
     const fetchNDADocuments = async () => {
@@ -171,6 +119,11 @@ const NDAComplianceLog = () => {
                 setLoading(true);
                 const adminToken = localStorage.getItem('adminToken');
 
+                if (!adminToken) {
+                    router.push('/admin-signin');
+                    return;
+                }
+
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
@@ -203,20 +156,7 @@ const NDAComplianceLog = () => {
 
         fetchNDARecords();
         fetchNDADocuments();
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen]);
+    }, [router]);
 
     const handleAddFilter = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchInput.trim()) {
@@ -261,17 +201,7 @@ const NDAComplianceLog = () => {
         }
     };
 
-    const getDaysPending = (record: NDARecord) => {
-        if (!record.nda_status?.sent_on || record.nda_status.status === 'submitted') {
-            return '-';
-        }
 
-        const sentDate = new Date(record.nda_status.sent_on);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - sentDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays.toString();
-    };
 
     const getActionButton = (record: NDARecord) => {
         if (!record.nda_status || record.nda_status.status === 'not_sent') {
@@ -281,16 +211,6 @@ const NDAComplianceLog = () => {
         } else {
             return { text: 'Add Note', action: 'note', variant: 'tertiary' };
         }
-    };
-
-
-
-    const generateFullEmailPreview = (userName: string, subject: string, body: string, isCareerEmail: boolean = true) => {
-        const firstName = userName.split(' ')[0] || 'User';
-        const team = isCareerEmail ? 'Recruitment Team' : 'Protonest Team';
-        const replyTo = isCareerEmail ? '\n\nReply to: careers@protonest.co' : '';
-
-        return `Dear ${firstName},\n\n${body.replace(/<br>/g, '\n')}\n\nHave a great day!\n\nBest regards,\n${team},\nProtonest\n\nThis is an automated message from Protonest. If you have any questions, feel free to contact us.${replyTo}`;
     };
 
     const setNdaDialogContent = (record: NDARecord) => {
@@ -576,7 +496,6 @@ const NDAComplianceLog = () => {
         );
 
         if (success) {
-
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
@@ -617,7 +536,6 @@ const NDAComplianceLog = () => {
         );
 
         if (success) {
-
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
@@ -668,6 +586,8 @@ const NDAComplianceLog = () => {
     const filteredRecords = ndaRecords.filter(record => {
         if (!record) return false;
 
+        if (!record.job?.title) return false;
+
         const matchesStatusFilter = ndaStatusFilter === 'all' ||
             (record.nda_status?.status === ndaStatusFilter) ||
             (!record.nda_status && ndaStatusFilter === 'not_sent');
@@ -689,11 +609,12 @@ const NDAComplianceLog = () => {
     });
 
     const getStatusCounts = () => {
+        const recordsWithJobs = ndaRecords.filter(r => r.job?.title);
         const counts = {
-            all: ndaRecords.length,
-            submitted: ndaRecords.filter(r => r.nda_status?.status === 'submitted').length,
-            sent: ndaRecords.filter(r => r.nda_status?.status === 'sent').length,
-            not_sent: ndaRecords.filter(r => !r.nda_status || r.nda_status?.status === 'not_sent').length
+            all: recordsWithJobs.length,
+            submitted: recordsWithJobs.filter(r => r.nda_status?.status === 'submitted').length,
+            sent: recordsWithJobs.filter(r => r.nda_status?.status === 'sent').length,
+            not_sent: recordsWithJobs.filter(r => !r.nda_status || r.nda_status?.status === 'not_sent').length
         };
         return counts;
     };
@@ -726,7 +647,7 @@ const NDAComplianceLog = () => {
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
+        <AdminLayout breadcrumbItems={breadcrumbItems}>
             <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
@@ -750,7 +671,6 @@ const NDAComplianceLog = () => {
                 }
             `}</style>
 
-
             <svg width="0" height="0" style={{ position: 'absolute' }}>
                 <defs>
                     <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -760,431 +680,236 @@ const NDAComplianceLog = () => {
                 </defs>
             </svg>
 
+            <main>
+                <div className="bg-white pb-2 pt-1">
+                    <div className="mb-4">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:pen-new-square-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                NDA & Compliance Log
+                            </h1>
+                        </div>
+                        <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
+                            View and track all NDA requests and submissions across job roles. This helps ensure that freelancers complete compliance requirements before onboarding.
+                        </p>
+                    </div>
 
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                            onClick={() => setNdaStatusFilter('all')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'all'
+                                ? 'bg-gradient-to-r from-[#5530FA] cursor-pointer to-[#F51DA5] text-white'
+                                : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            All ({getStatusCounts().all})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('submitted')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'submitted'
+                                ? 'bg-green-500 cursor-pointer text-white'
+                                : 'bg-green-50 cursor-pointer text-green-700 hover:bg-green-100'
+                                }`}
+                        >
+                            Signed ({getStatusCounts().submitted})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('sent')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'sent'
+                                ? 'bg-yellow-500 cursor-pointer text-white'
+                                : 'bg-yellow-50 cursor-pointer text-yellow-700 hover:bg-yellow-100'
+                                }`}
+                        >
+                            Sent & Not Submitted ({getStatusCounts().sent})
+                        </button>
+                        <button
+                            onClick={() => setNdaStatusFilter('not_sent')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'not_sent'
+                                ? 'bg-gray-500 cursor-pointer text-white'
+                                : 'bg-gray-100 cursor-pointer text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Not Sent ({getStatusCounts().not_sent})
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="relative flex-1 bg-white rounded-[20px] shadow-sm border border-gray-300 overflow-hidden">
+                            <input
+                                type="text"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={handleAddFilter}
+                                className="w-full h-[40px] py-3 pl-4 pr-12 text-gray-600 focus:outline-none"
+                                placeholder="Type and press Enter to add filter"
+                            />
+                            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
                     </div>
-                </div>
-            )}
 
-
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
-
-
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={130}
-                                    height={80}
-                                    className="object-contain"
-                                />
-                            </Link>
-                        </div>
-
-
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-
-                    <div
-                        ref={sidebarRef}
-                        className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={100}
-                                    height={60}
-                                    className="object-contain"
-                                />
-                            </Link>
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
+                    {activeFilters.length > 0 && (
+                        <div className="">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-medium text-gray-600">Current Filters:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {activeFilters.map((filter, index) => (
+                                    <div
                                         key={index}
-                                        href={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white' : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
                                     >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto flex-shrink-0">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="p-4 pt-8">
-                                <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-
-                    <main className={`flex-1 min-w-0 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <Menu className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">NDA & Compliance Log</span>
-                            </nav>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:pen-new-square-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
-                                </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    NDA & Compliance Log
-                                </h1>
-                            </div>
-                            <p className="text-[#6c6c6c] text-xs md:text-sm font-normal font-montserrat">
-                                View and track all NDA requests and submissions across job roles. This helps ensure that freelancers complete compliance requirements before onboarding.
-                            </p>
-                        </div>
-
-
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            <button
-                                onClick={() => setNdaStatusFilter('all')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'all'
-                                    ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                All ({getStatusCounts().all})
-                            </button>
-                            <button
-                                onClick={() => setNdaStatusFilter('submitted')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'submitted'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-green-50 text-green-700 hover:bg-green-100'
-                                    }`}
-                            >
-                                Signed ({getStatusCounts().submitted})
-                            </button>
-                            <button
-                                onClick={() => setNdaStatusFilter('sent')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'sent'
-                                    ? 'bg-yellow-500 text-white'
-                                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
-                                    }`}
-                            >
-                                Sent & Not Submitted ({getStatusCounts().sent})
-                            </button>
-                            <button
-                                onClick={() => setNdaStatusFilter('not_sent')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${ndaStatusFilter === 'not_sent'
-                                    ? 'bg-gray-500 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                Not Sent ({getStatusCounts().not_sent})
-                            </button>
-                        </div>
-
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    value={searchInput}
-                                    onChange={(e) => setSearchInput(e.target.value)}
-                                    onKeyDown={handleAddFilter}
-                                    className="block w-full pl-4 pr-12 py-2 rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    placeholder="Type and press Enter to add filter (name, role, email, status...)"
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
-                            </div>
-                        </div>
-
-
-                        {activeFilters.length > 0 && (
-                            <div className="mb-6">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm font-medium text-gray-600">Current Filters:</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {activeFilters.map((filter, index) => (
-                                        <div
-                                            key={index}
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] text-white rounded-full text-sm font-medium"
+                                        <span>{filter}</span>
+                                        <button
+                                            onClick={() => handleRemoveFilter(filter)}
+                                            className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                            aria-label={`Remove filter: ${filter}`}
                                         >
-                                            <span>{filter}</span>
-                                            <button
-                                                onClick={() => handleRemoveFilter(filter)}
-                                                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                                                aria-label={`Remove filter: ${filter}`}
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
+                    )}
+                </div>
 
+                <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Freelancer Name
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Applied For
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    NDA Status
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Sent On
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Submitted On
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Resend Count
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Compliance Notes
+                                </th>
+                                <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredRecords.length > 0 ? (
+                                filteredRecords.map((record) => {
+                                    const statusDisplay = getNDAStatusDisplay(record);
+                                    const actionButton = getActionButton(record);
 
-                        <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                    <tr>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Freelancer Name
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Applied For
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            NDA Status
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Sent On
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Submitted On
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Days Pending
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Resend Count
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Compliance Notes
-                                        </th>
-                                        <th className="px-4 py-3 bg-Neutral-200 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredRecords.length > 0 ? (
-                                        filteredRecords.map((record) => {
-                                            const statusDisplay = getNDAStatusDisplay(record);
-                                            const actionButton = getActionButton(record);
-
-                                            return (
-                                                <tr key={record.id} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {record.user?.name || 'N/A'}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] underline">
-                                                        <Link href={`/admin-dashboard/jobs/${record.job?._id}`} className="hover:text-[#5530FA]">
-                                                            {record.job?.title || 'N/A'}
-                                                        </Link>
-                                                    </td>
-                                                    <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${statusDisplay.color}`}>
-                                                        {statusDisplay.icon} {statusDisplay.text}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {formatDate(record.nda_status?.sent_on)}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {formatDate(record.nda_status?.submitted_on)}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {getDaysPending(record)}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
-                                                        {record.nda_status?.resend_count || 0}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] max-w-xs truncate">
-                                                        {record.nda_status?.compliance_notes || '-'}
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            <button
-                                                                onClick={() => handleActionClick(record)}
-                                                                disabled={updatingStatus === record.id}
-                                                                className={`px-3 py-1 rounded-[15px] text-[10px] font-medium font-poppins transition-opacity ${actionButton.variant === 'primary'
-                                                                    ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
-                                                                    : actionButton.variant === 'secondary'
-                                                                        ? 'bg-orange-500 text-white hover:opacity-90'
-                                                                        : 'bg-gray-500 text-white hover:opacity-90'
-                                                                    } ${updatingStatus === record.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                            >
-                                                                {updatingStatus === record.id ? 'Processing...' : actionButton.text}
-                                                            </button>
-                                                            <div className="flex items-center gap-1 ml-2">
-                                                                <button
-                                                                    onClick={() => {
-
-                                                                        window.location.href = `/admin-dashboard/candidates?highlight=${record.id}`;
-                                                                    }}
-                                                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                                                    title="View Details"
-                                                                >
-                                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const currentNote = record.nda_status?.compliance_notes || '';
-                                                                        setEditingNote({ id: record.id, note: currentNote });
-                                                                    }}
-                                                                    className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                                                    title="Edit Notes"
-                                                                >
-                                                                    <Edit className="w-4 h-4 text-gray-600" />
-                                                                </button>
-                                                                <select
-                                                                    value={record.nda_status?.status || 'not_sent'}
-                                                                    onChange={(e) => handleStatusChange(record, e.target.value as 'not_sent' | 'sent' | 'submitted')}
-                                                                    className="text-xs border border-gray-300 rounded px-1 py-1"
-                                                                    title="Change Status"
-                                                                    disabled={updatingStatus === record.id}
-                                                                >
-                                                                    <option value="not_sent">Not Sent</option>
-                                                                    <option value="sent">Sent</option>
-                                                                    <option value="submitted">Submitted</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={9} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
-                                                {activeFilters.length > 0
-                                                    ? `No NDA records found matching filters: ${activeFilters.join(', ')}`
-                                                    : 'No NDA records found.'
-                                                }
+                                    return (
+                                        <tr key={record.id} className="hover:bg-gray-50">
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                {record.user?.name || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                {record.job?.title || 'N/A'}
+                                            </td>
+                                            <td className={`px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins ${statusDisplay.color}`}>
+                                                {statusDisplay.icon} {statusDisplay.text}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                {formatDate(record.nda_status?.sent_on)}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                {formatDate(record.nda_status?.submitted_on)}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                {record.nda_status?.resend_count || 0}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767] max-w-xs truncate">
+                                                {record.nda_status?.compliance_notes || '-'}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={() => handleActionClick(record)}
+                                                        disabled={updatingStatus === record.id}
+                                                        className={`px-3 py-1 rounded-[15px] text-[10px] font-medium font-poppins transition-opacity ${actionButton.variant === 'primary'
+                                                            ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:opacity-90'
+                                                            : actionButton.variant === 'secondary'
+                                                                ? 'bg-orange-500 text-white hover:opacity-90'
+                                                                : 'bg-gray-500 text-white hover:opacity-90'
+                                                            } ${updatingStatus === record.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        {updatingStatus === record.id ? 'Processing...' : actionButton.text}
+                                                    </button>
+                                                    <div className="flex items-center gap-1 ml-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                window.location.href = `/admin-dashboard/candidates?highlight=${record.id}`;
+                                                            }}
+                                                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                                            title="View Details"
+                                                        >
+                                                            <Eye className="w-4 h-4 text-gray-600" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                const currentNote = record.nda_status?.compliance_notes || '';
+                                                                setEditingNote({ id: record.id, note: currentNote });
+                                                            }}
+                                                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                                            title="Edit Notes"
+                                                        >
+                                                            <Edit className="w-4 h-4 text-gray-600" />
+                                                        </button>
+                                                        <select
+                                                            value={record.nda_status?.status || 'not_sent'}
+                                                            onChange={(e) => handleStatusChange(record, e.target.value as 'not_sent' | 'sent' | 'submitted')}
+                                                            className="text-xs border border-gray-300 rounded px-1 py-1"
+                                                            title="Change Status"
+                                                            disabled={updatingStatus === record.id}
+                                                        >
+                                                            <option value="not_sent">Not Sent</option>
+                                                            <option value="sent">Sent</option>
+                                                            <option value="submitted">Submitted</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </main>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={9} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                        {activeFilters.length > 0
+                                            ? `No NDA records found matching filters: ${activeFilters.join(', ')}`
+                                            : 'No NDA records found.'
+                                        }
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-
+            </main>
 
             {editingNote && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xl"
                     onClick={() => setEditingNote(null)}
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
                         className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
                         onClick={(e) => e.stopPropagation()}
@@ -1205,38 +930,35 @@ const NDAComplianceLog = () => {
                                 {editingNote.note.length}/500 characters
                             </div>
                         </div>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setEditingNote(null)}
-                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={handleSaveNote}
                                 disabled={updatingStatus === editingNote.id}
-                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
                             >
                                 {updatingStatus === editingNote.id ? 'Saving...' : 'Save Note'}
+                            </button>
+                            <button
+                                onClick={() => setEditingNote(null)}
+                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors order-2 sm:order-1"
+                            >
+                                Cancel
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-
             {ndaDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/30 backdrop-blur-2xl"
                     onClick={() => setNdaDialog(null)}
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto"
+                        className="relative bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] w-full max-w-[979px] max-h-[95vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-4 sm:p-6 lg:p-8">
-
                             <div className="mb-6">
                                 <h2 className="text-lg sm:text-[22px] font-medium font-poppins text-[#6c6c6c] mb-2">
                                     {getActionButton(ndaDialog).action === 'resend' ? 'Resend' : 'Send'} NDA to Freelancer
@@ -1245,7 +967,6 @@ const NDAComplianceLog = () => {
                                     You&apos;re about to {getActionButton(ndaDialog).action === 'resend' ? 'resend' : 'send'} a Non-Disclosure Agreement to the selected candidate. You can use an existing template or upload a new file
                                 </p>
                             </div>
-
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-8 text-center">
                                 <div>
@@ -1268,10 +989,8 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-
                             <div className="mb-6">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">NDA File</h3>
-
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
                                     <div className="space-y-4">
                                         <div className="flex items-start">
@@ -1356,7 +1075,6 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-
                             <div className="mb-4">
                                 <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Title</h3>
                                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
@@ -1370,7 +1088,6 @@ const NDAComplianceLog = () => {
                                     <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-2">{ndaSubject.length}/100</p>
                                 </div>
                             </div>
-
 
                             <div className="mb-6 sm:mb-8">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1436,7 +1153,6 @@ const NDAComplianceLog = () => {
                                 </div>
                             </div>
 
-
                             <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
                                 <button
                                     onClick={() => {
@@ -1448,7 +1164,7 @@ const NDAComplianceLog = () => {
                                         }
                                     }}
                                     disabled={sendingNDA || uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] cursor-pointer rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {sendingNDA ? (
                                         <>
@@ -1470,7 +1186,7 @@ const NDAComplianceLog = () => {
                                         setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
                                     }}
                                     disabled={uploadingNDA}
-                                    className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] border border-[#5530fa] text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] cursor-pointer border border-gray-300 text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2 sm:order-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                 >
                                     Cancel
                                 </button>
@@ -1479,7 +1195,6 @@ const NDAComplianceLog = () => {
                     </div>
                 </div>
             )}
-
 
             {successDialog && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1511,22 +1226,13 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".pdf"
-                className="hidden"
-            />
-
             {errorDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xl"
                     onClick={() => setErrorDialog(null)}
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">{errorDialog.title}</h3>
@@ -1543,15 +1249,13 @@ const NDAComplianceLog = () => {
                 </div>
             )}
 
-
             {confirmDialog && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xl"
                     onClick={() => setConfirmDialog(null)}
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
                     <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">{confirmDialog.title}</h3>
@@ -1573,7 +1277,15 @@ const NDAComplianceLog = () => {
                     </div>
                 </div>
             )}
-        </div>
+
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".pdf"
+                className="hidden"
+            />
+        </AdminLayout>
     );
 };
 

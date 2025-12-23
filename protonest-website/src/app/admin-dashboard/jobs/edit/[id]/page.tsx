@@ -1,19 +1,14 @@
 "use client";
 
+import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import {
     ArrowLeft,
-    ChevronRight,
-    Menu,
     Plus,
-    Settings,
-    Trash2,
-    X
+    Trash2
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type JobData = {
     id?: string;
@@ -63,15 +58,11 @@ const isAdminTokenExpired = (): boolean => {
 
 const JobEditor = () => {
     const { id: jobId } = useParams() as { id: string };
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState('');
     const [jobData, setJobData] = useState<JobData | null>(null);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [successDialog, setSuccessDialog] = useState<{ title: string; message: string; onOk?: () => void } | null>(null);
     const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
     const [formData, setFormData] = useState({
@@ -95,29 +86,10 @@ const JobEditor = () => {
         }
     });
 
-    useEffect(() => {
-        if (isAdminTokenExpired()) {
-            router.push('/admin-signin');
-        }
-    }, [router]);
-
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        router.push('/admin-signin');
-    };
-
-    const sidebarItems = [
-        { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard', path: '/admin-dashboard' },
-        { icon: 'solar:user-bold-duotone', label: 'Candidate Management', path: '/admin-dashboard/candidates' },
-        { icon: 'solar:document-bold-duotone', label: 'Job Postings', path: '/admin-dashboard/jobs' },
-        { icon: 'mingcute:refresh-3-line', label: 'Application Pipeline', path: '/admin-dashboard/applications' },
-        { icon: 'solar:pen-new-square-bold-duotone', label: 'NDA & Compliance Log', path: '/admin-dashboard/nda' },
-        { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
-        { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
-        { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
-        { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
-        { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
-        { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
+    const breadcrumbItems = [
+        { label: 'Admin Portal', href: '/admin-dashboard' },
+        { label: 'Job Postings', href: '/admin-dashboard/jobs' },
+        { label: 'Edit Job' },
     ];
 
     useEffect(() => {
@@ -130,12 +102,27 @@ const JobEditor = () => {
 
             setIsLoadingData(true);
             try {
+                const adminToken = localStorage.getItem('adminToken');
+                if (!adminToken) {
+                    router.push('/admin-signin');
+                    return;
+                }
+
                 console.log('Fetching job data for ID:', jobId);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${jobId}`);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
                 if (!response.ok) {
                     if (response.status === 404) {
                         setError('Job not found');
+                    } else if (response.status === 401) {
+                        localStorage.removeItem('adminToken');
+                        router.push('/admin-signin');
+                        return;
                     } else {
                         setError('Failed to load job data');
                     }
@@ -147,7 +134,8 @@ const JobEditor = () => {
                 console.log('API response data:', data);
 
                 if (data.status === 'success' && data.data) {
-                    setJobData(data.data);
+                    const job = data.data.job || data.data;
+                    setJobData(job);
                 } else {
                     setError('Invalid job data received');
                 }
@@ -197,17 +185,10 @@ const JobEditor = () => {
     }, [jobData]);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setSidebarOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [sidebarOpen]);
+        if (isAdminTokenExpired()) {
+            router.push('/admin-signin');
+        }
+    }, [router]);
 
     const getAuthHeaders = () => {
         const adminToken = localStorage.getItem('adminToken');
@@ -467,18 +448,21 @@ const JobEditor = () => {
 
     if (isLoadingData) {
         return (
-            <div className="font-poppins min-h-screen bg-white flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading job data...</p>
+            <AdminLayout breadcrumbItems={breadcrumbItems}>
+                <div className="font-poppins flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5530FA] mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading job data...</p>
+                    </div>
                 </div>
-            </div>
+            </AdminLayout>
         );
     }
 
     return (
-        <div className="font-poppins min-h-screen bg-white relative">
-            <style jsx global>{`
+        <AdminLayout breadcrumbItems={breadcrumbItems}>
+            <div className="font-poppins relative">
+                <style jsx global>{`
                 .gradient-icon svg {
                     width: 100%;
                     height: 100%;
@@ -501,701 +485,519 @@ const JobEditor = () => {
                 }
             `}</style>
 
-            <svg width="0" height="0" style={{ position: 'absolute' }}>
-                <defs>
-                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#4520E0" />
-                        <stop offset="100%" stopColor="#D01888" />
-                    </linearGradient>
-                </defs>
-            </svg>
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <defs>
+                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#4520E0" />
+                            <stop offset="100%" stopColor="#D01888" />
+                        </linearGradient>
+                    </defs>
+                </svg>
 
-
-            {showLogoutDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => setShowLogoutDialog(false)}
-                >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                {successDialog && (
                     <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        onClick={() => {
+                            if (successDialog.onOk) successDialog.onOk();
+                            setSuccessDialog(null);
+                        }}
                     >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-
-            {successDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => {
-                        if (successDialog.onOk) successDialog.onOk();
-                        setSuccessDialog(null);
-                    }}
-                >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
-                    <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
-                        <p className="text-gray-600 mb-6">{successDialog.message}</p>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={() => {
-                                    if (successDialog.onOk) successDialog.onOk();
-                                    setSuccessDialog(null);
-                                }}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-
-            {errorDialog && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => setErrorDialog(null)}
-                >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
-                    <div
-                        className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
-                        <p className="text-gray-600 mb-6">{errorDialog.message}</p>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={() => setErrorDialog(null)}
-                                className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
-                            >
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-20 lg:hidden backdrop-blur-xs"></div>
-            )}
-
-
-            <header className="bg-white py-4">
-                <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Link href="/" className="w-[100px] lg:w-[130px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={130}
-                                    height={80}
-                                    className="object-contain"
-                                />
-                            </Link>
-                        </div>
-
-                        <div className="flex items-center">
-                            <Link href="/admin-dashboard/settings" className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow">
-                                <Settings className="w-5 h-5 text-gray-600" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex flex-col lg:flex-row gap-8">
-
-                    <div
-                        ref={sidebarRef}
-                        className={`fixed top-0 right-0 h-full w-80 z-30 bg-white transform transition-transform duration-300 ease-in-out shadow-xl lg:hidden ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-                        <div className="flex justify-between items-center p-4">
-                            <Link href="/" className="w-[100px] relative">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={100}
-                                    height={60}
-                                    className="object-contain"
-                                />
-                            </Link>
-                            <button
-                                onClick={() => setSidebarOpen(false)}
-                                className="p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto h-full p-4">
-                            <nav className="space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="pt-8">
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                        <div
+                            className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-green-600 mb-4">{successDialog.title}</h3>
+                            <p className="text-gray-600 mb-6">{successDialog.message}</p>
+                            <div className="flex justify-end">
                                 <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => {
+                                        if (successDialog.onOk) successDialog.onOk();
+                                        setSuccessDialog(null);
+                                    }}
+                                    className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
                                 >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
+                                    OK
                                 </button>
                             </div>
                         </div>
                     </div>
+                )}
 
-
-                    <aside className="hidden lg:block font-poppins w-full lg:w-80 xl:w-85 2xl:w-96 lg:mr-auto">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                            <nav className="p-4 space-y-1">
-                                {sidebarItems.map((item, index) => (
-                                    <Link
-                                        key={index}
-                                        href={item.path}
-                                        className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-[#FAFAFA] transition-colors ${pathname === item.path
-                                            ? 'font-semibold bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <div className={`w-5 h-5 mr-4 flex items-center justify-center ${pathname !== item.path ? 'gradient-icon' : ''}`}>
-                                            <Icon
-                                                icon={item.icon}
-                                                className={`w-5 h-5 ${pathname === item.path ? 'text-white' : ''}`}
-                                            />
-                                        </div>
-                                        <span className={`${pathname === item.path ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            <div className="p-4 pt-8">
+                {errorDialog && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        onClick={() => setErrorDialog(null)}
+                    >
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                        <div
+                            className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-red-600 mb-4">{errorDialog.title}</h3>
+                            <p className="text-gray-600 mb-6">{errorDialog.message}</p>
+                            <div className="flex justify-end">
                                 <button
-                                    onClick={() => setShowLogoutDialog(true)}
-                                    className="w-full flex items-center px-4 py-3 bg-[#FAFAFA] rounded-lg text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => setErrorDialog(null)}
+                                    className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
                                 >
-                                    <div className="w-5 h-5 mr-4 flex items-center justify-center gradient-icon">
-                                        <Icon
-                                            icon="solar:login-3-bold-duotone"
-                                            className="w-5 h-5"
-                                        />
-                                    </div>
-                                    <span className="font-normal">Logout</span>
+                                    OK
                                 </button>
                             </div>
                         </div>
-                    </aside>
+                    </div>
+                )}
+
+                <main>
 
 
-                    <main className={`flex-1 lg:max-w-[calc(100%-22rem)] 2xl:max-w-[calc(100%-24rem)] ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden mr-2 p-2 rounded-full hover:bg-gray-100"
-                            >
-                                <Menu className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <nav className="w-full font-poppins px-4 shadow-[0px_2px_20px_0px_rgba(166,175,195,0.20)] rounded-[8px] h-[40px] flex items-center space-x-2 text-[11px] lg:text-sm text-gray-500">
-                                <Link href="/admin-dashboard" className="hover:text-gray-700">Admin Portal</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <Link href="/admin-dashboard/jobs" className="hover:text-gray-700">Job Postings</Link>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="text-[#5C4EC9]">Edit Job</span>
-                            </nav>
-                        </div>
-
-                        <div className="flex items-center mb-6">
-                            <button
-                                onClick={() => router.back()}
-                                className="p-2 rounded-full hover:bg-gray-100 mr-2"
-                            >
-                                <ArrowLeft className="w-5 h-5 text-gray-600" />
-                            </button>
-                            <div className="flex items-center gap-3">
-                                <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                                    <Icon
-                                        icon="solar:document-bold-duotone"
-                                        className="w-7 h-7"
-                                    />
-                                </div>
-                                <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
-                                    Edit Job Posting {jobData?.title && `- ${jobData.title}`}
-                                </h1>
+                    <div className="bg-white pb-6 flex items-center">
+                        <button
+                            onClick={() => router.back()}
+                            className="p-2 rounded-full hover:bg-gray-100 mr-2"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:document-bold-duotone"
+                                    className="w-7 h-7"
+                                />
                             </div>
+                            <h1 className="text-2xl md:text-[25px] font-semibold text-[#6c6c6c] font-montserrat">
+                                Edit Job Posting {jobData?.title && `- ${jobData.title}`}
+                            </h1>
                         </div>
+                    </div>
 
-                        {error && (
+                    {
+                        error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-red-600 text-sm">{error}</p>
                             </div>
-                        )}
+                        )
+                    }
 
-                        <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
+                    <form onSubmit={handleSubmit} className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
 
-                            <div className="mb-8">
-                                <h2 className="text-lg font-semibold text-[#4e4e4e] mb-4 pb-2 border-b border-gray-200">
-                                    Basic Information
-                                </h2>
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-[#4e4e4e] mb-4 pb-2 border-b border-gray-200">
+                                Basic Information
+                            </h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Title *</label>
-                                        <input
-                                            type="text"
-                                            name="title"
-                                            value={formData.title}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Category *</label>
-                                        <select
-                                            name="category"
-                                            value={formData.category}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        >
-                                            <option value="">Select Category</option>
-                                            {jobCategories.map(category => (
-                                                <option key={category} value={category}>{category}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Type *</label>
-                                        <select
-                                            name="type"
-                                            value={formData.type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        >
-                                            <option value="full-time">Full Time</option>
-                                            <option value="project-based">Project Based</option>
-                                            <option value="hourly">Hourly</option>
-                                            <option value="internship">Internship</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Experience Level *</label>
-                                        <select
-                                            name="experience"
-                                            value={formData.experience}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        >
-                                            <option value="beginner">Beginner</option>
-                                            <option value="intermediate">Intermediate</option>
-                                            <option value="experienced">Experienced</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Location *</label>
-                                        <select
-                                            name="location"
-                                            value={formData.location}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        >
-                                            <option value="Remote">Remote</option>
-                                            <option value="On-site">On-site</option>
-                                            <option value="Hybrid">Hybrid</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Application Deadline *</label>
-                                        <input
-                                            type="date"
-                                            name="deadline"
-                                            value={formData.deadline}
-                                            onChange={handleInputChange}
-                                            min={new Date().toISOString().split('T')[0]}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-
-                                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <div className="flex items-start mb-3">
-                                        <input
-                                            type="checkbox"
-                                            name="publish_later"
-                                            checked={formData.publish_later}
-                                            onChange={handleInputChange}
-                                            className="mr-3 h-4 w-4 text-[#5530FA] focus:ring-[#5530FA] border-gray-300 rounded mt-0.5"
-                                            disabled={isLoading}
-                                        />
-                                        <div className="flex-1">
-                                            <label className="text-sm font-medium text-[#4e4e4e] cursor-pointer">
-                                                Schedule for Later
-                                            </label>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Select a date and time to automatically publish this job
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {formData.publish_later && (
-                                        <div className="mt-3">
-                                            <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                                Publish Date & Time *
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                name="schedule_at"
-                                                value={formData.schedule_at}
-                                                onChange={handleInputChange}
-                                                min={getMinDateTime()}
-                                                className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                                disabled={isLoading}
-                                                required={formData.publish_later}
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                📅 The job will be automatically published at the scheduled time
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Description *</label>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Title *</label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        value={formData.title}
                                         onChange={handleInputChange}
-                                        rows={4}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                         disabled={isLoading}
                                         required
-                                        placeholder="Detailed description of the role"
-                                    ></textarea>
+                                    />
                                 </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Responsibilities *</label>
-                                    <textarea
-                                        name="responsibilities"
-                                        value={formData.responsibilities}
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Category *</label>
+                                    <select
+                                        name="category"
+                                        value={formData.category}
                                         onChange={handleInputChange}
-                                        rows={4}
-                                        placeholder="List the key responsibilities for this role (one per line)"
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                         disabled={isLoading}
                                         required
-                                    ></textarea>
+                                    >
+                                        <option value="">Select Category</option>
+                                        {jobCategories.map(category => (
+                                            <option key={category} value={category}>{category}</option>
+                                        ))}
+                                    </select>
                                 </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Requirements *</label>
-                                    <textarea
-                                        name="requirements"
-                                        value={formData.requirements}
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Type *</label>
+                                    <select
+                                        name="type"
+                                        value={formData.type}
                                         onChange={handleInputChange}
-                                        rows={4}
-                                        placeholder="List the requirements for this role (one per line)"
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                         disabled={isLoading}
                                         required
-                                    ></textarea>
+                                    >
+                                        <option value="full-time">Full Time</option>
+                                        <option value="project-based">Project Based</option>
+                                        <option value="hourly">Hourly</option>
+                                        <option value="internship">Internship</option>
+                                    </select>
                                 </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Required Skills *</label>
-                                    <textarea
-                                        name="required_skills"
-                                        value={formData.required_skills}
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Experience Level *</label>
+                                    <select
+                                        name="experience"
+                                        value={formData.experience}
                                         onChange={handleInputChange}
-                                        rows={4}
-                                        placeholder="List the required skills for this role (one per line)"
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                         disabled={isLoading}
                                         required
-                                    ></textarea>
+                                    >
+                                        <option value="beginner">Beginner</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="experienced">Experienced</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Location *</label>
+                                    <select
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[5530FA]"
+                                        disabled={isLoading}
+                                        required
+                                    >
+                                        <option value="Remote">Remote</option>
+                                        <option value="On-site">On-site</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Application Deadline *</label>
+                                    <input
+                                        type="date"
+                                        name="deadline"
+                                        value={formData.deadline}
+                                        onChange={handleInputChange}
+                                        min={new Date().toISOString().split('T')[0]}
+                                        className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                        disabled={isLoading}
+                                        required
+                                    />
                                 </div>
                             </div>
 
 
-                            <div className="mb-8">
-                                <h2 className="text-lg font-semibold text-[#4e4e4e] mb-2 pb-2 border-b border-gray-200">
-                                    Selection Criteria for AI Ranking
-                                </h2>
-                                <p className="text-xs text-gray-500 mb-4">
-                                    These criteria will be used to automatically rank and analyze candidates using AI when you click the &quot;Analyze&quot; button.
-                                </p>
-
-
-                                <div className="mb-6">
-                                    <h3 className="text-base font-medium text-[#4e4e4e] mb-3">Experience Requirements</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                                Minimum Years of Experience *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.5"
-                                                value={formData.selection_criteria.min_years_experience}
-                                                onChange={(e) => handleCriteriaChange('min_years_experience', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                                disabled={isLoading}
-                                                required
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">Candidates below this will receive lower scores</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                                Preferred Years of Experience *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.5"
-                                                value={formData.selection_criteria.preferred_years_experience}
-                                                onChange={(e) => handleCriteriaChange('preferred_years_experience', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                                disabled={isLoading}
-                                                required
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">Candidates at or above this will receive perfect experience scores</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                        Ideal Candidate Description (AI Prompt)
-                                    </label>
-                                    <p className="text-xs text-gray-500 mb-2">
-                                        Describe the ideal candidate in detail. AI will use this to evaluate and rank applicants based on how well they match this description.
-                                    </p>
-                                    <textarea
-                                        value={formData.selection_criteria.prompt}
-                                        onChange={(e) => handleCriteriaChange('prompt', e.target.value)}
-                                        rows={6}
-                                        className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <div className="flex items-start mb-3">
+                                    <input
+                                        type="checkbox"
+                                        name="publish_later"
+                                        checked={formData.publish_later}
+                                        onChange={handleInputChange}
+                                        className="mr-3 h-4 w-4 text-[#5530FA] focus:ring-[#5530FA] border-gray-300 rounded mt-0.5"
                                         disabled={isLoading}
-                                        placeholder="Example: We're looking for a senior full-stack developer with strong expertise in React and Node.js. The ideal candidate should have experience building scalable microservices, excellent problem-solving abilities, and strong communication skills for mentoring junior developers. They should be comfortable working in an agile environment and have experience with cloud platforms like AWS or Azure."
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        💡 Tip: Be specific about technical skills, soft skills, and team dynamics you value
-                                    </p>
+                                    <div className="flex-1">
+                                        <label className="text-sm font-medium text-[#4e4e4e] cursor-pointer">
+                                            Schedule for Later
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Select a date and time to automatically publish this job
+                                        </p>
+                                    </div>
                                 </div>
 
-
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-[#4e4e4e]">
-                                                Specific Evaluation Criteria (Optional)
-                                            </label>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Add specific yes/no or measurable criteria that AI will evaluate for each candidate
-                                            </p>
-                                        </div>
+                                {formData.publish_later && (
+                                    <div className="mt-3">
+                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
+                                            Publish Date & Time *
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            name="schedule_at"
+                                            value={formData.schedule_at}
+                                            onChange={handleInputChange}
+                                            min={getMinDateTime()}
+                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                            disabled={isLoading}
+                                            required={formData.publish_later}
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            📅 The job will be automatically published at the scheduled time
+                                        </p>
                                     </div>
+                                )}
+                            </div>
 
-                                    <div className="space-y-3">
-                                        {formData.selection_criteria.questions.map((question, index) => (
-                                            <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                                <div className="flex items-start gap-3 mb-3">
-                                                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                                        {index + 1}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Description *</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading}
+                                    required
+                                    placeholder="Detailed description of the role"
+                                ></textarea>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Responsibilities *</label>
+                                <textarea
+                                    name="responsibilities"
+                                    value={formData.responsibilities}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="List the key responsibilities for this role (one per line)"
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading}
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Requirements *</label>
+                                <textarea
+                                    name="requirements"
+                                    value={formData.requirements}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="List the requirements for this role (one per line)"
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading}
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Required Skills *</label>
+                                <textarea
+                                    name="required_skills"
+                                    value={formData.required_skills}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="List the required skills for this role (one per line)"
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading}
+                                    required
+                                ></textarea>
+                            </div>
+                        </div>
+
+
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-[#4e4e4e] mb-2 pb-2 border-b border-gray-200">
+                                Selection Criteria for AI Ranking
+                            </h2>
+                            <p className="text-xs text-gray-500 mb-4">
+                                These criteria will be used to automatically rank and analyze candidates using AI when you click the &quot;Analyze&quot; button.
+                            </p>
+
+
+                            <div className="mb-6">
+                                <h3 className="text-base font-medium text-[#4e4e4e] mb-3">Experience Requirements</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
+                                            Minimum Years of Experience *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.5"
+                                            value={formData.selection_criteria.min_years_experience}
+                                            onChange={(e) => handleCriteriaChange('min_years_experience', parseFloat(e.target.value) || 0)}
+                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                            disabled={isLoading}
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Candidates below this will receive lower scores</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
+                                            Preferred Years of Experience *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.5"
+                                            value={formData.selection_criteria.preferred_years_experience}
+                                            onChange={(e) => handleCriteriaChange('preferred_years_experience', parseFloat(e.target.value) || 0)}
+                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                            disabled={isLoading}
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Candidates at or above this will receive perfect experience scores</p>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
+                                    Ideal Candidate Description (AI Prompt)
+                                </label>
+                                <p className="text-xs text-gray-500 mb-2">
+                                    Describe the ideal candidate in detail. AI will use this to evaluate and rank applicants based on how well they match this description.
+                                </p>
+                                <textarea
+                                    value={formData.selection_criteria.prompt}
+                                    onChange={(e) => handleCriteriaChange('prompt', e.target.value)}
+                                    rows={6}
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading}
+                                    placeholder="Example: We're looking for a senior full-stack developer with strong expertise in React and Node.js. The ideal candidate should have experience building scalable microservices, excellent problem-solving abilities, and strong communication skills for mentoring junior developers. They should be comfortable working in an agile environment and have experience with cloud platforms like AWS or Azure."
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 Tip: Be specific about technical skills, soft skills, and team dynamics you value
+                                </p>
+                            </div>
+
+
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#4e4e4e]">
+                                            Specific Evaluation Criteria (Optional)
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Add specific yes/no or measurable criteria that AI will evaluate for each candidate
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {formData.selection_criteria.questions.map((question, index) => (
+                                        <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                                    {index + 1}
+                                                </div>
+                                                <div className="flex-1 space-y-3">
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-[#4e4e4e] mb-1">
+                                                            Question / Criteria
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={question.question}
+                                                            onChange={(e) => handleQuestionChange(index, 'question', e.target.value)}
+                                                            className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
+                                                            placeholder="E.g., Has experience with CI/CD pipelines and DevOps practices?"
+                                                            disabled={isLoading}
+                                                        />
                                                     </div>
-                                                    <div className="flex-1 space-y-3">
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         <div>
                                                             <label className="block text-xs font-medium text-[#4e4e4e] mb-1">
-                                                                Question / Criteria
+                                                                Type
+                                                            </label>
+                                                            <select
+                                                                value={question.type}
+                                                                onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
+                                                                className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
+                                                                disabled={isLoading}
+                                                            >
+                                                                <option value="technical">Technical Skill</option>
+                                                                <option value="experience">Experience</option>
+                                                                <option value="soft_skills">Soft Skills</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-[#4e4e4e] mb-1">
+                                                                Importance (1-10)
                                                             </label>
                                                             <input
-                                                                type="text"
-                                                                value={question.question}
-                                                                onChange={(e) => handleQuestionChange(index, 'question', e.target.value)}
+                                                                type="number"
+                                                                min="1"
+                                                                max="10"
+                                                                value={question.weight}
+                                                                onChange={(e) => handleQuestionChange(index, 'weight', parseInt(e.target.value) || 5)}
                                                                 className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
-                                                                placeholder="E.g., Has experience with CI/CD pipelines and DevOps practices?"
                                                                 disabled={isLoading}
                                                             />
                                                         </div>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-[#4e4e4e] mb-1">
-                                                                    Type
-                                                                </label>
-                                                                <select
-                                                                    value={question.type}
-                                                                    onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
-                                                                    className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
-                                                                    disabled={isLoading}
-                                                                >
-                                                                    <option value="technical">Technical Skill</option>
-                                                                    <option value="experience">Experience</option>
-                                                                    <option value="soft_skills">Soft Skills</option>
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-[#4e4e4e] mb-1">
-                                                                    Importance (1-10)
-                                                                </label>
-                                                                <input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    max="10"
-                                                                    value={question.weight}
-                                                                    onChange={(e) => handleQuestionChange(index, 'weight', parseInt(e.target.value) || 5)}
-                                                                    className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
-                                                                    disabled={isLoading}
-                                                                />
-                                                            </div>
-                                                        </div>
                                                     </div>
-
-                                                    {formData.selection_criteria.questions.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeQuestion(index)}
-                                                            className="flex-shrink-0 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                            disabled={isLoading}
-                                                            title="Remove question"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    )}
                                                 </div>
 
-
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <span className="text-xs text-gray-500">Priority:</span>
-                                                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
-                                                            style={{ width: `${(question.weight / 10) * 100}%` }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className="text-xs font-medium text-gray-700">{question.weight}/10</span>
-                                                </div>
+                                                {formData.selection_criteria.questions.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeQuestion(index)}
+                                                        className="flex-shrink-0 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        disabled={isLoading}
+                                                        title="Remove question"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={addQuestion}
-                                        className="mt-3 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-[#5530FA] hover:bg-[#5530FA]/5 hover:border-[#5530FA] transition-colors flex items-center justify-center gap-2"
-                                        disabled={isLoading}
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Add Another Evaluation Criterion
-                                    </button>
 
-                                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p className="text-xs text-blue-800">
-                                            <strong>How it works:</strong> When you click &quot;Analyze&quot; on the job posting, AI will:
-                                        </p>
-                                        <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
-                                            <li>Evaluate each candidate&apos;s CV against your ideal candidate description</li>
-                                            <li>Score candidates on each specific criterion you&apos;ve defined</li>
-                                            <li>Calculate experience match based on years requirement</li>
-                                            <li>Rank all candidates with an overall score (0-100%)</li>
-                                            <li>Provide detailed reasoning for each evaluation</li>
-                                        </ul>
-                                    </div>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-xs text-gray-500">Priority:</span>
+                                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
+                                                        style={{ width: `${(question.weight / 10) * 100}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-xs font-medium text-gray-700">{question.weight}/10</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
 
-
-                            <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
                                 <button
                                     type="button"
-                                    onClick={() => router.push('/admin-dashboard/jobs')}
-                                    className="px-6 py-2 rounded-[57px] border border-gray-300 text-[#676767] hover:bg-gray-50 transition-colors disabled:opacity-50 order-3 sm:order-1"
+                                    onClick={addQuestion}
+                                    className="mt-3 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-[#5530FA] hover:bg-[#5530FA]/5 hover:border-[#5530FA] transition-colors flex items-center justify-center gap-2"
                                     disabled={isLoading}
                                 >
-                                    Cancel
+                                    <Plus className="w-4 h-4" />
+                                    Add Another Evaluation Criterion
                                 </button>
 
-                                <button
-                                    type="submit"
-                                    className="cursor-pointer px-6 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white font-medium hover:shadow-lg transition-shadow disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-3"
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                            {formData.publish_later ? 'Scheduling...' : 'Updating...'}
-                                        </>
-                                    ) : (
-                                        <>
-                                            {formData.publish_later ? '📅 Schedule Update' : 'Update Job'}
-                                        </>
-                                    )}
-                                </button>
+                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p className="text-xs text-blue-800">
+                                        <strong>How it works:</strong> When you click &quot;Analyze&quot; on the job posting, AI will:
+                                    </p>
+                                    <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
+                                        <li>Evaluate each candidate&apos;s CV against your ideal candidate description</li>
+                                        <li>Score candidates on each specific criterion you&apos;ve defined</li>
+                                        <li>Calculate experience match based on years requirement</li>
+                                        <li>Rank all candidates with an overall score (0-100%)</li>
+                                        <li>Provide detailed reasoning for each evaluation</li>
+                                    </ul>
+                                </div>
                             </div>
-                        </form>
-                    </main>
-                </div>
+                        </div>
+
+
+                        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={() => router.push('/admin-dashboard/jobs')}
+                                className="px-6 py-2 rounded-[57px] border border-gray-300 text-[#676767] hover:bg-gray-50 transition-colors disabled:opacity-50 order-3 sm:order-1"
+                                disabled={isLoading}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="submit"
+                                className="cursor-pointer px-6 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white font-medium hover:shadow-lg transition-shadow disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-3"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        {formData.publish_later ? 'Scheduling...' : 'Updating...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        {formData.publish_later ? '📅 Schedule Update' : 'Update Job'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </main>
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 
