@@ -19,13 +19,13 @@ interface StatsSectionProps {
 }
 
 const DEFAULT_CONTAINER_CLASS =
-  "bg-[#FAFAFA] py-16 w-full h-[316px] flex items-center group";
+  "bg-[#FAFAFA] py-12 sm:py-16 w-full min-h-[400px] sm:min-h-[316px] flex items-center group";
 const DEFAULT_WRAPPER_CLASS =
-  "flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 lg:gap-45 xl:gap-[211px] max-w-screen-xl mx-auto";
+  "flex flex-col md:flex-row justify-center items-center gap-16 sm:gap-20 md:gap-24 lg:gap-45 xl:gap-[211px] max-w-screen-xl mx-auto px-4";
 const DEFAULT_NUMBER_CLASS =
-  "text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-[60px] font-medium font-montserrat leading-[55px] mb-2";
+  "text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] text-[40px] sm:text-[50px] lg:text-[60px] font-medium font-montserrat leading-[45px] sm:leading-[50px] lg:leading-[55px] mb-2";
 const DEFAULT_LABEL_CLASS =
-  "text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-[18px] font-normal font-poppins";
+  "text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-[14px] sm:text-[16px] lg:text-[18px] font-normal font-poppins";
 
 const StatsSection = ({
   stats,

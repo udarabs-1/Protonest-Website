@@ -81,7 +81,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
           }`}
       >
 
-        <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
+        <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
           <Image
             src={blog.cover_image || '/default-blog-image.jpg'}
             alt={blog.title}

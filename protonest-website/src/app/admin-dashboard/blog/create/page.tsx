@@ -778,7 +778,7 @@ const CreateBlogPost = () => {
                 <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>
                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
                     <div
-                        className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] h-[327px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="bg-white rounded-[35px] shadow-[0px_2px_5px_0px_rgba(0,0,0,0.08)] border border-[#6c6c6c] w-full aspect-video flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}

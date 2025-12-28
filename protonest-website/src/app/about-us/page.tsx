@@ -45,8 +45,8 @@ const ValueCard = ({ value }: { value: ValueType }) => {
       <div className="flex-1 flex flex-col items-center justify-start pt-2 px-4">
         <h3
           className={`text-sm sm:text-base font-normal font-poppins mb-3 text-center transition-all duration-300 md:text-[#4E4E4E] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[rgba(85,48,250,1)] md:to-[rgba(245,29,165,1)] ${shouldShowEffects
-              ? "text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)]"
-              : "text-[#4E4E4E]"
+            ? "text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)]"
+            : "text-[#4E4E4E]"
             }`}
         >
           {value.title}

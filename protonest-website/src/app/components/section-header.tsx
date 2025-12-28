@@ -26,9 +26,8 @@ export default function SectionHeader({
 
   return (
     <div
-      className={`w-full ${
-        align === "center" ? "mb-12 lg:mb-16" : "mb-8 md:mb-12"
-      }`}
+      className={`w-full ${align === "center" ? "mb-12 lg:mb-16" : "mb-8 md:mb-12"
+        }`}
     >
       <div className={`flex flex-col ${alignment} gap-4`}>
         <h2 className="text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-tight">
@@ -45,11 +44,10 @@ export default function SectionHeader({
 
         {(description || linkLabel) && (
           <div
-            className={`flex w-full gap-4 ${
-              align === "center"
+            className={`flex w-full gap-4 ${align === "center"
                 ? "flex-col items-center"
                 : "flex-col md:flex-row justify-between items-start"
-            }`}
+              }`}
           >
             {description && (
               <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] max-w-4xl">
