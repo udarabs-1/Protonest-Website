@@ -32,7 +32,7 @@ const NewsAndBlogs = () => {
     {
       id: 1,
       title: "Selecting a Suitable Sensor for an IoT Project",
-      image: "/blogs1.svg",
+      image: "/blogs1.png",
       description:
         "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to keep your house comfortable with a smart thermostat, monitor your pulse with a fitness tracker, or agricultural systems that guarantee optimal crop growth are in the middle of any application involving IoT.",
       link: "blog/selecting-a-suitable-sensor-for-an-iot-project",
@@ -40,7 +40,7 @@ const NewsAndBlogs = () => {
     {
       id: 2,
       title: "Selecting a Perfect Battery for an IoT Project",
-      image: "/blogs2.svg",
+      image: "/blogs2.png",
       description:
         "The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
       link: "blog/selecting-a-perfect-battery-for-an-iot-project",
@@ -48,7 +48,7 @@ const NewsAndBlogs = () => {
     {
       id: 3,
       title: "Selecting the Perfect Cloud Backend for an IoT Project",
-      image: "/blogs3.svg",
+      image: "/blogs3.png",
       description:
         "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind.",
       link: "blog/selecting-the-perfect-cloud-backend-for-an-iot-project",

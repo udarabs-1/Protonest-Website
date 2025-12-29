@@ -59,7 +59,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
     return (
         <Link href={`/blog/${blog.slug}`} passHref>
             <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
-                <div className="relative w-full aspect-[472/164] rounded-[11px] overflow-hidden mb-6">
+                <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
                     <Image
                         src={blog.cover_image || '/default-blog-image.jpg'}
                         alt={blog.title}
@@ -357,18 +357,19 @@ export default function BlogDetailPage() {
 
                 {blog.cover_image && (
                     <div className="mb-8 lg:mb-12">
-                        <Image
-                            src={blog.cover_image}
-                            alt={blog.title}
-                            width={1125}
-                            height={390}
-                            className="w-full h-[200px] md:h-[390px] xl:h-[430px] rounded-[11px] object-cover"
-                            priority={true}
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                            }}
-                        />
+                        <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                            <Image
+                                src={blog.cover_image}
+                                alt={blog.title}
+                                fill
+                                className="object-cover"
+                                priority={true}
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                }}
+                            />
+                        </div>
                     </div>
                 )}
 

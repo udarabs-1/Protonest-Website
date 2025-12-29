@@ -308,11 +308,9 @@ function SmallScreenHome() {
                 with us.
               </span>
             </div>
-            <Link href="/about-us" className="ml-auto">
-              <div className="text-[14px] font-normal font-poppins cursor-pointer">
-                <span className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
-                  About Us &gt;
-                </span>
+            <Link href="/about-us">
+              <div className="text-[14px] lg:text-[18px] font-normal font-poppins cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
+                <span className="underline">About Us</span> &gt;
               </div>
             </Link>
           </div>
@@ -396,30 +394,7 @@ function SmallScreenHome() {
 
       <ServicesSection />
 
-      <div
-        ref={ref}
-        className={`py-20 sm:py-16 w-full min-h-[200px] flex items-center transition-all duration-500 ${isMobile && isVisible ? "bg-black" : "bg-[#FAFAFA]"
-          }`}
-      >
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-24 sm:gap-12 md:gap-16 max-w-screen-xl mx-auto px-4">
-          {HIGHLIGHT_STATS.map(({ label, value, suffix = "" }) => (
-            <div key={label} className="text-center">
-              <div className="text-[#6c6c6c] text-[40px] lg:text-[50px] font-medium font-montserrat leading-[45px] mb-2">
-                {value}
-                {suffix}
-              </div>
-              <div
-                className={`text-transparent bg-clip-text text-[14px] lg:text-[16px] font-normal font-poppins transition-all duration-500 ${isMobile && isVisible
-                  ? "bg-gradient-to-r from-[#B4B4B4] to-[#4E4E4E]"
-                  : "bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4]"
-                  }`}
-              >
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <StatsSection stats={HIGHLIGHT_STATS} />
     </div>
   );
 }

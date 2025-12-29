@@ -141,10 +141,10 @@ export default function FAQSection() {
                 <div className="text-base xl:text-[18px] font-normal font-poppins">
                     <button
                         onClick={scrollToGetInTouch}
-                        className="text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#5530FA] focus:ring-opacity-50 rounded-sm"
+                        className="cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
                         aria-label="Navigate to contact form"
                     >
-                        Still Have Questions? &gt;
+                        <span className="underline hover:underline-offset-0">Still Have Questions?</span> <span className="underline-offset-0">&gt;</span>
                     </button>
                 </div>
             </div>
