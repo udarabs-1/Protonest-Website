@@ -22,6 +22,12 @@ interface Blog {
     updated_at: string;
 }
 
+interface TocItem {
+    id: string;
+    text: string;
+    level: number;
+}
+
 const calculateReadTime = (content: string): string => {
     const textContent = content.replace(/<[^>]*>/g, '');
     const wordCount = textContent.split(/\s+/).length;
@@ -50,6 +56,109 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 150): string =>
     return lastSpaceIndex > -1
         ? truncated.substring(0, lastSpaceIndex) + '...'
         : truncated + '...';
+};
+
+const extractTocItems = (htmlContent: string): TocItem[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const headings = doc.querySelectorAll('h2, h3');
+
+    return Array.from(headings).map((heading, index) => {
+        const text = heading.textContent || '';
+        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const level = parseInt(heading.tagName.substring(1));
+
+        return { id, text, level };
+    });
+};
+
+const addIdsToHeadings = (htmlContent: string): string => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const headings = doc.querySelectorAll('h2, h3');
+
+    headings.forEach((heading) => {
+        const text = heading.textContent || '';
+        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        heading.id = id;
+    });
+
+    return doc.body.innerHTML;
+};
+
+const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobile?: boolean }) => {
+    const [activeId, setActiveId] = useState<string>('');
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setActiveId(entry.target.id);
+                    }
+                });
+            },
+            { rootMargin: '-100px 0px -66%' }
+        );
+
+        items.forEach(({ id }) => {
+            const element = document.getElementById(id);
+            if (element) observer.observe(element);
+        });
+
+        return () => observer.disconnect();
+    }, [items]);
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+        e.preventDefault();
+        const element = document.getElementById(id);
+        if (element) {
+            const yOffset = -100;
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    };
+
+    if (items.length === 0) return null;
+
+    const tocContent = (
+        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-[#d5d5d5] backdrop-blur-[20px] p-6 w-full">
+            <h2 className="text-sm font-semibold text-[#6c6c6c] uppercase mb-4 font-montserrat tracking-wide">
+                Table of Contents
+            </h2>
+            <nav>
+                <ul className="space-y-2">
+                    {items.map((item) => (
+                        <li
+                            key={item.id}
+                            className={item.level === 3 ? 'ml-4' : ''}
+                        >
+                            <a
+                                href={`#${item.id}`}
+                                onClick={(e) => handleClick(e, item.id)}
+                                className={`block text-sm font-poppins transition-colors ${activeId === item.id
+                                    ? 'text-[#5530fa] font-semibold'
+                                    : 'text-[#6c6c6c] hover:text-[#5530fa]'
+                                    }`}
+                            >
+                                {item.text}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        </div>
+    );
+
+    if (isMobile) {
+        return <div className="lg:hidden mb-8">{tocContent}</div>;
+    }
+
+    return (
+        <div className="hidden lg:block sticky top-24 h-fit self-start">
+            {tocContent}
+        </div>
+    );
 };
 
 const BlogCard = ({ blog }: { blog: Blog }) => {
@@ -118,6 +227,7 @@ export default function BlogDetailPage() {
     const [suggestedBlogs, setSuggestedBlogs] = useState<Blog[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [tocItems, setTocItems] = useState<TocItem[]>([]);
 
     useEffect(() => {
         const fetchBlog = async () => {
@@ -144,7 +254,12 @@ export default function BlogDetailPage() {
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    setBlog(result.data);
+                    const blogData = result.data;
+                    const contentWithIds = addIdsToHeadings(blogData.content);
+                    const toc = extractTocItems(blogData.content);
+
+                    setBlog({ ...blogData, content: contentWithIds });
+                    setTocItems(toc);
 
                     try {
                         const blogsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
@@ -396,33 +511,40 @@ export default function BlogDetailPage() {
                     ))}
                 </div>
 
+                <TableOfContents items={tocItems} isMobile={true} />
 
-                <article className="prose prose-lg max-w-none">
-                    <div
-                        className="text-[#6c6c6c] text-base font-normal font-poppins leading-[30px]"
-                        dangerouslySetInnerHTML={{ __html: blog.content }}
-                    />
-                </article>
+                <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 xl:gap-12">
+                    <div className="min-w-0">
+                        <article className="prose prose-lg max-w-none">
+                            <div
+                                className="text-[#6c6c6c] text-base font-normal font-poppins leading-[30px]"
+                                dangerouslySetInnerHTML={{ __html: blog.content }}
+                            />
+                        </article>
 
-                {suggestedBlogs.length > 0 && (
-                    <section className="pt-12">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Articles</h2>
-                            <Link
-                                href="/blog"
-                                className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
-                            >
-                                <span className="underline">View more</span> &gt;
-                            </Link>
-                        </div>
+                        {suggestedBlogs.length > 0 && (
+                            <section className="pt-12">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Articles</h2>
+                                    <Link
+                                        href="/blog"
+                                        className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                                    >
+                                        <span className="underline">View more</span> &gt;
+                                    </Link>
+                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {suggestedBlogs.map(suggestedBlog => (
-                                <BlogCard key={suggestedBlog.id} blog={suggestedBlog} />
-                            ))}
-                        </div>
-                    </section>
-                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {suggestedBlogs.map(suggestedBlog => (
+                                        <BlogCard key={suggestedBlog.id} blog={suggestedBlog} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+
+                    <TableOfContents items={tocItems} isMobile={false} />
+                </div>
 
             </div>
 
