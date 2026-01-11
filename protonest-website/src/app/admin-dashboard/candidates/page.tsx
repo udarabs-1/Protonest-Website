@@ -869,7 +869,7 @@ const CandidateManagement = () => {
 
     const setInterviewDialogContent = (candidate: Candidate) => {
         const defaultSubject = `Interview invitation for ${candidate.job?.title || 'the position'}`;
-        const defaultBody = `We would like to meet you for an interview for the ${candidate.job?.title || 'position'} role.<br><br>Please confirm your availability for the scheduled interview time. We look forward to discussing your qualifications and learning more about your experience.`;
+        const defaultBody = `We would like to invite you to an interview for the ${candidate.job?.title || 'position'} role.<br><br>Please confirm your availability by booking a meeting using the link below.<br><br>We look forward to discussing your qualifications and learning more about your experience.`;
 
         setInterviewSubject(defaultSubject);
         setInterviewBody(defaultBody);

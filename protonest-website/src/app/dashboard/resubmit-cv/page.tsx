@@ -169,6 +169,7 @@ const ResubmitCVPage = () => {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [showJobsModal, setShowJobsModal] = useState(false);
     const [showNoMatchModal, setShowNoMatchModal] = useState(false);
+    const [showErrorDialog, setShowErrorDialog] = useState<string | null>(null);
 
     const [expertiseAreas, setExpertiseAreas] = useState<ExpertiseArea>({});
     const [cvFullText, setCvFullText] = useState<string>('');
@@ -436,56 +437,79 @@ const ResubmitCVPage = () => {
 
             setShowAnalysisModal(true);
 
+            const jwtToken = localStorage.getItem('jwtToken');
+            if (!jwtToken) {
+                setSelectedFile(null);
+                setShowAnalysisModal(false);
+                setShowErrorDialog('Please log in to analyze your CV');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            let response;
             try {
-                const jwtToken = localStorage.getItem('jwtToken');
-                if (!jwtToken) {
-                    throw new Error('Please log in to analyze your CV');
-                }
-
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
+                response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${jwtToken}`,
                     },
                     body: formData,
                 });
-
-                if (!response.ok) {
-                    throw new Error(`Analysis failed with status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.status === 'success') {
-                    const expertiseAreasData = data.results.expertise_areas || {};
-                    const allSkills: string[] = [];
-                    Object.values(expertiseAreasData).forEach((skills: string[] | unknown) => {
-                        if (Array.isArray(skills)) {
-                            allSkills.push(...skills);
-                        }
-                    });
-
-                    setExtractedSkills(allSkills);
-                    setExpertiseAreas(expertiseAreasData);
-                    setSuggestedJobs(data.results.suggested_jobs || []);
-                    setCvFullText(data.results.cv_full_text || '');
-                    setTotalYearsExperience(data.results.total_years_experience || 0);
-
-                    console.log(`✅ CV analyzed: ${allSkills.length} skills, ${(data.results.suggested_jobs || []).length} jobs (70%+ match)`);
-                }
             } catch {
-                console.error('CV analysis error');
-                setError('Failed to analyze CV. You can still submit it.');
-            } finally {
+                setSelectedFile(null);
+                setShowAnalysisModal(false);
+                setShowErrorDialog('CV upload failed. Please try again.');
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.detail || errorData.message || 'CV upload failed. Please try again.';
+                setSelectedFile(null);
+                setShowAnalysisModal(false);
+                setShowErrorDialog(errorMessage);
+                return;
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                setSelectedFile(null);
+                setShowAnalysisModal(false);
+                setShowErrorDialog('CV upload failed. Please try again.');
+                return;
+            }
+
+            if (data.status === 'success') {
+                const expertiseAreasData = data.results.expertise_areas || {};
+                const allSkills: string[] = [];
+                Object.values(expertiseAreasData).forEach((skills: string[] | unknown) => {
+                    if (Array.isArray(skills)) {
+                        allSkills.push(...skills);
+                    }
+                });
+
+                setExtractedSkills(allSkills);
+                setExpertiseAreas(expertiseAreasData);
+                setSuggestedJobs(data.results.suggested_jobs || []);
+                setCvFullText(data.results.cv_full_text || '');
+                setTotalYearsExperience(data.results.total_years_experience || 0);
+
+                console.log(`✅ CV analyzed: ${allSkills.length} skills, ${(data.results.suggested_jobs || []).length} jobs (70%+ match)`);
+
                 setTimeout(() => {
                     setShowAnalysisModal(false);
                 }, 2000);
+            } else {
+                setSelectedFile(null);
+                setShowAnalysisModal(false);
+                setShowErrorDialog('CV upload failed. Please try again.');
             }
         } else {
-            setError('Please select a PDF file only.');
+            setShowErrorDialog('Please select a PDF file only.');
         }
     };
 
@@ -729,6 +753,45 @@ const ResubmitCVPage = () => {
             formData.ndaAcknowledged
         );
     }, [formData, selectedFile, hasCVUploaded]);
+
+    const ErrorDialog = ({ message, onClose }: { message: string; onClose: () => void }) => {
+        const handleBackgroundClick = useCallback((e: React.MouseEvent) => {
+            if (e.target === e.currentTarget) {
+                onClose();
+            }
+        }, [onClose]);
+
+        return (
+            <div
+                className="fixed inset-0 bg-black/30 flex items-center justify-center z-[9999] backdrop-blur-sm px-4"
+                onClick={handleBackgroundClick}
+                role="dialog"
+                aria-modal="true"
+            >
+                <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-6">
+                    <div className="flex justify-center mb-4">
+                        <div className="w-16 h-16 flex items-center justify-center gradient-icon">
+                            <Icon icon="solar:danger-circle-bold-duotone" className="w-10 h-10" />
+                        </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-[#6c6c6c] font-['Montserrat'] mb-4 text-center">
+                        Error
+                    </h3>
+                    <p className="text-base text-[#6c6c6c] font-['Poppins'] mb-6 text-center">
+                        {message}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={onClose}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] rounded-[57px] text-white text-base font-semibold font-['Montserrat'] transition-all"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     const LoadingSpinner = () => (
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative">
@@ -1443,6 +1506,7 @@ const ResubmitCVPage = () => {
             {showSubmissionModal && <SubmissionModal />}
             {showJobsModal && <JobsModal />}
             {showNoMatchModal && <NoMatchModal />}
+            {showErrorDialog && <ErrorDialog message={showErrorDialog} onClose={() => window.location.reload()} />}
         </DashboardLayout>
     );
 };
