@@ -147,7 +147,6 @@ const NewsletterManager = () => {
         if (current.includes(id)) {
             setState(current.filter(item => item !== id));
         } else {
-            if (current.length >= 3) return;
             setState([...current, id]);
         }
     };
@@ -349,7 +348,7 @@ const NewsletterManager = () => {
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Monthly Updates - Projects</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select up to 3 projects to feature (Selected: {selectedProjects.length}/3)</p>
+                                <p className="text-sm text-gray-600 mb-4">Select projects to feature in the newsletter</p>
 
                                 <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                                     {projects.length === 0 ? (
@@ -361,13 +360,12 @@ const NewsletterManager = () => {
                                                 className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedProjects.includes(project.id)
                                                     ? 'border-purple-500 bg-purple-50'
                                                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    } ${selectedProjects.length >= 3 && !selectedProjects.includes(project.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    }`}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedProjects.includes(project.id)}
                                                     onChange={() => handleToggleItem('project', project.id)}
-                                                    disabled={selectedProjects.length >= 3 && !selectedProjects.includes(project.id)}
                                                     className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                                                 />
                                                 <img src={project.cover_image} alt={project.title} className="w-16 h-16 object-cover rounded" />
@@ -383,7 +381,7 @@ const NewsletterManager = () => {
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Monthly Updates - Research</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select up to 3 research items to feature (Selected: {selectedResearch.length}/3)</p>
+                                <p className="text-sm text-gray-600 mb-4">Select research items to feature in the newsletter</p>
 
                                 <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                                     {research.length === 0 ? (
@@ -395,13 +393,12 @@ const NewsletterManager = () => {
                                                 className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedResearch.includes(item.id)
                                                     ? 'border-purple-500 bg-purple-50'
                                                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    } ${selectedResearch.length >= 3 && !selectedResearch.includes(item.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    }`}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedResearch.includes(item.id)}
                                                     onChange={() => handleToggleItem('research', item.id)}
-                                                    disabled={selectedResearch.length >= 3 && !selectedResearch.includes(item.id)}
                                                     className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                                                 />
                                                 <img src={item.cover_image} alt={item.title} className="w-16 h-16 object-cover rounded" />
@@ -417,7 +414,7 @@ const NewsletterManager = () => {
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Featured Blog Posts</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select up to 3 blog posts to feature (Selected: {selectedBlogs.length}/3)</p>
+                                <p className="text-sm text-gray-600 mb-4">Select blog posts to feature in the newsletter</p>
 
                                 <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                                     {blogs.length === 0 ? (
@@ -429,13 +426,12 @@ const NewsletterManager = () => {
                                                 className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedBlogs.includes(blog.id)
                                                     ? 'border-purple-500 bg-purple-50'
                                                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    } ${selectedBlogs.length >= 3 && !selectedBlogs.includes(blog.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    }`}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedBlogs.includes(blog.id)}
                                                     onChange={() => handleToggleItem('blog', blog.id)}
-                                                    disabled={selectedBlogs.length >= 3 && !selectedBlogs.includes(blog.id)}
                                                     className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                                                 />
                                                 <img src={blog.cover_image} alt={blog.title} className="w-16 h-16 object-cover rounded" />
@@ -450,7 +446,7 @@ const NewsletterManager = () => {
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Latest Careers</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select up to 3 job openings to feature (Selected: {selectedJobs.length}/3)</p>
+                                <p className="text-sm text-gray-600 mb-4">Select job openings to feature in the newsletter</p>
 
                                 <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                                     {jobs.length === 0 ? (
@@ -462,13 +458,12 @@ const NewsletterManager = () => {
                                                 className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedJobs.includes(job.id)
                                                     ? 'border-purple-500 bg-purple-50'
                                                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    } ${selectedJobs.length >= 3 && !selectedJobs.includes(job.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    }`}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedJobs.includes(job.id)}
                                                     onChange={() => handleToggleItem('job', job.id)}
-                                                    disabled={selectedJobs.length >= 3 && !selectedJobs.includes(job.id)}
                                                     className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                                                 />
                                                 <div className="flex-1">
