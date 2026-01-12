@@ -28,6 +28,7 @@ const sidebarItems: SidebarItem[] = [
     { icon: 'solar:bell-bold-duotone', label: 'Subscription Management', path: '/admin-dashboard/subscriptions' },
     { icon: 'solar:document-add-bold-duotone', label: 'Blog Manager', path: '/admin-dashboard/blog' },
     { icon: 'solar:magnifer-bold-duotone', label: 'Research Manager', path: '/admin-dashboard/research' },
+    { icon: 'solar:letter-bold-duotone', label: 'Newsletter Manager', path: '/admin-dashboard/newsletter' },
     { icon: 'solar:users-group-two-rounded-bold-duotone', label: 'Talent Pool', path: '/admin-dashboard/talent-pool' },
     { icon: 'solar:dialog-2-bold-duotone', label: 'Contact Form Messages', path: '/admin-dashboard/contact' },
     { icon: 'solar:settings-bold-duotone', label: 'Settings', path: '/admin-dashboard/settings' },
