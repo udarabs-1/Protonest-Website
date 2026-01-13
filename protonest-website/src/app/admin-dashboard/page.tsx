@@ -278,7 +278,7 @@ const AdminDashboard = () => {
                     throw new Error('No authentication token found');
                 }
 
-                const [applicationsRes, jobsRes, usersRes, ndaRes] = await Promise.all([
+                const [applicationsRes, jobsRes, usersRes, ndaRes, subscriptionsRes] = await Promise.all([
                     fetch(
                         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications/admin/all`,
                         {
@@ -299,6 +299,12 @@ const AdminDashboard = () => {
                     ),
                     fetch(
                         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/nda/all`,
+                        {
+                            headers: { 'Authorization': `Bearer ${adminToken}` }
+                        }
+                    ),
+                    fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/subscriptions`,
                         {
                             headers: { 'Authorization': `Bearer ${adminToken}` }
                         }
@@ -370,6 +376,19 @@ const AdminDashboard = () => {
                     }
                 }
 
+                let subscriptions: any[] = [];
+                if (subscriptionsRes.ok) {
+                    const subscriptionsData = await subscriptionsRes.json();
+                    if (subscriptionsData.status === 'success' && Array.isArray(subscriptionsData.data)) {
+                        subscriptions = subscriptionsData.data;
+                    } else if (Array.isArray(subscriptionsData)) {
+                        subscriptions = subscriptionsData;
+                    } else {
+                        console.log('Unexpected subscriptions response structure:', subscriptionsData);
+                        subscriptions = [];
+                    }
+                }
+
                 const now = new Date();
                 const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
                 const totalApplicants = applications.filter(app => {
@@ -384,7 +403,24 @@ const AdminDashboard = () => {
 
                 const cvsInTalentPool = users.filter(user => user.cv).length;
 
-                const totalSubscribers = users.filter(user => user.job_updates || user.newsletter).length;
+                // Collect all unique newsletter subscriber emails
+                const subscriberEmails = new Set<string>();
+
+                // Add users who subscribed to newsletter
+                users.forEach(user => {
+                    if (user.newsletter && user.email) {
+                        subscriberEmails.add(user.email.toLowerCase());
+                    }
+                });
+
+                // Add contact page subscriptions with newsletter=true
+                subscriptions.forEach(sub => {
+                    if (sub.newsletter && sub.email) {
+                        subscriberEmails.add(sub.email.toLowerCase());
+                    }
+                });
+
+                const totalSubscribers = subscriberEmails.size;
 
                 const hiredApplications = applications.filter(app => app.status === 'hired');
                 let avgTimeToHire = 11;

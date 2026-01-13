@@ -491,53 +491,74 @@ export default function OnboardingPage() {
 
     const analyzeCV = useCallback(async (file: File): Promise<void> => {
         setShowAnalysisModal(true);
+
+        const userToken = localStorage.getItem('jwtToken');
+        if (!userToken) {
+            setUploadedCV(null);
+            setShowAnalysisModal(false);
+            setShowErrorDialog('User token not found. Please sign in first.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        let response;
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const userToken = localStorage.getItem('jwtToken');
-            if (!userToken) {
-                throw new Error('User token not found. Please sign in first.');
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
+            response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_URL}/analyze`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${userToken}`,
                 },
                 body: formData,
             });
+        } catch {
+            setUploadedCV(null);
+            setShowAnalysisModal(false);
+            setShowErrorDialog('CV upload failed. Please try again.');
+            return;
+        }
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.detail || errorData.message || 'CV upload failed. Please try again.';
+            setUploadedCV(null);
+            setShowAnalysisModal(false);
+            setShowErrorDialog(errorMessage);
+            return;
+        }
 
-            const data: AnalyzeResponse = await response.json();
+        let data: AnalyzeResponse;
+        try {
+            data = await response.json();
+        } catch {
+            setUploadedCV(null);
+            setShowAnalysisModal(false);
+            setShowErrorDialog('CV upload failed. Please try again.');
+            return;
+        }
 
-            if (data.status === 'success') {
+        if (data.status === 'success') {
+            const allSkills: string[] = [];
+            Object.values(data.results.expertise_areas).forEach(skills => {
+                allSkills.push(...skills);
+            });
 
-                const allSkills: string[] = [];
-                Object.values(data.results.expertise_areas).forEach(skills => {
-                    allSkills.push(...skills);
-                });
+            setExtractedSkills(allSkills);
+            setExpertiseAreas(data.results.expertise_areas);
+            setSuggestedJobs(data.results.suggested_jobs);
+            setCvFullText(data.results.cv_full_text || '');
+            setTotalYearsExperience(data.results.total_years_experience || 0);
 
-                setExtractedSkills(allSkills);
-                setExpertiseAreas(data.results.expertise_areas);
-                setSuggestedJobs(data.results.suggested_jobs);
-                setCvFullText(data.results.cv_full_text || '');
-                setTotalYearsExperience(data.results.total_years_experience || 0);
+            console.log(`✅ CV analyzed: ${allSkills.length} skills, ${data.results.suggested_jobs.length} jobs (70%+ match)`);
 
-                console.log(`✅ CV analyzed: ${allSkills.length} skills, ${data.results.suggested_jobs.length} jobs (70%+ match)`);
-            } else {
-                throw new Error('CV analysis failed');
-            }
-        } catch (error) {
-            console.error('CV analysis error:', error);
-            setErrors({ cv: 'Failed to analyze CV. Please try again.' });
-        } finally {
             setTimeout(() => {
                 setShowAnalysisModal(false);
             }, 2000);
+        } else {
+            setUploadedCV(null);
+            setShowAnalysisModal(false);
+            setShowErrorDialog('CV upload failed. Please try again.');
         }
     }, []);
 
@@ -716,7 +737,7 @@ export default function OnboardingPage() {
     }, [router]);
 
     const closeErrorDialog = useCallback(() => {
-        setShowErrorDialog(null);
+        window.location.reload();
     }, []);
 
     const AnalysisModal = () => (

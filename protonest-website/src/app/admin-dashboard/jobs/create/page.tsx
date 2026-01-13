@@ -142,6 +142,8 @@ const JobCreator = () => {
             responsibilities: formData.responsibilities.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             requirements: formData.requirements.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             required_skills: formData.required_skills.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
+            what_you_will_get: formData.what_you_will_get.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
+            nice_to_have: formData.nice_to_have.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             schedule_at: (formData.publish_later && formData.schedule_at) ? new Date(formData.schedule_at).toISOString() : null,
             publish_now: isDraft ? false : !formData.publish_later,
             selection_criteria: {
@@ -380,6 +382,8 @@ const JobCreator = () => {
         responsibilities: '',
         requirements: '',
         required_skills: '',
+        what_you_will_get: '',
+        nice_to_have: '',
         location: 'Remote',
         type: 'full-time',
         experience: 'intermediate',
@@ -714,6 +718,32 @@ const JobCreator = () => {
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
                                     disabled={isLoading || isSavingDraft}
                                     required
+                                ></textarea>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">What you will get</label>
+                                <textarea
+                                    name="what_you_will_get"
+                                    value={formData.what_you_will_get}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="List the benefits and what the candidate will get (one per line)"
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading || isSavingDraft}
+                                ></textarea>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Nice to Have</label>
+                                <textarea
+                                    name="nice_to_have"
+                                    value={formData.nice_to_have}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="List nice-to-have skills or experiences (one per line)"
+                                    className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
+                                    disabled={isLoading || isSavingDraft}
                                 ></textarea>
                             </div>
                         </div>

@@ -45,6 +45,34 @@ const calculateReadTime = (content: string): string => {
   return `${minutes} min read`;
 };
 
+const CategoryCard = ({
+  category,
+  isSelected,
+  onClick
+}: {
+  category: string;
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`h-14 xl:h-[65.89px] min-w-[140px] px-3 sm:px-6 py-2 sm:py-4 rounded-full xl:rounded-[57px] border flex items-center justify-center gap-1 sm:gap-2 transition-colors cursor-pointer group ${isSelected
+        ? 'bg-gradient-to-r from-[rgba(245,29,165,1)] to-[rgba(85,48,250,1)] border-transparent'
+        : 'gradient-button-static-3 hover:bg-gradient-to-r hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)]'
+        }`}
+    >
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 min-w-0">
+        <div className={`text-xs sm:text-base font-medium font-['Montserrat'] whitespace-pre-line leading-tight overflow-hidden text-center ${isSelected
+          ? 'text-white'
+          : 'text-[#6c6c6c] group-hover:text-white'
+          }`}>
+          {category}
+        </div>
+      </div>
+    </button>
+  );
+};
 
 const BlogCard = ({ blog }: { blog: Blog }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -112,16 +140,6 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
             {blog.title}
           </h3>
 
-          <div className="flex flex-wrap gap-2">
-            {blog.categories.map((tag: string, index: number) => (
-              <div key={`${tag}-${index}`} className="h-[29px] px-3 py-2 rounded-[30px] outline-1 outline-offset-[-1px] outline-[#d5d5d5] inline-flex justify-center items-center">
-                <div className="text-[#83848b] text-[10px] font-normal font-poppins leading-normal">
-                  {tag}
-                </div>
-              </div>
-            ))}
-          </div>
-
           <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
             {excerpt}
           </p>
@@ -138,28 +156,46 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
 export default function BlogSection() {
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [noResultsFound, setNoResultsFound] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [showAllBlogs, setShowAllBlogs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blog-categories`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && Array.isArray(result.data)) {
+          setCategories(result.data.map((cat: { name: string }) => cat.name));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  }, []);
 
-  const fetchBlogs = useCallback(async () => {
+  const fetchBlogs = useCallback(async (category?: string | null) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
+      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`;
+      if (category) {
+        url += `&category=${encodeURIComponent(category)}`;
+      }
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -187,8 +223,15 @@ export default function BlogSection() {
   }, []);
 
   useEffect(() => {
+    fetchCategories();
     fetchBlogs();
-  }, [fetchBlogs]);
+  }, [fetchCategories, fetchBlogs]);
+
+  useEffect(() => {
+    fetchBlogs(selectedCategory);
+    setShowAllBlogs(false);
+    setSearchTerm('');
+  }, [selectedCategory, fetchBlogs]);
 
   const checkScreenSize = useCallback(() => {
     setIsMobile(window.innerWidth < 768);
@@ -210,144 +253,99 @@ export default function BlogSection() {
     };
   }, [checkScreenSize]);
 
-  const allCategories = useMemo(() =>
-    Array.from(new Set(blogs.flatMap(blog => blog.categories)))
-      .filter(category => category && category.trim() !== '')
-      .sort((a: string, b: string) => a.localeCompare(b)),
-    [blogs]
-  );
+  const filteredBlogs = useMemo(() => {
+    if (!searchTerm.trim()) return blogs;
 
-  const filteredBlogs = useMemo(() =>
-    blogs.filter(blog =>
-      selectedCategories.every(cat => blog.categories.includes(cat))
-    ),
-    [blogs, selectedCategories]
-  );
+    return blogs.filter(blog =>
+      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      blog.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [blogs, searchTerm]);
 
   const { visibleBlogs, shouldShowLoadMoreButton } = useMemo(() => {
-    const blogsToDisplay = selectedCategories.length > 0 ? filteredBlogs : blogs;
     const limit = isMobile ? 3 : 6;
-    const visibleCount = showAllBlogs ? blogsToDisplay.length : limit;
-    const visibleBlogs = blogsToDisplay.slice(0, visibleCount);
-    const shouldShowLoadMoreButton = blogsToDisplay.length > limit;
+    const visibleCount = showAllBlogs ? filteredBlogs.length : limit;
+    const visibleBlogs = filteredBlogs.slice(0, visibleCount);
+    const shouldShowLoadMoreButton = filteredBlogs.length > limit;
 
     return { visibleBlogs, shouldShowLoadMoreButton };
-  }, [blogs, filteredBlogs, selectedCategories, isMobile, showAllBlogs]);
+  }, [filteredBlogs, isMobile, showAllBlogs]);
 
   const handleLoadMore = useCallback(() => {
     setShowAllBlogs(prev => !prev);
   }, []);
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim() === "") return;
-
-    const matchedCategories = allCategories.filter((cat: string) =>
-      cat.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (matchedCategories.length > 0) {
-      const newCategories = matchedCategories.filter(
-        (cat: string) => !selectedCategories.includes(cat)
-      );
-
-      if (newCategories.length > 0) {
-        setSelectedCategories(prev => [...prev, ...newCategories]);
-      }
-      setNoResultsFound(false);
+  const handleCategoryClick = useCallback((category: string) => {
+    if (selectedCategory === category) {
+      setSelectedCategory(null);
     } else {
-      if (!selectedCategories.includes(searchTerm.trim())) {
-        setSelectedCategories(prev => [...prev, searchTerm.trim()]);
-      }
-      setNoResultsFound(true);
+      setSelectedCategory(category);
     }
+  }, [selectedCategory]);
 
-    setSearchTerm("");
-    setShowAllBlogs(false);
-    setShowAutocomplete(false);
-    setHighlightedIndex(-1);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }, [searchTerm, allCategories, selectedCategories]);
-
-  const removeCategory = useCallback((category: string) => {
-    const newCategories = selectedCategories.filter(c => c !== category);
-    setSelectedCategories(newCategories);
-    setShowAllBlogs(false);
-    if (newCategories.length === 0) {
-      setNoResultsFound(false);
-    }
-  }, [selectedCategories]);
-
-
-  const handleSearchTermChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setShowAutocomplete(value.trim().length > 0);
-    setNoResultsFound(false);
-    setHighlightedIndex(-1);
+  const handleBackToCategories = useCallback(() => {
+    setSelectedCategory(null);
   }, []);
 
-  const handleCategorySelect = useCallback((category: string) => {
-    if (!selectedCategories.includes(category)) {
-      setSelectedCategories(prev => [...prev, category]);
-    }
-    setSearchTerm("");
-    setShowAutocomplete(false);
-    setNoResultsFound(false);
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleSearchTermChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
     setShowAllBlogs(false);
-    setHighlightedIndex(-1);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }, [selectedCategories]);
-
-  const filteredSuggestions = useMemo(() => {
-    if (!searchTerm.trim()) return [];
-    return allCategories.filter((cat: string) =>
-      cat.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !selectedCategories.includes(cat)
-    );
-  }, [searchTerm, allCategories, selectedCategories]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showAutocomplete || filteredSuggestions.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHighlightedIndex(prev => {
-        const newIndex = prev < filteredSuggestions.length - 1 ? prev + 1 : prev;
-        setTimeout(() => {
-          const dropdown = dropdownRef.current;
-          if (dropdown) {
-            const highlightedItem = dropdown.children[newIndex] as HTMLElement;
-            if (highlightedItem) {
-              highlightedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-          }
-        }, 0);
-        return newIndex;
-      });
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex(prev => {
-        const newIndex = prev > 0 ? prev - 1 : -1;
-        setTimeout(() => {
-          const dropdown = dropdownRef.current;
-          if (dropdown && newIndex >= 0) {
-            const highlightedItem = dropdown.children[newIndex] as HTMLElement;
-            if (highlightedItem) {
-              highlightedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
-          }
-        }, 0);
-        return newIndex;
-      });
-    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
-      e.preventDefault();
-      handleCategorySelect(filteredSuggestions[highlightedIndex]);
-    }
-  }, [showAutocomplete, filteredSuggestions, highlightedIndex, handleCategorySelect]);
+  }, []);
 
   return (
     <div>
+      <style jsx global>{`
+        .gradient-icon-default svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .gradient-icon-default svg path {
+            fill: url(#icon-gradient-default) !important;
+        }
+        
+        .gradient-icon-default svg circle {
+            fill: url(#icon-gradient-default) !important;
+        }
+        
+        .gradient-icon-default svg rect {
+            fill: url(#icon-gradient-default) !important;
+        }
+        
+        .gradient-icon-default svg polygon {
+            fill: url(#icon-gradient-default) !important;
+        }
+
+        .group:hover .gradient-icon-default svg path {
+            fill: white !important;
+        }
+        
+        .group:hover .gradient-icon-default svg circle {
+            fill: white !important;
+        }
+        
+        .group:hover .gradient-icon-default svg rect {
+            fill: white !important;
+        }
+        
+        .group:hover .gradient-icon-default svg polygon {
+            fill: white !important;
+        }
+      `}</style>
+
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="icon-gradient-default" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#5530FA" />
+            <stop offset="100%" stopColor="#F51DA5" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <Head>
 
         <title>Blog - Protonest</title>
@@ -394,92 +392,70 @@ export default function BlogSection() {
 
         <section className="relative z-30 -mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
           <div className="py-4 w-full">
-            <form onSubmit={handleSearch} className="relative h-[50px] sm:h-[55px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden z-10">
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchTermChange}
-                onKeyDown={handleKeyDown}
-                className="w-full h-full pl-9 pr-12 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none relative z-10"
-                placeholder="Search for blog categories"
-                aria-label="Search blogs"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none">
-                <Image
-                  src="/search.svg"
-                  alt="Search"
-                  width={24}
-                  height={24}
-                  className="w-full h-full text-[#6c6c6c]"
-                />
-              </div>
-            </form>
-
-            {showAutocomplete && filteredSuggestions.length > 0 && (
-              <div ref={dropdownRef} className="relative z-20 mt-2 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.15)] max-h-[300px] overflow-y-auto">
-                {filteredSuggestions.map((category, index) => (
-                  <div
-                    key={category}
-                    onClick={() => handleCategorySelect(category)}
-                    className={`px-6 py-3 cursor-pointer text-[#6c6c6c] text-sm font-poppins border-b border-gray-100 last:border-b-0 transition-colors ${index === highlightedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
-                      }`}
+            {selectedCategory ? (
+              <div className="flex items-center gap-4 mb-6">
+                <button
+                  onClick={handleBackToCategories}
+                  className="flex items-center gap-2 text-[#6c6c6c] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#5530FA] hover:to-[#F51DA5] group cursor-pointer"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="group-hover:stroke-[#5530FA]"
                   >
-                    {category}
-                  </div>
-                ))}
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  <span className="font-poppins text-sm font-medium">All Categories</span>
+                </button>
+                <span className="text-[#6c6c6c] font-poppins text-sm">/</span>
+                <span className="text-[#6c6c6c] font-poppins text-sm font-semibold">
+                  {selectedCategory}
+                </span>
               </div>
-            )}
-
-            {selectedCategories.length > 0 && (
-              <div className="flex flex-wrap justify-start gap-3 mt-6 sm:mt-8 mb-8">
-                {selectedCategories.map((category) => (
-                  <div
-                    key={category}
-                    className="h-11 px-4 py-2 rounded-[57px] inline-flex items-center gap-2 gradient-border"
-                  >
-                    <span className="text-[#6c6c6c] text-sm font-medium font-montserrat">
-                      {category}
-                    </span>
-                    <button
-                      onClick={() => removeCategory(category)}
-                      className="ml-1"
-                      aria-label={`Remove ${category} filter`}
-                    >
-                      <Image
-                        src="/close.svg"
-                        width={30}
-                        height={30}
-                        alt=""
-                        className="hover:scale-110 transition-transform duration-200"
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {noResultsFound && (
-              <div className="flex justify-center items-center py-12 mt-4">
-                <div className="text-center">
-                  <p className="text-[#6c6c6c] font-poppins text-lg mb-4">No matching blogs found</p>
-                  <button
-                    onClick={() => {
-                      setSelectedCategories([]);
-                      setSearchTerm("");
-                      setNoResultsFound(false);
-                    }}
-                    className="px-6 py-2 gradient-button font-poppins transition-all"
-                  >
-                    Clear Filters
-                  </button>
+            ) : categories.length > 0 ? (
+              <div className="mb-8">
+                <h2 className="text-[#6c6c6c] text-xl font-medium font-montserrat mb-6">Browse by Category</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 xl:gap-6 w-full">
+                  {categories.map((category) => (
+                    <CategoryCard
+                      key={category}
+                      category={category}
+                      isSelected={selectedCategory === category}
+                      onClick={() => handleCategoryClick(category)}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
 
-        <section className="px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
+        <section className="relative z-30 px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
+
+          <form onSubmit={handleSearch} className="relative h-[50px] sm:h-[55px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden mb-8 sm:mb-12">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchTermChange}
+              className="w-full h-full pl-9 pr-12 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
+              placeholder="Search for what you are looking for"
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
+              <Image
+                src="/search.svg"
+                alt="Search"
+                width={24}
+                height={24}
+                className="w-full h-full text-[#6c6c6c]"
+              />
+            </div>
+          </form>
 
           {loading && (
             <div className="flex justify-center items-center py-20">
@@ -494,7 +470,7 @@ export default function BlogSection() {
               <div className="text-center">
                 <p className="text-red-600 font-poppins mb-4">{error}</p>
                 <button
-                  onClick={fetchBlogs}
+                  onClick={() => fetchBlogs(selectedCategory)}
                   className="px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors"
                 >
                   Try Again
@@ -507,8 +483,35 @@ export default function BlogSection() {
           {!loading && !error && blogs.length === 0 && (
             <div className="flex justify-center items-center py-20">
               <div className="text-center">
-                <p className="text-[#6c6c6c] font-poppins text-lg">No blogs available at the moment.</p>
+                <p className="text-[#6c6c6c] font-poppins text-lg">
+                  {selectedCategory
+                    ? `No blogs available in "${selectedCategory}" category.`
+                    : 'No blogs available at the moment.'
+                  }
+                </p>
                 <p className="text-[#6c6c6c] font-poppins text-sm mt-2">Check back later for new content!</p>
+                {selectedCategory && (
+                  <button
+                    onClick={handleBackToCategories}
+                    className="mt-4 px-6 py-2 gradient-button font-poppins transition-all"
+                  >
+                    View All Categories
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!loading && !error && blogs.length > 0 && filteredBlogs.length === 0 && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <p className="text-[#6c6c6c] font-poppins text-lg">No results found for your search.</p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4 px-6 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-poppins transition-all hover:shadow-[0_10px_20px_-10px_rgba(85,48,250,0.5)]"
+                >
+                  Clear Search
+                </button>
               </div>
             </div>
           )}

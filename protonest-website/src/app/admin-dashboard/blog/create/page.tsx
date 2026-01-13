@@ -16,15 +16,19 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import {
+    AlertTriangle,
     AlignCenter,
     AlignLeft,
     AlignRight,
     ArrowLeft,
     Bold,
+    ChevronDown,
     Image as ImageIcon,
     Italic,
     Link as LinkIcon,
     List,
+    Plus,
+    Trash2,
     Underline,
     Upload,
     X
@@ -91,12 +95,24 @@ const isAdminTokenExpired = (): boolean => {
     }
 };
 
+interface BlogCategory {
+    id: string;
+    name: string;
+}
+
 const CreateBlogPost = () => {
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string>('');
-    const [categories, setCategories] = useState<string[]>([]);
-    const [categoryInput, setCategoryInput] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [availableCategories, setAvailableCategories] = useState<BlogCategory[]>([]);
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+    const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(null);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [creatingCategory, setCreatingCategory] = useState(false);
+    const [deletingCategory, setDeletingCategory] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadingContentImage, setUploadingContentImage] = useState(false);
@@ -107,13 +123,49 @@ const CreateBlogPost = () => {
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const categoryDropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+
+    const fetchCategories = useCallback(async () => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blog-categories`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.status === 'success' && Array.isArray(result.data)) {
+                    setAvailableCategories(result.data);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        }
+    }, []);
 
     useEffect(() => {
         if (isAdminTokenExpired()) {
             router.push('/admin-signin');
         }
     }, [router]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+                setShowCategoryDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const ResizableImage = ImageExtension.extend({
         name: 'resizableImage',
@@ -401,23 +453,84 @@ const CreateBlogPost = () => {
     });
 
 
+    const handleCategorySelect = (categoryName: string) => {
+        setSelectedCategory(categoryName);
+        setShowCategoryDropdown(false);
+    };
 
-    const addCategory = (categoryText: string) => {
-        const trimmed = categoryText.trim();
-        if (trimmed && !categories.includes(trimmed)) {
-            setCategories([...categories, trimmed]);
+    const handleClearCategory = () => {
+        setSelectedCategory('');
+    };
+
+    const handleDeleteCategory = (e: React.MouseEvent, categoryId: string, categoryName: string) => {
+        e.stopPropagation();
+        setCategoryToDelete({ id: categoryId, name: categoryName });
+        setShowDeleteCategoryDialog(true);
+    };
+
+    const confirmDeleteCategory = async () => {
+        if (!categoryToDelete) return;
+
+        setDeletingCategory(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/blog-categories/${categoryToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                await fetchCategories();
+                if (selectedCategory === categoryToDelete.name) {
+                    setSelectedCategory('');
+                }
+                setShowDeleteCategoryDialog(false);
+                setCategoryToDelete(null);
+            } else {
+                console.error('Failed to delete category');
+                setError('Failed to delete category');
+            }
+        } catch (err) {
+            console.error('Error deleting category:', err);
+            setError('Error deleting category');
+        } finally {
+            setDeletingCategory(false);
         }
-        setCategoryInput('');
     };
 
-    const removeCategory = (categoryToRemove: string) => {
-        setCategories(categories.filter(category => category !== categoryToRemove));
-    };
 
-    const handleCategoryKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addCategory(categoryInput);
+    const handleCreateCategory = async () => {
+        const name = newCategoryName.trim();
+        if (!name) return;
+
+        setCreatingCategory(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/blog-categories`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ name }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                await fetchCategories();
+                setSelectedCategory(name);
+                setNewCategoryName('');
+                setShowCreateCategoryModal(false);
+            } else {
+                setError(result.message || 'Failed to create category');
+            }
+        } catch (err) {
+            setError('Failed to create category');
+        } finally {
+            setCreatingCategory(false);
         }
     };
 
@@ -613,7 +726,7 @@ const CreateBlogPost = () => {
             formData.append('title', title);
             formData.append('content', content);
             formData.append('published', published.toString());
-            formData.append('categories', JSON.stringify(categories));
+            formData.append('categories', JSON.stringify(selectedCategory ? [selectedCategory] : []));
 
             if (coverImage) {
                 formData.append('cover_image', coverImage);
@@ -736,43 +849,149 @@ const CreateBlogPost = () => {
                 </div>
             </div>
 
-            <div className="mb-6">
-                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Categories</h2>
+            <div className="mb-6 relative z-30">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Blog Category</h2>
                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
-                    <input
-                        type="text"
-                        value={categoryInput}
-                        onChange={(e) => setCategoryInput(e.target.value)}
-                        onKeyPress={handleCategoryKeyPress}
-                        className="w-full text-base font-normal font-poppins text-[#6c6c6c] bg-transparent border-none outline-none placeholder-[#6c6c6c]/80 mb-4"
-                        placeholder="Type a category and press Enter to add"
-                    />
-
-                    <div className="flex flex-wrap gap-2">
-                        {categories.map((category, index) => (
-                            <div
-                                key={index}
-                                className="flex items-center space-x-1 px-3 py-1 rounded-full border-2 gradient-border text-gray-600 font-medium text-sm font-['Poppins']"
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1" ref={categoryDropdownRef}>
+                            <button
+                                type="button"
+                                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                                className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-[15px] text-left hover:border-gray-300 transition-colors"
                             >
-                                <span>{category}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => removeCategory(category)}
-                                    className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
+                                <span className={`text-base font-poppins ${selectedCategory ? 'text-[#6c6c6c]' : 'text-[#6c6c6c]/60'}`}>
+                                    {selectedCategory || 'Select a category'}
+                                </span>
+                                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                            </button>
 
-                    {categories.length === 0 && (
-                        <p className="text-xs text-[#6c6c6c]/60 mt-2">
-                            Add categories to help readers discover your blog post
-                        </p>
-                    )}
+                            {showCategoryDropdown && (
+                                <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-[15px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] border border-gray-100 max-h-[200px] overflow-y-auto">
+                                    {availableCategories.length === 0 ? (
+                                        <div className="px-4 py-3 text-[#6c6c6c]/60 text-sm font-poppins text-center">
+                                            No categories yet. Click + to create one.
+                                        </div>
+                                    ) : (
+                                        availableCategories.map((category) => (
+                                            <div
+                                                key={category.id}
+                                                className={`w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors first:rounded-t-[15px] last:rounded-b-[15px] border-b border-gray-50 last:border-b-0 cursor-pointer group ${selectedCategory === category.name ? 'bg-gray-50' : ''}`}
+                                                onClick={() => handleCategorySelect(category.name)}
+                                            >
+                                                <span className={`text-sm font-poppins ${selectedCategory === category.name ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-medium' : 'text-[#6c6c6c]'}`}>
+                                                    {category.name}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleDeleteCategory(e, category.id, category.name)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                                    title="Delete category"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowCreateCategoryModal(true)}
+                            className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white hover:shadow-lg transition-shadow flex-shrink-0"
+                            title="Create new category"
+                        >
+                            <Plus className="w-6 h-6" />
+                        </button>
+
+                        {selectedCategory && (
+                            <button
+                                type="button"
+                                onClick={handleClearCategory}
+                                className="flex items-center justify-center w-10 h-10 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                                title="Clear selection"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {showCreateCategoryModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.20)] p-8 w-full max-w-md mx-4">
+                        <h3 className="text-xl font-medium text-[#6c6c6c] font-poppins mb-6">Create New Category</h3>
+
+                        <input
+                            type="text"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-[15px] text-base font-poppins text-[#6c6c6c] outline-none focus:border-[#5530FA] transition-colors mb-6"
+                            placeholder="Enter category name"
+                            autoFocus
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowCreateCategoryModal(false);
+                                    setNewCategoryName('');
+                                }}
+                                disabled={creatingCategory}
+                                className="px-6 py-3 rounded-[57px] border border-gray-300 text-[#4d4d4d] text-sm font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCreateCategory}
+                                disabled={creatingCategory || !newCategoryName.trim()}
+                                className="px-6 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white text-sm font-semibold font-montserrat hover:shadow-lg transition-shadow disabled:opacity-50"
+                            >
+                                {creatingCategory ? 'Creating...' : 'Create'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteCategoryDialog && categoryToDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.20)] p-8 w-full max-w-md mx-4 text-center">
+                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle className="w-8 h-8 text-red-500" />
+                        </div>
+                        <h3 className="text-xl font-medium text-[#6c6c6c] font-poppins mb-3">Delete Category?</h3>
+                        <p className="text-[#6c6c6c] text-sm font-poppins mb-8">
+                            Are you sure you want to delete the category <span className="font-semibold text-gray-800">"{categoryToDelete.name}"</span>?
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="flex justify-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteCategoryDialog(false)}
+                                disabled={deletingCategory}
+                                className="px-6 py-3 rounded-[57px] border border-gray-300 text-[#4d4d4d] text-sm font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDeleteCategory}
+                                disabled={deletingCategory}
+                                className="px-6 py-3 bg-red-500 rounded-[57px] text-white text-sm font-semibold font-montserrat hover:bg-red-600 hover:shadow-lg transition-all disabled:opacity-50"
+                            >
+                                {deletingCategory ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="mb-6">
                 <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">Cover Image Upload</h2>

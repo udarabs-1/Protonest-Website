@@ -20,6 +20,24 @@ type Job = {
     description: string;
     responsibilities: string[];
     requirements: string[];
+    what_you_will_get?: string[];
+    nice_to_have?: string[];
+    created_at: string;
+};
+
+interface ApiJobData {
+    id: string;
+    title: string;
+    location: string;
+    type: string;
+    deadline: string;
+    experience: string;
+    category: string;
+    description: string;
+    responsibilities: string[];
+    requirements: string[];
+    what_you_will_get?: string[];
+    nice_to_have?: string[];
     created_at: string;
 };
 
@@ -946,6 +964,8 @@ export default function JobDetailPage() {
                         description: jobDetails.description,
                         responsibilities: jobDetails.responsibilities || [],
                         requirements: jobDetails.requirements || [],
+                        what_you_will_get: jobDetails.what_you_will_get || [],
+                        nice_to_have: jobDetails.nice_to_have || [],
                         created_at: jobDetails.created_at
                     };
 
@@ -1216,6 +1236,28 @@ export default function JobDetailPage() {
                         <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What We&apos;re Looking For</h2>
                         <div className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
                             {job.requirements.map((item, index) => (
+                                <div key={index} className="mb-2">• {item}</div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {job.nice_to_have && job.nice_to_have.length > 0 && (
+                    <section className="mb-8">
+                        <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">Nice to Have</h2>
+                        <div className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
+                            {job.nice_to_have.map((item, index) => (
+                                <div key={index} className="mb-2">• {item}</div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {job.what_you_will_get && job.what_you_will_get.length > 0 && (
+                    <section className="mb-8">
+                        <h2 className="text-[#6c6c6c] text-xl font-medium font-poppins mb-4">What You&apos;ll Get</h2>
+                        <div className="text-[#6c6c6c] text-base font-normal font-poppins leading-relaxed">
+                            {job.what_you_will_get.map((item, index) => (
                                 <div key={index} className="mb-2">• {item}</div>
                             ))}
                         </div>
