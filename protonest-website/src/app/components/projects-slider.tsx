@@ -13,28 +13,28 @@ const projects = [
     {
         id: 1,
         title: 'Compact GPS Tracker',
-        image: '/project1.png',
+        image: '/project-1.png',
         slug: 'compact-gps-tracker-prototype-for-adam-healy',
         description: 'This handheld GPS tracker sends its location every 30 seconds using a unique device ID with indicators for network status, cloud connection and satellite lock. Its small case makes it easy to carry in a pocket or bag.'
     },
     {
         id: 2,
         title: 'Smart Door Lock',
-        image: '/project2.png',
+        image: '/project-2.png',
         slug: 'smart-door-lock-system-for-entryphone,-uk',
         description: 'The system manages smart locks, and manages all permissions through an admin and super admin portal.'
     },
     {
         id: 3,
         title: 'Smart WiFi Rebooter',
-        image: '/project3.png',
+        image: '/project-3.png',
         slug: 'wifi-rebooter-system-for-perseo-srls,-italy',
         description: 'This device monitors internet connectivity and restores access by rebooting the router when outages occur. It uses AP Mode for setup and STA Mode for daily use. A simple inbuilt web interface allows configuration and status checks.'
     },
     {
         id: 4,
         title: 'Soap Dose Tracking System',
-        image: '/project4.png',
+        image: '/project-4.png',
         slug: 'soap-dose-tracking-system-for-1001cleanbox',
         description: 'This device tracks dose count, temperature and UV index in real time. It displays cloud-synced messages and can be controlled through a simple web app.'
     },

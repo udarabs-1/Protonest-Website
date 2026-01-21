@@ -403,17 +403,14 @@ const AdminDashboard = () => {
 
                 const cvsInTalentPool = users.filter(user => user.cv).length;
 
-                // Collect all unique newsletter subscriber emails
                 const subscriberEmails = new Set<string>();
 
-                // Add users who subscribed to newsletter
                 users.forEach(user => {
                     if (user.newsletter && user.email) {
                         subscriberEmails.add(user.email.toLowerCase());
                     }
                 });
 
-                // Add contact page subscriptions with newsletter=true
                 subscriptions.forEach(sub => {
                     if (sub.newsletter && sub.email) {
                         subscriberEmails.add(sub.email.toLowerCase());

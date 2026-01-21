@@ -198,13 +198,11 @@ const NewsletterManager = () => {
             onConfirm: async () => {
                 setConfirmDialog(null);
 
-                // Show immediate success message
                 setSuccessDialog({
                     title: 'Newsletter Sending Started',
                     message: 'Your newsletter is being sent to all subscribers. This may take a few minutes.'
                 });
 
-                // Send newsletter in background
                 try {
                     const token = localStorage.getItem('adminToken');
                     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/newsletter/send`, {
