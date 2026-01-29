@@ -378,7 +378,14 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
                 </div>
                 <div>
-                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.deadline}</p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium font-poppins text-[#6c6c6c]">{job.deadline}</p>
+                        {isDeadlinePassed(job.deadline) && (
+                            <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[8px] font-semibold font-poppins rounded-full">
+                                EXPIRED
+                            </span>
+                        )}
+                    </div>
                     <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
                 </div>
                 <div>
@@ -435,6 +442,24 @@ const formatDate = (dateString: string): string => {
         year: 'numeric'
     });
 };
+
+const isDeadlinePassed = (deadlineString: string): boolean => {
+    if (!deadlineString) return false;
+
+    try {
+        const deadline = new Date(deadlineString);
+        const now = new Date();
+
+        // Set deadline to end of day (23:59:59)
+        deadline.setHours(23, 59, 59, 999);
+
+        return now > deadline;
+    } catch {
+        // If date parsing fails, allow application (fail-safe)
+        return false;
+    }
+};
+
 
 const getAuthToken = (): string | null => {
     if (typeof window !== 'undefined') {
@@ -1286,6 +1311,14 @@ export default function JobDetailPage() {
                                         </button>
                                     )}
                                 </>
+                            ) : isDeadlinePassed(job?.deadline || '') ? (
+                                <button
+                                    disabled
+                                    className="px-8 py-3 rounded-[57px] bg-gray-300 text-gray-600 text-base font-semibold font-montserrat cursor-not-allowed"
+                                    title="Application deadline has passed"
+                                >
+                                    Deadline Passed
+                                </button>
                             ) : (
                                 <button
                                     onClick={handleApplyJobClick}
@@ -1299,26 +1332,38 @@ export default function JobDetailPage() {
                     ) : (
                         <>
                             <div className="flex flex-wrap gap-4">
-                                <button
-                                    onClick={handleApplyJobClick}
-                                    disabled={applyLoading}
-                                    className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
-                                >
-                                    {applyLoading ? 'Applying...' : 'Sign in & Apply'}
-                                </button>
+                                {isDeadlinePassed(job?.deadline || '') ? (
+                                    <button
+                                        disabled
+                                        className="px-8 py-3 rounded-[57px] bg-gray-300 text-gray-600 text-base font-semibold font-montserrat cursor-not-allowed"
+                                        title="Application deadline has passed"
+                                    >
+                                        Deadline Passed
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleApplyJobClick}
+                                        disabled={applyLoading}
+                                        className="bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] hover:cursor-pointer rounded-[57px] py-3 px-8 text-white text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 transition-all"
+                                    >
+                                        {applyLoading ? 'Applying...' : 'Sign in & Apply'}
+                                    </button>
+                                )}
                             </div>
 
-                            <div className="mt-6">
-                                <p className="text-[#6c6c6c] text-base font-normal font-poppins">
-                                    If you do not already have an account,{' '}
-                                    <button
-                                        onClick={handleSignupClick}
-                                        className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
-                                    >
-                                        Sign up to apply
-                                    </button>
-                                </p>
-                            </div>
+                            {!isDeadlinePassed(job?.deadline || '') && (
+                                <div className="mt-6">
+                                    <p className="text-[#6c6c6c] text-base font-normal font-poppins">
+                                        If you do not already have an account,{' '}
+                                        <button
+                                            onClick={handleSignupClick}
+                                            className="text-transparent bg-clip-text bg-gradient-to-r to-[rgba(85,48,250,1)] from-[rgba(245,29,165,1)] underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50 rounded-sm"
+                                        >
+                                            Sign up to apply
+                                        </button>
+                                    </p>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

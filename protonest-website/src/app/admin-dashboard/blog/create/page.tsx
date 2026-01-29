@@ -113,6 +113,8 @@ const CreateBlogPost = () => {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [creatingCategory, setCreatingCategory] = useState(false);
     const [deletingCategory, setDeletingCategory] = useState(false);
+    const [keywords, setKeywords] = useState<string[]>([]);
+    const [keywordInput, setKeywordInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [uploadingContentImage, setUploadingContentImage] = useState(false);
@@ -727,6 +729,7 @@ const CreateBlogPost = () => {
             formData.append('content', content);
             formData.append('published', published.toString());
             formData.append('categories', JSON.stringify(selectedCategory ? [selectedCategory] : []));
+            formData.append('keywords', JSON.stringify(keywords));
 
             if (coverImage) {
                 formData.append('cover_image', coverImage);
@@ -916,6 +919,67 @@ const CreateBlogPost = () => {
                             </button>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Keywords Section */}
+            <div className="mb-6">
+                <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">SEO Keywords (Optional)</h2>
+                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">
+                    <div className="flex gap-2 mb-3">
+                        <input
+                            type="text"
+                            value={keywordInput}
+                            onChange={(e) => setKeywordInput(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const keyword = keywordInput.trim();
+                                    if (keyword && !keywords.includes(keyword)) {
+                                        setKeywords([...keywords, keyword]);
+                                        setKeywordInput('');
+                                    }
+                                }
+                            }}
+                            placeholder="Type a keyword and press Enter"
+                            className="flex-1 px-4 py-3 border border-gray-200 rounded-[15px] text-base font-poppins text-[#6c6c6c] outline-none focus:border-[#5530FA] transition-colors"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const keyword = keywordInput.trim();
+                                if (keyword && !keywords.includes(keyword)) {
+                                    setKeywords([...keywords, keyword]);
+                                    setKeywordInput('');
+                                }
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[15px] font-semibold font-montserrat hover:from-[#F51DA5] hover:to-[#5530FA] transition-all"
+                        >
+                            Add
+                        </button>
+                    </div>
+                    {keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {keywords.map((keyword, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#5530FA]/10 to-[#F51DA5]/10 rounded-full border border-[#5530FA]/20"
+                                >
+                                    <span className="text-sm font-poppins text-[#6c6c6c]">{keyword}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setKeywords(keywords.filter((_, i) => i !== index))}
+                                        className="text-[#6c6c6c] hover:text-[#F51DA5] transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <p className="text-xs text-[#6c6c6c]/60 font-poppins mt-3">
+                        Add relevant keywords to improve SEO. Press Enter or click Add to include a keyword.
+                    </p>
                 </div>
             </div>
 
