@@ -916,7 +916,6 @@ const CandidateManagement = () => {
             ndaDocumentId = selectedTemplate;
         }
 
-        // Parse CC and BCC emails
         const ccEmails = ndaCc
             .split(',')
             .map(email => email.trim())
@@ -1186,7 +1185,6 @@ const CandidateManagement = () => {
                 throw new Error('Failed to update CV viewed status');
             }
 
-            // Update local state
             setJobGroups(prev => prev.map(group => ({
                 ...group,
                 candidates: group.candidates.map(c =>
@@ -1204,7 +1202,6 @@ const CandidateManagement = () => {
     const handleSendInterview = async () => {
         if (!interviewDialog) return;
 
-        // Parse CC and BCC emails
         const ccEmails = interviewCc
             .split(',')
             .map(email => email.trim())

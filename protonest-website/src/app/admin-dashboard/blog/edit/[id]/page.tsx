@@ -984,7 +984,6 @@ const EditBlogPost = () => {
                 </div>
             </div>
 
-            {/* Keywords Section */}
             <div className="mb-6">
                 <h2 className="text-[22px] font-medium text-[#6c6c6c] font-poppins mb-4">SEO Keywords (Optional)</h2>
                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border backdrop-blur-[20px] p-6">

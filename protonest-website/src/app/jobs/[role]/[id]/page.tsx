@@ -450,12 +450,10 @@ const isDeadlinePassed = (deadlineString: string): boolean => {
         const deadline = new Date(deadlineString);
         const now = new Date();
 
-        // Set deadline to end of day (23:59:59)
         deadline.setHours(23, 59, 59, 999);
 
         return now > deadline;
     } catch {
-        // If date parsing fails, allow application (fail-safe)
         return false;
     }
 };

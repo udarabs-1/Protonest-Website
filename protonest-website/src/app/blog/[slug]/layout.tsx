@@ -20,7 +20,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             const textContent = blog.content.replace(/<[^>]*>/g, '');
             const description = textContent.substring(0, 160) + (textContent.length > 160 ? '...' : '');
 
-            // Combine categories and keywords for comprehensive SEO
             const allKeywords = [
                 ...(blog.categories || []),
                 ...(blog.keywords || [])
