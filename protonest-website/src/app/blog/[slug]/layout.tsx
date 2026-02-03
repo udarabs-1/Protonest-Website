@@ -37,7 +37,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                     locale: 'en_US',
                     publishedTime: blog.published_at || blog.created_at,
                     modifiedTime: blog.updated_at,
-                    authors: [blog.author],
                     tags: [...(blog.categories || []), ...(blog.keywords || [])],
                 },
                 twitter: {
@@ -51,10 +50,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                         '@type': 'BlogPosting',
                         headline: blog.title,
                         description: description,
-                        author: {
-                            '@type': 'Person',
-                            name: blog.author
-                        },
                         publisher: {
                             '@type': 'Organization',
                             name: 'Protonest',

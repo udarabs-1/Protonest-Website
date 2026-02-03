@@ -145,17 +145,6 @@ export default async function Image({ params }: { params: { slug: string } }) {
                                 marginTop: 20,
                             }}
                         >
-                            {blogData.author && (
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ fontSize: 20, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
-                                        Author
-                                    </div>
-                                    <div style={{ fontSize: 28, color: '#6c6c6c', fontWeight: '600', fontFamily: 'Poppins' }}>
-                                        {blogData.author}
-                                    </div>
-                                </div>
-                            )}
-
                             {publishDate && (
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                     <div style={{ fontSize: 20, color: '#949494', marginBottom: 8, fontFamily: 'Poppins' }}>
