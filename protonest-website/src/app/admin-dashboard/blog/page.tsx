@@ -17,7 +17,6 @@ interface BlogPost {
     slug: string;
     cover_image: string;
     content: string;
-    author: string;
     published: boolean;
     published_at: string;
     created_at: string;
@@ -160,8 +159,7 @@ const BlogManager = () => {
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             return (
-                post.title.toLowerCase().includes(query) ||
-                post.author.toLowerCase().includes(query)
+                post.title.toLowerCase().includes(query)
             );
         }
 
@@ -243,7 +241,7 @@ const BlogManager = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-[40px] pl-4 pr-12 text-gray-600 focus:outline-none"
-                            placeholder="Search by blog title or author"
+                            placeholder="Search by blog title"
                         />
                         <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -313,9 +311,8 @@ const BlogManager = () => {
                     <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                         <div className="hidden md:grid grid-cols-12 gap-4 text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                             <div className="col-span-4">Blog Title</div>
-                            <div className="col-span-2">Author</div>
-                            <div className="col-span-2">Published On</div>
-                            <div className="col-span-2">Status</div>
+                            <div className="col-span-3">Published On</div>
+                            <div className="col-span-3">Status</div>
                             <div className="col-span-2">Actions</div>
                         </div>
                         <div className="md:hidden text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
@@ -337,9 +334,6 @@ const BlogManager = () => {
                                                 <h3 className="text-[11px] font-medium font-poppins text-[#676767] mb-1">
                                                     &quot;{post.title}&quot;
                                                 </h3>
-                                                <p className="text-[10px] text-gray-500 mb-1">
-                                                    By {post.author}
-                                                </p>
                                                 <div className="flex items-center gap-3 text-[10px] text-gray-500">
                                                     <span>{formatDate(post.published_at)}</span>
                                                     <span className={`px-2 py-1 rounded-full ${post.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
@@ -380,17 +374,12 @@ const BlogManager = () => {
                                                 &quot;{post.title}&quot;
                                             </span>
                                         </div>
-                                        <div className="col-span-2">
-                                            <span className="text-[11px] font-medium font-poppins text-[#676767]">
-                                                {post.author}
-                                            </span>
-                                        </div>
-                                        <div className="col-span-2">
+                                        <div className="col-span-3">
                                             <span className="text-[11px] font-medium font-poppins text-[#676767]">
                                                 {formatDate(post.published_at)}
                                             </span>
                                         </div>
-                                        <div className="col-span-2">
+                                        <div className="col-span-3">
                                             <span className={`text-[11px] font-medium font-poppins ${post.published ? 'text-green-600' : 'text-gray-600'}`}>
                                                 {post.published ? 'Published' : 'Draft'}
                                             </span>

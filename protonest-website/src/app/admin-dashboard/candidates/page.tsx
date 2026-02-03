@@ -9,6 +9,8 @@ import {
     ChevronDown,
     ChevronUp,
     Download,
+    Eye,
+    EyeOff,
     Mail,
     MapPin,
     Search,
@@ -51,6 +53,7 @@ interface Candidate {
     interview_date?: string;
     interview_notes?: string;
     rejection_reason?: string;
+    cv_viewed?: boolean;
 }
 interface JobGroup {
     job_id: string;
@@ -172,8 +175,12 @@ const CandidateManagement = () => {
     const [jobSearchQueries, setJobSearchQueries] = useState<{ [jobId: string]: string }>({});
     const [interviewSubject, setInterviewSubject] = useState('');
     const [interviewBody, setInterviewBody] = useState('');
+    const [interviewCc, setInterviewCc] = useState('');
+    const [interviewBcc, setInterviewBcc] = useState('');
     const [ndaSubject, setNdaSubject] = useState('');
     const [ndaBody, setNdaBody] = useState('');
+    const [ndaCc, setNdaCc] = useState('');
+    const [ndaBcc, setNdaBcc] = useState('');
     const [sendingNDA, setSendingNDA] = useState(false);
     const [sendingInterview, setSendingInterview] = useState(false);
     const [successDialog, setSuccessDialog] = useState<{ title: string; message: string } | null>(null);
@@ -909,6 +916,16 @@ const CandidateManagement = () => {
             ndaDocumentId = selectedTemplate;
         }
 
+        const ccEmails = ndaCc
+            .split(',')
+            .map(email => email.trim())
+            .filter(email => email.length > 0);
+
+        const bccEmails = ndaBcc
+            .split(',')
+            .map(email => email.trim())
+            .filter(email => email.length > 0);
+
         setSendingNDA(true);
         try {
             const requestBody: {
@@ -917,10 +934,14 @@ const CandidateManagement = () => {
                 compliance_notes?: string;
                 subject: string;
                 message: string;
+                cc?: string[];
+                bcc?: string[];
             } = {
                 subject: ndaSubject,
                 message: ndaBody,
-                compliance_notes: ndaBody || ''
+                compliance_notes: ndaBody || '',
+                cc: ccEmails,
+                bcc: bccEmails
             };
 
             if (selectedNda === 'template' && ndaDocumentId) {
@@ -975,6 +996,8 @@ const CandidateManagement = () => {
             setNdaDialog(null);
             setNdaSubject('');
             setNdaBody('');
+            setNdaCc('');
+            setNdaBcc('');
             setUploadedFile(null);
             setSelectedNda('template');
             setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
@@ -1145,8 +1168,49 @@ const CandidateManagement = () => {
         setStatusDialog(null);
     };
 
+    const handleToggleCVViewed = async (candidateId: string, currentStatus: boolean, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/cv-viewed`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`
+                },
+                body: JSON.stringify({ cv_viewed: !currentStatus })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update CV viewed status');
+            }
+
+            setJobGroups(prev => prev.map(group => ({
+                ...group,
+                candidates: group.candidates.map(c =>
+                    c.id === candidateId
+                        ? { ...c, cv_viewed: !currentStatus }
+                        : c
+                )
+            })));
+
+        } catch (error) {
+            console.error('Error toggling CV viewed status:', error);
+        }
+    };
+
     const handleSendInterview = async () => {
         if (!interviewDialog) return;
+
+        const ccEmails = interviewCc
+            .split(',')
+            .map(email => email.trim())
+            .filter(email => email.length > 0);
+
+        const bccEmails = interviewBcc
+            .split(',')
+            .map(email => email.trim())
+            .filter(email => email.length > 0);
 
         setSendingInterview(true);
         try {
@@ -1158,7 +1222,9 @@ const CandidateManagement = () => {
                 },
                 body: JSON.stringify({
                     subject: interviewSubject,
-                    message: interviewBody
+                    message: interviewBody,
+                    cc: ccEmails,
+                    bcc: bccEmails
                 })
             });
 
@@ -1174,6 +1240,8 @@ const CandidateManagement = () => {
             setInterviewDialog(null);
             setInterviewSubject('');
             setInterviewBody('');
+            setInterviewCc('');
+            setInterviewBcc('');
         } catch (error) {
             console.error('Error sending interview invitation:', error);
             setErrorDialog({ title: 'Send Failed', message: 'Failed to send interview invitation' });
@@ -1443,7 +1511,7 @@ const CandidateManagement = () => {
                                                             const ndaStatusDisplay = getNDAStatusDisplay(candidate);
 
                                                             return (
-                                                                <tr key={candidate.id} className="hover:bg-gray-50">
+                                                                <tr key={candidate.id} className={`transition-colors ${candidate.cv_viewed ? 'bg-purple-100 hover:bg-purple-100' : 'hover:bg-gray-50'}`}>
                                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-bold font-poppins text-[#5530FA]">
                                                                         {index + 1}
                                                                     </td>
@@ -1543,6 +1611,14 @@ const CandidateManagement = () => {
                                                                                 title="Delete candidate"
                                                                             >
                                                                                 <Trash2 className="w-4 h-4" />
+                                                                            </button>
+
+                                                                            <button
+                                                                                className={`p-2 rounded-full transition-colors mr-1 ${candidate.cv_viewed ? 'text-[#5530FA] bg-purple-100' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                                                                                onClick={(e) => handleToggleCVViewed(candidate.id, !!candidate.cv_viewed, e)}
+                                                                                title={candidate.cv_viewed ? "Mark as not viewed" : "Mark as viewed"}
+                                                                            >
+                                                                                {candidate.cv_viewed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                                                             </button>
                                                                         </div>
                                                                     </td>
@@ -1912,6 +1988,30 @@ const CandidateManagement = () => {
                                         />
                                     </div>
 
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">CC (Carbon Copy)</h3>
+                                        <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - separate multiple emails with commas</p>
+                                        <input
+                                            type="text"
+                                            value={interviewCc}
+                                            onChange={(e) => setInterviewCc(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                            placeholder="email1@example.com, email2@example.com"
+                                        />
+                                    </div>
+
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">BCC (Blind Carbon Copy)</h3>
+                                        <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - recipients won't see each other</p>
+                                        <input
+                                            type="text"
+                                            value={interviewBcc}
+                                            onChange={(e) => setInterviewBcc(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                            placeholder="email1@example.com, email2@example.com"
+                                        />
+                                    </div>
+
                                     <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6 sm:mb-8">
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             <div>
@@ -1987,6 +2087,8 @@ const CandidateManagement = () => {
                                                 setInterviewDialog(null);
                                                 setInterviewSubject('');
                                                 setInterviewBody('');
+                                                setInterviewCc('');
+                                                setInterviewBcc('');
                                             }}
                                             className="w-full sm:w-[206px] h-[51px] px-6 py-4 rounded-[57px] gradient-border cursor-pointer flex justify-center items-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2 sm:order-1"
                                         >
@@ -2143,6 +2245,34 @@ const CandidateManagement = () => {
                                         </div>
                                     </div>
 
+                                    <div className="mb-4">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">CC (Carbon Copy)</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - separate multiple emails with commas</p>
+                                            <input
+                                                type="text"
+                                                value={ndaCc}
+                                                onChange={(e) => setNdaCc(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                                placeholder="email1@example.com, email2@example.com"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">BCC (Blind Carbon Copy)</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - recipients won't see each other</p>
+                                            <input
+                                                type="text"
+                                                value={ndaBcc}
+                                                onChange={(e) => setNdaBcc(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                                placeholder="email1@example.com, email2@example.com"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="mb-6 sm:mb-8">
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             <div>
@@ -2228,6 +2358,8 @@ const CandidateManagement = () => {
                                                 setNdaDialog(null);
                                                 setNdaSubject('');
                                                 setNdaBody('');
+                                                setNdaCc('');
+                                                setNdaBcc('');
                                                 setUploadedFile(null);
                                                 setSelectedNda('template');
                                                 setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');

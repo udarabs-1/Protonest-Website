@@ -453,7 +453,7 @@ const ProfilePage = () => {
                             <button
                                 onClick={handleDeleteAccount}
                                 disabled={deletingAccount || deleteConfirmText !== 'DELETE'}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm"
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm cursor-pointer"
                             >
                                 {deletingAccount ? (
                                     <>

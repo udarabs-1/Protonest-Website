@@ -2,11 +2,11 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
 
 interface Blog {
     id: string;
@@ -15,6 +15,7 @@ interface Blog {
     content: string;
     cover_image?: string;
     categories: string[];
+    keywords?: string[];
     author: string;
     published: boolean;
     published_at?: string;
@@ -367,70 +368,6 @@ export default function BlogDetailPage() {
 
     return (
         <div className="overflow-x-hidden">
-            <Head>
-
-                <title>{blog.title} - Protonest</title>
-                <meta
-                    name="description"
-                    content={blog.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
-                />
-                <meta name="keywords" content={blog.categories.join(', ')} />
-                <meta name="author" content={blog.author} />
-
-
-                <link rel="canonical" href={`https://protonest.co/blog/${blog.slug}`} />
-
-
-                <meta property="og:type" content="article" />
-                <meta property="og:url" content={`https://protonest.co/blog/${blog.slug}`} />
-                <meta property="og:title" content={blog.title} />
-                <meta property="og:description" content={blog.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'} />
-                {blog.cover_image && <meta property="og:image" content={blog.cover_image} />}
-                <meta property="og:image:alt" content={blog.title} />
-
-
-                <meta property="article:author" content={blog.author} />
-                <meta property="article:published_time" content={publishDate} />
-                <meta property="article:modified_time" content={blog.updated_at} />
-                {blog.categories.map((category, index) => (
-                    <meta key={index} property="article:tag" content={category} />
-                ))}
-
-
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "BlogPosting",
-                        "headline": blog.title,
-                        "description": blog.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...',
-                        "author": {
-                            "@type": "Person",
-                            "name": blog.author
-                        },
-                        "publisher": {
-                            "@type": "Organization",
-                            "name": "Protonest",
-                            "logo": {
-                                "@type": "ImageObject",
-                                "url": "https://protonest.co/logo.webp"
-                            }
-                        },
-                        "datePublished": publishDate,
-                        "dateModified": blog.updated_at,
-                        "image": blog.cover_image ? {
-                            "@type": "ImageObject",
-                            "url": blog.cover_image
-                        } : undefined,
-                        "mainEntityOfPage": {
-                            "@type": "WebPage",
-                            "@id": `https://protonest.co/blog/${blog.slug}`
-                        },
-                        "articleSection": blog.categories.join(', '),
-                        "keywords": blog.categories.join(', ')
-                    })}
-                </script>
-            </Head>
-
             <Navbar />
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
@@ -501,30 +438,30 @@ export default function BlogDetailPage() {
                                 dangerouslySetInnerHTML={{ __html: blog.content }}
                             />
                         </article>
-
-                        {suggestedBlogs.length > 0 && (
-                            <section className="pt-12">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Articles</h2>
-                                    <Link
-                                        href="/blog"
-                                        className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
-                                    >
-                                        <span className="underline">View more</span> &gt;
-                                    </Link>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {suggestedBlogs.map(suggestedBlog => (
-                                        <BlogCard key={suggestedBlog.id} blog={suggestedBlog} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
                     </div>
 
                     <TableOfContents items={tocItems} isMobile={false} />
                 </div>
+
+                {suggestedBlogs.length > 0 && (
+                    <section className="pt-12">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Articles</h2>
+                            <Link
+                                href="/blog"
+                                className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+                            >
+                                <span className="underline">View more</span> &gt;
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {suggestedBlogs.map(suggestedBlog => (
+                                <BlogCard key={suggestedBlog.id} blog={suggestedBlog} />
+                            ))}
+                        </div>
+                    </section>
+                )}
 
             </div>
 
