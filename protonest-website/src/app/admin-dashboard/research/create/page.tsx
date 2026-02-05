@@ -15,7 +15,9 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import imageCompression from 'browser-image-compression';
 import {
+    AlertTriangle,
     AlignCenter,
     AlignLeft,
     AlignRight,
@@ -412,7 +414,32 @@ const CreateResearchProjectContent = () => {
         window.history.replaceState({}, '', currentUrl.toString());
     };
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const MAX_IMAGE_SIZE = 600 * 1024;
+
+    const compressImage = async (file: File): Promise<File> => {
+        if (file.size <= MAX_IMAGE_SIZE) {
+            return file;
+        }
+
+        const options = {
+            maxSizeMB: 0.6,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            fileType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
+        };
+
+        try {
+            const compressedFile = await imageCompression(file, options);
+            return compressedFile;
+        } catch (err) {
+            console.error('Image compression failed:', err);
+            return file;
+        }
+    };
+
+    const [compressingImage, setCompressingImage] = useState(false);
+
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
@@ -420,14 +447,23 @@ const CreateResearchProjectContent = () => {
                 return;
             }
 
-            setCoverImage(file);
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setCoverImagePreview(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
+            setCompressingImage(true);
             setError(null);
+
+            try {
+                const processedFile = await compressImage(file);
+                setCoverImage(processedFile);
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setCoverImagePreview(e.target?.result as string);
+                };
+                reader.readAsDataURL(processedFile);
+            } catch (err) {
+                setError('Failed to process image');
+            } finally {
+                setCompressingImage(false);
+            }
         }
     };
 
@@ -467,9 +503,10 @@ const CreateResearchProjectContent = () => {
         setError(null);
 
         try {
+            const processedFile = await compressImage(file);
             const token = localStorage.getItem('adminToken');
             const formData = new FormData();
-            formData.append('cover_image', file);
+            formData.append('cover_image', processedFile);
 
             const endpoint = contentType === 'research'
                 ? '/api/v1/auth/admin/research/upload-image'
@@ -799,6 +836,7 @@ const CreateResearchProjectContent = () => {
                                     Upload the file by drag and drop here or<br />
                                     click on the browse button.<br />
                                     Supported format: .JPG, PNG<br />
+                                    Maximum size: 600KB
                                 </div>
                                 <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                     Browse
@@ -1341,6 +1379,32 @@ const CreateResearchProjectContent = () => {
                                     router.push('/admin-dashboard/research');
                                 }}
                                 className="px-4 py-2 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] text-white rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {error && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setError(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Error</h3>
+                        <p className="text-gray-600 mb-6 text-center">{error}</p>
+                        <div className="flex justify-center">
+                            <button
+                                onClick={() => setError(null)}
+                                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                                 OK
                             </button>
