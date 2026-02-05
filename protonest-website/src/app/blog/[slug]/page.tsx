@@ -62,21 +62,27 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 150): string =>
 const extractTocItems = (htmlContent: string): TocItem[] => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
-    const headings = doc.querySelectorAll('h2, h3');
+    const headings = doc.querySelectorAll('h1, h2, h3');
 
-    return Array.from(headings).map((heading, index) => {
-        const text = heading.textContent || '';
+    const items: TocItem[] = [];
+
+    headings.forEach((heading) => {
+        const text = heading.textContent?.trim() || '';
+        if (!text) return;
+
         const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const level = parseInt(heading.tagName.substring(1));
 
-        return { id, text, level };
+        items.push({ id, text, level });
     });
+
+    return items;
 };
 
 const addIdsToHeadings = (htmlContent: string): string => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
-    const headings = doc.querySelectorAll('h2, h3');
+    const headings = doc.querySelectorAll('h1, h2, h3');
 
     headings.forEach((heading) => {
         const text = heading.textContent || '';
@@ -434,7 +440,7 @@ export default function BlogDetailPage() {
                     <div className="min-w-0">
                         <article className="prose prose-lg max-w-none">
                             <div
-                                className="text-[#6c6c6c] text-base font-normal font-poppins leading-[30px]"
+                                className="text-[#6c6c6c] text-base font-normal font-poppins"
                                 dangerouslySetInnerHTML={{ __html: blog.content }}
                             />
                         </article>
@@ -480,6 +486,7 @@ export default function BlogDetailPage() {
           color: #6c6c6c;
           margin-top: 2rem;
           margin-bottom: 1rem;
+          line-height: normal;
         }
         
         .prose h1 {
@@ -503,8 +510,9 @@ export default function BlogDetailPage() {
         }
         
         .prose p {
-          margin-bottom: 1.5rem;
-          line-height: 1.8;
+          margin-bottom: 1.5rem !important;
+          line-height: 1.8 !important;
+          display: block;
         }
         
         .prose ul {
