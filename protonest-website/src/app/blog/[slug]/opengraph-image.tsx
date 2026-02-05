@@ -26,7 +26,22 @@ export default async function Image({ params }: { params: { slug: string } }) {
         console.error('Error fetching blog data for OG image:', error);
     }
 
-    if (!blogData || !blogData.cover_image) {
+    let imageParams: { src: ArrayBuffer; contentType: string } | null = null;
+
+    if (blogData && blogData.cover_image) {
+        try {
+            const imageRes = await fetch(blogData.cover_image);
+            if (imageRes.ok) {
+                const buffer = await imageRes.arrayBuffer();
+                const contentType = imageRes.headers.get('content-type') || 'image/png';
+                imageParams = { src: buffer, contentType };
+            }
+        } catch (error) {
+            console.error('Error fetching cover image for OG:', error);
+        }
+    }
+
+    if (!imageParams) {
         return new ImageResponse(
             (
                 <div
@@ -70,9 +85,12 @@ export default async function Image({ params }: { params: { slug: string } }) {
                     backgroundColor: 'white',
                 }}
             >
+                {/* @ts-ignore */}
                 <img
-                    src={blogData.cover_image}
-                    alt={blogData.title}
+                    src={imageParams.src as any}
+                    width={1200}
+                    height={630}
+                    alt={blogData ? blogData.title : 'Cover Image'}
                     style={{
                         width: '100%',
                         height: '100%',
