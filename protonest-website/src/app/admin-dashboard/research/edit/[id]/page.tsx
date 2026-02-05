@@ -15,7 +15,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import imageCompression from 'browser-image-compression';
 import {
     AlertTriangle,
     AlignCenter,
@@ -450,32 +449,9 @@ const EditResearchProjectContent = () => {
         setContentType(typeFromUrl);
     }, [typeFromUrl]);
 
-    const MAX_IMAGE_SIZE = 600 * 1024;
+    const MAX_IMAGE_SIZE = 1024 * 1024;
 
-    const compressImage = async (file: File): Promise<File> => {
-        if (file.size <= MAX_IMAGE_SIZE) {
-            return file;
-        }
-
-        const options = {
-            maxSizeMB: 0.6,
-            maxWidthOrHeight: 1920,
-            useWebWorker: true,
-            fileType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
-        };
-
-        try {
-            const compressedFile = await imageCompression(file, options);
-            return compressedFile;
-        } catch (err) {
-            console.error('Image compression failed:', err);
-            return file;
-        }
-    };
-
-    const [compressingImage, setCompressingImage] = useState(false);
-
-    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
@@ -483,23 +459,19 @@ const EditResearchProjectContent = () => {
                 return;
             }
 
-            setCompressingImage(true);
-            setError(null);
-
-            try {
-                const processedFile = await compressImage(file);
-                setCoverImage(processedFile);
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    setCoverImagePreview(e.target?.result as string);
-                };
-                reader.readAsDataURL(processedFile);
-            } catch (err) {
-                setError('Failed to process image');
-            } finally {
-                setCompressingImage(false);
+            if (file.size > MAX_IMAGE_SIZE) {
+                setError('Cover image size must be less than 1MB');
+                return;
             }
+
+            setCoverImage(file);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setCoverImagePreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+            setError(null);
         }
     };
 
@@ -535,14 +507,18 @@ const EditResearchProjectContent = () => {
             return;
         }
 
+        if (file.size > MAX_IMAGE_SIZE) {
+            setError('Image size must be less than 1MB');
+            return;
+        }
+
         setUploadingContentImage(true);
         setError(null);
 
         try {
-            const processedFile = await compressImage(file);
             const token = localStorage.getItem('adminToken');
             const formData = new FormData();
-            formData.append('cover_image', processedFile);
+            formData.append('cover_image', file);
 
             const endpoint = contentType === 'research'
                 ? '/api/v1/auth/admin/research/upload-image'
@@ -890,7 +866,7 @@ const EditResearchProjectContent = () => {
                                         Upload the file by drag and drop here or<br />
                                         click on the browse button.<br />
                                         Supported format: .JPG, PNG<br />
-                                        Maximum size: 600KB
+                                        Maximum size: 1MB
                                     </div>
                                     <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                         Browse
