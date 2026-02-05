@@ -101,6 +101,7 @@ interface BlogCategory {
 }
 
 const CreateBlogPost = () => {
+    const [editorState, setEditorState] = useState(0); // Force re-render on editor changes
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string>('');
@@ -451,6 +452,15 @@ const CreateBlogPost = () => {
 
                 return false;
             },
+        },
+        onUpdate: () => {
+            setEditorState(prev => prev + 1);
+        },
+        onSelectionUpdate: () => {
+            setEditorState(prev => prev + 1);
+        },
+        onTransaction: () => {
+            setEditorState(prev => prev + 1);
         },
     });
 
@@ -1519,6 +1529,11 @@ const CreateBlogPost = () => {
                 
                 .ProseMirror ::selection {
                     background: rgba(85, 48, 250, 0.2);
+                }
+
+                .ProseMirror p {
+                    margin-bottom: 1.5rem !important;
+                    line-height: 1.8 !important;
                 }
             `}</style>
             {showDiscardDialog && (
