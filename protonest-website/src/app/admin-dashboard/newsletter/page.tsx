@@ -64,10 +64,14 @@ const NewsletterManager = () => {
     const [coverImageURL, setCoverImageURL] = useState('');
     const [uploadingImage, setUploadingImage] = useState(false);
     const [founderMessage, setFounderMessage] = useState('');
-    const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-    const [selectedResearch, setSelectedResearch] = useState<string[]>([]);
-    const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
-    const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+    const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
+    const [selectedResearch, setSelectedResearch] = useState<Research[]>([]);
+    const [selectedBlogs, setSelectedBlogs] = useState<BlogPost[]>([]);
+    const [selectedJobs, setSelectedJobs] = useState<Job[]>([]);
+    const [draggedProject, setDraggedProject] = useState<Project | null>(null);
+    const [draggedResearch, setDraggedResearch] = useState<Research | null>(null);
+    const [draggedBlog, setDraggedBlog] = useState<BlogPost | null>(null);
+    const [draggedJob, setDraggedJob] = useState<Job | null>(null);
 
     const [projects, setProjects] = useState<Project[]>([]);
     const [research, setResearch] = useState<Research[]>([]);
@@ -124,31 +128,124 @@ const NewsletterManager = () => {
         }
     };
 
-    const handleToggleItem = (type: 'project' | 'research' | 'blog' | 'job', id: string) => {
-        const getState = () => {
-            switch (type) {
-                case 'project': return selectedProjects;
-                case 'research': return selectedResearch;
-                case 'blog': return selectedBlogs;
-                case 'job': return selectedJobs;
-            }
-        };
-
-        const setState = (items: string[]) => {
-            switch (type) {
-                case 'project': setSelectedProjects(items); break;
-                case 'research': setSelectedResearch(items); break;
-                case 'blog': setSelectedBlogs(items); break;
-                case 'job': setSelectedJobs(items); break;
-            }
-        };
-
-        const current = getState();
-        if (current.includes(id)) {
-            setState(current.filter(item => item !== id));
+    const handleToggleProject = (project: Project) => {
+        const isSelected = selectedProjects.some(p => p.id === project.id);
+        if (isSelected) {
+            setSelectedProjects(selectedProjects.filter(p => p.id !== project.id));
         } else {
-            setState([...current, id]);
+            setSelectedProjects([...selectedProjects, project]);
         }
+    };
+
+    const handleToggleResearch = (item: Research) => {
+        const isSelected = selectedResearch.some(r => r.id === item.id);
+        if (isSelected) {
+            setSelectedResearch(selectedResearch.filter(r => r.id !== item.id));
+        } else {
+            setSelectedResearch([...selectedResearch, item]);
+        }
+    };
+
+    const handleToggleBlog = (blog: BlogPost) => {
+        const isSelected = selectedBlogs.some(b => b.id === blog.id);
+        if (isSelected) {
+            setSelectedBlogs(selectedBlogs.filter(b => b.id !== blog.id));
+        } else {
+            setSelectedBlogs([...selectedBlogs, blog]);
+        }
+    };
+
+    const handleToggleJob = (job: Job) => {
+        const isSelected = selectedJobs.some(j => j.id === job.id);
+        if (isSelected) {
+            setSelectedJobs(selectedJobs.filter(j => j.id !== job.id));
+        } else {
+            setSelectedJobs([...selectedJobs, job]);
+        }
+    };
+
+    const handleProjectDragStart = (project: Project) => setDraggedProject(project);
+    const handleProjectDragOver = (e: React.DragEvent, target: Project) => {
+        e.preventDefault();
+        if (!draggedProject || draggedProject.id === target.id) return;
+        const draggedIndex = selectedProjects.findIndex(p => p.id === draggedProject.id);
+        const targetIndex = selectedProjects.findIndex(p => p.id === target.id);
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        const newItems = [...selectedProjects];
+        newItems.splice(draggedIndex, 1);
+        newItems.splice(targetIndex, 0, draggedProject);
+        setSelectedProjects(newItems);
+    };
+    const handleProjectDragEnd = () => setDraggedProject(null);
+    const moveProject = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= selectedProjects.length) return;
+        const newItems = [...selectedProjects];
+        [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+        setSelectedProjects(newItems);
+    };
+
+    const handleResearchDragStart = (item: Research) => setDraggedResearch(item);
+    const handleResearchDragOver = (e: React.DragEvent, target: Research) => {
+        e.preventDefault();
+        if (!draggedResearch || draggedResearch.id === target.id) return;
+        const draggedIndex = selectedResearch.findIndex(r => r.id === draggedResearch.id);
+        const targetIndex = selectedResearch.findIndex(r => r.id === target.id);
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        const newItems = [...selectedResearch];
+        newItems.splice(draggedIndex, 1);
+        newItems.splice(targetIndex, 0, draggedResearch);
+        setSelectedResearch(newItems);
+    };
+    const handleResearchDragEnd = () => setDraggedResearch(null);
+    const moveResearch = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= selectedResearch.length) return;
+        const newItems = [...selectedResearch];
+        [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+        setSelectedResearch(newItems);
+    };
+
+    const handleBlogDragStart = (blog: BlogPost) => setDraggedBlog(blog);
+    const handleBlogDragOver = (e: React.DragEvent, target: BlogPost) => {
+        e.preventDefault();
+        if (!draggedBlog || draggedBlog.id === target.id) return;
+        const draggedIndex = selectedBlogs.findIndex(b => b.id === draggedBlog.id);
+        const targetIndex = selectedBlogs.findIndex(b => b.id === target.id);
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        const newItems = [...selectedBlogs];
+        newItems.splice(draggedIndex, 1);
+        newItems.splice(targetIndex, 0, draggedBlog);
+        setSelectedBlogs(newItems);
+    };
+    const handleBlogDragEnd = () => setDraggedBlog(null);
+    const moveBlog = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= selectedBlogs.length) return;
+        const newItems = [...selectedBlogs];
+        [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+        setSelectedBlogs(newItems);
+    };
+
+    const handleJobDragStart = (job: Job) => setDraggedJob(job);
+    const handleJobDragOver = (e: React.DragEvent, target: Job) => {
+        e.preventDefault();
+        if (!draggedJob || draggedJob.id === target.id) return;
+        const draggedIndex = selectedJobs.findIndex(j => j.id === draggedJob.id);
+        const targetIndex = selectedJobs.findIndex(j => j.id === target.id);
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        const newItems = [...selectedJobs];
+        newItems.splice(draggedIndex, 1);
+        newItems.splice(targetIndex, 0, draggedJob);
+        setSelectedJobs(newItems);
+    };
+    const handleJobDragEnd = () => setDraggedJob(null);
+    const moveJob = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= selectedJobs.length) return;
+        const newItems = [...selectedJobs];
+        [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+        setSelectedJobs(newItems);
     };
 
     const handleCoverImageUpload = async (file: File) => {
@@ -215,10 +312,10 @@ const NewsletterManager = () => {
                             newsletter_title: newsletterTitle,
                             cover_image_url: coverImageURL,
                             founder_message: founderMessage,
-                            project_ids: selectedProjects,
-                            research_ids: selectedResearch,
-                            blog_ids: selectedBlogs,
-                            job_ids: selectedJobs
+                            project_ids: selectedProjects.map(p => p.id),
+                            research_ids: selectedResearch.map(r => r.id),
+                            blog_ids: selectedBlogs.map(b => b.id),
+                            job_ids: selectedJobs.map(j => j.id)
                         })
                     }).then(response => response.json())
                         .then(data => {
@@ -346,131 +443,375 @@ const NewsletterManager = () => {
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Monthly Updates - Projects</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select projects to feature in the newsletter</p>
+                                <p className="text-sm text-gray-600 mb-4">Select and order projects to feature in the newsletter. Drag or use arrows to reorder.</p>
 
-                                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                                    {projects.length === 0 ? (
-                                        <p className="text-gray-500 text-sm py-4 text-center">No projects available</p>
-                                    ) : (
-                                        projects.map(project => (
-                                            <label
-                                                key={project.id}
-                                                className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedProjects.includes(project.id)
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedProjects.includes(project.id)}
-                                                    onChange={() => handleToggleItem('project', project.id)}
-                                                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                                />
-                                                <img src={project.cover_image} alt={project.title} className="w-16 h-16 object-cover rounded" />
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-800">{project.title}</h4>
-                                                    <p className="text-xs text-gray-500 line-clamp-1">{project.short_description}</p>
-                                                </div>
-                                            </label>
-                                        ))
-                                    )}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Available Projects</h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {projects.filter(p => !selectedProjects.some(sp => sp.id === p.id)).length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center">
+                                                    {projects.length === 0 ? 'No projects available' : 'All projects selected'}
+                                                </p>
+                                            ) : (
+                                                projects.filter(p => !selectedProjects.some(sp => sp.id === p.id)).map(project => (
+                                                    <div
+                                                        key={project.id}
+                                                        onClick={() => handleToggleProject(project)}
+                                                        className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
+                                                    >
+                                                        <img src={project.cover_image} alt={project.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{project.title}</h4>
+                                                            <p className="text-xs text-gray-500 truncate">{project.short_description}</p>
+                                                        </div>
+                                                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 text-purple-500" />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">
+                                            Selected Projects ({selectedProjects.length})
+                                            {selectedProjects.length > 0 && <span className="text-gray-500 font-normal ml-2">- Ordered by priority</span>}
+                                        </h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {selectedProjects.length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                                                    Select projects from the left to add here
+                                                </p>
+                                            ) : (
+                                                selectedProjects.map((project, index) => (
+                                                    <div
+                                                        key={project.id}
+                                                        draggable
+                                                        onDragStart={() => handleProjectDragStart(project)}
+                                                        onDragOver={(e) => handleProjectDragOver(e, project)}
+                                                        onDragEnd={handleProjectDragEnd}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 border-purple-500 bg-purple-50 transition-all ${draggedProject?.id === project.id ? 'opacity-50' : ''}`}
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveProject(index, 'up')}
+                                                                disabled={index === 0}
+                                                                className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-up-linear" className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveProject(index, 'down')}
+                                                                disabled={index === selectedProjects.length - 1}
+                                                                className={`p-1 rounded ${index === selectedProjects.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-down-linear" className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="cursor-grab text-gray-400 hover:text-gray-600">
+                                                            <Icon icon="solar:hamburger-menu-linear" className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="w-6 h-6 flex items-center justify-center bg-purple-600 text-white text-xs font-bold rounded-full">
+                                                            {index + 1}
+                                                        </span>
+                                                        <img src={project.cover_image} alt={project.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{project.title}</h4>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleProject(project)}
+                                                            className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                                                        >
+                                                            <Icon icon="solar:close-circle-linear" className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Monthly Updates - Research</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select research items to feature in the newsletter</p>
+                                <p className="text-sm text-gray-600 mb-4">Select and order research items to feature in the newsletter. Drag or use arrows to reorder.</p>
 
-                                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                                    {research.length === 0 ? (
-                                        <p className="text-gray-500 text-sm py-4 text-center">No research available</p>
-                                    ) : (
-                                        research.map(item => (
-                                            <label
-                                                key={item.id}
-                                                className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedResearch.includes(item.id)
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedResearch.includes(item.id)}
-                                                    onChange={() => handleToggleItem('research', item.id)}
-                                                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                                />
-                                                <img src={item.cover_image} alt={item.title} className="w-16 h-16 object-cover rounded" />
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-800">{item.title}</h4>
-                                                    <p className="text-xs text-gray-500 line-clamp-1">{item.short_description}</p>
-                                                </div>
-                                            </label>
-                                        ))
-                                    )}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Available Research</h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {research.filter(r => !selectedResearch.some(sr => sr.id === r.id)).length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center">
+                                                    {research.length === 0 ? 'No research available' : 'All research selected'}
+                                                </p>
+                                            ) : (
+                                                research.filter(r => !selectedResearch.some(sr => sr.id === r.id)).map(item => (
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => handleToggleResearch(item)}
+                                                        className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
+                                                    >
+                                                        <img src={item.cover_image} alt={item.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{item.title}</h4>
+                                                            <p className="text-xs text-gray-500 truncate">{item.short_description}</p>
+                                                        </div>
+                                                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 text-purple-500" />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">
+                                            Selected Research ({selectedResearch.length})
+                                            {selectedResearch.length > 0 && <span className="text-gray-500 font-normal ml-2">- Ordered by priority</span>}
+                                        </h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {selectedResearch.length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                                                    Select research from the left to add here
+                                                </p>
+                                            ) : (
+                                                selectedResearch.map((item, index) => (
+                                                    <div
+                                                        key={item.id}
+                                                        draggable
+                                                        onDragStart={() => handleResearchDragStart(item)}
+                                                        onDragOver={(e) => handleResearchDragOver(e, item)}
+                                                        onDragEnd={handleResearchDragEnd}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 border-purple-500 bg-purple-50 transition-all ${draggedResearch?.id === item.id ? 'opacity-50' : ''}`}
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveResearch(index, 'up')}
+                                                                disabled={index === 0}
+                                                                className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-up-linear" className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveResearch(index, 'down')}
+                                                                disabled={index === selectedResearch.length - 1}
+                                                                className={`p-1 rounded ${index === selectedResearch.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-down-linear" className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="cursor-grab text-gray-400 hover:text-gray-600">
+                                                            <Icon icon="solar:hamburger-menu-linear" className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="w-6 h-6 flex items-center justify-center bg-purple-600 text-white text-xs font-bold rounded-full">
+                                                            {index + 1}
+                                                        </span>
+                                                        <img src={item.cover_image} alt={item.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{item.title}</h4>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleResearch(item)}
+                                                            className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                                                        >
+                                                            <Icon icon="solar:close-circle-linear" className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Featured Blog Posts</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select blog posts to feature in the newsletter</p>
+                                <p className="text-sm text-gray-600 mb-4">Select and order blog posts to feature in the newsletter. Drag or use arrows to reorder.</p>
 
-                                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                                    {blogs.length === 0 ? (
-                                        <p className="text-gray-500 text-sm py-4 text-center">No blog posts available</p>
-                                    ) : (
-                                        blogs.map(blog => (
-                                            <label
-                                                key={blog.id}
-                                                className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedBlogs.includes(blog.id)
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedBlogs.includes(blog.id)}
-                                                    onChange={() => handleToggleItem('blog', blog.id)}
-                                                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                                />
-                                                <img src={blog.cover_image} alt={blog.title} className="w-16 h-16 object-cover rounded" />
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-800">{blog.title}</h4>
-                                                </div>
-                                            </label>
-                                        ))
-                                    )}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Available Blogs</h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {blogs.filter(b => !selectedBlogs.some(sb => sb.id === b.id)).length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center">
+                                                    {blogs.length === 0 ? 'No blog posts available' : 'All blogs selected'}
+                                                </p>
+                                            ) : (
+                                                blogs.filter(b => !selectedBlogs.some(sb => sb.id === b.id)).map(blog => (
+                                                    <div
+                                                        key={blog.id}
+                                                        onClick={() => handleToggleBlog(blog)}
+                                                        className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
+                                                    >
+                                                        <img src={blog.cover_image} alt={blog.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{blog.title}</h4>
+                                                        </div>
+                                                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 text-purple-500" />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">
+                                            Selected Blogs ({selectedBlogs.length})
+                                            {selectedBlogs.length > 0 && <span className="text-gray-500 font-normal ml-2">- Ordered by priority</span>}
+                                        </h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {selectedBlogs.length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                                                    Select blogs from the left to add here
+                                                </p>
+                                            ) : (
+                                                selectedBlogs.map((blog, index) => (
+                                                    <div
+                                                        key={blog.id}
+                                                        draggable
+                                                        onDragStart={() => handleBlogDragStart(blog)}
+                                                        onDragOver={(e) => handleBlogDragOver(e, blog)}
+                                                        onDragEnd={handleBlogDragEnd}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 border-purple-500 bg-purple-50 transition-all ${draggedBlog?.id === blog.id ? 'opacity-50' : ''}`}
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveBlog(index, 'up')}
+                                                                disabled={index === 0}
+                                                                className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-up-linear" className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveBlog(index, 'down')}
+                                                                disabled={index === selectedBlogs.length - 1}
+                                                                className={`p-1 rounded ${index === selectedBlogs.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-down-linear" className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="cursor-grab text-gray-400 hover:text-gray-600">
+                                                            <Icon icon="solar:hamburger-menu-linear" className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="w-6 h-6 flex items-center justify-center bg-purple-600 text-white text-xs font-bold rounded-full">
+                                                            {index + 1}
+                                                        </span>
+                                                        <img src={blog.cover_image} alt={blog.title} className="w-12 h-12 object-cover rounded" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{blog.title}</h4>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleBlog(blog)}
+                                                            className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                                                        >
+                                                            <Icon icon="solar:close-circle-linear" className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
                                 <h2 className="text-lg font-semibold text-[#6c6c6c] mb-2">Latest Careers</h2>
-                                <p className="text-sm text-gray-600 mb-4">Select job openings to feature in the newsletter</p>
+                                <p className="text-sm text-gray-600 mb-4">Select and order job openings to feature in the newsletter. Drag or use arrows to reorder.</p>
 
-                                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                                    {jobs.length === 0 ? (
-                                        <p className="text-gray-500 text-sm py-4 text-center">No job openings available</p>
-                                    ) : (
-                                        jobs.map(job => (
-                                            <label
-                                                key={job.id}
-                                                className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedJobs.includes(job.id)
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedJobs.includes(job.id)}
-                                                    onChange={() => handleToggleItem('job', job.id)}
-                                                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-                                                />
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-800">{job.title}</h4>
-                                                    <p className="text-xs text-gray-500">{job.location} • {job.job_type}</p>
-                                                </div>
-                                            </label>
-                                        ))
-                                    )}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Available Jobs</h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {jobs.filter(j => !selectedJobs.some(sj => sj.id === j.id)).length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center">
+                                                    {jobs.length === 0 ? 'No job openings available' : 'All jobs selected'}
+                                                </p>
+                                            ) : (
+                                                jobs.filter(j => !selectedJobs.some(sj => sj.id === j.id)).map(job => (
+                                                    <div
+                                                        key={job.id}
+                                                        onClick={() => handleToggleJob(job)}
+                                                        className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50 transition-all cursor-pointer"
+                                                    >
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{job.title}</h4>
+                                                            <p className="text-xs text-gray-500 truncate">{job.location} • {job.job_type}</p>
+                                                        </div>
+                                                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 text-purple-500" />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-3">
+                                            Selected Jobs ({selectedJobs.length})
+                                            {selectedJobs.length > 0 && <span className="text-gray-500 font-normal ml-2">- Ordered by priority</span>}
+                                        </h3>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {selectedJobs.length === 0 ? (
+                                                <p className="text-gray-500 text-sm py-4 text-center border-2 border-dashed border-gray-300 rounded-lg">
+                                                    Select jobs from the left to add here
+                                                </p>
+                                            ) : (
+                                                selectedJobs.map((job, index) => (
+                                                    <div
+                                                        key={job.id}
+                                                        draggable
+                                                        onDragStart={() => handleJobDragStart(job)}
+                                                        onDragOver={(e) => handleJobDragOver(e, job)}
+                                                        onDragEnd={handleJobDragEnd}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 border-purple-500 bg-purple-50 transition-all ${draggedJob?.id === job.id ? 'opacity-50' : ''}`}
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveJob(index, 'up')}
+                                                                disabled={index === 0}
+                                                                className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-up-linear" className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveJob(index, 'down')}
+                                                                disabled={index === selectedJobs.length - 1}
+                                                                className={`p-1 rounded ${index === selectedJobs.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-purple-100'}`}
+                                                            >
+                                                                <Icon icon="solar:alt-arrow-down-linear" className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="cursor-grab text-gray-400 hover:text-gray-600">
+                                                            <Icon icon="solar:hamburger-menu-linear" className="w-5 h-5" />
+                                                        </div>
+                                                        <span className="w-6 h-6 flex items-center justify-center bg-purple-600 text-white text-xs font-bold rounded-full">
+                                                            {index + 1}
+                                                        </span>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-medium text-gray-800 truncate">{job.title}</h4>
+                                                            <p className="text-xs text-gray-500 truncate">{job.location} • {job.job_type}</p>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleJob(job)}
+                                                            className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                                                        >
+                                                            <Icon icon="solar:close-circle-linear" className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

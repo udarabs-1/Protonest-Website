@@ -23,6 +23,7 @@
     "@tiptap/extension-text-style": "^3.4.4",
     "@tiptap/react": "^3.4.4",
     "@tiptap/starter-kit": "^3.4.4",
+    "browser-image-compression": "^2.0.2",
     "cities": "^2.0.0",
     "countries-and-timezones": "^3.8.0",
     "embla-carousel-autoplay": "^8.6.0",

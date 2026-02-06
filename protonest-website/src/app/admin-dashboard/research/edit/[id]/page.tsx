@@ -16,6 +16,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import {
+    AlertTriangle,
     AlignCenter,
     AlignLeft,
     AlignRight,
@@ -448,11 +449,18 @@ const EditResearchProjectContent = () => {
         setContentType(typeFromUrl);
     }, [typeFromUrl]);
 
+    const MAX_IMAGE_SIZE = 1024 * 1024;
+
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
                 setError('Please select a valid image file (JPG, PNG)');
+                return;
+            }
+
+            if (file.size > MAX_IMAGE_SIZE) {
+                setError('Cover image size must be less than 1MB');
                 return;
             }
 
@@ -496,6 +504,11 @@ const EditResearchProjectContent = () => {
     const handleImageUploadToEditor = useCallback(async (file: File) => {
         if (!file.type.startsWith('image/')) {
             setError('Please select a valid image file (JPG, PNG)');
+            return;
+        }
+
+        if (file.size > MAX_IMAGE_SIZE) {
+            setError('Image size must be less than 1MB');
             return;
         }
 
@@ -853,6 +866,8 @@ const EditResearchProjectContent = () => {
                                         Upload the file by drag and drop here or<br />
                                         click on the browse button.<br />
                                         Supported format: .JPG, PNG<br />
+                                        Maximum size: 1MB<br />
+                                        Recommended aspect ratio: 16:9
                                     </div>
                                     <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                         Browse
@@ -1256,6 +1271,32 @@ const EditResearchProjectContent = () => {
                     </div>
                 )
             }
+
+            {error && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                    onClick={() => setError(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Error</h3>
+                        <p className="text-gray-600 mb-6 text-center">{error}</p>
+                        <div className="flex justify-center">
+                            <button
+                                onClick={() => setError(null)}
+                                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
             <style jsx global>{`
