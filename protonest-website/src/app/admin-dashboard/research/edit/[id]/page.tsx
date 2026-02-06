@@ -866,7 +866,8 @@ const EditResearchProjectContent = () => {
                                         Upload the file by drag and drop here or<br />
                                         click on the browse button.<br />
                                         Supported format: .JPG, PNG<br />
-                                        Maximum size: 1MB
+                                        Maximum size: 1MB<br />
+                                        Recommended aspect ratio: 16:9
                                     </div>
                                     <button className="mt-6 px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-base font-semibold font-montserrat hover:shadow-lg transition-shadow">
                                         Browse
