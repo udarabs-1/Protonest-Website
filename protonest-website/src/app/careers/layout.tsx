@@ -9,20 +9,11 @@ export const metadata: Metadata = {
         type: 'website',
         siteName: 'Protonest',
         locale: 'en_US',
-        images: [
-            {
-                url: '/careers.jpeg',
-                width: 1200,
-                height: 630,
-                alt: 'Protonest Careers',
-            },
-        ],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'Protonest Careers',
         description: 'Protonest Careers',
-        images: ['/careers.jpeg'],
     },
 };
 
