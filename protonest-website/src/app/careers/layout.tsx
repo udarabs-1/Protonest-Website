@@ -11,7 +11,7 @@ export const metadata: Metadata = {
         locale: 'en_US',
         images: [
             {
-                url: '/careers.png',
+                url: '/careers.jpeg',
                 width: 1200,
                 height: 630,
                 alt: 'Protonest Careers',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Protonest Careers',
         description: 'Protonest Careers',
-        images: ['/careers.png'],
+        images: ['/careers.jpeg'],
     },
 };
 
