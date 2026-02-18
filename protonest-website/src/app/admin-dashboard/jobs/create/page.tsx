@@ -121,11 +121,7 @@ const JobCreator = () => {
         }));
     };
 
-    const getMinDateTime = () => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        return now.toISOString().slice(0, 16);
-    };
+
 
     const prepareApiData = (isDraft: boolean = false) => {
 
@@ -144,8 +140,8 @@ const JobCreator = () => {
             required_skills: formData.required_skills.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             what_you_will_get: formData.what_you_will_get.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             nice_to_have: formData.nice_to_have.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
-            schedule_at: (formData.publish_later && formData.schedule_at) ? new Date(formData.schedule_at).toISOString() : null,
-            publish_now: isDraft ? false : !formData.publish_later,
+            schedule_at: null,
+            publish_now: true,
             selection_criteria: {
                 prompt: formData.selection_criteria.prompt.trim(),
                 questions: validQuestions,
@@ -205,20 +201,7 @@ const JobCreator = () => {
             return false;
         }
 
-        if (formData.publish_later) {
-            if (!formData.schedule_at) {
-                setError('Please select a publish date and time or uncheck "Publish Later"');
-                return false;
-            }
 
-            const scheduleTime = new Date(formData.schedule_at);
-            const now = new Date();
-
-            if (scheduleTime <= now) {
-                setError('Scheduled publish time must be in the future');
-                return false;
-            }
-        }
 
         if (formData.selection_criteria.min_years_experience < 0) {
             setError('Minimum years of experience cannot be negative');
@@ -336,9 +319,7 @@ const JobCreator = () => {
             }
 
             if (data.status === 'success') {
-                const message = formData.publish_later
-                    ? 'Job scheduled for publishing successfully!'
-                    : 'Job published successfully!';
+                const message = 'Job published successfully!';
                 setSuccessDialog({
                     title: 'Success',
                     message: message,
@@ -388,8 +369,7 @@ const JobCreator = () => {
         type: 'full-time',
         experience: 'intermediate',
         deadline: '',
-        schedule_at: '',
-        publish_later: false,
+
         selection_criteria: {
             prompt: '',
             questions: [{ question: '', weight: 5, type: 'technical' as 'technical' | 'experience' | 'soft_skills' }],
@@ -623,47 +603,7 @@ const JobCreator = () => {
                             </div>
 
 
-                            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <div className="flex items-start mb-3">
-                                    <input
-                                        type="checkbox"
-                                        name="publish_later"
-                                        checked={formData.publish_later}
-                                        onChange={handleInputChange}
-                                        className="mr-3 h-4 w-4 text-[#5530FA] focus:ring-[#5530FA] border-gray-300 rounded mt-0.5"
-                                        disabled={isLoading || isSavingDraft}
-                                    />
-                                    <div className="flex-1">
-                                        <label className="text-sm font-medium text-[#4e4e4e] cursor-pointer">
-                                            Schedule for Later
-                                        </label>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Select a date and time to automatically publish this job
-                                        </p>
-                                    </div>
-                                </div>
 
-                                {formData.publish_later && (
-                                    <div className="mt-3">
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                            Publish Date & Time *
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            name="schedule_at"
-                                            value={formData.schedule_at}
-                                            onChange={handleInputChange}
-                                            min={getMinDateTime()}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading || isSavingDraft}
-                                            required={formData.publish_later}
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            📅 The job will be automatically published at the scheduled time
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
 
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Description *</label>
@@ -975,11 +915,11 @@ const JobCreator = () => {
                                 {isLoading ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        {formData.publish_later ? 'Scheduling...' : 'Publishing...'}
+                                        Publishing...
                                     </>
                                 ) : (
                                     <>
-                                        {formData.publish_later ? '📅 Schedule Job' : 'Publish Job Now'}
+                                        Publish Job Now
                                     </>
                                 )}
                             </button>
@@ -987,7 +927,7 @@ const JobCreator = () => {
                     </form>
                 </main>
             </div>
-        </AdminLayout>
+        </AdminLayout >
     );
 };
 

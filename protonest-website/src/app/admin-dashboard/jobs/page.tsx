@@ -393,8 +393,7 @@ const JobPostings = () => {
         { label: 'Active', value: 'active' },
         { label: 'Inactive', value: 'inactive' },
         { label: 'Published', value: 'published' },
-        { label: 'Draft', value: 'draft' },
-        { label: 'Scheduled', value: 'scheduled' }
+        { label: 'Draft', value: 'draft' }
     ];
 
     return (
@@ -667,6 +666,9 @@ const JobPostings = () => {
                                         <th className="px-4 py-3 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Published On
                                         </th>
+                                        <th className="px-4 py-3 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
+                                            Deadline
+                                        </th>
                                         <th className="px-4 py-3 text-center text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider">
                                             Active Status
                                         </th>
@@ -706,6 +708,9 @@ const JobPostings = () => {
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
                                                         {job.publication_status === 'published' ? formatDate(job.created_at) : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-medium font-poppins text-[#676767]">
+                                                        {job.deadline ? formatDate(job.deadline) : '-'}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-center">
                                                         <button
@@ -752,7 +757,7 @@ const JobPostings = () => {
                                         })
                                     ) : (
                                         <tr>
-                                            <td colSpan={7} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
+                                            <td colSpan={8} className="px-4 py-8 text-center text-[#676767] text-sm font-poppins">
                                                 {searchQuery
                                                     ? `No job postings found matching "${searchQuery}"`
                                                     : activeFilter !== 'all'
