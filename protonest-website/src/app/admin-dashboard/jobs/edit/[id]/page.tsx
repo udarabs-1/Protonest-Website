@@ -62,6 +62,7 @@ const JobEditor = () => {
     const { id: jobId } = useParams() as { id: string };
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState('');
     const [jobData, setJobData] = useState<JobData | null>(null);
@@ -78,8 +79,7 @@ const JobEditor = () => {
         type: 'full-time',
         experience: 'intermediate',
         deadline: '',
-        schedule_at: '',
-        publish_later: false,
+
         selection_criteria: {
             prompt: '',
             questions: [{ question: '', weight: 5, type: 'technical' as 'technical' | 'experience' | 'soft_skills' }],
@@ -173,18 +173,22 @@ const JobEditor = () => {
                 location: jobData.location || 'Remote',
                 type: jobData.type || 'full-time',
                 experience: jobData.experience || 'intermediate',
-                deadline: jobData.deadline ? new Date(jobData.deadline).toISOString().split('T')[0] : '',
-                schedule_at: jobData.schedule_at ? new Date(jobData.schedule_at).toISOString().slice(0, 16) : '',
+                deadline: jobData.deadline ? (() => {
+                    const date = new Date(jobData.deadline);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                })() : '',
                 what_you_will_get: jobData.what_you_will_get ? jobData.what_you_will_get.join('\n') : '',
                 nice_to_have: jobData.nice_to_have ? jobData.nice_to_have.join('\n') : '',
-                publish_later: jobData.publication_status === 'scheduled',
                 selection_criteria: {
                     prompt: selectionCriteria.prompt || '',
                     questions: selectionCriteria.questions && selectionCriteria.questions.length > 0
                         ? selectionCriteria.questions
                         : [{ question: '', weight: 5, type: 'technical' as const }],
-                    min_years_experience: selectionCriteria.min_years_experience || 0,
-                    preferred_years_experience: selectionCriteria.preferred_years_experience || 3
+                    min_years_experience: selectionCriteria.min_years_experience !== undefined ? selectionCriteria.min_years_experience : 0,
+                    preferred_years_experience: selectionCriteria.preferred_years_experience !== undefined ? selectionCriteria.preferred_years_experience : 3
                 }
             });
         }
@@ -275,14 +279,9 @@ const JobEditor = () => {
         }));
     };
 
-    const getMinDateTime = () => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        return now.toISOString().slice(0, 16);
-    };
 
-    const prepareApiData = () => {
 
+    const prepareApiData = (isDraft: boolean = false) => {
         const validQuestions = formData.selection_criteria.questions.filter(q => q.question.trim() !== '');
 
         return {
@@ -298,8 +297,8 @@ const JobEditor = () => {
             required_skills: formData.required_skills.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             what_you_will_get: formData.what_you_will_get.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
             nice_to_have: formData.nice_to_have.split('\n').filter(line => line.trim() !== '').map(line => line.trim()),
-            schedule_at: (formData.publish_later && formData.schedule_at) ? new Date(formData.schedule_at).toISOString() : null,
-            publish_now: !formData.publish_later,
+            schedule_at: null,
+            publish_now: true,
             selection_criteria: {
                 prompt: formData.selection_criteria.prompt.trim(),
                 questions: validQuestions,
@@ -309,7 +308,15 @@ const JobEditor = () => {
         };
     };
 
-    const validateForm = () => {
+    const validateForm = (isDraft: boolean = false) => {
+        if (isDraft) {
+            if (!formData.title.trim()) {
+                setError('Job title is required to save as draft');
+                return false;
+            }
+            return true;
+        }
+
         if (!formData.title.trim()) {
             setError('Job title is required');
             return false;
@@ -350,20 +357,7 @@ const JobEditor = () => {
             return false;
         }
 
-        if (formData.publish_later) {
-            if (!formData.schedule_at) {
-                setError('Please select a publish date and time or uncheck "Publish Later"');
-                return false;
-            }
 
-            const scheduleTime = new Date(formData.schedule_at);
-            const now = new Date();
-
-            if (scheduleTime <= now) {
-                setError('Scheduled publish time must be in the future');
-                return false;
-            }
-        }
 
         if (formData.selection_criteria.min_years_experience < 0) {
             setError('Minimum years of experience cannot be negative');
@@ -376,6 +370,67 @@ const JobEditor = () => {
         }
 
         return true;
+    };
+
+    const handleSaveAsDraft = async () => {
+        setIsSavingDraft(true);
+        setError('');
+
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                router.push('/admin-signin');
+                return;
+            }
+
+            if (!validateForm(true)) {
+                setIsSavingDraft(false);
+                return;
+            }
+
+            const apiData = prepareApiData(true);
+
+            console.log('Saving draft with data:', apiData);
+
+            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/jobs/${jobId}`;
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(apiData),
+            });
+
+            const data = await response.json();
+            console.log('API response:', data);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    router.push('/admin-signin');
+                    return;
+                }
+                throw new Error(data.message || 'Failed to save draft');
+            }
+
+            if (data.status === 'success') {
+                setSuccessDialog({
+                    title: 'Success',
+                    message: 'Job saved as draft successfully!',
+                    onOk: () => router.push('/admin-dashboard/jobs')
+                });
+            } else {
+                throw new Error(data.message || 'Operation failed');
+            }
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            setErrorDialog({
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to save draft. Please try again.'
+            });
+            setError(error instanceof Error ? error.message : 'Failed to save draft. Please try again.');
+        } finally {
+            setIsSavingDraft(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -420,9 +475,7 @@ const JobEditor = () => {
             }
 
             if (data.status === 'success') {
-                const message = formData.publish_later
-                    ? 'Job scheduled for publishing successfully!'
-                    : 'Job updated successfully!';
+                const message = 'Job updated successfully!';
                 setSuccessDialog({
                     title: 'Success',
                     message: message,
@@ -603,7 +656,7 @@ const JobEditor = () => {
                                         value={formData.title}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     />
                                 </div>
@@ -614,7 +667,7 @@ const JobEditor = () => {
                                         value={formData.category}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     >
                                         <option value="">Select Category</option>
@@ -630,7 +683,7 @@ const JobEditor = () => {
                                         value={formData.type}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     >
                                         <option value="full-time">Full Time</option>
@@ -646,7 +699,7 @@ const JobEditor = () => {
                                         value={formData.experience}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     >
                                         <option value="beginner">Beginner</option>
@@ -661,7 +714,7 @@ const JobEditor = () => {
                                         value={formData.location}
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     >
                                         <option value="Remote">Remote</option>
@@ -678,54 +731,14 @@ const JobEditor = () => {
                                         onChange={handleInputChange}
                                         min={new Date().toISOString().split('T')[0]}
                                         className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSavingDraft}
                                         required
                                     />
                                 </div>
                             </div>
 
 
-                            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <div className="flex items-start mb-3">
-                                    <input
-                                        type="checkbox"
-                                        name="publish_later"
-                                        checked={formData.publish_later}
-                                        onChange={handleInputChange}
-                                        className="mr-3 h-4 w-4 text-[#5530FA] focus:ring-[#5530FA] border-gray-300 rounded mt-0.5"
-                                        disabled={isLoading}
-                                    />
-                                    <div className="flex-1">
-                                        <label className="text-sm font-medium text-[#4e4e4e] cursor-pointer">
-                                            Schedule for Later
-                                        </label>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Select a date and time to automatically publish this job
-                                        </p>
-                                    </div>
-                                </div>
 
-                                {formData.publish_later && (
-                                    <div className="mt-3">
-                                        <label className="block text-sm font-medium text-[#4e4e4e] mb-2">
-                                            Publish Date & Time *
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            name="schedule_at"
-                                            value={formData.schedule_at}
-                                            onChange={handleInputChange}
-                                            min={getMinDateTime()}
-                                            className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
-                                            required={formData.publish_later}
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            📅 The job will be automatically published at the scheduled time
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
 
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-[#4e4e4e] mb-2">Job Description *</label>
@@ -735,7 +748,7 @@ const JobEditor = () => {
                                     onChange={handleInputChange}
                                     rows={4}
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                     required
                                     placeholder="Detailed description of the role"
                                 ></textarea>
@@ -750,7 +763,7 @@ const JobEditor = () => {
                                     rows={4}
                                     placeholder="List the key responsibilities for this role (one per line)"
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                     required
                                 ></textarea>
                             </div>
@@ -764,7 +777,7 @@ const JobEditor = () => {
                                     rows={4}
                                     placeholder="List the requirements for this role (one per line)"
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                     required
                                 ></textarea>
                             </div>
@@ -778,7 +791,7 @@ const JobEditor = () => {
                                     rows={4}
                                     placeholder="List the required skills for this role (one per line)"
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                     required
                                 ></textarea>
                             </div>
@@ -792,7 +805,7 @@ const JobEditor = () => {
                                     rows={4}
                                     placeholder="List the benefits and what the candidate will get (one per line)"
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                 ></textarea>
                             </div>
 
@@ -805,7 +818,7 @@ const JobEditor = () => {
                                     rows={4}
                                     placeholder="List nice-to-have skills or experiences (one per line)"
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                 ></textarea>
                             </div>
                         </div>
@@ -834,7 +847,7 @@ const JobEditor = () => {
                                             value={formData.selection_criteria.min_years_experience}
                                             onChange={(e) => handleCriteriaChange('min_years_experience', parseFloat(e.target.value) || 0)}
                                             className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
+                                            disabled={isLoading || isSavingDraft}
                                             required
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Candidates below this will receive lower scores</p>
@@ -850,7 +863,7 @@ const JobEditor = () => {
                                             value={formData.selection_criteria.preferred_years_experience}
                                             onChange={(e) => handleCriteriaChange('preferred_years_experience', parseFloat(e.target.value) || 0)}
                                             className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                            disabled={isLoading}
+                                            disabled={isLoading || isSavingDraft}
                                             required
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Candidates at or above this will receive perfect experience scores</p>
@@ -871,7 +884,7 @@ const JobEditor = () => {
                                     onChange={(e) => handleCriteriaChange('prompt', e.target.value)}
                                     rows={6}
                                     className="w-full px-4 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA]"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                     placeholder="Example: We're looking for a senior full-stack developer with strong expertise in React and Node.js. The ideal candidate should have experience building scalable microservices, excellent problem-solving abilities, and strong communication skills for mentoring junior developers. They should be comfortable working in an agile environment and have experience with cloud platforms like AWS or Azure."
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
@@ -910,7 +923,7 @@ const JobEditor = () => {
                                                             onChange={(e) => handleQuestionChange(index, 'question', e.target.value)}
                                                             className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
                                                             placeholder="E.g., Has experience with CI/CD pipelines and DevOps practices?"
-                                                            disabled={isLoading}
+                                                            disabled={isLoading || isSavingDraft}
                                                         />
                                                     </div>
 
@@ -923,7 +936,7 @@ const JobEditor = () => {
                                                                 value={question.type}
                                                                 onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
                                                                 className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
-                                                                disabled={isLoading}
+                                                                disabled={isLoading || isSavingDraft}
                                                             >
                                                                 <option value="technical">Technical Skill</option>
                                                                 <option value="experience">Experience</option>
@@ -941,7 +954,7 @@ const JobEditor = () => {
                                                                 value={question.weight}
                                                                 onChange={(e) => handleQuestionChange(index, 'weight', parseInt(e.target.value) || 5)}
                                                                 className="w-full px-3 py-2 rounded-[8px] border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#5530FA] focus:border-[#5530FA] text-sm"
-                                                                disabled={isLoading}
+                                                                disabled={isLoading || isSavingDraft}
                                                             />
                                                         </div>
                                                     </div>
@@ -952,7 +965,7 @@ const JobEditor = () => {
                                                         type="button"
                                                         onClick={() => removeQuestion(index)}
                                                         className="flex-shrink-0 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                        disabled={isLoading}
+                                                        disabled={isLoading || isSavingDraft}
                                                         title="Remove question"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -979,7 +992,7 @@ const JobEditor = () => {
                                     type="button"
                                     onClick={addQuestion}
                                     className="mt-3 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-[#5530FA] hover:bg-[#5530FA]/5 hover:border-[#5530FA] transition-colors flex items-center justify-center gap-2"
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSavingDraft}
                                 >
                                     <Plus className="w-4 h-4" />
                                     Add Another Evaluation Criterion
@@ -1006,24 +1019,44 @@ const JobEditor = () => {
                                 type="button"
                                 onClick={() => router.push('/admin-dashboard/jobs')}
                                 className="px-6 py-2 rounded-[57px] border border-gray-300 text-[#676767] hover:bg-gray-50 transition-colors disabled:opacity-50 order-3 sm:order-1"
-                                disabled={isLoading}
+                                disabled={isLoading || isSavingDraft}
                             >
                                 Cancel
                             </button>
 
+                            {jobData?.publication_status === 'draft' && (
+                                <button
+                                    type="button"
+                                    onClick={handleSaveAsDraft}
+                                    className="px-6 py-2 rounded-[57px] border-2 gradient-button font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-2"
+                                    disabled={isLoading || isSavingDraft}
+                                >
+                                    {isSavingDraft ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2"></div>
+                                            Saving Draft...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Save as Draft
+                                        </>
+                                    )}
+                                </button>
+                            )}
+
                             <button
                                 type="submit"
                                 className="cursor-pointer px-6 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white font-medium hover:shadow-lg transition-shadow disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-3"
-                                disabled={isLoading}
+                                disabled={isLoading || isSavingDraft}
                             >
                                 {isLoading ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        {formData.publish_later ? 'Scheduling...' : 'Updating...'}
+                                        Updating...
                                     </>
                                 ) : (
                                     <>
-                                        {formData.publish_later ? '📅 Schedule Update' : 'Update Job'}
+                                        Update Job
                                     </>
                                 )}
                             </button>
@@ -1031,7 +1064,7 @@ const JobEditor = () => {
                     </form>
                 </main>
             </div>
-        </AdminLayout>
+        </AdminLayout >
     );
 };
 
