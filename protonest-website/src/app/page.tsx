@@ -59,11 +59,11 @@ function LargeScreenHome() {
           <div className="flex justify-center">
             <div className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Bringing Your IoT Ideas to Life with
+                Your Reliable IoT
               </span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Expert Prototyping
+                Development Partner
               </span>
             </div>
           </div>
@@ -244,11 +244,11 @@ function SmallScreenHome() {
           <div className="flex justify-center">
             <div className="text-center text-[24px] sm:text-[30px] md:text-[32px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Bringing Your IoT Ideas to Life with
+                Your Reliable IoT
               </span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Expert Prototyping
+                Development Partner
               </span>
             </div>
           </div>
@@ -403,14 +403,14 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>IoT Prototyping Services by Protonest</title>
+        <title>IoT Development Services by Protonest</title>
         <meta
           name="description"
-          content="IoT Prototyping Services by Protonest , We specialized in transforming IoT ideas into reality with expert prototyping and innovative engineering."
+          content="IoT Development Services by Protonest , We specialized in transforming IoT ideas into reality with expert development and innovative engineering."
         />
         <meta
           name="keywords"
-          content="IoT prototyping services, rapid IoT prototyping, IoT product development, hardware prototyping, IoT prototype company"
+          content="IoT development services, IoT development partner, IoT product development, hardware development, IoT development company"
         />
 
         <link rel="canonical" href="https://protonest.co/" />
@@ -419,11 +419,11 @@ export default function Home() {
         <meta property="og:url" content="https://protonest.co/" />
         <meta
           property="og:title"
-          content="IoT Prototyping Services by Protonest"
+          content="IoT Development Services by Protonest"
         />
         <meta
           property="og:description"
-          content="Transform IoT ideas into reality with expert prototyping from Protonest. Built fast. Built right."
+          content="Your reliable IoT Development Partner. Built fast. Built right."
         />
         <meta
           property="og:image"
@@ -437,7 +437,7 @@ export default function Home() {
             name: "Protonest",
             url: "https://protonest.co/",
             description:
-              "IoT prototyping services to transform ideas into reality.",
+              "IoT development services to transform ideas into reality.",
             foundingDate: "2023",
             founder: {
               "@type": "Person",
