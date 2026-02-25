@@ -31,27 +31,27 @@ const NewsAndBlogs = () => {
   const blogs = [
     {
       id: 1,
-      title: "Selecting a Suitable Sensor for an IoT Project",
-      image: "/blogs1.png",
+      title: "Zigbee Communication Reliability Using ESP32-C6 with Inbuilt and External Antennas",
+      image: "/blogs4.avif",
       description:
-        "The world of the Internet of Things is a world in constant flux where sensors are silent heroes that will help bring your project to reality. Whether it is to keep your house comfortable with a smart thermostat, monitor your pulse with a fitness tracker, or agricultural systems that guarantee optimal crop growth are in the middle of any application involving IoT.",
-      link: "blog/selecting-a-suitable-sensor-for-an-iot-project",
+        "The success of Zigbee communications often comes down to the performance of the antenna you use with your ESP32-C6 module. The onboard PCB antenna on the ESP32-C6 module has proven to be decent for low-range applications, but it will begin to degrade significantly in real-world environments. Upgrading to a properly tuned and matched antenna boosts overall Zigbee network reliability.",
+      link: "blog/zigbee-communication-reliability-using-esp32-c6-with-inbuilt-and-external-antennas",
     },
     {
       id: 2,
-      title: "Selecting a Perfect Battery for an IoT Project",
-      image: "/blogs2.png",
+      title: "PCB Component Management System",
+      image: "/blogs5.avif",
       description:
-        "The selection of the proper battery for an IoT project is much more than a technical decision but a strategic one, considering the reliability, lifespan, and performance of your IoT Project.",
-      link: "blog/selecting-a-perfect-battery-for-an-iot-project",
+        "If you’ve worked on PCB product development, you've probably faced this problem: once PCB counts increase, component tracking stops matching reality. A BOM or spreadsheet may indicate parts are available, but a single missing component can stop the entire build. With each PCB containing hundreds of parts, it becomes hard to track what was used, what's left, and which project or revision consumed which components.",
+      link: "blog/pcb-component-management-system",
     },
     {
       id: 3,
-      title: "Selecting the Perfect Cloud Backend for an IoT Project",
-      image: "/blogs3.png",
+      title: "Testing UWB Ranging Reliability: How Antenna Alignment Affects Accuracy",
+      image: "/blogs6.avif",
       description:
-        "One of the most critical decisions for any IoT project is selecting the right cloud backend for an IoT project. The cloud backend platform serves as a central hub for managing communication, data storage, and processing, with the scalability and security of the whole system in mind.",
-      link: "blog/selecting-the-perfect-cloud-backend-for-an-iot-project",
+        "Accurate tracking and positioning in robotics and embedded systems often depend on Ultra-Wideband (UWB) distance measurements. In controlled bench tests using DWM3000 modules, reliable results were obtained when both antennas were aligned in the same direction. However, when the antennas were rotated to different angles, the measured distances consistently decreased, accompanied by weaker signal reception. These findings highlight how antenna orientation can influence short-range UWB performance and provide practical guidance for maintaining measurement accuracy in real-world deployments.",
+      link: "blog/testing-uwb-ranging-reliability:-how-antenna-alignment-affects-accuracy",
     },
   ];
 
@@ -118,12 +118,12 @@ const BlogCard = ({
     <Link href={blog.link} className="block w-full max-w-[345px]">
       <div
         ref={ref}
-        className={`group w-full h-auto min-h-[350px] sm:min-h-[420px] relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects
+        className={`group w-full h-[400px] sm:h-[460px] flex flex-col relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects
           ? "shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]"
           : ""
           }`}
       >
-        <div className="relative w-full max-w-[279px] h-[140px] sm:h-[164px] mx-auto rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6">
+        <div className="relative w-full h-[140px] sm:h-[164px] rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6 flex-shrink-0">
           <Image
             src={blog.image}
             alt={`${blog.title} blog post image`}
@@ -162,7 +162,7 @@ const BlogCard = ({
             30
           );
           return (
-            <p className="w-full max-w-[279px] mx-auto text-center text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed px-2">
+            <p className="w-full max-w-[279px] mx-auto text-center text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed px-2 flex-grow">
               {truncated}
               {isTruncated && "... "}
               {isTruncated && (
