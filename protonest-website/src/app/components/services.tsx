@@ -112,7 +112,7 @@ const ServicesSection = () => (
         highlight="Offer?"
         description="From Idea to Execution, We’ve Got You Covered."
         linkLabel="Get a Quote"
-        linkHref="https://iot-system-design-tool.protonest.co"
+        linkHref="https://meetings-na2.hubspot.com/udara-kumarasena"
         linkExternal
       />
 

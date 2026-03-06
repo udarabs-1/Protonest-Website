@@ -201,7 +201,7 @@ export default function About() {
           </div>
         </div>
 
-        <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[649px] overflow-hidden -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20">
+        <div className="relative w-full h-[500px] sm:h-[550px] md:h-[600px] lg:h-[649px] overflow-visible -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20">
           <div className="absolute inset-0 flex justify-center">
             <Image
               src="/about-3.svg"
@@ -231,7 +231,7 @@ export default function About() {
           </div>
         </div>
 
-        <div className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] relative -mt-4 sm:-mt-8 md:-mt-12 lg:-mt-16">
+        <div className="min-h-[800px] sm:min-h-[700px] md:min-h-[700px] lg:min-h-[649px] relative mt-4 sm:mt-0 md:-mt-12 lg:-mt-16">
           <div className="absolute inset-0">
             <Image
               src="/about-4.svg"
@@ -281,7 +281,7 @@ export default function About() {
           <OurTeamSection />
         </div>
 
-        <div className="mt-32 md:mt-22 lg:mt-24 flex justify-center w-full px-4">
+        <div className="mt-16 md:mt-22 lg:mt-24 flex justify-center w-full px-4">
           <div className="w-full max-w-[1100px] text-center">
             <h2 className="text-[24px] lg:text-[30px] xl:text-[40px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px]">
               <span className="text-[#6c6c6c]">
@@ -304,7 +304,7 @@ export default function About() {
 
         <div className="mt-8 sm:mt-10 md:mt-12 text-center pb-8 sm:pb-12 md:pb-16">
           <Link
-            href="https://iot-system-design-tool.protonest.co/"
+            href="https://meetings-na2.hubspot.com/udara-kumarasena"
             target="_blank"
             rel="noopener noreferrer"
           >

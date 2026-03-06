@@ -2,73 +2,81 @@
 import { Icon } from '@iconify/react';
 import Head from "next/head";
 import Image from "next/image";
-import { useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import PageHero from "../components/page-hero";
-import { ContactConfirmDialog, ContactMessageDialog, SubscriptionDialogStyles } from "../components/subscription-dialogs";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showMessageDialog, setShowMessageDialog] = useState<'success' | 'error' | null>(null);
-  const [submitMessage, setSubmitMessage] = useState('');
+  const formContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const formScriptId = 'hubspot-form-script';
+    const meetingScriptId = 'hubspot-meeting-script';
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setShowConfirmDialog(true);
-  };
+    // We generate a strict runtime ID to defend against React Strict Mode race conditions
+    const currentUniqueId = 'hubspot-form-' + Math.random().toString(36).substring(2, 9);
 
-  const confirmSubmit = async () => {
-    setShowConfirmDialog(false);
-    setIsSubmitting(true);
-    setSubmitMessage('');
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setSubmitMessage(result.message || 'Thank you for reaching out! We\'ll get back to you within 48 hours.');
-        setShowMessageDialog('success');
-        setFormData({ name: '', email: '', message: '' });
-      } else {
-        setSubmitMessage(result.message || result.error || 'Failed to send message. Please try again.');
-        setShowMessageDialog('error');
-        console.error('Error:', result.message || result.error);
-      }
-    } catch (error) {
-      setSubmitMessage('An error occurred. Please try again later or contact us directly.');
-      setShowMessageDialog('error');
-      console.error('Error:', error);
-    } finally {
-      setIsSubmitting(false);
+    if (formContainerRef.current) {
+      formContainerRef.current.id = currentUniqueId;
+      formContainerRef.current.innerHTML = ''; // clear any ghost elements
     }
-  };
 
+    const renderForm = () => {
+      let retryCount = 0;
+      const initForm = () => {
+        if (!isMounted) return; // Prevent creating if unmounted before script executed
 
+        if (typeof window !== 'undefined' && (window as any).hbspt && (window as any).hbspt.forms) {
+          (window as any).hbspt.forms.create({
+            region: "na2",
+            portalId: "245081948",
+            formId: "629656dd-95fd-43c1-99b1-32fd914a3323",
+            target: `#${currentUniqueId}`
+          });
+        } else if (retryCount < 25) {
+          retryCount++;
+          setTimeout(initForm, 100); // Retry after 100ms if script hasn't finished loading
+        }
+      };
+
+      initForm();
+    };
+
+    // Load Form Script if not already loaded, else just render the form
+    if (!document.getElementById(formScriptId)) {
+      const formScript = document.createElement('script');
+      formScript.src = 'https://js-na2.hsforms.net/forms/v2.js'; // MUST use v2 API to support hbspt.forms.create
+      formScript.id = formScriptId;
+      formScript.async = true;
+      formScript.onload = renderForm;
+      document.body.appendChild(formScript);
+    } else {
+      // If script is already loaded from another page visit, just render the form instantly
+      renderForm();
+    }
+
+    // Load Meeting Scheduler Script
+    // First remove any old instances so it correctly re-scans the DOM on load
+    const existingMeetingScript = document.getElementById(meetingScriptId);
+    if (existingMeetingScript) existingMeetingScript.remove();
+
+    const meetingScript = document.createElement('script');
+    meetingScript.src = 'https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js';
+    meetingScript.id = meetingScriptId;
+    meetingScript.async = true;
+    document.body.appendChild(meetingScript);
+
+    return () => {
+      isMounted = false; // Cleanup flag to stop stray background execution
+      if (document.getElementById(meetingScriptId)) {
+        document.getElementById(meetingScriptId)?.remove();
+      }
+      // Leave the form script globally loaded, but DOM cleanup happens naturally by React
+    };
+  }, []);
 
   return (
     <div>
@@ -125,122 +133,35 @@ export default function Contact() {
             gradientText: "Together!"
           }}
           description="Got an idea in mind? Let us know your idea, and we'll review it within 48 hours and get back to you with a detailed proposal"
-          height="h-[350px] sm:h-[420px] md:h-[480px] lg:h-[553px]"
+          height="h-[350px] sm:h-[420px] md:h-[400px]"
         />
 
 
-        <div className="relative w-full min-h-screen sm:min-h-[1100px] 2xl:min-h-[1300px]">
+        <div className="relative w-full">
+          <div className="relative z-20 pt-[120px] md:pt-[100px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px]">
 
-          <div className="absolute inset-0 w-full h-full z-10 overflow-visible -mt-[500px] md:-mt-[100px] lg:-mt-[110px] xl:-mt-[150px]">
-
-            <div className="block md:hidden">
-              <Image
-                src="/contact-2-mobile.svg"
-                alt="Contact form background mobile"
-                fill
-                priority={false}
-                quality={65}
-                sizes="(max-width: 768px) 100vw, 0px"
-                style={{ objectFit: 'cover', objectPosition: 'center' }}
-              />
-            </div>
-
-            <div className="hidden md:block max-w-[1440px] ml-auto h-full">
-              <Image
-                src="/contact-2.webp"
-                alt="Contact form background desktop"
-                fill
-                priority={false}
-                quality={70}
-                sizes="(min-width: 768px) 100vw, 0px"
-                style={{ objectFit: 'cover', objectPosition: 'right' }}
-              />
-            </div>
-          </div>
-
-
-          <div className="relative z-20 pt-[120px] md:pt-[100px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pb-[60px] sm:pb-[70px] md:pb-[85px] lg:pb-[100px]">
-
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-[40px] md:-top-[40px] w-full max-w-[1127px] text-center px-4">
+            <div className="w-full text-center px-4 mb-16">
               <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                 Get in Touch
               </span>
             </div>
 
 
-            <form onSubmit={handleSubmit} className="max-w-[500px] sm:max-w-[600px] md:max-w-[500px] lg:max-w-[550px] xl:max-w-[770px] space-y-[30px] sm:space-y-[35px] md:space-y-[42px] lg:space-y-[50px]">
-
-              <div>
-                <label htmlFor="name" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
-                  Name
-                </label>
-                <div className="border-b border-[#6c6c6c] pb-2">
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter Your Name"
-                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
-                    required
-                  />
-                </div>
+            <div className="flex flex-col gap-16 lg:gap-20 items-center max-w-[800px] mx-auto w-full">
+              {/* Contact Form Container (Top) */}
+              <div className="w-full min-h-[550px] flex items-start justify-center">
+                <div ref={formContainerRef} className="w-full"></div>
               </div>
 
-
-              <div>
-                <label htmlFor="email" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
-                  Email
-                </label>
-                <div className="border-b border-[#6c6c6c] pb-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Enter Your Email"
-                    className="w-full text-[#6c6c6c]/80 text-sm sm:text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none"
-                    required
-                  />
-                </div>
+              {/* Meeting Scheduler Container (Bottom) */}
+              <div className="w-full min-h-[550px] flex items-start justify-center">
+                <div className="w-full meetings-iframe-container" data-src="https://meetings-na2.hubspot.com/udara-kumarasena?embed=true"></div>
               </div>
-
-
-              <div>
-                <label htmlFor="message" className="block text-[#6c6c6c] text-base xl:text-lg font-medium font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] mb-2">
-                  Message
-                </label>
-                <div className="border-b border-[#6c6c6c] pb-2">
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    placeholder="Tell us a bit about your project or question"
-                    className="w-full text-[#6c6c6c]/80 text-sm xl:text-base font-normal font-poppins leading-[25px] sm:leading-[27px] md:leading-[28px] lg:leading-[30px] bg-transparent outline-none resize-none min-h-[80px] sm:min-h-[90px] md:min-h-[95px] lg:min-h-[100px]"
-                    required
-                  />
-                </div>
-              </div>
-
-
-              <div className="inline-flex justify-start items-center mt-4 text-center w-full">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-[150px] lg:w-[180px] h-[45px] sm:h-[47px] md:h-[48px] lg:h-[50px] gradient-button font-medium font-poppins text-sm md:text-[15px] xl:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
 
-
-        <div className="relative w-full max-w-[1440px] mx-auto h-auto -mt-25 sm:-mt-80 md:-mt-60 lg:-mt-50 2xl:-mt-[250px] pb-[60px] lg:pb-0">
+        <div className="relative w-full max-w-[1440px] mx-auto h-auto mt-4 md:mt-8 pt-8">
 
           <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[520px] lg:h-[585px] overflow-hidden">
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">
@@ -329,30 +250,6 @@ export default function Contact() {
         <FAQSection />
       </div>
       <Footer />
-
-
-      {typeof document !== 'undefined' && showConfirmDialog && createPortal(
-        <ContactConfirmDialog
-          name={formData.name}
-          email={formData.email}
-          onConfirm={confirmSubmit}
-          onCancel={() => setShowConfirmDialog(false)}
-        />,
-        document.body
-      )}
-
-      {typeof document !== 'undefined' && showMessageDialog && createPortal(
-        <ContactMessageDialog
-          type={showMessageDialog}
-          message={submitMessage}
-          onClose={() => {
-            setShowMessageDialog(null);
-          }}
-        />,
-        document.body
-      )}
-
-      <SubscriptionDialogStyles />
     </div>
   );
 }

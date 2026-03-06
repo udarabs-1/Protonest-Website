@@ -17,7 +17,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "IoT Prototyping Services by Protonest",
+  title: "IoT Development Services by Protonest",
 };
 
 export default function RootLayout({

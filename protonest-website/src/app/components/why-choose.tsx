@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import SectionHeader from "./section-header";
 
 const WhyChooseProtonest = () => {
@@ -78,7 +77,7 @@ const WhyChooseProtonest = () => {
           highlight="Protonest?"
           description="Where bold ideas become connected products."
           linkLabel="Get a Quote"
-          linkHref="https://iot-system-design-tool.protonest.co"
+          linkHref="https://meetings-na2.hubspot.com/udara-kumarasena"
           linkExternal
         />
 
@@ -135,20 +134,17 @@ const FeatureItemAlternating = ({
 }) => {
   return (
     <div
-      className={`flex items-center ${
-        isLeft ? "justify-start" : "justify-end"
-      }`}
+      className={`flex items-center ${isLeft ? "justify-start" : "justify-end"
+        }`}
     >
       <div
-        className={`inline-flex items-center gap-6 sm:gap-8 ${
-          isLeft ? "" : "flex-row-reverse"
-        }`}
+        className={`inline-flex items-center gap-6 sm:gap-8 ${isLeft ? "" : "flex-row-reverse"
+          }`}
       >
         <FeatureCircle icon={icon} title={title} index={index} />
         <div
-          className={`max-w-[150px] text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm font-normal font-poppins ${
-            isLeft ? "text-left" : "text-right"
-          }`}
+          className={`max-w-[150px] text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm font-normal font-poppins ${isLeft ? "text-left" : "text-right"
+            }`}
         >
           {title}
         </div>

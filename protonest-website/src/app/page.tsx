@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import ClientMarquee from "./components/client-marquee";
+import ClientsMap from "./components/clients-map";
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/news-and-blogs";
@@ -198,6 +199,7 @@ function LargeScreenHome() {
       <ServicesSection />
 
       <StatsSection stats={HIGHLIGHT_STATS} />
+      <ClientsMap />
     </div>
   );
 }
@@ -395,6 +397,7 @@ function SmallScreenHome() {
       <ServicesSection />
 
       <StatsSection stats={HIGHLIGHT_STATS} />
+      <ClientsMap />
     </div>
   );
 }

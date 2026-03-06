@@ -3,7 +3,7 @@
 import AdminLayout from '@/app/components/admin-layout';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Project {
     id: string;
@@ -32,6 +32,20 @@ interface Job {
     title: string;
     location: string;
     job_type: string;
+}
+
+interface NewsletterHistory {
+    id: string;
+    newsletter_title: string;
+    founder_message?: string;
+    projects?: Project[];
+    research?: Research[];
+    blogs?: BlogPost[];
+    jobs?: Job[];
+    sent_count: number;
+    failed_count: number;
+    total_count: number;
+    sent_at: string;
 }
 
 const isAdminTokenExpired = (): boolean => {
@@ -77,6 +91,8 @@ const NewsletterManager = () => {
     const [research, setResearch] = useState<Research[]>([]);
     const [blogs, setBlogs] = useState<BlogPost[]>([]);
     const [jobs, setJobs] = useState<Job[]>([]);
+    const [history, setHistory] = useState<NewsletterHistory[]>([]);
+    const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
@@ -85,19 +101,17 @@ const NewsletterManager = () => {
     useEffect(() => {
         if (isAdminTokenExpired()) {
             router.push('/admin-signin');
+        } else {
+            fetchAllData();
         }
     }, [router]);
-
-    useEffect(() => {
-        fetchAllData();
-    }, []);
 
     const fetchAllData = async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('adminToken');
 
-            const [projectsRes, researchRes, blogsRes, jobsRes] = await Promise.all([
+            const [projectsRes, researchRes, blogsRes, jobsRes, historyRes] = await Promise.all([
                 fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/projects`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
@@ -109,6 +123,9 @@ const NewsletterManager = () => {
                 }),
                 fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs`, {
                     headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/admin/newsletter/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
 
@@ -116,11 +133,13 @@ const NewsletterManager = () => {
             const researchData = await researchRes.json();
             const blogsData = await blogsRes.json();
             const jobsData = await jobsRes.json();
+            const historyData = await historyRes.json();
 
             if (projectsData.status === 'success') setProjects(projectsData.data || []);
             if (researchData.status === 'success') setResearch(researchData.data || []);
             if (blogsData.status === 'success') setBlogs((blogsData.data || []).filter((b: BlogPost) => b.slug));
             if (jobsData.status === 'success') setJobs(jobsData.data || []);
+            if (historyData.status === 'success') setHistory(historyData.data || []);
         } catch (err) {
             console.error('Error fetching data:', err);
         } finally {
@@ -823,6 +842,124 @@ const NewsletterManager = () => {
                             >
                                 Send Newsletter
                             </button>
+                        </div>
+
+                        {/* History Table */}
+                        <div className="mt-12 bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] p-6">
+                            <h2 className="text-lg font-semibold text-[#6c6c6c] mb-4">Newsletter Send History</h2>
+
+                            {history.length === 0 ? (
+                                <p className="text-gray-500 text-sm py-4 text-center">No history documented yet.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full text-left text-sm whitespace-nowrap">
+                                        <thead className="lowercase tracking-wider border-b-2">
+                                            <tr>
+                                                <th scope="col" className="px-6 py-4 font-semibold w-12"></th>
+                                                <th scope="col" className="px-6 py-4 font-semibold">Title</th>
+                                                <th scope="col" className="px-6 py-4 font-semibold text-center">Successful Sends</th>
+                                                <th scope="col" className="px-6 py-4 font-semibold text-center">Failed Sends</th>
+                                                <th scope="col" className="px-6 py-4 font-semibold">Sent At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {history.map((record) => (
+                                                <React.Fragment key={record.id}>
+                                                    <tr className="border-b hover:bg-neutral-50 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <button
+                                                                onClick={() => setExpandedHistoryId(expandedHistoryId === record.id ? null : record.id)}
+                                                                className="text-gray-500 hover:text-purple-600 transition-colors"
+                                                            >
+                                                                <Icon
+                                                                    icon={expandedHistoryId === record.id ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}
+                                                                    className="w-5 h-5"
+                                                                />
+                                                            </button>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-medium text-gray-800">{record.newsletter_title}</td>
+                                                        <td className="px-6 py-4 text-center text-green-600">{record.sent_count} / {record.total_count}</td>
+                                                        <td className="px-6 py-4 text-center text-red-500">{record.failed_count}</td>
+                                                        <td className="px-6 py-4 text-gray-500">{new Date(record.sent_at).toLocaleString()}</td>
+                                                    </tr>
+                                                    {expandedHistoryId === record.id && (
+                                                        <tr className="bg-neutral-50 border-b">
+                                                            <td colSpan={5} className="p-6 h-auto">
+                                                                <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm whitespace-normal space-y-6">
+                                                                    {record.founder_message && (
+                                                                        <div>
+                                                                            <h4 className="text-sm font-semibold mb-2 font-montserrat tracking-wide uppercase text-purple-600">Founder&apos;s Message</h4>
+                                                                            <p className="text-sm text-gray-600 leading-relaxed italic border-l-4 border-purple-200 pl-4">{record.founder_message}</p>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-gray-100">
+                                                                        {record.projects && record.projects.length > 0 && (
+                                                                            <div>
+                                                                                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><Icon icon="solar:folder-with-files-bold" className="text-blue-500" /> Projects featured</h4>
+                                                                                <ul className="space-y-2">
+                                                                                    {record.projects.map((p, i) => (
+                                                                                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                                                                            <span className="text-gray-400 mt-0.5">•</span>
+                                                                                            <span>{p.title}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {record.research && record.research.length > 0 && (
+                                                                            <div>
+                                                                                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><Icon icon="solar:test-tube-bold" className="text-green-500" /> Research featured</h4>
+                                                                                <ul className="space-y-2">
+                                                                                    {record.research.map((r, i) => (
+                                                                                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                                                                            <span className="text-gray-400 mt-0.5">•</span>
+                                                                                            <span>{r.title}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {record.blogs && record.blogs.length > 0 && (
+                                                                            <div>
+                                                                                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><Icon icon="solar:document-text-bold" className="text-orange-500" /> Blogs featured</h4>
+                                                                                <ul className="space-y-2">
+                                                                                    {record.blogs.map((b, i) => (
+                                                                                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                                                                            <span className="text-gray-400 mt-0.5">•</span>
+                                                                                            <span>{b.title}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {record.jobs && record.jobs.length > 0 && (
+                                                                            <div>
+                                                                                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><Icon icon="solar:briefcase-bold" className="text-pink-500" /> Jobs featured</h4>
+                                                                                <ul className="space-y-2">
+                                                                                    {record.jobs.map((j, i) => (
+                                                                                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                                                                            <span className="text-gray-400 mt-0.5">•</span>
+                                                                                            <span>{j.title} <span className="text-xs text-gray-400 ml-1">({j.location})</span></span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </React.Fragment>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
