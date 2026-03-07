@@ -117,8 +117,8 @@ const TestimonialSection = () => {
 
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
-      <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 left-0 right-0 z-10">
-        <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-[500px]">
+      <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 bottom-0 md:bottom-0 lg:bottom-auto left-0 right-0 z-10">
+        <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-full lg:h-[500px]">
           <Image
             src="/home-5.svg"
             alt="Testimonials background"
@@ -139,7 +139,7 @@ const TestimonialSection = () => {
           align="center"
         />
 
-        <div className="lg:hidden mt-20 mb-10 md:mb-12 px-2">
+        <div className="lg:hidden mt-10 sm:mt-12 mb-2 sm:mb-4 md:mb-12 px-2">
           <Slider ref={mobileSliderRef} {...mobileCarouselSettings}>
             {testimonials.map((testimonial) => (
               <div key={testimonial.id} className="px-6 pb-6">
@@ -157,7 +157,7 @@ const TestimonialSection = () => {
           </Slider>
         </div>
 
-        <div className="hidden lg:block mt-10 mb-10 md:mb-12 lg:mb-16">
+        <div className="hidden lg:block mt-2 mb-10 md:mb-12 lg:mb-16">
           <Slider ref={sliderRef} {...desktopCarouselSettings}>
             {testimonials.map((testimonial) => (
               <div key={testimonial.id} className="px-3 xl:px-5">

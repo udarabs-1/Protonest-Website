@@ -62,29 +62,30 @@ export default function WorldMap({
 
         switch (position) {
             case "top":
-                y -= 12; // Adjusted higher for 24px text
+                y -= 15; // Adjusted higher for 24px text
                 break;
             case "bottom":
-                y += 24; // Adjusted lower for 24px text
+                y += 28; // Adjusted lower for 24px text
                 break;
             case "left":
-                x -= 12; // Adjusted further left
+                x -= 15; // Adjusted further left
                 y += 8;
                 textAnchor = "end";
                 break;
             case "right":
-                x += 12; // Adjusted further right
+                x += 15; // Adjusted further right
                 y += 8;
                 textAnchor = "start";
                 break;
         }
 
+        // Dropped full SVG fill gradient because this applies to the emoji flags and forces them un-renderable or monotone colored in Safari iOS.
         return (
             <text
                 x={x}
                 y={y}
-                fill="url(#theme-gradient)"
-                className="text-[18px] font-bold"
+                fontSize="24"
+                fontWeight="bold"
                 textAnchor={textAnchor}
             >
                 {dot.label}
@@ -96,7 +97,7 @@ export default function WorldMap({
         <div className="w-full aspect-[2/1] dark:bg-black bg-white rounded-lg relative font-sans overflow-hidden">
             <img
                 src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
-                className="h-full w-full pointer-events-none select-none"
+                className="h-full w-full pointer-events-none select-none relative z-0"
                 alt="world map"
                 height="495"
                 width="1056"
@@ -105,8 +106,15 @@ export default function WorldMap({
             <svg
                 ref={svgRef}
                 viewBox="0 0 800 400"
-                className="w-full h-full absolute inset-0 pointer-events-none select-none"
+                className="w-full h-full absolute inset-0 z-10 pointer-events-none select-none"
             >
+                <defs>
+                    <linearGradient id="theme-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#5530FA" />
+                        <stop offset="100%" stopColor="#F51DA5" />
+                    </linearGradient>
+                </defs>
+
                 {dots.map((dot, i) => {
                     const startPoint = projectPoint(dot.start.lat, dot.start.lng);
                     const endPoint = projectPoint(dot.end.lat, dot.end.lng);
@@ -115,8 +123,9 @@ export default function WorldMap({
                             <motion.path
                                 d={createCurvedPath(startPoint, endPoint)}
                                 fill="none"
-                                stroke="url(#path-gradient)"
-                                strokeWidth="1"
+                                stroke={lineColor}
+                                strokeOpacity="0.8"
+                                strokeWidth="1.5"
                                 initial={{
                                     pathLength: 0,
                                 }}
@@ -134,41 +143,27 @@ export default function WorldMap({
                     );
                 })}
 
-                <defs>
-                    <linearGradient id="theme-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#5530FA" />
-                        <stop offset="100%" stopColor="#F51DA5" />
-                    </linearGradient>
-                    <linearGradient id="path-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="white" stopOpacity="0" />
-                        <stop offset="5%" stopColor="#F51DA5" stopOpacity="1" />
-                        <stop offset="50%" stopColor="#5530FA" stopOpacity="1" />
-                        <stop offset="95%" stopColor="#F51DA5" stopOpacity="1" />
-                        <stop offset="100%" stopColor="white" stopOpacity="0" />
-                    </linearGradient>
-                </defs>
-
                 {dots.map((dot, i) => (
                     <g key={`points-group-${i}`}>
                         <g key={`start-${i}`}>
                             <circle
                                 cx={projectPoint(dot.start.lat, dot.start.lng).x}
                                 cy={projectPoint(dot.start.lat, dot.start.lng).y}
-                                r="2"
-                                fill="url(#theme-gradient)"
+                                r="2.5"
+                                fill={lineColor}
                             />
                             {renderLabel(dot.start)}
                             <circle
                                 cx={projectPoint(dot.start.lat, dot.start.lng).x}
                                 cy={projectPoint(dot.start.lat, dot.start.lng).y}
-                                r="2"
-                                fill="url(#theme-gradient)"
+                                r="2.5"
+                                fill={lineColor}
                                 opacity="0.5"
                             >
                                 <animate
                                     attributeName="r"
-                                    from="2"
-                                    to="8"
+                                    from="2.5"
+                                    to="10"
                                     dur="1.5s"
                                     begin="0s"
                                     repeatCount="indefinite"
@@ -187,21 +182,21 @@ export default function WorldMap({
                             <circle
                                 cx={projectPoint(dot.end.lat, dot.end.lng).x}
                                 cy={projectPoint(dot.end.lat, dot.end.lng).y}
-                                r="2"
-                                fill="url(#theme-gradient)"
+                                r="2.5"
+                                fill={lineColor}
                             />
                             {renderLabel(dot.end)}
                             <circle
                                 cx={projectPoint(dot.end.lat, dot.end.lng).x}
                                 cy={projectPoint(dot.end.lat, dot.end.lng).y}
-                                r="2"
-                                fill="url(#theme-gradient)"
+                                r="2.5"
+                                fill={lineColor}
                                 opacity="0.5"
                             >
                                 <animate
                                     attributeName="r"
-                                    from="2"
-                                    to="8"
+                                    from="2.5"
+                                    to="10"
                                     dur="1.5s"
                                     begin="0s"
                                     repeatCount="indefinite"
