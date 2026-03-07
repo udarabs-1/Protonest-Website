@@ -216,6 +216,11 @@ const JobCreator = () => {
         return true;
     };
 
+    const handlePreview = () => {
+        sessionStorage.setItem('jobPreviewData', JSON.stringify(formData));
+        window.open('/admin-dashboard/jobs/preview', '_blank');
+    };
+
     const handleSaveAsDraft = async () => {
         setIsSavingDraft(true);
         setError('');
@@ -343,6 +348,7 @@ const JobCreator = () => {
     const jobCategories = [
         'Front-End',
         'Back-End',
+        'Full-Stack',
         'Electronics',
         'UI/UX Designing',
         'Mechanical',
@@ -883,7 +889,7 @@ const JobCreator = () => {
                             <button
                                 type="button"
                                 onClick={() => router.push('/admin-dashboard/jobs')}
-                                className="px-6 py-2 rounded-[57px] border border-gray-300 text-[#676767] hover:bg-gray-50 transition-colors disabled:opacity-50 order-3 sm:order-1"
+                                className="px-6 py-2 rounded-[57px] border border-gray-300 text-[#676767] hover:bg-gray-50 transition-colors disabled:opacity-50 order-4 sm:order-1"
                                 disabled={isLoading || isSavingDraft}
                             >
                                 Cancel
@@ -891,8 +897,17 @@ const JobCreator = () => {
 
                             <button
                                 type="button"
+                                onClick={handlePreview}
+                                className="px-6 py-2 rounded-[57px] border border-[#5530FA] text-[#5530FA] hover:bg-purple-50 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-3 sm:order-2"
+                                disabled={isLoading || isSavingDraft}
+                            >
+                                Preview
+                            </button>
+
+                            <button
+                                type="button"
                                 onClick={handleSaveAsDraft}
-                                className="px-6 py-2 rounded-[57px] border-2 gradient-button font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-2"
+                                className="px-6 py-2 rounded-[57px] border-2 gradient-button font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-2 sm:order-3"
                                 disabled={isLoading || isSavingDraft}
                             >
                                 {isSavingDraft ? (
@@ -909,7 +924,7 @@ const JobCreator = () => {
 
                             <button
                                 type="submit"
-                                className="cursor-pointer px-6 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white font-medium hover:shadow-lg transition-shadow disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-3"
+                                className="cursor-pointer px-6 py-2 bg-gradient-to-l from-[#5530FA] to-[#F51DA5] rounded-[57px] text-white font-medium hover:shadow-lg transition-shadow disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-4"
                                 disabled={isLoading || isSavingDraft}
                             >
                                 {isLoading ? (

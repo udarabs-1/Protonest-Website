@@ -147,7 +147,7 @@ export default function Footer() {
                             </div>
                             <Link href="https://meetings-na2.hubspot.com/udara-kumarasena" target="_blank" rel="noopener noreferrer">
                                 <button className="lg:w-[120px] lg:h-[36px] xl:w-[135px] xl:h-[40px] 2xl:w-[147px] 2xl:h-[44px] lg:text-[12px] xl:text-[14px] 2xl:text-[16px] bg-none border border-[#83848b] text-[#83848b] lg:p-[8px] xl:p-[9px] 2xl:p-[10px] rounded-[30px] hover:scale-105 hover:cursor-pointer">
-                                    Get a Quote
+                                    Book a Call
                                 </button>
                             </Link>
                         </div>
@@ -293,7 +293,7 @@ export default function Footer() {
 
                     <Link href="https://meetings-na2.hubspot.com/udara-kumarasena" target="_blank" rel="noopener noreferrer" className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[215px] md:top-[250px]">
                         <button className="w-full p-2.5 md:p-3 rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5 hover:scale-105">
-                            <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal hover:scale-105">Get a Quote</div>
+                            <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal hover:scale-105">Book a Call</div>
                         </button>
                     </Link>
 

@@ -111,7 +111,7 @@ const ServicesSection = () => (
         prefix="What Do We"
         highlight="Offer?"
         description="From Idea to Execution, We’ve Got You Covered."
-        linkLabel="Get a Quote"
+        linkLabel="Book a Call"
         linkHref="https://meetings-na2.hubspot.com/udara-kumarasena"
         linkExternal
       />

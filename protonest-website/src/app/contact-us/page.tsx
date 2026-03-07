@@ -85,9 +85,9 @@ export default function Contact() {
         <title>Contact Us - Protonest</title>
         <meta
           name="description"
-          content="Contact Protonest's IoT prototyping team for project inquiries, consultations, or partnership opportunities. Get a free quote within 48 hours."
+          content="Contact Protonest's IoT prototyping team for project inquiries, consultations, or partnership opportunities. Book a Call to get started."
         />
-        <meta name="keywords" content="IoT prototyping contact, Protonest email, IoT development quote, hardware prototyping consultation" />
+        <meta name="keywords" content="IoT prototyping contact, Protonest email, IoT development consultation, hardware prototyping consultation" />
 
 
         <link rel="canonical" href="https://protonest.co/contact-us" />
@@ -137,7 +137,7 @@ export default function Contact() {
         />
 
 
-        <div className="relative w-full">
+        <div id="get-in-touch" className="relative w-full scroll-mt-[100px]">
           <div className="relative z-20 pt-[120px] md:pt-[100px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px]">
 
             <div className="w-full text-center px-4 mb-16">

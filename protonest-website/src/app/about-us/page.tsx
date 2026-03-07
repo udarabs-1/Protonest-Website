@@ -309,7 +309,7 @@ export default function About() {
             rel="noopener noreferrer"
           >
             <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] xl:h-[50px] gradient-button font-poppins hover:font-medium transition text-sm lg:text-[15px] xl:text-base">
-              Get a Quote
+              Book a Call
             </button>
           </Link>
         </div>

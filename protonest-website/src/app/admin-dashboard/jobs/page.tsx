@@ -63,6 +63,7 @@ interface ApiResponse {
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
+    'Full-Stack': 'full-stack',
     'Electronics': 'electronics',
     'UI/UX Designing': 'ui-ux-designing',
     'Mechanical Engineering': 'mechanical',
@@ -239,6 +240,11 @@ const JobPostings = () => {
     useEffect(() => {
         applyFilters();
     }, [applyFilters]);
+
+    const handlePreview = (job: Job) => {
+        sessionStorage.setItem('jobPreviewData', JSON.stringify(job));
+        window.open('/admin-dashboard/jobs/preview', '_blank');
+    };
 
     const handleDelete = async (jobId: string) => {
         setConfirmDialog({
@@ -729,13 +735,13 @@ const JobPostings = () => {
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-center">
                                                         <div className="flex items-center justify-center gap-2">
-                                                            <Link
-                                                                href={`/jobs/${roleSlug}/${job.id}`}
-                                                                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                                                title="View Job"
+                                                            <button
+                                                                onClick={() => handlePreview(job)}
+                                                                className="cursor-pointer p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                title="Preview Job"
                                                             >
                                                                 <Eye className="w-4 h-4 text-gray-600" />
-                                                            </Link>
+                                                            </button>
                                                             <Link
                                                                 href={`/admin-dashboard/jobs/edit/${job.id}`}
                                                                 className="p-1 hover:bg-gray-100 rounded transition-colors"

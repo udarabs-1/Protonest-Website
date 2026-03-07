@@ -260,7 +260,7 @@ export default function Navbar() {
                                             rel="noopener noreferrer"
                                             className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
                                         >
-                                            Get a Quote
+                                            Book a Call
                                         </Link>
                                     </div>
                                 )}
@@ -378,7 +378,7 @@ export default function Navbar() {
                                         className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
                                     >
                                         <span className="text-sm font-medium font-montserrat">
-                                            Get a Quote
+                                            Book a Call
                                         </span>
                                     </Link>
                                 )}

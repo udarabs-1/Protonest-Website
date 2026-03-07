@@ -76,7 +76,7 @@ const WhyChooseProtonest = () => {
           prefix="Why Choose"
           highlight="Protonest?"
           description="Where bold ideas become connected products."
-          linkLabel="Get a Quote"
+          linkLabel="Book a Call"
           linkHref="https://meetings-na2.hubspot.com/udara-kumarasena"
           linkExternal
         />

@@ -144,6 +144,11 @@ const BlogManager = () => {
         });
     };
 
+    const handlePreview = (post: BlogPost) => {
+        sessionStorage.setItem('blogPreviewData', JSON.stringify(post));
+        window.open('/admin-dashboard/blog/preview', '_blank');
+    };
+
     useEffect(() => {
         fetchBlogPosts();
     }, []);
@@ -342,14 +347,13 @@ const BlogManager = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 ml-4">
-                                                <Link
-                                                    href={`/blog/${post.slug}`}
-                                                    target="_blank"
-                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
-                                                    title="View"
+                                                <button
+                                                    onClick={() => handlePreview(post)}
+                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center cursor-pointer"
+                                                    title="Preview"
                                                 >
                                                     <Eye className="w-4 h-4 text-gray-600" />
-                                                </Link>
+                                                </button>
                                                 <Link
                                                     href={`/admin-dashboard/blog/edit/${post.id}`}
                                                     className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
@@ -386,14 +390,13 @@ const BlogManager = () => {
                                         </div>
                                         <div className="col-span-2">
                                             <div className="flex items-center gap-2">
-                                                <Link
-                                                    href={`/blog/${post.slug}`}
-                                                    target="_blank"
-                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
-                                                    title="View"
+                                                <button
+                                                    onClick={() => handlePreview(post)}
+                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center cursor-pointer"
+                                                    title="Preview"
                                                 >
                                                     <Eye className="w-4 h-4 text-gray-600" />
-                                                </Link>
+                                                </button>
                                                 <Link
                                                     href={`/admin-dashboard/blog/edit/${post.id}`}
                                                     className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"

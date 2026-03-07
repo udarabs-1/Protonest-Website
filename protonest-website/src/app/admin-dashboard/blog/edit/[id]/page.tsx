@@ -752,6 +752,17 @@ const EditBlogPost = () => {
         }
     }, [editor]);
 
+    const handlePreview = () => {
+        const blogData = {
+            title: title || 'Untitled Blog Post',
+            content: editor?.getHTML() || '',
+            cover_image: coverImagePreview || null,
+            categories: selectedCategory ? [selectedCategory] : [],
+        };
+        sessionStorage.setItem('blogPreviewData', JSON.stringify(blogData));
+        window.open('/admin-dashboard/blog/preview', '_blank');
+    };
+
     const handleSaveAsDraft = async () => {
         setShowDraftDialog(true);
     };
@@ -1422,6 +1433,13 @@ const EditBlogPost = () => {
                     className="px-6 py-4 rounded-[57px] border border-gray-300 cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                     Discard
+                </button>
+                <button
+                    onClick={handlePreview}
+                    disabled={loading}
+                    className="px-6 py-4 rounded-[57px] border border-[#5530FA] cursor-pointer text-[#5530FA] text-base font-medium font-poppins hover:bg-purple-50 transition-colors disabled:opacity-50"
+                >
+                    Preview
                 </button>
                 <button
                     onClick={handleSaveAsDraft}
