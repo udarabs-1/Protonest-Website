@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import ClientMarquee from "./components/client-marquee";
+import ClientsMap from "./components/clients-map";
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/news-and-blogs";
@@ -77,9 +78,7 @@ function LargeScreenHome() {
           </div>
           <div className="flex justify-center space-x-[33px] mt-8 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
             <Link
-              href="https://iot-system-design-tool.protonest.co"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/contact-us#get-in-touch"
               className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center"
             >
               Get Your Free Quote Now
@@ -198,6 +197,7 @@ function LargeScreenHome() {
       <ServicesSection />
 
       <StatsSection stats={HIGHLIGHT_STATS} />
+      <ClientsMap />
     </div>
   );
 }
@@ -262,9 +262,7 @@ function SmallScreenHome() {
           </div>
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-6 font-poppins font-medium text-[14px]">
             <Link
-              href="https://iot-system-design-tool.protonest.co"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/contact-us#get-in-touch"
             >
               <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
                 Get Your Free Quote Now
@@ -395,6 +393,7 @@ function SmallScreenHome() {
       <ServicesSection />
 
       <StatsSection stats={HIGHLIGHT_STATS} />
+      <ClientsMap />
     </div>
   );
 }

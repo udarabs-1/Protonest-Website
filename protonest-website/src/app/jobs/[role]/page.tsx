@@ -54,6 +54,7 @@ type Filters = {
 const roleToCategoryMap: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',
+    'full-stack': 'Full-Stack',
     'electronics': 'Electronics',
     'ui-ux-designing': 'UI/UX Designing',
     'mechanical': 'Mechanical',
@@ -65,6 +66,7 @@ const roleToCategoryMap: { [key: string]: string } = {
 const roleTitles: { [key: string]: string } = {
     'front-end': 'Front-End',
     'back-end': 'Back-End',
+    'full-stack': 'Full-Stack',
     'electronics': 'Electronics',
     'ui-ux-designing': 'UI/UX',
     'mechanical': 'Mechanical',

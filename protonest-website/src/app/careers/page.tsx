@@ -45,6 +45,7 @@ export default function CareersPage() {
     const roles = useMemo(() => [
         { icon: 'solar:monitor-outline', title: 'Front-End', slug: 'front-end' },
         { icon: 'solar:server-outline', title: 'Back-End', slug: 'back-end' },
+        { icon: 'solar:layers-minimalistic-outline', title: 'Full-Stack', slug: 'full-stack' },
         { icon: 'solar:cpu-outline', title: 'Electronics', slug: 'electronics' },
         { icon: 'solar:palette-outline', title: 'UI/UX\nDesigning', slug: 'ui-ux-designing' },
         { icon: 'solar:settings-outline', title: 'Mechanical', slug: 'mechanical' },
@@ -147,7 +148,7 @@ export default function CareersPage() {
                     </div>
 
 
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 xl:gap-6 px-2 sm:px-4 lg:px-8 xl:px-[60px] mb-6 sm:mb-8 lg:mb-10 w-full max-w-4xl xl:max-w-[1127px]">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 xl:gap-6 px-2 sm:px-4 lg:px-8 xl:px-[60px] mb-6 sm:mb-8 lg:mb-10 w-full max-w-4xl xl:max-w-[1127px]">
                         {roles.map((role, index) => (
                             <RoleCard
                                 key={`${role.slug}-${index}`}

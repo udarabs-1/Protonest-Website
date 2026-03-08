@@ -87,6 +87,7 @@ interface PublicJobResponse {
 const categoryToSlugMap: { [key: string]: string } = {
     'Front-End': 'front-end',
     'Back-End': 'back-end',
+    'Full-Stack': 'full-stack',
     'Electronics': 'electronics',
     'UI/UX Designing': 'ui-ux-designing',
     'Mechanical Engineering': 'mechanical',

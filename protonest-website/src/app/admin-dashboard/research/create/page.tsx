@@ -581,6 +581,16 @@ const CreateResearchProjectContent = () => {
         }
     }, [editor]);
 
+    const handlePreview = () => {
+        const previewData = {
+            title: title || 'Untitled ' + (contentType === 'research' ? 'Research' : 'Project'),
+            content: editor?.getHTML() || '',
+            cover_image: coverImagePreview || null,
+        };
+        sessionStorage.setItem(contentType === 'research' ? 'researchPreviewData' : 'projectPreviewData', JSON.stringify(previewData));
+        window.open(contentType === 'research' ? '/admin-dashboard/research/preview' : '/admin-dashboard/project/preview', '_blank');
+    };
+
     const handleSaveAsDraft = async () => {
         setShowDraftDialog(true);
     };
@@ -1066,6 +1076,13 @@ const CreateResearchProjectContent = () => {
                     className="px-6 py-4 rounded-[57px] border border-gray-300 cursor-pointer text-[#4d4d4d] text-base font-medium font-poppins hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                     Discard
+                </button>
+                <button
+                    onClick={handlePreview}
+                    disabled={loading}
+                    className="px-6 py-4 rounded-[57px] border border-[#5530FA] cursor-pointer text-[#5530FA] text-base font-medium font-poppins hover:bg-purple-50 transition-colors disabled:opacity-50"
+                >
+                    Preview
                 </button>
                 <button
                     onClick={handleSaveAsDraft}

@@ -225,6 +225,11 @@ const ResearchProjectsManager = () => {
     };
 
 
+    const handlePreview = (post: ResearchPost | ProjectPost) => {
+        sessionStorage.setItem(activeContentType === 'research' ? 'researchPreviewData' : 'projectPreviewData', JSON.stringify(post));
+        window.open(activeContentType === 'research' ? '/admin-dashboard/research/preview' : '/admin-dashboard/project/preview', '_blank');
+    };
+
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
 
@@ -508,14 +513,13 @@ const ResearchProjectsManager = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 ml-4">
-                                                <Link
-                                                    href={getViewUrl(post.slug)}
-                                                    target="_blank"
-                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
-                                                    title="View"
+                                                <button
+                                                    onClick={() => handlePreview(post)}
+                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center cursor-pointer"
+                                                    title="Preview"
                                                 >
                                                     <Eye className="w-4 h-4 text-gray-600" />
-                                                </Link>
+                                                </button>
                                                 <Link
                                                     href={getEditUrl(post.id)}
                                                     className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
@@ -558,14 +562,13 @@ const ResearchProjectsManager = () => {
                                         </div>
                                         <div className="col-span-2">
                                             <div className="flex items-center gap-2">
-                                                <Link
-                                                    href={getViewUrl(post.slug)}
-                                                    target="_blank"
-                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"
-                                                    title="View"
+                                                <button
+                                                    onClick={() => handlePreview(post)}
+                                                    className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center cursor-pointer"
+                                                    title="Preview"
                                                 >
                                                     <Eye className="w-4 h-4 text-gray-600" />
-                                                </Link>
+                                                </button>
                                                 <Link
                                                     href={getEditUrl(post.id)}
                                                     className="p-1 hover:bg-gray-100 rounded inline-flex items-center justify-center"

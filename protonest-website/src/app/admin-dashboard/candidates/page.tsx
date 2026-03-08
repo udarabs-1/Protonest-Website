@@ -169,6 +169,9 @@ const CandidateManagement = () => {
     const [statusDropdown, setStatusDropdown] = useState<StatusDropdown | null>(null);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
     const [bulkDownloadDialog, setBulkDownloadDialog] = useState<JobGroup | null>(null);
+    const [bulkStatusDialog, setBulkStatusDialog] = useState<JobGroup | null>(null);
+    const [bulkInterviewDialog, setBulkInterviewDialog] = useState<JobGroup | null>(null);
+    const [bulkNdaDialog, setBulkNdaDialog] = useState<JobGroup | null>(null);
     const [downloadingBulk, setDownloadingBulk] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [bulkSearchQuery, setBulkSearchQuery] = useState('');
@@ -397,14 +400,15 @@ const CandidateManagement = () => {
         try {
             setDownloadingBulk(true);
             const adminToken = localStorage.getItem('adminToken');
-            const selectedUserIds = Array.from(jobGroup.selectedCandidates);
+            const selectedCandidateIds = Array.from(jobGroup.selectedCandidates);
 
             const zip = new JSZip();
             let successCount = 0;
 
-            for (const userId of selectedUserIds) {
-                const candidate = jobGroup.candidates.find(c => c.user._id === userId);
+            for (const candidateId of selectedCandidateIds) {
+                const candidate = jobGroup.candidates.find(c => c.id === candidateId);
                 if (!candidate) continue;
+                const userId = candidate.user._id;
 
                 try {
                     const response = await fetch(
@@ -805,6 +809,205 @@ const CandidateManagement = () => {
             });
         } catch {
             return 'Invalid Date';
+        }
+    };
+    const handleBulkStatusChange = async (newStatus: string) => {
+        if (!bulkStatusDialog || !bulkStatusDialog.selectedCandidates) return;
+        setUpdatingStatus('bulk');
+        const selectedIds = Array.from(bulkStatusDialog.selectedCandidates);
+        let successCount = 0;
+
+        for (const candidateId of selectedIds) {
+            try {
+                const adminToken = localStorage.getItem('adminToken');
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (response.ok) {
+                    successCount++;
+                    setJobGroups(prev => prev.map(group => ({
+                        ...group,
+                        candidates: group.candidates.map(candidate =>
+                            candidate.id === candidateId
+                                ? { ...candidate, status: newStatus, updated_at: new Date().toISOString() }
+                                : candidate
+                        )
+                    })));
+                }
+            } catch (error) {
+                console.error(`Failed to update status for ${candidateId}`, error);
+            }
+        }
+
+        if (successCount > 0) {
+            setSuccessDialog({
+                title: 'Success',
+                message: `Successfully updated status for ${successCount} candidates.`
+            });
+        }
+
+        setBulkStatusDialog(null);
+        setUpdatingStatus(null);
+    };
+
+    const handleBulkSendInterview = async () => {
+        if (!bulkInterviewDialog || !bulkInterviewDialog.selectedCandidates) return;
+        setSendingInterview(true);
+        const selectedIds = Array.from(bulkInterviewDialog.selectedCandidates);
+        let successCount = 0;
+
+        for (const candidateId of selectedIds) {
+            try {
+                const adminToken = localStorage.getItem('adminToken');
+                const emailData = {
+                    subject: interviewSubject,
+                    cc: interviewCc,
+                    bcc: interviewBcc,
+                    body: interviewBody.replace(/<br>/g, '\n')
+                };
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/interview/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(emailData)
+                });
+
+                if (response.ok) {
+                    successCount++;
+                }
+            } catch (error) {
+                console.error(`Failed to send interview to ${candidateId}`, error);
+            }
+        }
+
+        if (successCount > 0) {
+            setSuccessDialog({
+                title: 'Success',
+                message: `Successfully sent interview invitations to ${successCount} candidates.`
+            });
+            setInterviewSubject('');
+            setInterviewBody('');
+            setInterviewCc('');
+            setInterviewBcc('');
+        }
+
+        setBulkInterviewDialog(null);
+        setSendingInterview(false);
+    };
+
+    const handleBulkSendNda = async () => {
+        if (!bulkNdaDialog || !bulkNdaDialog.selectedCandidates) return;
+        if (!ndaSubject.trim()) {
+            setErrorDialog({ title: 'Validation Error', message: 'Email subject is required' });
+            return;
+        }
+        if (selectedNda === 'template' && !selectedTemplate) {
+            setErrorDialog({ title: 'Validation Error', message: 'Please select an NDA template' });
+            return;
+        }
+        if (selectedNda === 'upload' && !uploadedFile) {
+            setErrorDialog({ title: 'Validation Error', message: 'Please upload an NDA document' });
+            return;
+        }
+
+        setSendingNDA(true);
+        const selectedIds = Array.from(bulkNdaDialog.selectedCandidates);
+        let successCount = 0;
+
+        try {
+            const adminToken = localStorage.getItem('adminToken');
+
+            for (const candidateId of selectedIds) {
+                const requestBody: any = {
+                    subject: ndaSubject,
+                    body: ndaBody.replace(/<br>/g, '\n'),
+                    cc: ndaCc,
+                    bcc: ndaBcc,
+                    nda_type: selectedNda
+                };
+
+                if (selectedNda === 'template' && selectedTemplate) {
+                    requestBody.nda_document_id = selectedTemplate;
+                } else if (selectedNda === 'upload') {
+                    // Upload logic
+                    const formData = new FormData();
+                    formData.append('file', uploadedFile as File);
+                    const uploadResponse = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/nda-documents/admin/upload`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${adminToken}`
+                            },
+                            body: formData
+                        }
+                    );
+                    if (uploadResponse.ok) {
+                        const data = await uploadResponse.json();
+                        if (data.success && data.data?.document_url) {
+                            requestBody.nda_document_url = data.data.document_url;
+                        }
+                    }
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/candidates/admin/${candidateId}/nda/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (response.ok) {
+                    successCount++;
+                    setJobGroups(prev => prev.map(group => ({
+                        ...group,
+                        candidates: group.candidates.map(candidate =>
+                            candidate.id === candidateId
+                                ? {
+                                    ...candidate,
+                                    nda_status: {
+                                        status: 'sent',
+                                        sent_on: new Date().toISOString(),
+                                        compliance_notes: ndaBody || '',
+                                        resend_count: candidate.nda_status?.resend_count || 0,
+                                        created_at: candidate.nda_status?.created_at || new Date().toISOString(),
+                                        updated_at: new Date().toISOString()
+                                    }
+                                }
+                                : candidate
+                        )
+                    })));
+                }
+            }
+
+            if (successCount > 0) {
+                setSuccessDialog({
+                    title: 'Success',
+                    message: `Successfully sent NDA to ${successCount} candidates.`
+                });
+                setNdaSubject('');
+                setNdaBody('');
+                setNdaCc('');
+                setNdaBcc('');
+                setUploadedFile(null);
+                setSelectedTemplate('');
+            }
+        } catch (error) {
+            console.error('Failed to send NDAs', error);
+        } finally {
+            setSendingNDA(false);
+            setBulkNdaDialog(null);
         }
     };
 
@@ -1464,10 +1667,38 @@ const CandidateManagement = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                        {jobGroup.selectedCandidates && jobGroup.selectedCandidates.size > 0 && (
+                                            <div className="px-6 py-2 bg-indigo-50 border-b flex items-center gap-4 text-sm flex-wrap">
+                                                <span className="font-semibold text-indigo-700">{jobGroup.selectedCandidates.size} candidates selected</span>
+                                                <button onClick={(e) => { e.stopPropagation(); setBulkStatusDialog(jobGroup); }} className="text-indigo-600 hover:text-indigo-800 font-medium py-1 px-3 bg-white rounded border border-indigo-200 shadow-sm transition-colors cursor-pointer">Update Status</button>
+                                                <button onClick={(e) => { e.stopPropagation(); setBulkInterviewDialog(jobGroup); }} className="text-indigo-600 hover:text-indigo-800 font-medium py-1 px-3 bg-white rounded border border-indigo-200 shadow-sm transition-colors cursor-pointer">Send Interview</button>
+                                                <button onClick={(e) => { e.stopPropagation(); setBulkNdaDialog(jobGroup); }} className="text-indigo-600 hover:text-indigo-800 font-medium py-1 px-3 bg-white rounded border border-indigo-200 shadow-sm transition-colors cursor-pointer">Send NDA</button>
+                                            </div>
+                                        )}
                                         <div className="overflow-x-auto">
                                             <table className="min-w-full divide-y divide-gray-200">
                                                 <thead>
                                                     <tr>
+                                                        <th className="px-3 py-3 bg-Neutral-200 w-8">
+                                                            <input
+                                                                type="checkbox"
+                                                                title="Select all"
+                                                                className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
+                                                                checked={jobGroup.candidates.length > 0 && (jobGroup.selectedCandidates?.size || 0) === jobGroup.candidates.length}
+                                                                onChange={(e) => {
+                                                                    const isChecked = e.target.checked;
+                                                                    setJobGroups(prev => prev.map(g => {
+                                                                        if (g.job_id === jobGroup.job_id) {
+                                                                            return {
+                                                                                ...g,
+                                                                                selectedCandidates: isChecked ? new Set(g.candidates.map(c => c.id)) : new Set()
+                                                                            };
+                                                                        }
+                                                                        return g;
+                                                                    }));
+                                                                }}
+                                                            />
+                                                        </th>
                                                         <th className="px-4 py-3 bg-Neutral-200 text-left text-[11px] font-medium font-poppins text-[#4e4e4e] uppercase tracking-wider w-16">
                                                             #
                                                         </th>
@@ -1512,6 +1743,29 @@ const CandidateManagement = () => {
 
                                                             return (
                                                                 <tr key={candidate.id} className={`transition-colors ${candidate.cv_viewed ? 'bg-purple-100 hover:bg-purple-100' : 'hover:bg-gray-50'}`}>
+                                                                    <td className="px-3 py-3 whitespace-nowrap">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            title="Select candidate"
+                                                                            className="w-4 h-4 text-[#5530FA] border-gray-300 rounded focus:ring-[#5530FA] cursor-pointer"
+                                                                            checked={jobGroup.selectedCandidates?.has(candidate.id) || false}
+                                                                            onChange={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setJobGroups(prev => prev.map(g => {
+                                                                                    if (g.job_id === jobGroup.job_id) {
+                                                                                        const newSelected = new Set(g.selectedCandidates);
+                                                                                        if (newSelected.has(candidate.id)) {
+                                                                                            newSelected.delete(candidate.id);
+                                                                                        } else {
+                                                                                            newSelected.add(candidate.id);
+                                                                                        }
+                                                                                        return { ...g, selectedCandidates: newSelected };
+                                                                                    }
+                                                                                    return g;
+                                                                                }));
+                                                                            }}
+                                                                        />
+                                                                    </td>
                                                                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-bold font-poppins text-[#5530FA]">
                                                                         {index + 1}
                                                                     </td>
@@ -1702,9 +1956,9 @@ const CandidateManagement = () => {
                                                 c.user.name.toLowerCase().includes(bulkSearchQuery.toLowerCase()) ||
                                                 c.user.email.toLowerCase().includes(bulkSearchQuery.toLowerCase())
                                             );
-                                            const filteredIds = new Set(filteredCandidates.map(c => c.user._id));
+                                            const filteredIds = new Set(filteredCandidates.map(c => c.id));
                                             const currentSelected = bulkDownloadDialog.selectedCandidates || new Set<string>();
-                                            const allFilteredSelected = filteredCandidates.every(c => currentSelected.has(c.user._id));
+                                            const allFilteredSelected = filteredCandidates.every(c => currentSelected.has(c.id));
 
                                             setJobGroups(prev => prev.map(group => {
                                                 if (group.job_id === jobId) {
@@ -1738,7 +1992,7 @@ const CandidateManagement = () => {
                                                 c.user.email.toLowerCase().includes(bulkSearchQuery.toLowerCase())
                                             );
                                             const currentSelected = bulkDownloadDialog.selectedCandidates || new Set<string>();
-                                            const allFilteredSelected = filteredCandidates.length > 0 && filteredCandidates.every(c => currentSelected.has(c.user._id));
+                                            const allFilteredSelected = filteredCandidates.length > 0 && filteredCandidates.every(c => currentSelected.has(c.id));
                                             return allFilteredSelected ? 'Deselect All' : 'Select All';
                                         })()}
                                     </button>
@@ -1762,7 +2016,7 @@ const CandidateManagement = () => {
                                             candidate.user.email.toLowerCase().includes(bulkSearchQuery.toLowerCase())
                                         )
                                         .map((candidate) => {
-                                            const isSelected = bulkDownloadDialog.selectedCandidates?.has(candidate.user._id) || false;
+                                            const isSelected = bulkDownloadDialog.selectedCandidates?.has(candidate.id) || false;
 
                                             return (
                                                 <label
@@ -1774,15 +2028,15 @@ const CandidateManagement = () => {
                                                         checked={isSelected}
                                                         onChange={() => {
                                                             const jobId = bulkDownloadDialog.job_id;
-                                                            const userId = candidate.user._id;
+                                                            const candidateId = candidate.id;
 
                                                             setJobGroups(prev => prev.map(group => {
                                                                 if (group.job_id === jobId) {
                                                                     const newSelected = new Set(group.selectedCandidates);
-                                                                    if (newSelected.has(userId)) {
-                                                                        newSelected.delete(userId);
+                                                                    if (newSelected.has(candidateId)) {
+                                                                        newSelected.delete(candidateId);
                                                                     } else {
-                                                                        newSelected.add(userId);
+                                                                        newSelected.add(candidateId);
                                                                     }
                                                                     return { ...group, selectedCandidates: newSelected };
                                                                 }
@@ -1792,10 +2046,10 @@ const CandidateManagement = () => {
                                                             setBulkDownloadDialog(prev => {
                                                                 if (!prev) return null;
                                                                 const newSelected = new Set(prev.selectedCandidates);
-                                                                if (newSelected.has(userId)) {
-                                                                    newSelected.delete(userId);
+                                                                if (newSelected.has(candidateId)) {
+                                                                    newSelected.delete(candidateId);
                                                                 } else {
-                                                                    newSelected.add(userId);
+                                                                    newSelected.add(candidateId);
                                                                 }
                                                                 return { ...prev, selectedCandidates: newSelected };
                                                             });
@@ -1862,8 +2116,503 @@ const CandidateManagement = () => {
                     )
                 }
 
+                {
+                    bulkStatusDialog && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                            onClick={() => setBulkStatusDialog(null)}
+                        >
+                            <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                            <div
+                                className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full z-10"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="mb-4">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        Update Status - {bulkStatusDialog.job_title}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Select the new status for {bulkStatusDialog.selectedCandidates?.size || 0} candidates.
+                                    </p>
+                                    <div className="space-y-2">
+                                        {statusOptions.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                onClick={() => {
+                                                    setConfirmDialog({
+                                                        title: 'Confirm Bulk Status Update',
+                                                        message: `Are you sure you want to update the status of ${bulkStatusDialog.selectedCandidates?.size || 0} candidates to "${option.label}"?`,
+                                                        onConfirm: () => {
+                                                            setConfirmDialog(null);
+                                                            handleBulkStatusChange(option.value);
+                                                            setBulkStatusDialog(null);
+                                                        }
+                                                    });
+                                                }}
+                                                disabled={updatingStatus === 'bulk'}
+                                                className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-indigo-300 transition-colors flex items-center disabled:opacity-50"
+                                            >
+                                                <span className={`inline-block w-3 h-3 rounded-full mr-3 ${option.color}`}></span>
+                                                <span className="font-medium text-gray-700">{option.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6 border-t pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setBulkStatusDialog(null)}
+                                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                        disabled={updatingStatus === 'bulk'}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
 
                 {
+                    bulkInterviewDialog && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+                            onClick={() => {
+                                setBulkInterviewDialog(null);
+                                setInterviewSubject('');
+                                setInterviewBody('');
+                                setInterviewCc('');
+                                setInterviewBcc('');
+                            }}
+                        >
+                            <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                            <div
+                                className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[1137px] max-h-[95vh] overflow-hidden"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh]">
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6 relative">
+                                        <button
+                                            onClick={() => {
+                                                setBulkInterviewDialog(null);
+                                                setInterviewSubject('');
+                                                setInterviewBody('');
+                                                setInterviewCc('');
+                                                setInterviewBcc('');
+                                            }}
+                                            className="absolute top-4 right-4 text-[#686868] hover:text-gray-900 transition-colors p-2"
+                                        >
+                                            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                                        </button>
+                                        <h2 className="text-lg sm:text-[22px] font-medium font-poppins text-[#6c6c6c] mb-2">
+                                            Bulk Interview Invitation
+                                        </h2>
+                                        <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 leading-[15px] mb-4">
+                                            Send to {bulkInterviewDialog.selectedCandidates?.size || 0} selected candidates
+                                        </p>
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Subject</h3>
+                                        <input
+                                            type="text"
+                                            value={interviewSubject}
+                                            onChange={(e) => setInterviewSubject(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                            placeholder="Enter email subject..."
+                                        />
+                                    </div>
+
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">CC (Carbon Copy)</h3>
+                                        <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - separate multiple emails with commas</p>
+                                        <input
+                                            type="text"
+                                            value={interviewCc}
+                                            onChange={(e) => setInterviewCc(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                            placeholder="email1@example.com, email2@example.com"
+                                        />
+                                    </div>
+
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">BCC (Blind Carbon Copy)</h3>
+                                        <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - recipients won't see each other</p>
+                                        <input
+                                            type="text"
+                                            value={interviewBcc}
+                                            onChange={(e) => setInterviewBcc(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                            placeholder="email1@example.com, email2@example.com"
+                                        />
+                                    </div>
+
+                                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 mb-6 sm:mb-8">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">Edit Email Body</h3>
+                                                <p className="text-xs font-light font-poppins text-[#6c6c6c]/80 mb-4">
+                                                    {new Date().toLocaleString('en-US', {
+                                                        hour: 'numeric',
+                                                        minute: '2-digit',
+                                                        hour12: true,
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 h-[450px] overflow-y-auto">
+                                                    <textarea
+                                                        value={interviewBody.replace(/<br>/g, '\n')}
+                                                        onChange={(e) => setInterviewBody(e.target.value.replace(/\n/g, '<br>'))}
+                                                        className="w-full h-full p-0 border-0 bg-transparent focus:ring-0 focus:outline-none text-sm font-normal font-poppins text-[#6c6c6c]/80 leading-relaxed resize-none"
+                                                        placeholder="Enter email body (press Enter for new lines)..."
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-2">Email Preview</h3>
+                                                <p className="text-xs font-light font-poppins text-[#6c6c6c]/80 mb-4">Live preview</p>
+                                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 h-[450px] overflow-y-auto">
+                                                    <div className="space-y-4">
+                                                        <p className="text-sm font-normal font-poppins text-[#6c6c6c] mb-4">
+                                                            Dear Candidates,
+                                                        </p>
+                                                        <div
+                                                            className="text-sm font-normal font-poppins text-[#6c6c6c] leading-relaxed"
+                                                            dangerouslySetInnerHTML={{ __html: interviewBody.replace(/<br>/g, '<br/>') }}
+                                                        />
+                                                        <p className="text-sm font-normal font-poppins text-[#6c6c6c]">
+                                                            Have a great day!
+                                                        </p>
+                                                        <p className="text-sm font-normal font-poppins text-[#545454]">
+                                                            Best regards,<br />
+                                                            Recruitment Team,<br />
+                                                            Protonest
+                                                        </p>
+                                                        <div className="bg-[#f5f5f5] p-[14px_20px] text-center mt-4 rounded">
+                                                            <p className="text-[#737373] text-[13px] leading-[1.5] m-0">
+                                                                This is an automated message from Protonest. If you have any questions, feel free to contact us.<br />
+                                                                <span className="text-xs">Reply to: <a href="mailto:careers@protonest.co" className="text-[#5530fa]">careers@protonest.co</a></span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+                                        <button
+                                            onClick={handleBulkSendInterview}
+                                            disabled={sendingInterview}
+                                            className="w-full sm:w-[222px] h-[51px] px-6 py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] cursor-pointer rounded-[57px] flex justify-center items-center gap-2 text-white text-sm sm:text-base font-semibold font-montserrat order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {sendingInterview ? (
+                                                <>
+                                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Sending...
+                                                </>
+                                            ) : 'Send Invitations'}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setBulkInterviewDialog(null);
+                                                setInterviewSubject('');
+                                                setInterviewBody('');
+                                                setInterviewCc('');
+                                                setInterviewBcc('');
+                                            }}
+                                            className="w-full sm:w-[206px] h-[51px] px-6 py-4 rounded-[57px] gradient-border cursor-pointer flex justify-center items-center text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2 sm:order-1"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {
+
+                    bulkNdaDialog && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+                            onClick={() => {
+                                setBulkNdaDialog(null);
+                                setNdaSubject('');
+                                setNdaBody('');
+                                setNdaCc('');
+                                setNdaBcc('');
+                                setUploadedFile(null);
+                                setSelectedTemplate('');
+                            }}
+                        >
+                            <div className="fixed inset-0 bg-black/30 backdrop-blur-2xl bg-opacity-50"></div>
+                            <div
+                                className="relative bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] w-full max-w-[979px] max-h-[95vh] overflow-y-auto"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={() => {
+                                        setBulkNdaDialog(null);
+                                        setNdaSubject('');
+                                        setNdaBody('');
+                                        setNdaCc('');
+                                        setNdaBcc('');
+                                        setUploadedFile(null);
+                                        setSelectedTemplate('');
+                                    }}
+                                    className="absolute top-4 right-4 text-[#686868] hover:text-gray-900 transition-colors p-2 z-10"
+                                >
+                                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                                </button>
+                                <div className="p-4 sm:p-6 lg:p-8 mt-2">
+                                    <div className="mb-6">
+                                        <h2 className="text-lg sm:text-[22px] font-medium font-poppins text-[#6c6c6c] mb-2">
+                                            Bulk Send NDA
+                                        </h2>
+                                        <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 leading-[15px]">
+                                            You're about to send a Non-Disclosure Agreement to {bulkNdaDialog.selectedCandidates?.size || 0} selected candidates. You can use an existing template or upload a new file.
+                                        </p>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">NDA File</h3>
+
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <div className="space-y-4">
+                                                <div className="flex items-start">
+                                                    <input
+                                                        type="radio"
+                                                        id="bulk-template"
+                                                        name="bulkNdaType"
+                                                        checked={selectedNda === 'template'}
+                                                        onChange={() => setSelectedNda('template')}
+                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 focus:ring-[#5530fa] mt-1"
+                                                    />
+                                                    <label htmlFor="bulk-template" className="ml-3 text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80">
+                                                        Select from previously uploaded NDAs:
+                                                    </label>
+                                                </div>
+
+                                                {selectedNda === 'template' && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ml-7">
+                                                        {ndaDocuments.length > 0 ? (
+                                                            ndaDocuments.map((doc) => (
+                                                                <button
+                                                                    key={doc.id}
+                                                                    onClick={() => setSelectedTemplate(doc.id)}
+                                                                    className={`px-4 sm:px-6 py-3 sm:py-4 rounded-[57px] text-xs sm:text-sm font-semibold transition-colors ${selectedTemplate === doc.id
+                                                                        ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
+                                                                        : 'border border-[#5530fa] text-[#4d4d4d]'
+                                                                        }`}
+                                                                >
+                                                                    {doc.file_name}
+                                                                    {doc.is_active && (
+                                                                        <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
+                                                                            Active
+                                                                        </span>
+                                                                    )}
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <p className="text-sm text-gray-500 col-span-2">No NDA templates available. Please upload one.</p>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-start">
+                                                    <input
+                                                        type="radio"
+                                                        id="bulk-upload"
+                                                        name="bulkNdaType"
+                                                        checked={selectedNda === 'upload'}
+                                                        onChange={() => setSelectedNda('upload')}
+                                                        className="w-4 h-4 text-[#5530fa] bg-gray-100 border-gray-300 focus:ring-[#5530fa] mt-1"
+                                                    />
+                                                    <label htmlFor="bulk-upload" className="ml-3 text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80">
+                                                        Upload a New NDA Document:
+                                                    </label>
+                                                </div>
+
+                                                {selectedNda === 'upload' && (
+                                                    <div className="ml-7">
+                                                        <div className="border-2 border-dashed border-[#6c6c6c] rounded-[35px] p-6 sm:p-8 text-center">
+                                                            <Upload className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-[#6c6c6c] mb-4" />
+                                                            <p className="text-xs font-normal font-poppins text-[#6c6c6c] leading-[18px] mb-4">
+                                                                Upload the file by drag and drop here or<br />
+                                                                click on the browse button<br />
+                                                                <span className="block mt-2">Allowed file types: .pdf, .doc, .docx<br />Max size: 10MB</span>
+                                                            </p>
+                                                            {uploadedFile && (
+                                                                <div className="mb-4 p-2 bg-green-100 rounded-lg">
+                                                                    <p className="text-xs sm:text-sm text-green-700">Selected: {uploadedFile.name}</p>
+                                                                </div>
+                                                            )}
+                                                            <button
+                                                                onClick={() => fileInputRef.current?.click()}
+                                                                disabled={uploadingNDA}
+                                                                className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                {uploadingNDA ? 'Uploading...' : 'Browse'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Title</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <input
+                                                type="text"
+                                                value={ndaSubject}
+                                                onChange={(e) => setNdaSubject(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                                placeholder="Enter email subject..."
+                                            />
+                                            <p className="text-xs font-normal font-poppins text-[#6c6c6c]/80 text-right mt-2">{ndaSubject.length}/100</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">CC (Carbon Copy)</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - separate multiple emails with commas</p>
+                                            <input
+                                                type="text"
+                                                value={ndaCc}
+                                                onChange={(e) => setNdaCc(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                                placeholder="email1@example.com, email2@example.com"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">BCC (Blind Carbon Copy)</h3>
+                                        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                            <p className="text-xs font-light font-poppins text-[#6c6c6c]/60 mb-3">Optional - recipients won't see each other</p>
+                                            <input
+                                                type="text"
+                                                value={ndaBcc}
+                                                onChange={(e) => setNdaBcc(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5530FA] focus:border-[#5530FA] outline-none text-sm sm:text-base font-normal font-poppins text-[#6c6c6c]/80"
+                                                placeholder="email1@example.com, email2@example.com"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-6 sm:mb-8">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Edit Email Body</h3>
+                                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 h-[500px] overflow-y-auto">
+                                                        <textarea
+                                                            value={ndaBody.replace(/<br>/g, '\n')}
+                                                            onChange={(e) => setNdaBody(e.target.value.replace(/\n/g, '<br>'))}
+                                                            className="w-full h-full p-0 border-0 bg-transparent focus:ring-0 focus:outline-none text-sm font-normal font-poppins text-[#6c6c6c]/80 leading-relaxed resize-none"
+                                                            placeholder="Enter email body (press Enter for new lines)..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-medium font-poppins text-[#6c6c6c] mb-4">Email Preview</h3>
+                                                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6">
+                                                    <div className="bg-white p-6 rounded-lg border border-gray-200 h-[500px] overflow-y-auto">
+                                                        <div className="space-y-4">
+                                                            <p className="text-[14.67px] font-normal font-poppins text-black leading-[1.5] mb-4">
+                                                                Dear Candidates,
+                                                            </p>
+                                                            <div
+                                                                className="text-[14.67px] font-normal font-poppins text-black leading-[1.5]"
+                                                                dangerouslySetInnerHTML={{ __html: ndaBody.replace(/<br>/g, '<br/>') }}
+                                                            />
+                                                            <table cellPadding="0" cellSpacing="0" border={0} className="my-5">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <a
+                                                                                href="#"
+                                                                                className="inline-block px-[30px] py-3 bg-gradient-to-r from-[#5530fa] to-[#f51da5] text-white no-underline rounded font-bold text-sm"
+                                                                                style={{ display: 'inline-block', padding: '12px 30px', background: 'linear-gradient(135deg, #5530fa, #f51da5)', color: '#ffffff', textDecoration: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}
+                                                                            >
+                                                                                View NDA
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                            <p className="text-[14.67px] font-normal font-poppins text-black leading-[1.5] my-4">
+                                                                Have a great day!
+                                                            </p>
+                                                            <p className="text-[14.67px] font-normal font-poppins text-[#545454] leading-[1.5] my-4 mb-0">
+                                                                Best regards,<br />
+                                                                Recruitment Team,<br />
+                                                                Protonest
+                                                            </p>
+                                                            <div className="bg-[#f5f5f5] p-[14px_20px] text-center mt-4 rounded">
+                                                                <p className="text-[#737373] text-[13px] leading-[1.5] m-0">
+                                                                    This is an automated message from Protonest. If you have any questions, feel free to contact us.<br />
+                                                                    <span className="text-xs">Reply to: <a href="mailto:careers@protonest.co" className="text-[#5530fa]">careers@protonest.co</a></span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
+                                        <button
+                                            onClick={handleBulkSendNda}
+                                            disabled={sendingNDA || uploadingNDA || (selectedNda === 'template' && !selectedTemplate) || (selectedNda === 'upload' && !uploadedFile)}
+                                            className="w-full sm:w-[209px] h-[51px] px-6 bg-gradient-to-l from-[#5530fa] to-[#f51da5] cursor-pointer rounded-[57px] text-white text-sm sm:text-base font-semibold font-montserrat order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {sendingNDA ? (
+                                                <>
+                                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Sending...
+                                                </>
+                                            ) : uploadingNDA ? 'Processing...' : 'Send NDAs'}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setBulkNdaDialog(null);
+                                                setNdaSubject('');
+                                                setNdaBody('');
+                                                setNdaCc('');
+                                                setNdaBcc('');
+                                                setUploadedFile(null);
+                                                setSelectedNda('template');
+                                                setSelectedTemplate(ndaDocuments.find(doc => doc.is_active)?.id || '');
+                                            }}
+                                            disabled={uploadingNDA}
+                                            className="w-full sm:w-[209px] h-[51px] px-6 rounded-[57px] cursor-pointer gradient-border text-[#4d4d4d] text-sm sm:text-base font-medium font-poppins order-2 sm:order-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {
+
                     deleteCandidate && (
                         <div
                             className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -2056,10 +2805,12 @@ const CandidateManagement = () => {
                                                             Recruitment Team,<br />
                                                             Protonest
                                                         </p>
-                                                        <p className="text-xs font-normal font-poppins text-[#737373] pt-4 border-t border-gray-200">
-                                                            This is an automated message from Protonest. If you have any questions, feel free to contact us.<br />
-                                                            <span className="text-xs">Reply to: <a href="mailto:careers@protonest.co" className="text-[#5530fa]">careers@protonest.co</a></span>
-                                                        </p>
+                                                        <div className="bg-[#f5f5f5] p-[14px_20px] text-center mt-4 rounded">
+                                                            <p className="text-[#737373] text-[13px] leading-[1.5] m-0">
+                                                                This is an automated message from Protonest. If you have any questions, feel free to contact us.<br />
+                                                                <span className="text-xs">Reply to: <a href="mailto:careers@protonest.co" className="text-[#5530fa]">careers@protonest.co</a></span>
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2829,7 +3580,7 @@ const CandidateManagement = () => {
                     className="hidden"
                 />
             </div>
-        </AdminLayout>
+        </AdminLayout >
     );
 };
 
