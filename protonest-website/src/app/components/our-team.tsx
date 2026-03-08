@@ -36,6 +36,7 @@ const OurTeamSection = () => {
               src="/protonest_team.jpg"
               alt="Protonest team"
               fill
+              priority
               quality={85}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 768px"
               className="object-cover"

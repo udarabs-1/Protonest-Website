@@ -154,7 +154,7 @@ export default function Contact() {
               </div>
 
               {/* Meeting Scheduler Container (Bottom) */}
-              <div className="w-full min-h-[550px] flex items-start justify-center">
+              <div id="book-a-call" className="w-full min-h-[550px] flex items-start justify-center scroll-mt-[65px] lg:scroll-mt-[80px]">
                 <div className="w-full meetings-iframe-container" data-src="https://meetings-na2.hubspot.com/udara-kumarasena?embed=true"></div>
               </div>
             </div>

@@ -255,9 +255,7 @@ export default function Navbar() {
                                 ) : (
                                     <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
                                         <Link
-                                            href="https://meetings-na2.hubspot.com/udara-kumarasena"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            href="/contact-us#book-a-call"
                                             className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
                                         >
                                             Book a Call
@@ -372,9 +370,7 @@ export default function Navbar() {
                                     </Link>
                                 ) : (
                                     <Link
-                                        href="https://meetings-na2.hubspot.com/udara-kumarasena"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        href="/contact-us#book-a-call"
                                         className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
                                     >
                                         <span className="text-sm font-medium font-montserrat">
