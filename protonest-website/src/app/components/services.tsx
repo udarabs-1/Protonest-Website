@@ -112,8 +112,7 @@ const ServicesSection = () => (
         highlight="Offer?"
         description="From Idea to Execution, We’ve Got You Covered."
         linkLabel="Book a Call"
-        linkHref="https://meetings-na2.hubspot.com/udara-kumarasena"
-        linkExternal
+        linkHref="/contact-us#book-a-call"
       />
 
       <div className="mx-auto mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

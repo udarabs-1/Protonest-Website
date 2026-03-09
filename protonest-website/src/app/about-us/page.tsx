@@ -303,11 +303,7 @@ export default function About() {
         </div>
 
         <div className="mt-8 sm:mt-10 md:mt-12 text-center pb-8 sm:pb-12 md:pb-16">
-          <Link
-            href="https://meetings-na2.hubspot.com/udara-kumarasena"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link href="/contact-us#book-a-call">
             <button className="w-[150px] sm:w-[170px] lg:w-[180px] h-[45px] sm:h-[48px] xl:h-[50px] gradient-button font-poppins hover:font-medium transition text-sm lg:text-[15px] xl:text-base">
               Book a Call
             </button>
