@@ -58,7 +58,7 @@ const roleToCategoryMap: { [key: string]: string } = {
     'electronics': 'Electronics',
     'ui-ux-designing': 'UI/UX Designing',
     'mechanical': 'Mechanical',
-    'embedded-firmware': 'Embedded Systems',
+    'embedded-firmware': 'Embedded Firmware',
     'quality-assurance': 'Quality Assurance',
     'other-roles': 'Other Roles'
 };

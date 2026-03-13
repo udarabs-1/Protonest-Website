@@ -60,7 +60,7 @@ const categoryToSlugMap: { [key: string]: string } = {
     'Electronics': 'electronics',
     'UI/UX Designing': 'ui-ux-designing',
     'Mechanical Engineering': 'mechanical',
-    'Embedded Systems': 'embedded-firmware',
+    'Embedded Firmware': 'embedded-firmware',
     'Quality Assurance': 'quality-assurance',
     'Other': 'other-roles'
 };
