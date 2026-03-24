@@ -2,8 +2,7 @@
 
 import DottedMap from "dotted-map";
 import { motion } from "motion/react";
-import { useTheme } from "next-themes";
-import { useRef } from "react";
+import { useId, useRef } from "react";
 
 interface MapProps {
     dots?: Array<{
@@ -13,25 +12,29 @@ interface MapProps {
     lineColor?: string;
 }
 
+const EMOJI_FALLBACKS: Record<string, string> = {
+    "🇱🇰": "LK", "🇬🇧": "GB", "🇩🇪": "DE", "🇫🇷": "FR",
+    "🇮🇹": "IT", "🇺🇸": "US", "🇦🇪": "AE",
+};
+
 export default function WorldMap({
     dots = [],
-    lineColor = "#0ea5e9",
+    lineColor = "#5530FA",
 }: MapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
+    const uid = useId().replace(/:/g, "-");
+    const lineGradientId = `line-gradient-${uid}`;
+    const dotGradientId = `dot-gradient-${uid}`;
     const map = new DottedMap({ height: 100, grid: "diagonal" });
-
-    const { theme } = useTheme();
 
     const svgMap = map.getSVG({
         radius: 0.22,
-        color: theme === "dark" ? "#FFFFFF40" : "#00000040",
+        color: "#C4B5FD",
         shape: "circle",
-        backgroundColor: theme === "dark" ? "black" : "white",
+        backgroundColor: "white",
     });
 
     const projectPoint = (lat: number, lng: number) => {
-        // Use the dotted-map internal projection mapped to the 800x400 SVG viewbox bounds
-        // DottedMap with height 100 outputs a viewBox of 0 0 198 100
         const point = map.getPin({ lat, lng });
         if (!point) return { x: 0, y: 0 };
         return {
@@ -56,45 +59,60 @@ export default function WorldMap({
         const point = projectPoint(dot.lat, dot.lng);
         const position = dot.labelPosition || "top";
 
-        let x = point.x;
-        let y = point.y;
-        let textAnchor = "middle";
+        let cx = point.x;
+        let cy = point.y;
+        const circleR = 14;
 
         switch (position) {
             case "top":
-                y -= 15; // Adjusted higher for 24px text
+                cy -= circleR + 10;
                 break;
             case "bottom":
-                y += 28; // Adjusted lower for 24px text
+                cy += circleR + 10;
                 break;
             case "left":
-                x -= 15; // Adjusted further left
-                y += 8;
-                textAnchor = "end";
+                cx -= circleR + 14;
                 break;
             case "right":
-                x += 15; // Adjusted further right
-                y += 8;
-                textAnchor = "start";
+                cx += circleR + 14;
                 break;
         }
 
-        // Dropped full SVG fill gradient because this applies to the emoji flags and forces them un-renderable or monotone colored in Safari iOS.
+        const fallback = EMOJI_FALLBACKS[dot.label] ?? dot.label.slice(0, 2);
+
         return (
-            <text
-                x={x}
-                y={y}
-                fontSize="24"
-                fontWeight="bold"
-                textAnchor={textAnchor}
-            >
-                {dot.label}
-            </text>
+            <g key={`label-${dot.lat}-${dot.lng}`}>
+                <circle cx={cx} cy={cy} r={circleR} fill="white" stroke="#C4B5FD" strokeWidth="1.5" />
+                <text
+                    x={cx}
+                    y={cy}
+                    fontSize="16"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontFamily="'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif"
+                >
+                    {dot.label}
+                </text>
+                <text
+                    x={cx}
+                    y={cy}
+                    fontSize="9"
+                    fontWeight="600"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#5530FA"
+                    fontFamily="sans-serif"
+                    style={{ display: "none" }}
+                    className="flag-fallback"
+                >
+                    {fallback}
+                </text>
+            </g>
         );
     };
 
     return (
-        <div className="w-full aspect-[2/1] dark:bg-black bg-white rounded-lg relative font-sans overflow-hidden">
+        <div className="w-full aspect-[2/1] bg-white rounded-lg relative font-sans overflow-hidden">
             <img
                 src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
                 className="h-full w-full pointer-events-none select-none relative z-0"
@@ -109,10 +127,14 @@ export default function WorldMap({
                 className="w-full h-full absolute inset-0 z-10 pointer-events-none select-none"
             >
                 <defs>
-                    <linearGradient id="theme-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id={lineGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#5530FA" />
                         <stop offset="100%" stopColor="#F51DA5" />
                     </linearGradient>
+                    <radialGradient id={dotGradientId} cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#F51DA5" />
+                        <stop offset="100%" stopColor="#5530FA" />
+                    </radialGradient>
                 </defs>
 
                 {dots.map((dot, i) => {
@@ -123,22 +145,19 @@ export default function WorldMap({
                             <motion.path
                                 d={createCurvedPath(startPoint, endPoint)}
                                 fill="none"
-                                stroke={lineColor}
-                                strokeOpacity="0.8"
+                                stroke={`url(#${lineGradientId})`}
+                                strokeOpacity="0.7"
                                 strokeWidth="1.5"
-                                initial={{
-                                    pathLength: 0,
-                                }}
-                                animate={{
-                                    pathLength: 1,
-                                }}
+                                strokeDasharray="4 2"
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
                                 transition={{
-                                    duration: 1,
+                                    duration: 1.2,
                                     delay: 0.5 * i,
                                     ease: "easeOut",
                                 }}
-                                key={`start-upper-${i}`}
-                            ></motion.path>
+                                key={`path-${i}`}
+                            />
                         </g>
                     );
                 })}
@@ -149,66 +168,38 @@ export default function WorldMap({
                             <circle
                                 cx={projectPoint(dot.start.lat, dot.start.lng).x}
                                 cy={projectPoint(dot.start.lat, dot.start.lng).y}
-                                r="2.5"
-                                fill={lineColor}
+                                r="4"
+                                fill={`url(#${dotGradientId})`}
                             />
                             {renderLabel(dot.start)}
                             <circle
                                 cx={projectPoint(dot.start.lat, dot.start.lng).x}
                                 cy={projectPoint(dot.start.lat, dot.start.lng).y}
-                                r="2.5"
-                                fill={lineColor}
-                                opacity="0.5"
+                                r="4"
+                                fill="#5530FA"
+                                opacity="0.4"
                             >
-                                <animate
-                                    attributeName="r"
-                                    from="2.5"
-                                    to="10"
-                                    dur="1.5s"
-                                    begin="0s"
-                                    repeatCount="indefinite"
-                                />
-                                <animate
-                                    attributeName="opacity"
-                                    from="0.5"
-                                    to="0"
-                                    dur="1.5s"
-                                    begin="0s"
-                                    repeatCount="indefinite"
-                                />
+                                <animate attributeName="r" from="4" to="14" dur="1.5s" begin="0s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" from="0.4" to="0" dur="1.5s" begin="0s" repeatCount="indefinite" />
                             </circle>
                         </g>
                         <g key={`end-${i}`}>
                             <circle
                                 cx={projectPoint(dot.end.lat, dot.end.lng).x}
                                 cy={projectPoint(dot.end.lat, dot.end.lng).y}
-                                r="2.5"
-                                fill={lineColor}
+                                r="4"
+                                fill={`url(#${dotGradientId})`}
                             />
                             {renderLabel(dot.end)}
                             <circle
                                 cx={projectPoint(dot.end.lat, dot.end.lng).x}
                                 cy={projectPoint(dot.end.lat, dot.end.lng).y}
-                                r="2.5"
-                                fill={lineColor}
-                                opacity="0.5"
+                                r="4"
+                                fill="#F51DA5"
+                                opacity="0.4"
                             >
-                                <animate
-                                    attributeName="r"
-                                    from="2.5"
-                                    to="10"
-                                    dur="1.5s"
-                                    begin="0s"
-                                    repeatCount="indefinite"
-                                />
-                                <animate
-                                    attributeName="opacity"
-                                    from="0.5"
-                                    to="0"
-                                    dur="1.5s"
-                                    begin="0s"
-                                    repeatCount="indefinite"
-                                />
+                                <animate attributeName="r" from="4" to="14" dur="1.5s" begin="0s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" from="0.4" to="0" dur="1.5s" begin="0s" repeatCount="indefinite" />
                             </circle>
                         </g>
                     </g>

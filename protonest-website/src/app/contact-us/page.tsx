@@ -132,16 +132,15 @@ export default function Contact() {
             beforeGradient: "Let's Build the Future of IoT",
             gradientText: "Together!"
           }}
-          description="Got an idea in mind? Let us know your idea, and we'll review it within 48 hours and get back to you with a detailed proposal"
           height="h-[350px] sm:h-[420px] md:h-[400px]"
         />
 
 
         <div id="get-in-touch" className="relative w-full scroll-mt-[100px]">
-          <div className="relative z-20 pt-[120px] md:pt-[100px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px]">
+          <div className="relative z-20 px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px]">
 
             <div className="w-full text-center px-4 mb-16">
-              <span className="text-[20px] sm:text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+              <span className="text-[24px] lg:text-[26px] xl:text-[30px] font-medium font-montserrat leading-[35px] sm:leading-[40px] md:leading-[50px] lg:leading-[55px] bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
                 Get in Touch
               </span>
             </div>

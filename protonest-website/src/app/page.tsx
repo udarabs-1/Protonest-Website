@@ -81,20 +81,13 @@ function LargeScreenHome() {
               href="/contact-us#get-in-touch"
               className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center"
             >
-              Get Your Free Quote Now
+              Request a Quote
             </Link>
-            <a
-              href="#testimonials-section"
-              onClick={scrollToTestimonials}
-              className="w-[240px] gradient-button font-medium flex items-center justify-center cursor-pointer"
-            >
-              Client Reviews
-            </a>
           </div>
         </div>
       </div>
 
-      <div className="mt-[120px] h-[649px] relative">
+      <div className="mt-[60px] h-[480px] relative">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-2.svg"
@@ -120,79 +113,7 @@ function LargeScreenHome() {
         </div>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto flex flex-col items-center pb-[120px]">
-        <div className="relative w-[90px] h-[90px] mb-6">
-          <Image
-            src="/ellipse.svg"
-            alt="Profile Background"
-            fill
-            priority={false}
-            quality={80}
-            className="object-contain"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative h-[70px] w-[70px] rounded-full overflow-hidden">
-              <Image
-                src="/profile.jpg"
-                alt="Udara Kumarasena"
-                fill
-                priority={false}
-                quality={90}
-                sizes="70px"
-                className="object-cover"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-              />
-            </div>
-          </div>
-        </div>
 
-        <div className="text-center mb-8 font-poppins text-[16px] xl:text-[18px] text-[#6C6C6C]">
-          Udara Kumarasena, Chief Executive Officer
-        </div>
-
-        <div className="relative w-full flex items-start">
-          <div className="absolute left-4 xl:left-0 top-0 h-16 w-16 -ml-12 -mt-4 text-gray-300">
-            <Image
-              src="/quotation1.svg"
-              alt="Opening quotation mark"
-              width={64}
-              height={64}
-              priority={false}
-              quality={80}
-              className="h-full w-full"
-            />
-          </div>
-
-          <div className="flex-grow py-8 text-center">
-            <p className="text-[30px] xl:text-[40px] font-montserrat leading-relaxed">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
-                At Protonest,
-              </span>
-              <span className="text-[#6C6C6C]">
-                {" "}
-                we design and develop IoT systems that enhance reliability,
-                security, and scalability, helping Innovative ideas go further,
-                faster.
-              </span>
-            </p>
-          </div>
-
-          <div className="absolute right-4 xl:right-0 bottom-0 h-16 w-16 -mr-12 -mb-4 text-gray-300">
-            <Image
-              src="/quotation2.svg"
-              alt="Closing quotation mark"
-              width={64}
-              height={64}
-              priority={false}
-              quality={80}
-              className="h-full w-full"
-            />
-          </div>
-        </div>
-      </div>
 
       <ServicesSection />
 
@@ -242,7 +163,7 @@ function SmallScreenHome() {
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
           <div className="flex justify-center">
-            <div className="text-center text-[24px] sm:text-[30px] md:text-[32px] font-medium font-montserrat">
+            <div className="text-center text-[28px] sm:text-[30px] md:text-[32px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
                 Your Reliable IoT
               </span>
@@ -265,19 +186,14 @@ function SmallScreenHome() {
               href="/contact-us#get-in-touch"
             >
               <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                Get Your Free Quote Now
+                Request a Quote
               </button>
             </Link>
-            <a href="#testimonials-section" onClick={scrollToTestimonials}>
-              <button className="w-full sm:w-[240px] h-[50px] sm:h-[55px] gradient-button font-medium">
-                Client Reviews
-              </button>
-            </a>
           </div>
         </div>
       </div>
 
-      <div className="mt-12 sm:mt-16 min-h-[400px] relative">
+      <div className="mt-8 sm:mt-10 min-h-[400px] relative">
         <div className="absolute inset-0 -z-10">
           <Image
             src="/home-2.svg"
@@ -316,79 +232,7 @@ function SmallScreenHome() {
         </div>
       </div>
 
-      <div className="w-full max-w-3xl mx-auto flex flex-col items-center py-12 sm:py-16 px-4 sm:px-8">
-        <div className="relative w-[70px] h-[70px] sm:w-[80px] sm:h-[80px] mb-4">
-          <Image
-            src="/ellipse.svg"
-            alt="Profile Background"
-            fill
-            priority={false}
-            quality={80}
-            className="object-contain"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative h-[55px] w-[55px] sm:h-[65px] sm:w-[65px] rounded-full overflow-hidden">
-              <Image
-                src="/profile.jpg"
-                alt="Udara Kumarasena"
-                fill
-                priority={false}
-                quality={90}
-                sizes="(max-width: 640px) 55px, 65px"
-                className="object-cover"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-              />
-            </div>
-          </div>
-        </div>
 
-        <div className="text-center mb-6 font-poppins text-[14px] text-[#6C6C6C]">
-          Udara Kumarasena, Chief Executive Officer
-        </div>
-
-        <div className="relative w-full flex items-start">
-          <div className="absolute left-0 top-0 h-8 w-8 sm:h-12 sm:w-12 -ml-4 sm:-ml-8 -mt-2 sm:-mt-4 text-gray-300">
-            <Image
-              src="/quotation1.svg"
-              alt="Opening quotation mark"
-              width={48}
-              height={48}
-              priority={false}
-              quality={80}
-              className="h-full w-full"
-            />
-          </div>
-
-          <div className="flex-grow py-4 sm:py-6 text-center px-6 sm:px-8">
-            <p className="text-[18px] sm:text-[24px] font-montserrat leading-relaxed">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
-                At Protonest,
-              </span>
-              <span className="text-[#6C6C6C]">
-                {" "}
-                we design and develop IoT systems that enhance reliability,
-                security, and scalability, helping Innovative ideas go further,
-                faster.
-              </span>
-            </p>
-          </div>
-
-          <div className="absolute right-0 bottom-0 h-8 w-8 sm:h-12 sm:w-12 -mr-4 sm:-mr-8 -mb-2 sm:-mb-4 text-gray-300">
-            <Image
-              src="/quotation2.svg"
-              alt="Closing quotation mark"
-              width={48}
-              height={48}
-              priority={false}
-              quality={80}
-              className="h-full w-full"
-            />
-          </div>
-        </div>
-      </div>
 
       <ServicesSection />
 
