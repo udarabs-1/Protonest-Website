@@ -78,35 +78,27 @@ export default function WorldMap({
                 break;
         }
 
-        const fallback = EMOJI_FALLBACKS[dot.label] ?? dot.label.slice(0, 2);
+        const fallback = EMOJI_FALLBACKS[dot.label] ?? "un"; // 'un' is a safe fallback (UN flag) or you can default to 'us'
+        const flagW = 16;
+        const flagH = 12;
 
         return (
             <g key={`label-${dot.lat}-${dot.lng}`}>
-                <circle cx={cx} cy={cy} r={circleR} fill="white" stroke="#C4B5FD" strokeWidth="1.5" />
-                <text
-                    x={cx}
-                    y={cy}
-                    fontSize="16"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontFamily="'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif"
-                >
-                    {dot.label}
-                </text>
-                <text
-                    x={cx}
-                    y={cy}
-                    fontSize="9"
-                    fontWeight="600"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill="#5530FA"
-                    fontFamily="sans-serif"
-                    style={{ display: "none" }}
-                    className="flag-fallback"
-                >
-                    {fallback}
-                </text>
+                {/* Background circle */}
+                <circle cx={cx} cy={cy} r={circleR} fill="#ffffff" />
+                
+                {/* Render the fully visible, uncropped flag image */}
+                <image
+                    href={`https://flagcdn.com/${fallback.toLowerCase()}.svg`}
+                    x={cx - flagW / 2}
+                    y={cy - flagH / 2}
+                    width={flagW}
+                    height={flagH}
+                    preserveAspectRatio="xMidYMid meet"
+                />
+                
+                {/* Border outline so it looks clean */}
+                <circle cx={cx} cy={cy} r={circleR} fill="none" stroke="#C4B5FD" strokeWidth="1.5" />
             </g>
         );
     };
