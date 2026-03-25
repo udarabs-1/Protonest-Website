@@ -18,7 +18,7 @@ export default function ClientsMap() {
         },
         {
             start: { lat: 6.9271, lng: 79.8612 },
-            end: { lat: 48.8566, lng: 2.3522, label: "🇫🇷", labelPosition: "bottom" as const },
+            end: { lat: 48.8566, lng: 2.3522, label: "🇫🇷", labelPosition: "left" as const },
         },
         {
             start: { lat: 6.9271, lng: 79.8612 },

@@ -29,7 +29,7 @@ export default function WorldMap({
 
     const svgMap = map.getSVG({
         radius: 0.22,
-        color: "#C4B5FD",
+        color: "#a084f7",
         shape: "circle",
         backgroundColor: "white",
     });
@@ -98,7 +98,7 @@ export default function WorldMap({
                 />
                 
                 {/* Border outline so it looks clean */}
-                <circle cx={cx} cy={cy} r={circleR} fill="none" stroke="#C4B5FD" strokeWidth="1.5" />
+                <circle cx={cx} cy={cy} r={circleR} fill="none" stroke="#a084f7" strokeWidth="1.5" />
             </g>
         );
     };
