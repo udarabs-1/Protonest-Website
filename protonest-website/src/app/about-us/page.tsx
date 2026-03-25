@@ -149,7 +149,7 @@ export default function About() {
         <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-16 sm:py-20 lg:py-24">
           <SectionHeader
             highlight="Our Journey"
-            description="From an engineer’s vision to a collective force shaping connected products."
+            description="From one engineer’s vision to a collective force shaping the future of IoT"
             align="center"
           />
 
@@ -160,7 +160,7 @@ export default function About() {
               <div className="absolute left-[13px] md:left-1/2 top-0 bottom-0 w-[4px] md:-ml-[2px] bg-gradient-to-b from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] rounded-full" />
 
               <div className="flex flex-col gap-12 md:gap-0 text-[#6c6c6c] text-[13px] sm:text-[14px] md:text-[15px] lg:text-[16px] font-normal font-poppins leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px]">
-                
+
                 {/* Step 1 */}
                 <div className="relative flex flex-col md:flex-row items-start md:items-center w-full md:mb-20 lg:mb-24 last:mb-0">
                   {/* Left Side (Empty space for layout) */}
@@ -171,9 +171,9 @@ export default function About() {
 
                   {/* Right Side (Desktop Content) */}
                   <div className="w-full md:w-1/2 md:pl-12 lg:pl-16 pl-[45px] order-2 md:order-3 md:text-left">
-                    <h4 className="text-[#5530FA] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">June 2023</h4>
+                    <h4 className="text-[#5530FA] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">Our Beginnings</h4>
                     <p>
-                      Founded by an electronic engineer passionate about innovation, Protonest began as a vision to simplify IoT prototyping.
+                      Protonest was founded in 2023 by an electronics engineer with the aim of simplifying IoT prototyping.
                     </p>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function About() {
                   <div className="w-full md:w-1/2 md:pr-12 lg:pr-16 pl-[45px] md:pl-0 order-2 md:order-1 md:text-right">
                     <h4 className="text-[#F51DA5] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">The Vision Expands</h4>
                     <p>
-                      What started as one idea quickly evolved, setting the foundation for a collaborative hub dedicated to future-focused problem solvers in the IoT space.
+                      We transitioned from project-based services to building reusable platforms and accelerating IoT deployments.
                     </p>
                   </div>
 
@@ -207,7 +207,7 @@ export default function About() {
                   <div className="w-full md:w-1/2 md:pl-12 lg:pl-16 pl-[45px] order-2 md:order-3 md:text-left">
                     <h4 className="text-[#6C9AE1] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">Today</h4>
                     <p>
-                      We&apos;re a growing team of 20+ members consisting of engineers, designers, and thinkers, united by a shared goal to build the future.
+                      We are a multidisciplinary team of 20+ members driving IoT development services.
                     </p>
                   </div>
                 </div>
@@ -310,7 +310,7 @@ export default function About() {
               <SectionHeader
                 prefix="Trusted by Pioneers in"
                 highlight="Innovation"
-                description="Teams and builders who rely on us to turn complex ideas into working systems."
+                description="Teams that rely on us to transform ideas into working systems"
                 align="center"
               />
             </div>
@@ -346,9 +346,7 @@ export default function About() {
             <div className="flex justify-start w-full my-6 sm:my-8 md:my-10 lg:my-12">
               <div className="text-[14px] sm:text-[16px] xl:text-[18px] w-full max-w-[780px] font-normal font-poppins text-left">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Accelerate the design & development of sustainable,
-                  cost-effective, and scalable IoT solutions, done right and
-                  delivered fast.
+                  Accelerate the design and deployment of scalable, cost-effective IoT solutions.
                 </span>
               </div>
             </div>
