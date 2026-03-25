@@ -5,7 +5,7 @@ import Navbar from "@/app/components/navbar";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 
 interface Blog {
@@ -120,7 +120,7 @@ const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobi
         e.preventDefault();
         const element = document.getElementById(id);
         if (element) {
-            const yOffset = -100;
+            const yOffset = -130;
             const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
@@ -225,8 +225,16 @@ export default function BlogDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [tocItems, setTocItems] = useState<TocItem[]>([]);
+    const errorRef = useRef<string | null>(null);
 
     useEffect(() => {
+        errorRef.current = error;
+    }, [error]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const { signal } = controller;
+
         const fetchBlog = async () => {
             if (!slug) return;
 
@@ -234,21 +242,30 @@ export default function BlogDetailPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs/${slug}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+                const [blogResult, blogsResult] = await Promise.allSettled([
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs/${slug}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal,
+                    }),
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal,
+                    }),
+                ]);
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Blog post not found');
-                    }
+                if (blogResult.status === 'rejected') {
+                    if ((blogResult.reason as Error)?.name === 'AbortError') return;
                     throw new Error('Failed to fetch blog post');
                 }
 
-                const result = await response.json();
+                const blogResponse = blogResult.value;
+                if (!blogResponse.ok) {
+                    throw new Error(blogResponse.status === 404 ? 'Blog post not found' : 'Failed to fetch blog post');
+                }
+
+                const result = await blogResponse.json();
 
                 if (result.status === 'success') {
                     const blogData = result.data;
@@ -258,55 +275,63 @@ export default function BlogDetailPage() {
                     setBlog({ ...blogData, content: contentWithIds });
                     setTocItems(toc);
 
-                    try {
-                        const blogsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                        });
-
-                        if (blogsResponse.ok) {
-                            const blogsResult = await blogsResponse.json();
-                            if (blogsResult.status === 'success') {
-                                const allBlogs = blogsResult.data || [];
-                                const currentBlogData = result.data;
-
-                                const otherBlogs = allBlogs.filter((b: Blog) => b.id !== currentBlogData.id);
-
+                    if (blogsResult.status === 'fulfilled' && blogsResult.value.ok) {
+                        try {
+                            const blogsJson = await blogsResult.value.json();
+                            if (blogsJson.status === 'success') {
+                                const allBlogs = blogsJson.data || [];
+                                const otherBlogs = allBlogs.filter((b: Blog) => b.id !== blogData.id);
                                 const shuffled = otherBlogs.sort(() => Math.random() - 0.5);
-                                const suggested = shuffled.slice(0, 2);
-                                setSuggestedBlogs(suggested);
+                                setSuggestedBlogs(shuffled.slice(0, 2));
                             }
+                        } catch (err) {
+                            console.error('Error parsing suggested blogs:', err);
                         }
-                    } catch (err) {
-                        console.error('Error fetching suggested blogs:', err);
                     }
                 } else {
                     throw new Error(result.message || 'Failed to fetch blog post');
                 }
             } catch (err) {
+                if ((err as Error)?.name === 'AbortError') return;
                 console.error('Error fetching blog:', err);
                 setError(err instanceof Error ? err.message : 'Failed to load blog post');
             } finally {
-                setLoading(false);
+                if (!signal.aborted) setLoading(false);
             }
         };
 
         fetchBlog();
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && errorRef.current) {
+                fetchBlog();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            controller.abort();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [slug]);
+
+    useEffect(() => {
+        if (blog) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [blog]);
 
     if (loading) {
         return (
             <div className="overflow-x-hidden">
                 <Navbar />
-                <div className="flex justify-center items-center min-h-[60vh]">
+                <div className="flex justify-center items-center min-h-screen">
                     <div className="text-center">
                         <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-[#6c6c6c] font-poppins">Loading blog post...</p>
                     </div>
                 </div>
-                <Footer />
             </div>
         );
     }
@@ -373,7 +398,7 @@ export default function BlogDetailPage() {
     const publishDate = blog.published_at || blog.created_at;
 
     return (
-        <div className="overflow-x-hidden">
+        <div className="overflow-x-hidden" id="article-top">
             <Navbar />
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
@@ -403,26 +428,7 @@ export default function BlogDetailPage() {
                     <span className="font-poppins text-sm lg:text-base font-medium">Back</span>
                 </button>
 
-                {blog.cover_image && (
-                    <div className="mb-8 lg:mb-12">
-                        <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
-                            <Image
-                                src={blog.cover_image}
-                                alt={blog.title}
-                                fill
-                                className="object-cover"
-                                priority={true}
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
-
-
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6">
                     <h1 className="text-[#6c6c6c] text-2xl md:text-3xl lg:text-4xl font-medium font-montserrat leading-tight mb-4 sm:mb-0 sm:pr-8">
                         {blog.title}
                     </h1>
@@ -432,12 +438,49 @@ export default function BlogDetailPage() {
                     </div>
                 </div>
 
+                {blog.cover_image && (
+                    <div className="mb-8 flex justify-center lg:hidden">
+                        <div className="w-full max-w-2xl">
+                            <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                                <Image
+                                    src={blog.cover_image}
+                                    alt={blog.title}
+                                    fill
+                                    className="object-cover"
+                                    priority={true}
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
 
 
                 <TableOfContents items={tocItems} isMobile={true} />
 
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 xl:gap-12">
                     <div className="min-w-0">
+                        {blog.cover_image && (
+                            <div className="hidden lg:block w-full mb-6">
+                                <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                                    <Image
+                                        src={blog.cover_image}
+                                        alt={blog.title}
+                                        fill
+                                        className="object-cover"
+                                        priority={true}
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <article className="prose prose-lg max-w-none">
                             <div
                                 className="text-[#6c6c6c] text-base font-normal font-poppins"

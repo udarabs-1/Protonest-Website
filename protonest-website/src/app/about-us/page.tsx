@@ -8,7 +8,6 @@ import ClientMarquee from "../components/client-marquee";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import OurTeamSection from "../components/our-team";
-import PageHero from "../components/page-hero";
 import SectionHeader from "../components/section-header";
 import { useOnScreen } from "../components/use-on-screen";
 
@@ -132,76 +131,167 @@ export default function About() {
       </Head>
       <Navbar />
       <div>
-        <PageHero
-          backgroundImage="/about-1.webp"
-          heading={{
-            beforeGradient: "Building the Future of",
-            gradientText: "IoT Innovation",
-          }}
-          description="Protonest is a dynamic IoT engineering hub that transforms visionary ideas into scalable, working systems. Whether you're launching a new smart device or need rapid prototyping, we're here to help."
-          height="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[553px]"
-        />
-
-        <div className="z-10 mt-[40px] md:-mt-[150px] relative w-full h-[600px] sm:h-[700px] md:h-[800px] lg:h-[900px] xl:h-[996px] overflow-visible">
-          <div className="absolute inset-0 flex justify-center">
+        <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] mt-[50px]">
+          <div className="relative w-full aspect-[16/9] sm:h-[55vw] sm:max-h-[680px] sm:min-h-[300px] rounded-[20px] md:rounded-[30px] overflow-hidden shadow-lg">
             <Image
-              src="/about-2-mobile.svg"
-              alt="Our Journey background mobile"
-              width={768}
-              height={500}
-              priority={false}
-              quality={65}
-              sizes="(max-width: 1024px) 100vw, 768px"
-              className="absolute w-[350px] md:w-[500px] right-0 h-auto lg:hidden"
-              style={{ objectPosition: "right" }}
-            />
-            <Image
-              src="/about-2.webp"
-              alt="Our Journey background desktop"
+              src="/team.jpg"
+              alt="Protonest team"
               fill
-              priority={false}
-              quality={70}
-              sizes="(min-width: 1024px) 100vw, 0px"
-              className="absolute w-[90%] h-auto right-0 hidden lg:block"
-              style={{ objectFit: "contain", objectPosition: "right" }}
+              priority={true}
+              quality={90}
+              sizes="(max-width: 1536px) 100vw, 1536px"
+              className="object-cover object-center"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/30" />
           </div>
+        </div>
 
-          <div className="absolute left-1/2 top-[40px] sm:top-[60px] md:top-[80px] lg:top-[96px] w-[90%] sm:w-[80%] md:w-[70%] lg:w-[1127px] -translate-x-1/2">
-            <SectionHeader
-              highlight="Our Journey"
-              description="From an engineer’s vision to a collective force shaping connected products."
-              align="center"
-            />
-          </div>
+        <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-16 sm:py-20 lg:py-24">
+          <SectionHeader
+            highlight="Our Journey"
+            description="From one engineer’s vision to a collective force shaping the future of IoT"
+            align="center"
+          />
 
-          <div className="absolute left-0 md:left-[5%] lg:left-[10%] 2xl:left-[11%] top-[150px] sm:top-[220px] md:top-[260px] lg:top-[318px] w-[60%] sm:w-[80%] md:w-[70%] lg:w-[45%] px-4 lg:px-0">
-            <div className="relative flex gap-6">
-              <div className="flex flex-col gap-12 text-[#6c6c6c] text-[12px] md:text-[14px] lg:text-[15px] xl:text-[16px] font-normal font-poppins leading-[20px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px]">
-                <div className="relative">
-                  <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#5530FA]" />
-                  Founded in June 2023 by an electronic engineer passionate
-                  about innovation, Protonest began as a vision to simplify IoT
-                  prototyping.
+          <div className="max-w-4xl mx-auto mt-16 sm:mt-20 md:mt-24 relative">
+            <div className="relative pb-4">
+              {/* Connecting Gradient Line */}
+              {/* Center on desktop, left on mobile */}
+              <div className="absolute left-[13px] md:left-1/2 top-0 bottom-0 w-[4px] md:-ml-[2px] bg-gradient-to-b from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] rounded-full" />
+
+              <div className="flex flex-col gap-12 md:gap-0 text-[#6c6c6c] text-[13px] sm:text-[14px] md:text-[15px] lg:text-[16px] font-normal font-poppins leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px]">
+
+                {/* Step 1 */}
+                <div className="relative flex flex-col md:flex-row items-start md:items-center w-full md:mb-20 lg:mb-24 last:mb-0">
+                  {/* Left Side (Empty space for layout) */}
+                  <div className="hidden md:block md:w-1/2 order-1"></div>
+
+                  {/* Node */}
+                  <div className="absolute left-[6px] md:left-1/2 top-[4px] md:top-1/2 md:-mt-[9px] md:-ml-[9px] w-[18px] h-[18px] rounded-full bg-white border-[5px] border-[#5530FA] shadow-[0_0_15px_rgba(85,48,250,0.6)] z-10" />
+
+                  {/* Right Side (Desktop Content) */}
+                  <div className="w-full md:w-1/2 md:pl-12 lg:pl-16 pl-[45px] order-2 md:order-3 md:text-left">
+                    <h4 className="text-[#5530FA] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">Our Beginnings</h4>
+                    <p>
+                      Protonest was founded in 2023 by an electronics engineer with the aim of simplifying IoT prototyping.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="relative">
-                  <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#F51DA5]" />
-                  Today, we&apos;re a growing team of 20+ members consisting of
-                  engineers, designers, and thinkers, united by a shared goal.
+                {/* Step 2 */}
+                <div className="relative flex flex-col md:flex-row items-start md:items-center w-full md:mb-20 lg:mb-24 last:mb-0">
+                  {/* Left Side (Desktop Content) */}
+                  <div className="w-full md:w-1/2 md:pr-12 lg:pr-16 pl-[45px] md:pl-0 order-2 md:order-1 md:text-right">
+                    <h4 className="text-[#F51DA5] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">The Vision Expands</h4>
+                    <p>
+                      We transitioned from project-based services to building reusable platforms and accelerating IoT deployments.
+                    </p>
+                  </div>
+
+                  {/* Node */}
+                  <div className="absolute left-[6px] md:left-1/2 top-[4px] md:top-1/2 md:-mt-[9px] md:-ml-[9px] w-[18px] h-[18px] rounded-full bg-white border-[5px] border-[#F51DA5] shadow-[0_0_15px_rgba(245,29,165,0.6)] z-10" />
+
+                  {/* Right Side (Empty space for layout) */}
+                  <div className="hidden md:block md:w-1/2 order-3"></div>
                 </div>
 
-                <div className="relative">
-                  <span className="absolute -left-[34px] top-2 w-3 h-3 rounded-full bg-[#6C9AE1]" />
-                  What started as one idea has become a collaborative hub for
-                  future-focused problem solvers in the IoT space.
+                {/* Step 3 */}
+                <div className="relative flex flex-col md:flex-row items-start md:items-center w-full md:mb-0 last:mb-0">
+                  {/* Left Side (Empty space for layout) */}
+                  <div className="hidden md:block md:w-1/2 order-1"></div>
+
+                  {/* Node */}
+                  <div className="absolute left-[6px] md:left-1/2 top-[4px] md:top-1/2 md:-mt-[9px] md:-ml-[9px] w-[18px] h-[18px] rounded-full bg-white border-[5px] border-[#6C9AE1] shadow-[0_0_15px_rgba(108,154,225,0.6)] z-10" />
+
+                  {/* Right Side (Desktop Content) */}
+                  <div className="w-full md:w-1/2 md:pl-12 lg:pl-16 pl-[45px] order-2 md:order-3 md:text-left">
+                    <h4 className="text-[#6C9AE1] font-medium text-[16px] sm:text-[18px] md:text-[22px] mb-2 sm:mb-3 font-montserrat tracking-wide">Today</h4>
+                    <p>
+                      We are a multidisciplinary team of 20+ members driving IoT development services.
+                    </p>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative w-full h-[500px] sm:h-[550px] md:h-[600px] lg:h-[649px] overflow-visible -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20">
+        <div className="w-full max-w-4xl mx-auto flex flex-col items-center py-12 sm:py-16 px-4 sm:px-8">
+          <div className="relative w-[70px] h-[70px] sm:w-[90px] sm:h-[90px] mb-4 sm:mb-6">
+            <Image
+              src="/ellipse.svg"
+              alt="Profile Background"
+              fill
+              priority={false}
+              quality={80}
+              className="object-contain"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative h-[55px] w-[55px] sm:h-[70px] sm:w-[70px] rounded-full overflow-hidden">
+                <Image
+                  src="/profile.jpg"
+                  alt="Udara Kumarasena"
+                  fill
+                  priority={false}
+                  quality={90}
+                  sizes="(max-width: 640px) 55px, 70px"
+                  className="object-cover"
+                  style={{
+                    objectFit: "cover",
+                    objectPosition: "center",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mb-6 font-poppins text-[14px] sm:text-[16px] xl:text-[18px] text-[#6C6C6C]">
+            Udara Kumarasena, Chief Executive Officer
+          </div>
+
+          <div className="relative w-full flex items-start">
+            <div className="absolute left-0 top-0 h-8 w-8 sm:h-12 sm:w-12 xl:h-16 xl:w-16 -ml-4 sm:-ml-8 xl:-ml-12 -mt-2 sm:-mt-4 text-gray-300">
+              <Image
+                src="/quotation1.svg"
+                alt="Opening quotation mark"
+                width={64}
+                height={64}
+                priority={false}
+                quality={80}
+                className="h-full w-full"
+              />
+            </div>
+
+            <div className="flex-grow py-4 sm:py-8 text-center px-6 sm:px-8">
+              <p className="text-[18px] sm:text-[24px] xl:text-[30px] font-montserrat leading-relaxed">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
+                  At Protonest,
+                </span>
+                <span className="text-[#6C6C6C]">
+                  {" "}
+                  we design and develop IoT systems that enhance reliability,
+                  security, and scalability, helping Innovative ideas go further,
+                  faster.
+                </span>
+              </p>
+            </div>
+
+            <div className="absolute right-0 bottom-0 h-8 w-8 sm:h-12 sm:w-12 xl:h-16 xl:w-16 -mr-4 sm:-mr-8 xl:-mr-12 -mb-2 sm:-mb-4 text-gray-300">
+              <Image
+                src="/quotation2.svg"
+                alt="Closing quotation mark"
+                width={64}
+                height={64}
+                priority={false}
+                quality={80}
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="relative w-full h-[500px] sm:h-[550px] md:h-[600px] lg:h-[649px] overflow-visible mt-4 sm:mt-6 md:mt-8 lg:mt-10">
           <div className="absolute inset-0 flex justify-center">
             <Image
               src="/about-3.svg"
@@ -220,13 +310,13 @@ export default function About() {
               <SectionHeader
                 prefix="Trusted by Pioneers in"
                 highlight="Innovation"
-                description="Teams and builders who rely on us to turn complex ideas into working systems."
+                description="Teams that rely on us to transform ideas into working systems"
                 align="center"
               />
             </div>
           </div>
 
-          <div className="mt-8 sm:mt-10 md:mt-12 lg:mt-15 relative z-10">
+          <div className="mt-0 relative z-10">
             <ClientMarquee />
           </div>
         </div>
@@ -256,9 +346,7 @@ export default function About() {
             <div className="flex justify-start w-full my-6 sm:my-8 md:my-10 lg:my-12">
               <div className="text-[14px] sm:text-[16px] xl:text-[18px] w-full max-w-[780px] font-normal font-poppins text-left">
                 <span className="text-[rgba(108,108,108,1)]">
-                  Accelerate the design & development of sustainable,
-                  cost-effective, and scalable IoT solutions, done right and
-                  delivered fast.
+                  Accelerate the design and deployment of scalable, cost-effective IoT solutions.
                 </span>
               </div>
             </div>

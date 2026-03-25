@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 
-// Dynamically import WorldMap so it only renders on client
 const WorldMap = dynamic(() => import("./world-map"), {
     ssr: false,
 });
@@ -19,7 +18,7 @@ export default function ClientsMap() {
         },
         {
             start: { lat: 6.9271, lng: 79.8612 },
-            end: { lat: 48.8566, lng: 2.3522, label: "🇫🇷", labelPosition: "bottom" as const },
+            end: { lat: 48.8566, lng: 2.3522, label: "🇫🇷", labelPosition: "left" as const },
         },
         {
             start: { lat: 6.9271, lng: 79.8612 },
@@ -36,8 +35,16 @@ export default function ClientsMap() {
     ];
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-20 bg-white">
-            <div className="bg-white flex justify-center w-full">
+        <div className="w-full bg-white py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="text-center mb-6 sm:mb-8">
+                    <h2 className="text-[26px] sm:text-[32px] lg:text-[38px] font-medium font-montserrat leading-tight">
+                        <span className="text-[#6c6c6c]">Serving Across </span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
+                            Borders
+                        </span>
+                    </h2>
+                </div>
                 <WorldMap dots={dots} lineColor="#5530FA" />
             </div>
         </div>

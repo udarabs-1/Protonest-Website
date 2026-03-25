@@ -94,7 +94,7 @@ const ServiceCard = ({
 );
 
 const ServicesSection = () => (
-  <section className="relative mt-8 sm:mt-12 lg:mt-[80px] mb-8 sm:mb-12 lg:mb-[60px] overflow-hidden">
+  <section className="relative mt-8 sm:mt-12 lg:mt-[20px] mb-8 sm:mb-12 lg:mb-[60px] overflow-hidden">
     <div className="absolute inset-0 -z-10">
       <Image
         src="/home-3.svg"

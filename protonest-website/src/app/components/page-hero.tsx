@@ -10,7 +10,7 @@ interface PageHeroProps {
         gradientText: string;
         afterGradient?: string;
     };
-    description: string | React.ReactNode;
+    description?: string | React.ReactNode;
     height?: string;
     paddingTop?: boolean;
 }
@@ -90,9 +90,11 @@ export default function PageHero({
                             </>
                         )}
                     </h1>
-                    <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
-                        {description}
-                    </p>
+                    {description && (
+                        <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+                            {description}
+                        </p>
+                    )}
                 </div>
             </div>
         </section>

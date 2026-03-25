@@ -30,10 +30,10 @@ const OurTeamSection = () => {
           align="center"
         />
 
-        <div className="flex justify-center mb-8 sm:mb-12 lg:mb-16">
+        <div className="hidden justify-center mb-8 sm:mb-12 lg:mb-16">
           <div className="relative w-full max-w-3xl aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
             <Image
-              src="/protonest_team.jpg"
+              src="/team.jpg"
               alt="Protonest team"
               fill
               priority

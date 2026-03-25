@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "IoT Development Services by Protonest",
 };
 
+export const viewport = {
+  themeColor: "#ffffff",
+  colorScheme: "light",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

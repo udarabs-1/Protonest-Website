@@ -228,6 +228,18 @@ export default function BlogSection() {
   }, [fetchCategories, fetchBlogs]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [loading]);
+
+  useEffect(() => {
     fetchBlogs(selectedCategory);
     setShowAllBlogs(false);
     setSearchTerm('');
@@ -295,6 +307,20 @@ export default function BlogSection() {
     setSearchTerm(e.target.value);
     setShowAllBlogs(false);
   }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-[#6c6c6c] font-poppins">Loading blogs...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
