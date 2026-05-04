@@ -26,6 +26,7 @@ interface ProfileData {
     jobTitle: string;
     location: string;
     bio: string;
+    dateOfBirth?: string;
     profileImage: string;
     jobUpdates: boolean;
     newsletter: boolean;
@@ -80,6 +81,7 @@ const ProfilePage = () => {
         jobTitle: '',
         location: '',
         bio: '',
+        dateOfBirth: '',
         profileImage: '/profile-1.svg',
         jobUpdates: true,
         newsletter: false,
@@ -154,6 +156,7 @@ const ProfilePage = () => {
                     jobTitle: userData.job_title || '',
                     location: userData.location || '',
                     bio: userData.bio || '',
+                    dateOfBirth: userData.date_of_birth ? new Date(userData.date_of_birth).toISOString().split('T')[0] : '',
                     profileImage: userData.profile_image || '/profile-1.svg',
                     jobUpdates: userData.job_updates || false,
                     newsletter: userData.newsletter || false,
@@ -217,6 +220,7 @@ const ProfilePage = () => {
                 job_title: editedData.jobTitle,
                 location: editedData.location,
                 bio: editedData.bio,
+                date_of_birth: editedData.dateOfBirth ? new Date(editedData.dateOfBirth).toISOString() : null,
                 job_updates: editedData.jobUpdates,
                 newsletter: editedData.newsletter,
             };
@@ -661,11 +665,23 @@ const ProfilePage = () => {
                                             className="w-full text-[#6c6c6c] text-lg font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
                                             placeholder="Last Name"
                                         />
+                                        <label className="text-sm font-medium text-gray-500 mt-2">Date of Birth</label>
+                                        <input
+                                            type="date"
+                                            value={editedData.dateOfBirth || ''}
+                                            onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                                            className="w-full text-[#6c6c6c] text-sm font-medium font-['Poppins'] bg-transparent border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:border-[#5530fa]"
+                                        />
                                     </div>
                                 ) : (
-                                    <h2 className="text-[#6c6c6c] text-lg sm:text-[22px] font-medium font-['Poppins'] break-words">
-                                        {profileData.firstName} {profileData.lastName}
-                                    </h2>
+                                    <>
+                                        <h2 className="text-[#6c6c6c] text-lg sm:text-[22px] font-medium font-['Poppins'] break-words">
+                                            {profileData.firstName} {profileData.lastName}
+                                        </h2>
+                                        {profileData.dateOfBirth && (
+                                            <p className="text-[#6c6c6c]/80 text-sm mt-1">Born: {new Date(profileData.dateOfBirth).toLocaleDateString()}</p>
+                                        )}
+                                    </>
                                 )}
                             </div>
                             <div>

@@ -17,9 +17,10 @@ interface DashboardSidebarProps {
     currentPath: string;
     onLogout: () => void;
     sidebarRef: React.RefObject<HTMLDivElement | null>;
+    isEmployee?: boolean;
 }
 
-const sidebarItems: SidebarItem[] = [
+const baseSidebarItems: SidebarItem[] = [
     { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
     { icon: 'solar:folder-with-files-bold-duotone', label: 'All Jobs', path: '/dashboard/all-jobs' },
     { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
@@ -30,7 +31,12 @@ const sidebarItems: SidebarItem[] = [
     { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
 ];
 
-const DashboardSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef }: DashboardSidebarProps) => {
+const hrisItems: SidebarItem[] = [
+    { icon: 'solar:buildings-bold-duotone', label: 'My HRIS Profile', path: '/dashboard/hris' },
+];
+
+const DashboardSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef, isEmployee = false }: DashboardSidebarProps) => {
+    const sidebarItems = isEmployee ? [...baseSidebarItems, ...hrisItems] : baseSidebarItems;
     return (
         <>
             <style jsx global>{`

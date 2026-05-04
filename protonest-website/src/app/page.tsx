@@ -60,11 +60,11 @@ function LargeScreenHome() {
           <div className="flex justify-center">
             <div className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Your Reliable IoT testing
+                Your Reliable IoT
               </span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Development Partner Testing 123
+                Development Partner
               </span>
             </div>
           </div>
