@@ -33,6 +33,7 @@ const baseSidebarItems: SidebarItem[] = [
 
 const hrisItems: SidebarItem[] = [
     { icon: 'solar:buildings-bold-duotone', label: 'My HRIS Profile', path: '/dashboard/hris' },
+    { icon: 'solar:calendar-date-bold-duotone', label: 'Leave Management', path: '/dashboard/leave' },
 ];
 
 const DashboardSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef, isEmployee = false }: DashboardSidebarProps) => {

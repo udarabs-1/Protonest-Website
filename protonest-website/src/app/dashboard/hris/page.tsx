@@ -21,6 +21,7 @@ export default function HRISProfilePage() {
     const [profileImage, setProfileImage] = useState('/profile-1.svg');
     const [loading, setLoading] = useState(true);
     const [notEmployee, setNotEmployee] = useState(false);
+    const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
 
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
@@ -35,6 +36,15 @@ export default function HRISProfilePage() {
                     if (data.data.employee.user_details?.profile_image) setProfileImage(data.data.employee.user_details.profile_image);
                 } else {
                     setNotEmployee(true);
+                }
+                
+                // Fetch leave balances
+                if (res.ok) {
+                    const balRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/balance`, { headers: { Authorization: `Bearer ${token}` } });
+                    if (balRes.ok) {
+                        const balData = await balRes.json();
+                        setLeaveBalances(balData.data || []);
+                    }
                 }
             } catch { setNotEmployee(true); } finally { setLoading(false); }
         };
@@ -64,7 +74,7 @@ export default function HRISProfilePage() {
 
     return (
         <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileImage}>
-            <div className="font-poppins max-w-3xl mx-auto space-y-6 pb-10">
+            <div className="font-poppins space-y-6 pb-10">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="relative">
@@ -98,12 +108,22 @@ export default function HRISProfilePage() {
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Leave Balance</h2>
-                    <div className="flex items-center gap-4">
-                        <div className="text-4xl font-light text-[#5530FA]">{profile.leave_balance}</div>
-                        <div><div className="text-sm font-medium text-gray-800">Days Available</div><div className="text-xs text-gray-400">Leave details and history coming in Phase 4</div></div>
-                        <div className="ml-auto w-32 bg-gray-100 rounded-full h-2"><div className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] h-2 rounded-full" style={{ width: `${Math.min(100, (profile.leave_balance / 28) * 100)}%` }}></div></div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-sm font-semibold text-gray-700">Leave Balances</h2>
+                        <button onClick={() => router.push('/dashboard/leave')} className="text-xs font-semibold text-[#5530FA] hover:underline">Manage Leave</button>
                     </div>
+                    {leaveBalances.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {leaveBalances.map((bal: any) => (
+                                <div key={bal.id} className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                    <div className="text-2xl font-bold text-[#5530FA]">{bal.remaining}</div>
+                                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mt-1">{bal.leave_type.replace('_', ' ')}</div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-sm text-gray-500 italic py-2">No leave balances found for current year.</div>
+                    )}
                 </div>
 
                 {profile.activity_log && profile.activity_log.length > 0 && (
