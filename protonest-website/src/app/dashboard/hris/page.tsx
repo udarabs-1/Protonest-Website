@@ -8,12 +8,20 @@ interface EmployeeProfile {
     employee_id: string; job_title: string; department: string;
     employment_type: string; reporting_manager: string; join_date: string;
     work_email?: string; leave_balance: number; status: string;
-    hired_at: string; activity_log?: ActivityEntry[];
+    hired_at: string;
+    probation_end_date?: string; confirmation_status?: string;
+    activity_log?: ActivityEntry[];
     user_details?: { first_name: string; last_name: string; email: string; profile_image?: string; };
 }
 
 const fmt = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
-const STATUS_COLORS: Record<string, string> = { active: 'bg-green-100 text-green-700', inactive: 'bg-yellow-100 text-yellow-700', left: 'bg-gray-100 text-gray-600', terminated: 'bg-red-100 text-red-700' };
+const STATUS_COLORS: Record<string, string> = {
+    pre_boarding: 'bg-blue-100 text-blue-700',
+    active: 'bg-green-100 text-green-700',
+    inactive: 'bg-yellow-100 text-yellow-700',
+    left: 'bg-gray-100 text-gray-600',
+    terminated: 'bg-red-100 text-red-700'
+};
 
 export default function HRISProfilePage() {
     const router = useRouter();
@@ -95,8 +103,10 @@ export default function HRISProfilePage() {
                             ['Department', profile.department],
                             ['Employment Type', profile.employment_type === 'full_time' ? 'Full-time' : 'Freelancer'],
                             ['Reporting Manager', profile.reporting_manager],
-                            ['Join Date', fmt(profile.join_date)],
                             ['Hired On', fmt(profile.hired_at)],
+                            ['Join Date', fmt(profile.join_date)],
+                            ...(profile.probation_end_date ? [['Probation End Date', fmt(profile.probation_end_date)]] : []),
+                            ['Confirmation Status', profile.confirmation_status ? profile.confirmation_status.charAt(0).toUpperCase() + profile.confirmation_status.slice(1) : 'Pre-boarding'],
                             ...(profile.work_email ? [['Work Email', profile.work_email]] : []),
                         ].map(([label, value]) => (
                             <div key={label} className="bg-gray-50 rounded-xl p-3">

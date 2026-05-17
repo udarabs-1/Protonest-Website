@@ -34,6 +34,7 @@ export default function EmployeeLeavePage() {
     const [balances, setBalances] = useState<LeaveBalance[]>([]);
     const [history, setHistory] = useState<LeaveRequest[]>([]);
     const [profileImage, setProfileImage] = useState('/profile-1.svg');
+    const [employeeStatus, setEmployeeStatus] = useState('active');
 
     const [showApplyModal, setShowApplyModal] = useState(false);
     const [applyForm, setApplyForm] = useState({
@@ -79,6 +80,7 @@ export default function EmployeeLeavePage() {
             if (balRes.ok) {
                 const bData = await balRes.json();
                 setBalances(bData.data || []);
+                if (bData.employee_status) setEmployeeStatus(bData.employee_status);
             }
 
             // Fetch history
@@ -123,7 +125,7 @@ export default function EmployeeLeavePage() {
             if (res.ok) {
                 setSuccess('Leave request submitted successfully');
                 setShowApplyModal(false);
-                setApplyForm({ leave_type: 'annual', start_date: '', end_date: '', reason: '', half_day: false });
+                setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : 'annual', start_date: '', end_date: '', reason: '', half_day: false });
                 checkAuthAndFetch(); // Refresh data
             } else {
                 setError(data.message || 'Failed to submit leave request');
@@ -192,7 +194,7 @@ export default function EmployeeLeavePage() {
                     </div>
                 )}
 
-                <div className="flex justify-between items-end">
+                <div className="flex justify-between items-end flex-wrap gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                             <Icon icon="solar:calendar-date-bold-duotone" className="w-8 h-8 text-[#5530FA]" />
@@ -200,13 +202,23 @@ export default function EmployeeLeavePage() {
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">View your balances and apply for time off.</p>
                     </div>
-                    <button 
-                        onClick={() => setShowApplyModal(true)}
+                    <button
+                        onClick={() => { setApplyForm(f => ({ ...f, leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : 'annual' })); setShowApplyModal(true); }}
                         className="px-6 py-2.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md"
                     >
                         Apply for Leave
                     </button>
                 </div>
+
+                {employeeStatus === 'pre_boarding' && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex items-start gap-3">
+                        <span className="text-xl">ℹ️</span>
+                        <div>
+                            <strong>Pre-boarding Period</strong>
+                            <p className="mt-0.5 text-blue-700">Your account is in pre-boarding status. You can only apply for <strong>Unpaid Leave</strong> until your join date is confirmed and your status is set to Active by HR.</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Balances */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -302,16 +314,23 @@ export default function EmployeeLeavePage() {
                         <form onSubmit={handleApplyLeave} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Leave Type</label>
-                                <select 
+                                <select
                                     required
                                     value={applyForm.leave_type}
                                     onChange={e => setApplyForm({...applyForm, leave_type: e.target.value})}
                                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#5530FA]"
                                 >
-                                    <option value="annual">Annual Leave</option>
-                                    <option value="sick">Sick Leave</option>
-                                    <option value="unpaid">Unpaid Leave</option>
-                                    <option value="other">Other</option>
+                                    {employeeStatus === 'pre_boarding' ? (
+                                        <option value="unpaid">Unpaid Leave</option>
+                                    ) : (
+                                        <>
+                                            <option value="annual">Annual Leave</option>
+                                            <option value="sick">Sick Leave</option>
+                                            <option value="casual">Casual Leave</option>
+                                            <option value="unpaid">Unpaid Leave</option>
+                                            <option value="other">Other</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
                             
