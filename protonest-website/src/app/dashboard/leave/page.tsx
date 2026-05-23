@@ -5,6 +5,27 @@ import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 interface LeaveBalance {
     id: string;
     leave_type: string;
@@ -47,11 +68,11 @@ export default function EmployeeLeavePage() {
     const [submitting, setSubmitting] = useState(false);
 
     const checkAuthAndFetch = useCallback(async () => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
+        if (isUserTokenExpired()) {
             router.push('/signin');
             return;
         }
+        const token = localStorage.getItem('jwtToken');
 
         try {
             setLoading(true);
@@ -125,7 +146,7 @@ export default function EmployeeLeavePage() {
             if (res.ok) {
                 setSuccess('Leave request submitted successfully');
                 setShowApplyModal(false);
-                setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : 'annual', start_date: '', end_date: '', reason: '', half_day: false });
+                setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
                 checkAuthAndFetch(); // Refresh data
             } else {
                 setError(data.message || 'Failed to submit leave request');
@@ -203,7 +224,7 @@ export default function EmployeeLeavePage() {
                         <p className="text-sm text-gray-500 mt-1">View your balances and apply for time off.</p>
                     </div>
                     <button
-                        onClick={() => { setApplyForm(f => ({ ...f, leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : 'annual' })); setShowApplyModal(true); }}
+                        onClick={() => { setApplyForm(f => ({ ...f, leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid') })); setShowApplyModal(true); }}
                         className="px-6 py-2.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md"
                     >
                         Apply for Leave
@@ -220,24 +241,54 @@ export default function EmployeeLeavePage() {
                     </div>
                 )}
 
-                {/* Balances */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {balances.length === 0 ? (
-                        <div className="col-span-full p-6 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
-                            No leave balances found for current year.
-                        </div>
-                    ) : (
-                        balances.map(bal => (
-                            <div key={bal.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col">
-                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{bal.leave_type.replace('_', ' ')}</h3>
-                                <div className="text-3xl font-bold text-gray-900 mt-2">{bal.remaining} <span className="text-sm font-normal text-gray-400">days left</span></div>
-                                <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between text-xs">
-                                    <span className="text-gray-500">Allocated: <strong className="text-gray-800">{bal.total_allocated + bal.carried_forward}</strong></span>
-                                    <span className="text-gray-500">Used: <strong className="text-gray-800">{bal.used}</strong></span>
-                                </div>
+                {/* Leaves Taken */}
+                <div className="mb-6">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Leaves Taken</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {balances.length === 0 ? (
+                            <div className="col-span-full p-4 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                                No leave data found for current year.
                             </div>
-                        ))
-                    )}
+                        ) : (
+                            ['casual', 'sick', 'annual', 'unpaid', 'half_day'].map(type => {
+                                const bal = balances.find(b => b.leave_type === type);
+                                if (!bal) return null;
+                                return (
+                                    <div key={type} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center text-center">
+                                        <div className="text-2xl font-bold text-gray-900">{bal.used}</div>
+                                        <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mt-1">{type.replace('_', ' ')}</div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                {/* Leave Balances */}
+                <div className="mb-8">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Leave Balances</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {balances.length === 0 ? (
+                            <div className="col-span-full p-4 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                                No leave balances found for current year.
+                            </div>
+                        ) : (
+                            ['sick', 'casual', 'annual'].map(type => {
+                                const bal = balances.find(b => b.leave_type === type);
+                                if (!bal) return null;
+                                return (
+                                    <div key={bal.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col">
+                                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{bal.leave_type.replace('_', ' ')}</h3>
+                                        <div className="text-3xl font-bold text-gray-900 mt-2">{bal.remaining} <span className="text-sm font-normal text-gray-400">days left</span></div>
+                                        <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between text-xs">
+                                            <span className="text-gray-500">Allocated: <strong className="text-gray-800">{bal.total_allocated + bal.carried_forward}</strong></span>
+                                            <span className="text-gray-500">Used: <strong className="text-gray-800">{bal.used}</strong></span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
 
                 {/* History Table */}
@@ -324,11 +375,15 @@ export default function EmployeeLeavePage() {
                                         <option value="unpaid">Unpaid Leave</option>
                                     ) : (
                                         <>
-                                            <option value="annual">Annual Leave</option>
-                                            <option value="sick">Sick Leave</option>
-                                            <option value="casual">Casual Leave</option>
-                                            <option value="unpaid">Unpaid Leave</option>
-                                            <option value="other">Other</option>
+                                            {balances.map(b => (
+                                                <option key={b.leave_type} value={b.leave_type}>
+                                                    {b.leave_type.replace('_', ' ')} (Remaining: {b.remaining})
+                                                </option>
+                                            ))}
+                                            {/* Ensure unpaid is always an option even if not in balances */}
+                                            {!balances.find(b => b.leave_type === 'unpaid') && (
+                                                <option value="unpaid">Unpaid Leave</option>
+                                            )}
                                         </>
                                     )}
                                 </select>

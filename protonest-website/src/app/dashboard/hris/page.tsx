@@ -3,12 +3,32 @@ import DashboardLayout from '@/app/components/dashboard-layout';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+const isUserTokenExpired = (): boolean => {
+    if (typeof window === 'undefined') return true;
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return true;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('tokenExpiration');
+            return true;
+        }
+        return false;
+    } catch {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('tokenExpiration');
+        return true;
+    }
+};
+
 interface ActivityEntry { action: string; old_value?: string; new_value?: string; timestamp: string; }
 interface EmployeeProfile {
     employee_id: string; job_title: string; department: string;
     employment_type: string; reporting_manager: string; join_date: string;
     work_email?: string; leave_balance: number; status: string;
-    hired_at: string;
     probation_end_date?: string; confirmation_status?: string;
     activity_log?: ActivityEntry[];
     user_details?: { first_name: string; last_name: string; email: string; profile_image?: string; };
@@ -29,7 +49,14 @@ export default function HRISProfilePage() {
     const [profileImage, setProfileImage] = useState('/profile-1.svg');
     const [loading, setLoading] = useState(true);
     const [notEmployee, setNotEmployee] = useState(false);
-    const [leaveBalances, setLeaveBalances] = useState<any[]>([]);
+
+
+
+    useEffect(() => {
+        if (isUserTokenExpired()) {
+            router.push('/signin');
+        }
+    }, [router]);
 
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
@@ -44,15 +71,6 @@ export default function HRISProfilePage() {
                     if (data.data.employee.user_details?.profile_image) setProfileImage(data.data.employee.user_details.profile_image);
                 } else {
                     setNotEmployee(true);
-                }
-                
-                // Fetch leave balances
-                if (res.ok) {
-                    const balRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/balance`, { headers: { Authorization: `Bearer ${token}` } });
-                    if (balRes.ok) {
-                        const balData = await balRes.json();
-                        setLeaveBalances(balData.data || []);
-                    }
                 }
             } catch { setNotEmployee(true); } finally { setLoading(false); }
         };
@@ -103,7 +121,6 @@ export default function HRISProfilePage() {
                             ['Department', profile.department],
                             ['Employment Type', profile.employment_type === 'full_time' ? 'Full-time' : 'Freelancer'],
                             ['Reporting Manager', profile.reporting_manager],
-                            ['Hired On', fmt(profile.hired_at)],
                             ['Join Date', fmt(profile.join_date)],
                             ...(profile.probation_end_date ? [['Probation End Date', fmt(profile.probation_end_date)]] : []),
                             ['Confirmation Status', profile.confirmation_status ? profile.confirmation_status.charAt(0).toUpperCase() + profile.confirmation_status.slice(1) : 'Pre-boarding'],
@@ -117,24 +134,6 @@ export default function HRISProfilePage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-sm font-semibold text-gray-700">Leave Balances</h2>
-                        <button onClick={() => router.push('/dashboard/leave')} className="text-xs font-semibold text-[#5530FA] hover:underline">Manage Leave</button>
-                    </div>
-                    {leaveBalances.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {leaveBalances.map((bal: any) => (
-                                <div key={bal.id} className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-                                    <div className="text-2xl font-bold text-[#5530FA]">{bal.remaining}</div>
-                                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mt-1">{bal.leave_type.replace('_', ' ')}</div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-sm text-gray-500 italic py-2">No leave balances found for current year.</div>
-                    )}
-                </div>
 
                 {profile.activity_log && profile.activity_log.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
