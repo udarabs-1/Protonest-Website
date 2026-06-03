@@ -51,6 +51,7 @@ export default function EmployeeLeavePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [applyError, setApplyError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [balances, setBalances] = useState<LeaveBalance[]>([]);
     const [history, setHistory] = useState<LeaveRequest[]>([]);
@@ -66,6 +67,37 @@ export default function EmployeeLeavePage() {
         half_day: false
     });
     const [submitting, setSubmitting] = useState(false);
+
+    const formatLeaveType = (type: string) => {
+        if (type === 'sick') return 'Medical Leave';
+        if (type === 'casual' || type === 'half_day') return 'Casual Leave';
+        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    };
+
+    const getMergedBalances = (bals: LeaveBalance[]) => {
+        const merged: (LeaveBalance & { _merged?: boolean })[] = [];
+        let casualEntry: LeaveBalance | null = null;
+        let halfDayEntry: LeaveBalance | null = null;
+        for (const b of bals) {
+            if (b.leave_type === 'casual') casualEntry = b;
+            else if (b.leave_type === 'half_day') halfDayEntry = b;
+            else merged.push(b);
+        }
+        if (casualEntry && halfDayEntry) {
+            merged.unshift({
+                ...casualEntry,
+                used: casualEntry.used + halfDayEntry.used,
+                remaining: casualEntry.remaining + halfDayEntry.remaining,
+                total_allocated: casualEntry.total_allocated + halfDayEntry.total_allocated,
+                carried_forward: casualEntry.carried_forward + halfDayEntry.carried_forward,
+            });
+        } else if (casualEntry) {
+            merged.unshift(casualEntry);
+        } else if (halfDayEntry) {
+            merged.unshift({ ...halfDayEntry, leave_type: 'casual' });
+        }
+        return merged;
+    };
 
     const checkAuthAndFetch = useCallback(async () => {
         if (isUserTokenExpired()) {
@@ -130,7 +162,7 @@ export default function EmployeeLeavePage() {
         
         try {
             setSubmitting(true);
-            setError(null);
+            setApplyError(null);
             
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/apply`, {
                 method: 'POST',
@@ -149,10 +181,10 @@ export default function EmployeeLeavePage() {
                 setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
                 checkAuthAndFetch(); // Refresh data
             } else {
-                setError(data.message || 'Failed to submit leave request');
+                setApplyError(data.message || 'Failed to submit leave request');
             }
         } catch {
-            setError('An error occurred while submitting');
+            setApplyError('An error occurred while submitting');
         } finally {
             setSubmitting(false);
         }
@@ -244,22 +276,18 @@ export default function EmployeeLeavePage() {
                 {/* Leaves Taken */}
                 <div className="mb-6">
                     <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Leaves Taken</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {balances.length === 0 ? (
                             <div className="col-span-full p-4 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
                                 No leave data found for current year.
                             </div>
                         ) : (
-                            ['casual', 'sick', 'annual', 'unpaid', 'half_day'].map(type => {
-                                const bal = balances.find(b => b.leave_type === type);
-                                if (!bal) return null;
-                                return (
-                                    <div key={type} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center text-center">
-                                        <div className="text-2xl font-bold text-gray-900">{bal.used}</div>
-                                        <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mt-1">{type.replace('_', ' ')}</div>
-                                    </div>
-                                );
-                            })
+                            getMergedBalances(balances).map(bal => (
+                                <div key={bal.leave_type} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center text-center">
+                                    <div className="text-2xl font-bold text-gray-900">{bal.used}</div>
+                                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mt-1">{formatLeaveType(bal.leave_type)}</div>
+                                </div>
+                            ))
                         )}
                     </div>
                 </div>
@@ -268,25 +296,23 @@ export default function EmployeeLeavePage() {
                 <div className="mb-8">
                     <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Leave Balances</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {balances.length === 0 ? (
+                        {getMergedBalances(balances).filter(b => b.leave_type !== 'unpaid').length === 0 ? (
                             <div className="col-span-full p-4 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
-                                No leave balances found for current year.
+                                No leave balances found for current year. You may apply for Unpaid Leave.
                             </div>
                         ) : (
-                            ['sick', 'casual', 'annual'].map(type => {
-                                const bal = balances.find(b => b.leave_type === type);
-                                if (!bal) return null;
-                                return (
+                            getMergedBalances(balances)
+                                .filter(b => b.leave_type !== 'unpaid')
+                                .map(bal => (
                                     <div key={bal.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col">
-                                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{bal.leave_type.replace('_', ' ')}</h3>
+                                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">{formatLeaveType(bal.leave_type)}</h3>
                                         <div className="text-3xl font-bold text-gray-900 mt-2">{bal.remaining} <span className="text-sm font-normal text-gray-400">days left</span></div>
                                         <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between text-xs">
                                             <span className="text-gray-500">Allocated: <strong className="text-gray-800">{bal.total_allocated + bal.carried_forward}</strong></span>
                                             <span className="text-gray-500">Used: <strong className="text-gray-800">{bal.used}</strong></span>
                                         </div>
                                     </div>
-                                );
-                            })
+                                ))
                         )}
                     </div>
                 </div>
@@ -362,6 +388,13 @@ export default function EmployeeLeavePage() {
                             <button onClick={() => setShowApplyModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
                         </div>
 
+                        {applyError && (
+                            <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 flex items-start justify-between">
+                                <span>{applyError}</span>
+                                <button onClick={() => setApplyError(null)} className="text-red-400 hover:text-red-600 ml-2">✕</button>
+                            </div>
+                        )}
+
                         <form onSubmit={handleApplyLeave} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Leave Type</label>
@@ -375,20 +408,43 @@ export default function EmployeeLeavePage() {
                                         <option value="unpaid">Unpaid Leave</option>
                                     ) : (
                                         <>
-                                            {balances.map(b => (
-                                                <option key={b.leave_type} value={b.leave_type}>
-                                                    {b.leave_type.replace('_', ' ')} (Remaining: {b.remaining})
-                                                </option>
-                                            ))}
-                                            {/* Ensure unpaid is always an option even if not in balances */}
-                                            {!balances.find(b => b.leave_type === 'unpaid') && (
-                                                <option value="unpaid">Unpaid Leave</option>
-                                            )}
+                                            {getMergedBalances(balances)
+                                                .filter(b => b.leave_type !== 'unpaid' && b.remaining > 0)
+                                                .map(b => (
+                                                    <option key={b.leave_type} value={b.leave_type}>
+                                                        {formatLeaveType(b.leave_type)} (Remaining: {b.remaining})
+                                                    </option>
+                                                ))}
+                                            <option value="unpaid">Unpaid Leave</option>
                                         </>
                                     )}
                                 </select>
+                                {(() => {
+                                    const selectedType = applyForm.leave_type;
+                                    if (selectedType === 'unpaid') return null;
+                                    const bal = getMergedBalances(balances).find(b => b.leave_type === selectedType);
+                                    if (!bal || bal.remaining > 0) return null;
+                                    return <p className="text-xs text-amber-600 mt-1">⚠ No remaining balance. Consider applying for Unpaid Leave instead.</p>;
+                                })()}
+                                {applyForm.leave_type === 'casual' && (
+                                    <p className="text-xs text-gray-500 mt-1">Casual leave cannot exceed 2 consecutive days.</p>
+                                )}
                             </div>
                             
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={applyForm.half_day}
+                                    onChange={e => setApplyForm({
+                                        ...applyForm, 
+                                        half_day: e.target.checked,
+                                        end_date: e.target.checked ? applyForm.start_date : applyForm.end_date
+                                    })}
+                                    className="w-4 h-4 text-[#5530FA] rounded border-gray-300 focus:ring-[#5530FA]"
+                                />
+                                <span className="text-sm font-semibold text-gray-700">Apply for Half-Day Leave</span>
+                            </label>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Start Date</label>
@@ -411,20 +467,6 @@ export default function EmployeeLeavePage() {
                                     </div>
                                 )}
                             </div>
-                            
-                            <label className="flex items-center gap-2 cursor-pointer mt-2">
-                                <input 
-                                    type="checkbox" 
-                                    checked={applyForm.half_day}
-                                    onChange={e => setApplyForm({
-                                        ...applyForm, 
-                                        half_day: e.target.checked,
-                                        end_date: e.target.checked ? applyForm.start_date : applyForm.end_date
-                                    })}
-                                    className="w-4 h-4 text-[#5530FA] rounded border-gray-300 focus:ring-[#5530FA]"
-                                />
-                                <span className="text-sm font-semibold text-gray-700">Apply for Half-Day Leave</span>
-                            </label>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Reason (Optional)</label>

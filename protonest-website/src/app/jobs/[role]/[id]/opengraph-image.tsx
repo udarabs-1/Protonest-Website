@@ -119,7 +119,7 @@ export default async function Image({ params }: { params: { role: string; id: st
 
                         <div
                             style={{
-                                fontSize: 56,
+                                fontSize: 48,
                                 fontWeight: 'bold',
                                 fontFamily: 'Poppins',
                                 background: 'linear-gradient(90deg, #5530FA 0%, #F51DA5 50%, #6C9AE1 100%)',
@@ -127,9 +127,10 @@ export default async function Image({ params }: { params: { role: string; id: st
                                 color: 'transparent',
                                 marginBottom: 30,
                                 lineHeight: 1.3,
+                                maxWidth: '100%',
                             }}
                         >
-                            {truncateText(jobData.title, 60)}
+                            {jobData.title}
                         </div>
 
                         <div
