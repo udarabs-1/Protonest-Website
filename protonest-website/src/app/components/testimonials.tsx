@@ -48,6 +48,27 @@ const TestimonialSection = () => {
       text: "I’ve worked with Protonest on a development project and have been really impressed by their technical ability, clear communication, and professional approach. Everything has been handled carefully and to a high standard.",
       avatar: "/profile-1.svg",
     },
+    {
+      id: 6,
+      name: "Charles Palmer",
+      company: "Patriot Ingenuities, Inc",
+      text: "Grade A company to work with. They were very responsive and I will definitely be using them again.",
+      avatar: "/profile-1.svg",
+    },
+    {
+      id: 7,
+      name: "Adam Healy",
+      company: "station70, USA",
+      text: "We’ve worked with this team for over a year and highly recommend them. They bring strong engineering capability across the board and were able to take a complex concept from idea through execution with a high level of professionalism.",
+      avatar: "/profile-1.svg",
+    },
+    {
+      id: 8,
+      name: "Steven Gribben",
+      company: "McCormack Energy, USA",
+      text: "Terrific experience. Udara and his team worked to take our idea and make it better through thoughtful execution. Udara's team has a unique blend of experience, as they are able to handle software design, firmware design, industrial design and IOT integration. This is a very professional group.",
+      avatar: "/profile-1.svg",
+    },
   ];
 
   const mobileCarouselSettings = {

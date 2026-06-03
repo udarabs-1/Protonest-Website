@@ -21,7 +21,26 @@ const DashboardLayout = ({ children, breadcrumbItems, profileImage }: DashboardL
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [isEmployee, setIsEmployee] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const checkEmployeeStatus = async () => {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/employees/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setIsEmployee(data.status === 'success' && !!data.data?.employee);
+                }
+            } catch { }
+        };
+        checkEmployeeStatus();
+    }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -93,6 +112,7 @@ const DashboardLayout = ({ children, breadcrumbItems, profileImage }: DashboardL
                             currentPath={pathname}
                             onLogout={() => setShowLogoutDialog(true)}
                             sidebarRef={sidebarRef}
+                            isEmployee={isEmployee}
                         />
 
                         <main className={`flex-1 flex flex-col overflow-hidden ${sidebarOpen ? 'blur-sm lg:blur-0' : ''}`}>

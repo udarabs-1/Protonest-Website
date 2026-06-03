@@ -132,10 +132,10 @@ export default function ProjectSlider() {
                         style={{ padding: '20px 10px' }}
                     >
                         {projects.map((project) => (
-                            <SwiperSlide key={project.id}>
+                            <SwiperSlide key={project.id} style={{ height: 'auto' }}>
                                 <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
-                                    <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300">
-                                        <div className="relative w-full aspect-video">
+                                    <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
+                                        <div className="relative w-full aspect-video flex-shrink-0">
                                             <Image
                                                 src={project.image}
                                                 alt={project.title}
@@ -144,14 +144,14 @@ export default function ProjectSlider() {
                                                 sizes="(max-width: 1280px) 50vw, 33vw"
                                             />
                                         </div>
-                                        <div className="p-6">
+                                        <div className="p-6 flex flex-col flex-1">
                                             <h3 className="text-[#333333] text-sm font-medium font-poppins mb-2">
                                                 {project.title}
                                             </h3>
-                                            <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3">
+                                            <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
                                                 {project.description}
                                             </p>
-                                            <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline">
+                                            <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
                                                 Read More
                                             </button>
                                         </div>
@@ -263,10 +263,10 @@ export default function ProjectSlider() {
                             style={{ padding: '20px 10px' }}
                         >
                             {projects.map((project) => (
-                                <SwiperSlide key={project.id}>
+                                <SwiperSlide key={project.id} style={{ height: 'auto' }}>
                                     <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
-                                        <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300">
-                                            <div className="relative w-full aspect-video">
+                                        <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
+                                            <div className="relative w-full aspect-video flex-shrink-0">
                                                 <Image
                                                     src={project.image}
                                                     alt={project.title}
@@ -275,14 +275,14 @@ export default function ProjectSlider() {
                                                     sizes="90vw"
                                                 />
                                             </div>
-                                            <div className="p-5">
+                                            <div className="p-5 flex flex-col flex-1">
                                                 <h3 className="text-[#333333] text-sm font-medium font-poppins mb-2">
                                                     {project.title}
                                                 </h3>
-                                                <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3">
+                                                <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
                                                     {project.description}
                                                 </p>
-                                                <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline">
+                                                <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
                                                     Read More
                                                 </button>
                                             </div>
