@@ -67,10 +67,23 @@ export default function EmployeeLeavePage() {
         half_day: false
     });
     const [submitting, setSubmitting] = useState(false);
+    const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
+    const [cancelling, setCancelling] = useState(false);
+    const [overlayLoading, setOverlayLoading] = useState(false);
 
     const formatLeaveType = (type: string) => {
         if (type === 'sick') return 'Medical Leave';
+        if (type === 'annual') return 'Annual Leave';
         if (type === 'casual' || type === 'half_day') return 'Casual Leave';
+        if (type === 'unpaid') return 'Unpaid Leave';
+        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    };
+
+    const formatLeaveTypeShort = (type: string) => {
+        if (type === 'sick') return 'Medical';
+        if (type === 'annual') return 'Annual';
+        if (type === 'casual' || type === 'half_day') return 'Casual';
+        if (type === 'unpaid') return 'Unpaid';
         return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     };
 
@@ -163,6 +176,7 @@ export default function EmployeeLeavePage() {
         try {
             setSubmitting(true);
             setApplyError(null);
+            setOverlayLoading(true);
             
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/apply`, {
                 method: 'POST',
@@ -178,12 +192,15 @@ export default function EmployeeLeavePage() {
             if (res.ok) {
                 setSuccess('Leave request submitted successfully');
                 setShowApplyModal(false);
+                setOverlayLoading(false);
                 setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
-                checkAuthAndFetch(); // Refresh data
+                checkAuthAndFetch();
             } else {
+                setOverlayLoading(false);
                 setApplyError(data.message || 'Failed to submit leave request');
             }
         } catch {
+            setOverlayLoading(false);
             setApplyError('An error occurred while submitting');
         } finally {
             setSubmitting(false);
@@ -191,8 +208,9 @@ export default function EmployeeLeavePage() {
     };
 
     const handleCancelLeave = async (id: string) => {
-        if (!confirm('Are you sure you want to cancel this leave request?')) return;
-        
+        setCancelConfirmId(null);
+        setCancelling(true);
+        setOverlayLoading(true);
         const token = localStorage.getItem('jwtToken');
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/cancel/${id}`, {
@@ -209,6 +227,9 @@ export default function EmployeeLeavePage() {
             }
         } catch {
             setError('Error cancelling request');
+        } finally {
+            setCancelling(false);
+            setOverlayLoading(false);
         }
     };
 
@@ -340,14 +361,14 @@ export default function EmployeeLeavePage() {
                                 <tbody className="divide-y divide-gray-50">
                                     {history.map(req => (
                                         <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-900 capitalize">{req.leave_type.replace('_', ' ')}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900 capitalize">{formatLeaveTypeShort(req.leave_type)}</td>
                                             <td className="px-6 py-4 text-sm text-gray-600">
                                                 {new Date(req.start_date).toLocaleDateString()} - {new Date(req.end_date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-700">{req.days}</td>
                                             <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate" title={req.reason}>
-                                                {req.reason || '-'}
-                                                {req.manager_comment && (
+                                                {req.reason && req.manager_comment !== 'Past leave recorded manually' ? req.reason : req.reason || '-'}
+                                                {req.manager_comment && req.manager_comment !== 'Past leave recorded manually' && (
                                                     <div className="text-xs text-[#F51DA5] mt-1" title={`Manager: ${req.manager_comment}`}>
                                                         Reply: {req.manager_comment}
                                                     </div>
@@ -361,10 +382,10 @@ export default function EmployeeLeavePage() {
                                             <td className="px-6 py-4 text-right">
                                                 {req.status === 'pending' && (
                                                     <button 
-                                                        onClick={() => handleCancelLeave(req.id)}
-                                                        className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors"
+                                                        onClick={() => setCancelConfirmId(req.id)}
+                                                        className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors"
                                                     >
-                                                        Cancel
+                                                        Cancel Request
                                                     </button>
                                                 )}
                                             </td>
@@ -487,6 +508,43 @@ export default function EmployeeLeavePage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Confirmation Modal */}
+            {cancelConfirmId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !cancelling && setCancelConfirmId(null)} />
+                    <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full font-poppins z-10">
+                        <div className="text-center mb-5">
+                            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span className="text-2xl">⚠️</span>
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-lg mb-1">Cancel Leave Request?</h3>
+                            <p className="text-sm text-gray-500">This will notify your HOD that you have cancelled your request.</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={() => setCancelConfirmId(null)} className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors">Keep Request</button>
+                            <button
+                                onClick={() => handleCancelLeave(cancelConfirmId)}
+                                disabled={cancelling}
+                                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {cancelling && <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" />}
+                                Yes, Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Blur Overlay Loading */}
+            {overlayLoading && (
+                <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl p-6 shadow-xl flex items-center gap-4">
+                        <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#5530FA]" />
+                        <span className="text-sm font-semibold text-gray-700">Processing...</span>
                     </div>
                 </div>
             )}

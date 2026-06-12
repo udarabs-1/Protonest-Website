@@ -27,7 +27,7 @@ const isUserTokenExpired = (): boolean => {
 interface ActivityEntry { action: string; old_value?: string; new_value?: string; timestamp: string; }
 interface EmployeeProfile {
     employee_id: string; job_title: string; department: string;
-    employment_type: string; reporting_manager: string; join_date: string;
+    employment_type: string; hod_name: string; hod_email: string; join_date: string;
     work_email?: string; leave_balance: number; status: string;
     probation_end_date?: string; confirmation_status?: string;
     activity_log?: ActivityEntry[];
@@ -120,10 +120,11 @@ export default function HRISProfilePage() {
                             ['Job Title', profile.job_title],
                             ['Department', profile.department],
                             ['Employment Type', profile.employment_type === 'full_time' ? 'Full-time' : 'Freelancer'],
-                            ['Reporting Manager', profile.reporting_manager],
+                            ...(profile.hod_name ? [['Head of Department', profile.hod_name]] : []),
+                            ...(profile.hod_email ? [['HOD Email', profile.hod_email]] : []),
                             ['Join Date', fmt(profile.join_date)],
                             ...(profile.probation_end_date ? [['Probation End Date', fmt(profile.probation_end_date)]] : []),
-                            ['Confirmation Status', profile.confirmation_status ? profile.confirmation_status.charAt(0).toUpperCase() + profile.confirmation_status.slice(1) : 'Pre-boarding'],
+                            ['Confirmation Status', profile.confirmation_status ? profile.confirmation_status.charAt(0).toUpperCase() + profile.confirmation_status.slice(1) : (profile.status === 'active' ? 'Active' : 'Pre-boarding')],
                             ...(profile.work_email ? [['Work Email', profile.work_email]] : []),
                         ].map(([label, value]) => (
                             <div key={label} className="bg-gray-50 rounded-xl p-3">
