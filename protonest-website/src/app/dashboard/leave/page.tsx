@@ -193,7 +193,7 @@ export default function EmployeeLeavePage() {
                 setSuccess('Leave request submitted successfully');
                 setShowApplyModal(false);
                 setOverlayLoading(false);
-                setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
+                const firstWithBalance = getMergedBalances(balances).find(b => b.leave_type !== 'unpaid' && b.remaining > 0); setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (firstWithBalance ? firstWithBalance.leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
                 checkAuthAndFetch();
             } else {
                 setOverlayLoading(false);
@@ -277,7 +277,7 @@ export default function EmployeeLeavePage() {
                         <p className="text-sm text-gray-500 mt-1">View your balances and apply for time off.</p>
                     </div>
                     <button
-                        onClick={() => { setApplyForm(f => ({ ...f, leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (balances.length > 0 ? balances[0].leave_type : 'unpaid') })); setShowApplyModal(true); }}
+                        onClick={() => { const firstWithBalance = getMergedBalances(balances).find(b => b.leave_type !== 'unpaid' && b.remaining > 0); setApplyForm(f => ({ ...f, leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (firstWithBalance ? firstWithBalance.leave_type : 'unpaid') })); setShowApplyModal(true); }}
                         className="px-6 py-2.5 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md"
                     >
                         Apply for Leave
