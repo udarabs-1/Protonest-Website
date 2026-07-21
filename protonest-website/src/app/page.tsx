@@ -14,7 +14,9 @@ import TestimonialSection from "./components/testimonials";
 import WhyChooseProtonest from "./components/why-choose";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://protonest.co"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://protonest.co"
+  ),
   title: "IoT Development Services for Global Product Teams | Protonest",
   description:
     "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
@@ -34,7 +36,7 @@ export const metadata: Metadata = {
       "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
     images: [
       {
-        url: "https://protonest.co/og-image-home.png",
+        url: "/og-image-home.png",
         width: 1200,
         height: 630,
         alt: "Protonest IoT development services for global product teams",
@@ -46,7 +48,7 @@ export const metadata: Metadata = {
     title: "IoT Development Services for Global Product Teams | Protonest",
     description:
       "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
-    images: ["https://protonest.co/og-image-home.png"],
+    images: ["/og-image-home.png"],
   },
 };
 
