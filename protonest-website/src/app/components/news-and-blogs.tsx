@@ -71,8 +71,8 @@ const NewsAndBlogs = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <SectionHeader
-          prefix="Latest"
-          highlight="News & Blog"
+          prefix="Read Latest News and"
+          highlight="Blog Articles"
           description="Updates, insights, and announcements from our work and thinking."
           align="center"
         />
@@ -142,7 +142,7 @@ const BlogCard = ({
               }`}
           >
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
-              Read More
+              Read Article
             </span>
           </div>
         </div>
@@ -167,7 +167,7 @@ const BlogCard = ({
               {isTruncated && "... "}
               {isTruncated && (
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-medium">
-                  Read More
+                  Read Article
                 </span>
               )}
             </p>

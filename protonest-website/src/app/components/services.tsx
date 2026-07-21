@@ -20,49 +20,49 @@ type ServiceCardData = {
 
 const SERVICE_CARDS: ServiceCardData[] = [
   {
-    title: "Concept Development and Ideation",
+    title: "IoT Product Strategy",
     description:
-      "You work closely with us to shape early ideas into clear, practical concepts that feel achievable and grounded from day one.",
+      "You work with us to turn an early idea into a clear IoT product development plan, product design direction, feature scope, and delivery roadmap.",
     icon: <FiZap size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Expertise in Hardware and Software Design",
+    title: "IoT Hardware Development",
     description:
-      "We design hardware and software together in a way that feels connected, reliable, and easy to support in real use.",
+      "We design IoT hardware, sensors, electronics, enclosures, and system architecture around how your product will work in real use.",
     icon: <FiCpu size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Software Development",
+    title: "Firmware and Embedded Systems Development",
     description:
-      "We build clean, dependable front-end and back-end software that supports your product without adding complexity.",
+      "We help you build reliable embedded systems, firmware, device logic, communication modules, and sensor integrations for real product use.",
     icon: <FiCode size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Testing and Validation",
+    title: "Software and Dashboard Development",
     description:
-      "We test your product in realistic conditions so you can feel confident before it reaches real users.",
+      "We build custom software solutions that connect your IoT devices to cloud platforms, dashboards, mobile apps, and monitoring systems.",
     icon: <FiCheckCircle size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Post Development Support",
+    title: "Testing and Product Validation",
     description:
-      "We continue supporting you after launch with updates, fixes, and improvements as your product evolves.",
+      "We test connectivity, reliability, performance, power usage, and product readiness so you can move forward with confidence before launch.",
     icon: <FiSettings size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Consultation",
+    title: "IoT Consulting and Support",
     description:
-      "You get clear, honest guidance to help you make better decisions around design, scale, and real user needs.",
+      "You get clear IoT consulting services for architecture decisions, product direction, troubleshooting, updates, and post-launch improvements.",
     icon: <FiGlobe size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
@@ -108,9 +108,9 @@ const ServicesSection = () => (
 
     <div className="relative z-10 px-6 py-16 sm:px-10 lg:px-[133px] 2xl:px-[180px]">
       <SectionHeader
-        prefix="What Do We"
-        highlight="Offer?"
-        description="From Idea to Execution, We’ve Got You Covered."
+        prefix="IoT Development Services Built"
+        highlight="Around Your Product"
+        description="From Idea to Execution, We've Got You Covered."
         linkLabel="Book a Call"
         linkHref="/contact-us#book-a-call"
       />

@@ -154,9 +154,9 @@ const TestimonialSection = () => {
 
       <div className="relative z-10 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
         <SectionHeader
-          prefix="Innovation Backed by"
-          highlight="Experience"
-          description="Words from those who've experienced our process, people, and product delivery first-hand."
+          prefix="What Our Customers"
+          highlight="Say"
+          description="Read how customers describe Protonest's communication, engineering support, product delivery, and post-launch collaboration."
           align="center"
         />
 
@@ -200,10 +200,10 @@ const TestimonialSection = () => {
         </div>
 
         <div className="flex justify-center">
-          <Link href="/contact-us">
+          <Link href="/contact-us#book-a-call">
             <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
               <span className="text-white text-sm md:text-base font-medium">
-                Contact Us
+                Book a Call
               </span>
             </button>
           </Link>

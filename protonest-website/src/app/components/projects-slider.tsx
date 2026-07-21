@@ -89,10 +89,10 @@ export default function ProjectSlider() {
                     <div className="flex justify-between items-center mb-12 lg:mb-16">
                         <div>
                             <h2 className="text-[24px] lg:text-[26px] xl:text-[30px] 2xl:text-[32px] font-medium font-montserrat text-[#6c6c6c]">
-                                Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
+                                Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                             </h2>
                             <p className="text-[16px] xl:text-[18px] 2xl:text-[19px] mt-2 text-[#6c6c6c] font-poppins">
-                                Our Success Projects That Inspire
+                                See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
                             </p>
                         </div>
                         <div className="flex gap-4">
@@ -165,9 +165,9 @@ export default function ProjectSlider() {
                                             <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
                                                 {project.description}
                                             </p>
-                                            <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
-                                                Read More
-                                            </button>
+                                            <span className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
+                                                Read Project
+                                            </span>
                                         </div>
                                     </div>
                                 </Link>
@@ -203,10 +203,10 @@ export default function ProjectSlider() {
                         <div className="sm:flex sm:justify-between sm:items-center">
                             <div>
                                 <h2 className="text-[24px] font-medium font-montserrat text-[#6c6c6c]">
-                                    Bringing IoT Innovation to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Life!</span>
+                                    Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                                 </h2>
                                 <p className="text-[14px] mt-2 text-[#6c6c6c] font-poppins">
-                                    Our Success Projects That Inspire
+                                    See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
                                 </p>
                             </div>
                             <div className="hidden sm:flex gap-4">
@@ -296,9 +296,9 @@ export default function ProjectSlider() {
                                                 <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
                                                     {project.description}
                                                 </p>
-                                                <button className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
-                                                    Read More
-                                                </button>
+                                                   <span className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
+                                                    Read Project
+                                                </span>
                                             </div>
                                         </div>
                                     </Link>

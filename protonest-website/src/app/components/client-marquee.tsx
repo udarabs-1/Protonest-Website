@@ -3,11 +3,11 @@ import Marquee from "react-fast-marquee";
 
 const ClientMarquee = () => {
     const clients = [
-        { name: "Client 1", logo: "/client1.svg" },
-        { name: "Client 2", logo: "/client2.svg" },
-        { name: "Client 3", logo: "/client3.svg" },
-        { name: "Client 4", logo: "/client4.svg" },
-        { name: "Client 5", logo: "/client5.png" }
+        { name: "Purbrook Engineering", logo: "/client1.svg" },
+        { name: "Stoll Photobox", logo: "/client2.svg" },
+        { name: "Perseo", logo: "/client3.svg" },
+        { name: "entryphone", logo: "/client4.svg" },
+        { name: "Patriot Ingenuities", logo: "/client5.png" }
     ];
 
     return (

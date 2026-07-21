@@ -39,13 +39,18 @@ export default function ClientsMap() {
             <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-6 sm:mb-8">
                     <h2 className="text-[26px] sm:text-[32px] lg:text-[38px] font-medium font-montserrat leading-tight">
-                        <span className="text-[#6c6c6c]">Serving Across </span>
+                        <span className="text-[#6c6c6c]">Engineering Support </span>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
-                            Borders
+                            Across Borders
                         </span>
                     </h2>
+                    <p className="mt-3 text-[14px] sm:text-[16px] font-normal font-poppins text-[#6c6c6c] max-w-2xl mx-auto text-center">
+                        Protonest supports IoT product teams in the United Kingdom, Germany, Italy, France, the United States, and other markets through remote engineering collaboration.
+                    </p>
                 </div>
-                <WorldMap dots={dots} lineColor="#5530FA" />
+                <div role="img" aria-label="Map showing Protonest support for global IoT development clients">
+                    <WorldMap dots={dots} lineColor="#5530FA" />
+                </div>
             </div>
         </div>
     );
