@@ -3,7 +3,8 @@
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface SignInGoogleOAuthConfig {
     client_id: string;
@@ -92,7 +93,8 @@ const MessageModal = ({ message, onClose }: { message: string; onClose: () => vo
     </div>
 );
 
-export default function ResponsiveSignIn() {
+function SignInContent() {
+    const searchParams = useSearchParams();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -144,6 +146,12 @@ export default function ResponsiveSignIn() {
     }, []);
 
     const handlePostSignInRedirect = useCallback(async () => {
+        const redirectTo = searchParams.get('redirect');
+        if (redirectTo && redirectTo.startsWith('/')) {
+            window.location.replace(redirectTo);
+            return;
+        }
+
         const pendingApplication = localStorage.getItem('pendingJobApplication');
 
         if (pendingApplication) {
@@ -168,7 +176,7 @@ export default function ResponsiveSignIn() {
         }
 
         window.location.replace('/dashboard');
-    }, []);
+    }, [searchParams]);
 
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignIn called - SIGNIN flow');
@@ -709,5 +717,13 @@ export default function ResponsiveSignIn() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SignInPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>}>
+            <SignInContent />
+        </Suspense>
     );
 }

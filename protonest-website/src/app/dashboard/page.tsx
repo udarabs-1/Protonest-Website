@@ -129,6 +129,8 @@ const Dashboard = () => {
     const [suggestedJobs, setSuggestedJobs] = useState<Job[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showIncompleteAccountModal, setShowIncompleteAccountModal] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -163,10 +165,12 @@ const Dashboard = () => {
                 const data = await response.json();
                 if (data.success && data.user) {
                     const userData = data.user;
+                    const firstName = userData.first_name || '';
+                    const lastName = userData.last_name || '';
                     setProfileData({
                         id: userData.id,
-                        firstName: userData.first_name || '',
-                        lastName: userData.last_name || '',
+                        firstName,
+                        lastName,
                         email: userData.email || '',
                         jobTitle: userData.job_title || '',
                         location: userData.location || '',
@@ -176,6 +180,9 @@ const Dashboard = () => {
                         newsletter: userData.newsletter || false,
                         isGoogleUser: userData.is_oauth_user || false,
                     });
+                    if (!firstName.trim() && !lastName.trim()) {
+                        setShowIncompleteAccountModal(true);
+                    }
                 }
             } else if (response.status === 401) {
                 localStorage.removeItem('jwtToken');
@@ -347,6 +354,26 @@ const Dashboard = () => {
         });
     };
 
+    const handleDeleteAccount = async () => {
+        setIsDeletingAccount(true);
+        try {
+            const token = localStorage.getItem('jwtToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/account`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                localStorage.removeItem('jwtToken');
+                localStorage.removeItem('userData');
+                localStorage.removeItem('tokenExpiration');
+                window.location.replace('/');
+            }
+        } catch {
+        } finally {
+            setIsDeletingAccount(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -362,6 +389,34 @@ const Dashboard = () => {
 
     return (
         <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
+            {showIncompleteAccountModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-md bg-white rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.15)] p-8 flex flex-col items-center gap-6">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#5530fa] to-[#f51da5] flex items-center justify-center">
+                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-[#6c6c6c] font-montserrat text-center">Account Details Empty</h2>
+                        <p className="text-base text-[#6c6c6c] font-poppins text-center leading-relaxed">
+                            Your account details are empty! Fill in your details and upload your CV to proceed.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full">
+                            <button
+                                onClick={() => { setShowIncompleteAccountModal(false); router.push('/dashboard/profile'); }}
+                                className="flex-1 px-6 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] text-white text-base font-semibold font-montserrat transition-all"
+                            >
+                                Fill Details
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={isDeletingAccount}
+                                className="flex-1 px-6 py-3 rounded-[57px] border-2 border-red-400 text-red-500 text-base font-medium font-poppins hover:bg-red-50 transition-colors disabled:opacity-50"
+                            >
+                                {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex flex-col justify-start items-start gap-2.5">

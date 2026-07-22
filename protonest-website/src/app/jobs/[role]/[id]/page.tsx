@@ -498,6 +498,10 @@ export default function JobDetailPage() {
     const [hasCheckedCVUpload, setHasCheckedCVUpload] = useState(false);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const updateUser = () => {
             const currentUser = getUser();
             const token = getAuthToken();

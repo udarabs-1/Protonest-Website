@@ -217,14 +217,6 @@ const HIGHLIGHT_STATS = [
   { value: 7, suffix: "+", label: "Countries Around the World" },
 ];
 
-const countryFlags = [
-  { emoji: "🇬🇧", label: "Protonest client work in the United Kingdom" },
-  { emoji: "🇩🇪", label: "Protonest client work in Germany" },
-  { emoji: "🇫🇷", label: "Protonest client work in France" },
-  { emoji: "🇮🇹", label: "Protonest client work in Italy" },
-  { emoji: "🇺🇸", label: "Protonest client work in the United States" },
-];
-
 const industries = [
   {
     slug: "access-control",
@@ -279,23 +271,6 @@ function LargeScreenHeroSection() {
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10 py-20 xl:py-24">
-          <div className="flex items-center justify-center mb-6">
-            {countryFlags.map((flag, i) => (
-              <span
-                key={flag.label}
-                role="img"
-                aria-label={flag.label}
-                className="text-4xl w-14 h-14 rounded-full flex items-center justify-center bg-white shadow-md border-2 border-white select-none"
-                style={{
-                  zIndex: countryFlags.length - i,
-                  marginLeft: i > 0 ? "-10px" : "0",
-                }}
-              >
-                {flag.emoji}
-              </span>
-            ))}
-          </div>
-
           <h1 className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight">
             <span className="text-[rgba(108,108,108,1)]">
               Reliable IoT Development Partner
@@ -314,10 +289,10 @@ function LargeScreenHeroSection() {
 
           <div className="flex justify-center space-x-[33px] mt-8 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
             <Link
-              href="/contact-us#get-in-touch"
+              href="/contact-us#book-a-call"
               className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center"
             >
-              Start Your IoT Project
+              Book a Free Call
             </Link>
           </div>
         </div>
@@ -370,23 +345,6 @@ function SmallScreenHeroSection() {
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
-          <div className="flex items-center justify-center mb-5">
-            {countryFlags.map((flag, i) => (
-              <span
-                key={flag.label}
-                role="img"
-                aria-label={flag.label}
-                className="text-3xl w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-md border-2 border-white select-none"
-                style={{
-                  zIndex: countryFlags.length - i,
-                  marginLeft: i > 0 ? "-8px" : "0",
-                }}
-              >
-                {flag.emoji}
-              </span>
-            ))}
-          </div>
-
           <h1 className="text-center text-[28px] sm:text-[30px] md:text-[32px] font-medium font-montserrat leading-tight">
             <span className="text-[rgba(108,108,108,1)]">
               Reliable IoT Development Partner
@@ -404,9 +362,9 @@ function SmallScreenHeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-6 font-poppins font-medium text-[14px]">
-            <Link href="/contact-us#get-in-touch">
+            <Link href="/contact-us#book-a-call">
               <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                Start Your IoT Project
+                Book a Free Call
               </button>
             </Link>
           </div>

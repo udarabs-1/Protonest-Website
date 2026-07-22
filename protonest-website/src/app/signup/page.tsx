@@ -154,6 +154,11 @@ export default function SignUp() {
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
+    const [showAccountCreatedModal, setShowAccountCreatedModal] = useState<boolean>(false);
+    const [showGoogleConsentModal, setShowGoogleConsentModal] = useState<boolean>(false);
+    const [googleTermsConsent, setGoogleTermsConsent] = useState<boolean>(false);
+    const [googleNewsletterConsent, setGoogleNewsletterConsent] = useState<boolean>(false);
+    const [pendingGoogleCredential, setPendingGoogleCredential] = useState<{ credential: string; email: string; firstName: string; lastName: string; googleId: string } | null>(null);
 
     const apiConfig = useMemo(() => ({
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -222,22 +227,37 @@ export default function SignUp() {
 
     const handleGoogleSignUp = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignUp called - SIGNUP flow');
-        setIsLoading(true);
         setError('');
 
         try {
             const payload: DecodedGooglePayload = JSON.parse(atob(response.credential.split('.')[1]));
 
-            const googleUserData = {
+            setPendingGoogleCredential({
+                credential: response.credential,
                 email: payload.email,
                 firstName: payload.given_name || '',
                 lastName: payload.family_name || '',
                 googleId: payload.sub,
-                verified: payload.email_verified
-            };
+            });
+            setGoogleTermsConsent(false);
+            setGoogleNewsletterConsent(false);
+            setShowGoogleConsentModal(true);
+        } catch (error) {
+            console.error('Google signup error:', error);
+            setError('Google signup failed. Please try again.');
+        }
+    }, []);
 
-            console.log('Google user data:', googleUserData);
+    const handleGoogleConsentConfirm = useCallback(async (): Promise<void> => {
+        if (!pendingGoogleCredential) return;
 
+        setShowGoogleConsentModal(false);
+        setIsLoading(true);
+        setError('');
+
+        const { credential, email: gEmail, firstName: gFirst, lastName: gLast, googleId } = pendingGoogleCredential;
+
+        try {
             console.log('Calling SIGNUP API:', `${apiConfig.apiUrl}/api/v1/auth/google-signup`);
 
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
@@ -252,18 +272,18 @@ export default function SignUp() {
                         skipTalentPool = true;
                         jobId = pendingJobData.jobId;
                     }
-                } catch (error) {
-                    console.error('Error parsing pending job application:', error);
+                } catch (err) {
+                    console.error('Error parsing pending job application:', err);
                 }
             }
 
             const requestData = {
-                first_name: googleUserData.firstName,
-                last_name: googleUserData.lastName,
-                email: googleUserData.email,
-                google_id: googleUserData.googleId,
-                job_updates: true,
-                newsletter: true,
+                first_name: gFirst,
+                last_name: gLast,
+                email: gEmail,
+                google_id: googleId,
+                job_updates: googleNewsletterConsent,
+                newsletter: googleNewsletterConsent,
                 skip_talent_pool: skipTalentPool,
                 oauth_provider: 'google',
                 ...(jobId && { job_id: jobId })
@@ -271,13 +291,8 @@ export default function SignUp() {
 
             const signupResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/google-signup`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...requestData,
-                    id_token: response.credential
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...requestData, id_token: credential }),
             });
 
             const signupData = await signupResponse.json();
@@ -298,35 +313,30 @@ export default function SignUp() {
                 localStorage.setItem('userData', JSON.stringify(signupData.data.user));
             }
 
-            try {
-
-                const fullName = googleUserData.lastName
-                    ? `${googleUserData.firstName} ${googleUserData.lastName}`.trim()
-                    : googleUserData.firstName;
-
-                const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: fullName,
-                        email: googleUserData.email,
-                        career_updates: true,
-                        newsletter: true
-                    }),
-                });
-
-                const subscriptionData = await subscriptionResponse.json();
-
-                if (!subscriptionResponse.ok) {
-                    console.warn('Subscription creation failed:', subscriptionData.message);
+            if (googleNewsletterConsent) {
+                try {
+                    const fullName = gLast ? `${gFirst} ${gLast}`.trim() : gFirst;
+                    const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: fullName,
+                            email: gEmail,
+                            career_updates: true,
+                            newsletter: true
+                        }),
+                    });
+                    const subscriptionData = await subscriptionResponse.json();
+                    if (!subscriptionResponse.ok) {
+                        console.warn('Subscription creation failed:', subscriptionData.message);
+                    }
+                } catch (subscriptionError) {
+                    console.warn('Subscription error:', subscriptionError);
                 }
-            } catch (subscriptionError) {
-                console.warn('Subscription error:', subscriptionError);
             }
 
-            window.location.replace('/submit-cv');
+            setPendingGoogleCredential(null);
+            setShowAccountCreatedModal(true);
 
         } catch (error) {
             console.error('Google signup error:', error);
@@ -334,7 +344,7 @@ export default function SignUp() {
         } finally {
             setIsLoading(false);
         }
-    }, [apiConfig.apiUrl]);
+    }, [pendingGoogleCredential, googleNewsletterConsent, apiConfig.apiUrl]);
 
     const handleGoogleSignUpRef = useRef(handleGoogleSignUp);
 
@@ -602,7 +612,7 @@ export default function SignUp() {
                 }
             }
 
-            window.location.replace('/submit-cv');
+            setShowAccountCreatedModal(true);
 
         } catch (error) {
             console.error('Signup error:', error);
@@ -644,6 +654,77 @@ export default function SignUp() {
     return (
         <div className="bg-white">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
+
+            {showAccountCreatedModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                        <div className="text-center">
+                            <div className="mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-[#5530fa] to-[#f51da5] flex items-center justify-center mx-auto">
+                                <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-3 font-['Montserrat']">Your Account has been Created!</h3>
+                            <p className="text-gray-500 mb-6 font-['Poppins'] text-sm">Welcome to Protonest. Let&apos;s get your profile set up.</p>
+                            <button
+                                onClick={() => { setShowAccountCreatedModal(false); window.location.replace('/submit-cv'); }}
+                                className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showGoogleConsentModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                        <div className="text-center mb-6">
+                            <h3 className="text-xl font-semibold text-gray-800 mb-2 font-['Montserrat']">Almost there!</h3>
+                            <p className="text-gray-500 font-['Poppins'] text-sm">Please confirm your preferences before creating your account.</p>
+                        </div>
+                        <div className="space-y-4 mb-6">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div
+                                    onClick={() => setGoogleTermsConsent(prev => !prev)}
+                                    className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5 transition-all duration-200 flex items-center justify-center cursor-pointer ${googleTermsConsent ? 'bg-[#5530fa] border-transparent' : 'border-gray-300 group-hover:border-[#5530fa]'}`}
+                                >
+                                    {googleTermsConsent && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L5 9L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                </div>
+                                <span className="text-gray-600 text-sm font-['Poppins']">
+                                    I agree to the{' '}
+                                    <a href="/terms-and-conditions" target="_blank" className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#f51da5] underline">Terms & Conditions</a>
+                                    {' '}and{' '}
+                                    <a href="/privacy-policy" target="_blank" className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#f51da5] underline">Privacy Policy</a>
+                                </span>
+                            </label>
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div
+                                    onClick={() => setGoogleNewsletterConsent(prev => !prev)}
+                                    className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5 transition-all duration-200 flex items-center justify-center cursor-pointer ${googleNewsletterConsent ? 'bg-[#5530fa] border-transparent' : 'border-gray-300 group-hover:border-[#5530fa]'}`}
+                                >
+                                    {googleNewsletterConsent && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L5 9L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                </div>
+                                <span className="text-gray-600 text-sm font-['Poppins']">Subscribe to monthly newsletters and career update emails</span>
+                            </label>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowGoogleConsentModal(false); setPendingGoogleCredential(null); }}
+                                className="flex-1 h-12 border-2 border-gray-200 rounded-full text-gray-600 font-['Poppins'] font-medium hover:border-gray-300 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleGoogleConsentConfirm}
+                                disabled={!googleTermsConsent || isLoading}
+                                className="flex-1 h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Creating...' : 'Agree & Continue'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
             <div className="block lg:hidden">
