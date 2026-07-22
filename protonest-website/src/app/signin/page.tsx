@@ -442,15 +442,15 @@ function SignInContent() {
     }, [email, password]);
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-12">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
             <div className="absolute top-[-120px] left-[-80px] w-[400px] h-[400px] bg-gradient-to-br from-[#5530FA]/15 to-[#F51DA5]/10 rounded-full blur-[80px] pointer-events-none" />
             <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative z-10 w-full max-w-md">
-                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-10 sm:py-12">
-                    <div className="flex flex-col items-center mb-8">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-5">
                         <Link href="/">
                             <Image
                                 src="/logo.webp"

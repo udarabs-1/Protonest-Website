@@ -140,7 +140,7 @@ function ResetPasswordContent() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-12">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {showSuccess && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="w-full max-w-[833px] h-auto bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] backdrop-blur-[20px] p-8 md:p-12 relative">
@@ -161,8 +161,8 @@ function ResetPasswordContent() {
             <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative z-10 w-full max-w-md">
-                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-10 sm:py-12">
-                    <div className="flex flex-col items-center mb-8">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-5">
                         <Link href="/">
                             <Image
                                 src="/logo.webp"

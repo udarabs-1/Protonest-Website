@@ -652,7 +652,7 @@ export default function SignUp() {
     }, [pendingJob]);
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-start justify-center px-4 py-12">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
             {showAccountCreatedModal && (
@@ -730,8 +730,8 @@ export default function SignUp() {
             <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative z-10 w-full max-w-lg">
-                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-10 sm:py-12">
-                    <div className="flex flex-col items-center mb-8">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-4">
                         <Link href="/">
                             <Image
                                 src="/logo.webp"
@@ -744,13 +744,13 @@ export default function SignUp() {
                         </Link>
                     </div>
 
-                    <div className="mb-8">
+                    <div className="mb-4">
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
                             {getTitle()}
                         </h1>
                     </div>
 
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+                    <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
                         <button
                             type="button"
                             onClick={handleGoogleSignUpClick}
@@ -873,7 +873,7 @@ export default function SignUp() {
                         )}
                     </form>
 
-                    <div className="mt-6">
+                    <div className="mt-4">
                         <button
                             onClick={handleSignUp}
                             disabled={isLoading || !isFormValid}
@@ -883,7 +883,7 @@ export default function SignUp() {
                         </button>
                     </div>
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-3 text-center">
                         <span className="text-gray-400 text-sm font-['Poppins']">Already have an account? </span>
                         <Link href="/signin" className="text-[#5530FA] text-sm font-medium font-['Poppins'] hover:underline ml-1">
                             Sign In
