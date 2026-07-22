@@ -270,7 +270,7 @@ function LargeScreenHeroSection() {
 
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
 
-        <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10 py-20 xl:py-24">
+        <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10 pt-8 xl:pt-10 pb-20 xl:pb-24">
           <h1 className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight">
             <span className="text-[rgba(108,108,108,1)]">
               Reliable IoT Development Partner
