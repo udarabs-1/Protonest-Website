@@ -467,7 +467,7 @@ function SignInContent() {
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign In</span>
                         </h1>
-                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Welcome back to Protonest</p>
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Welcome to ProtonestHR Portal!</p>
                     </div>
 
                     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>

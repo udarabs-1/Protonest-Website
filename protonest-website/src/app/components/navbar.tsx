@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 
@@ -19,17 +19,33 @@ export default function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const [isUserSignedIn, setIsUserSignedIn] = useState(false);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
+    const desktopDropdownRef = useRef<HTMLDivElement>(null);
+    const mobileDropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
         setIsUserSignedIn(!!token);
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as Node;
+            const outsideDesktop = desktopDropdownRef.current && !desktopDropdownRef.current.contains(target);
+            const outsideMobile = mobileDropdownRef.current && !mobileDropdownRef.current.contains(target);
+            if (outsideDesktop && outsideMobile) {
+                setProfileDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleNavigation = () => {
         setMobileMenuOpen(false);
+        setProfileDropdownOpen(false);
     };
 
     const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -40,6 +56,15 @@ export default function Navbar() {
             router.push('/careers');
         }
         handleNavigation();
+    };
+
+    const handleProfileIconClick = () => {
+        if (isUserSignedIn) {
+            router.push('/dashboard');
+            setProfileDropdownOpen(false);
+        } else {
+            setProfileDropdownOpen(prev => !prev);
+        }
     };
 
     const navItems: NavItem[] = [
@@ -64,9 +89,6 @@ export default function Navbar() {
         if (hoveredItem && hoveredItem !== item.href) return false;
         return true;
     };
-
-    const showAccountButton = pathname === "/careers" ||
-        pathname.startsWith('/jobs');
 
     return (
         <div>
@@ -123,25 +145,99 @@ export default function Navbar() {
                                     })}
                                 </div>
 
-                                {showAccountButton ? (
-                                    <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                        <Link
-                                            href={isUserSignedIn ? "/dashboard" : "/signin"}
-                                            className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                <div className="font-poppins flex items-center space-x-3 lg:space-x-[16px] xl:space-x-[20px] 2xl:space-x-[24px]">
+                                    <Link
+                                        href="/contact-us#book-a-call"
+                                        className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
+                                    >
+                                        Book a Call
+                                    </Link>
+
+                                    <div className="relative" ref={desktopDropdownRef}>
+                                        <button
+                                            id="navbar-profile-icon-btn"
+                                            onClick={handleProfileIconClick}
+                                            aria-label="ProtonestHR account"
+                                            className="flex items-center gap-[5px] cursor-pointer px-1.5 py-1.5 rounded-full hover:bg-gray-50 transition-colors duration-150"
                                         >
-                                            My Account
-                                        </Link>
+                                            <div className="w-[34px] h-[34px] lg:w-[36px] lg:h-[36px] xl:w-[38px] xl:h-[38px] rounded-full border border-[#e5e7eb] bg-[#f9fafb] flex items-center justify-center flex-shrink-0">
+                                                <svg
+                                                    width="18"
+                                                    height="18"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="#9ca3af"
+                                                    strokeWidth="1.6"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <circle cx="12" cy="8" r="4" />
+                                                    <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" />
+                                                </svg>
+                                            </div>
+                                            <svg
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="#9ca3af"
+                                                strokeWidth="2.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                style={{ transition: 'transform 0.2s', transform: profileDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                            >
+                                                <path d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {profileDropdownOpen && !isUserSignedIn && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                                                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                                                    className="absolute right-0 top-[calc(100%+8px)] w-[200px] bg-white rounded-2xl z-50"
+                                                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)', border: '1px solid #f3f4f6' }}
+                                                >
+                                                    <div className="px-5 pt-4 pb-3">
+                                                        <p className="text-sm font-bold font-montserrat" style={{ background: 'linear-gradient(90deg, #f51da5, #5530fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                                                            ProtonestHR
+                                                        </p>
+                                                    </div>
+                                                    <div className="px-3 pb-3 flex flex-col gap-0.5">
+                                                        <Link
+                                                            href="/signup"
+                                                            id="navbar-dropdown-signup"
+                                                            onClick={handleNavigation}
+                                                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
+                                                        >
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                                                                <circle cx="9" cy="7" r="4" />
+                                                                <path d="M19 8v6M22 11h-6" />
+                                                            </svg>
+                                                            Sign Up
+                                                        </Link>
+                                                        <Link
+                                                            href="/signin"
+                                                            id="navbar-dropdown-signin"
+                                                            onClick={handleNavigation}
+                                                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
+                                                        >
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                                                                <polyline points="10 17 15 12 10 7" />
+                                                                <line x1="15" y1="12" x2="3" y2="12" />
+                                                            </svg>
+                                                            Sign In
+                                                        </Link>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
-                                ) : (
-                                    <div className="font-poppins flex items-center space-x-3 lg:space-x-[20px] xl:space-x-[25px] 2xl:space-x-[30px]">
-                                        <Link
-                                            href="/contact-us#book-a-call"
-                                            className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
-                                        >
-                                            Book a Call
-                                        </Link>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </nav>
@@ -186,26 +282,91 @@ export default function Navbar() {
                                 />
                             </Link>
 
-                            <div className="flex items-center gap-3 md:gap-6">
-                                {showAccountButton ? (
-                                    <Link
-                                        href={isUserSignedIn ? "/dashboard" : "/signin"}
-                                        className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className="relative" ref={mobileDropdownRef}>
+                                    <button
+                                        id="mobile-profile-icon-btn"
+                                        onClick={handleProfileIconClick}
+                                        aria-label="ProtonestHR account"
+                                        className="flex items-center gap-[4px] cursor-pointer px-1 py-1 rounded-full hover:bg-gray-50 transition-colors duration-150"
                                     >
-                                        <span className="text-sm font-medium font-montserrat">
-                                            My Account
-                                        </span>
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        href="/contact-us#book-a-call"
-                                        className="cursor-pointer h-[40px] w-[131px] md:w-[145px] lg:w-[160px] p-2.5 md:p-3 rounded-[30px] border border-[#b7b7b7] gradient-button-static flex justify-center items-center gap-2.5"
-                                    >
-                                        <span className="text-sm font-medium font-montserrat">
-                                            Book a Call
-                                        </span>
-                                    </Link>
-                                )}
+                                        <div className="w-[34px] h-[34px] rounded-full border border-[#e5e7eb] bg-[#f9fafb] flex items-center justify-center flex-shrink-0">
+                                            <svg
+                                                width="17"
+                                                height="17"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="#9ca3af"
+                                                strokeWidth="1.6"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <circle cx="12" cy="8" r="4" />
+                                                <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" />
+                                            </svg>
+                                        </div>
+                                        <svg
+                                            width="11"
+                                            height="11"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="#9ca3af"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            style={{ transition: 'transform 0.2s', transform: profileDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                        >
+                                            <path d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {profileDropdownOpen && !isUserSignedIn && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                                                transition={{ duration: 0.15, ease: 'easeOut' }}
+                                                className="absolute right-0 top-[calc(100%+8px)] w-[190px] bg-white rounded-2xl z-50"
+                                                style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)', border: '1px solid #f3f4f6' }}
+                                            >
+                                                <div className="px-5 pt-4 pb-3">
+                                                    <p className="text-sm font-bold font-montserrat" style={{ background: 'linear-gradient(90deg, #f51da5, #5530fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                                                        ProtonestHR
+                                                    </p>
+                                                </div>
+                                                <div className="px-3 pb-3 flex flex-col gap-0.5">
+                                                    <Link
+                                                        href="/signup"
+                                                        id="mobile-dropdown-signup"
+                                                        onClick={handleNavigation}
+                                                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
+                                                    >
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                                                            <circle cx="9" cy="7" r="4" />
+                                                            <path d="M19 8v6M22 11h-6" />
+                                                        </svg>
+                                                        Sign Up
+                                                    </Link>
+                                                    <Link
+                                                        href="/signin"
+                                                        id="mobile-dropdown-signin"
+                                                        onClick={handleNavigation}
+                                                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
+                                                    >
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                                                            <polyline points="10 17 15 12 10 7" />
+                                                            <line x1="15" y1="12" x2="3" y2="12" />
+                                                        </svg>
+                                                        Sign In
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
 
                                 <button
                                     className="w-[38px] md:w-[44px] h-[38px] md:h-[44px] hover:scale-105 transition-transform"

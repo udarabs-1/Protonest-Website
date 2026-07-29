@@ -175,14 +175,11 @@ function ResetPasswordContent() {
                         </Link>
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
                             Reset Your Password
                         </h1>
-                    </div>
-
-                    <div className="mb-6 text-[#949494] text-sm font-medium font-['Poppins']">
-                        Enter a new password for your account.
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Enter a new password for your account.</p>
                     </div>
 
                     <form className="space-y-4" onSubmit={handleResetPassword}>

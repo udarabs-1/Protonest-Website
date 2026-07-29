@@ -26,18 +26,21 @@ const baseSidebarItems: SidebarItem[] = [
     { icon: 'solar:minimalistic-magnifer-bold-duotone', label: 'Suggested Jobs', path: '/dashboard/suggested-jobs' },
     { icon: 'solar:diskette-bold-duotone', label: 'Saved Jobs', path: '/dashboard/saved-jobs' },
     { icon: 'solar:target-bold-duotone', label: 'Applied Jobs', path: '/dashboard/applied-jobs' },
-    { icon: 'solar:cloud-upload-bold-duotone', label: 'Resubmit CV', path: '/dashboard/resubmit-cv' },
-    { icon: 'solar:bell-bold-duotone', label: 'Manage Alerts', path: '/dashboard/alerts' },
-    { icon: 'solar:user-bold-duotone', label: 'View/Edit Profile', path: '/dashboard/profile' },
+    { icon: 'solar:cloud-upload-bold-duotone', label: 'Update Personal Details', path: '/dashboard/resubmit-cv' },
+    { icon: 'solar:user-bold-duotone', label: 'Account Preferences & Security', path: '/dashboard/profile' },
 ];
 
-const hrisItems: SidebarItem[] = [
+const employeeSidebarItems: SidebarItem[] = [
+    { icon: 'solar:chart-square-bold-duotone', label: 'Dashboard Overview', path: '/dashboard' },
     { icon: 'solar:buildings-bold-duotone', label: 'HRIS Profile', path: '/dashboard/hris' },
     { icon: 'solar:calendar-date-bold-duotone', label: 'Leave Management', path: '/dashboard/leave' },
+    { icon: 'solar:cloud-upload-bold-duotone', label: 'Update Personal Details', path: '/dashboard/resubmit-cv' },
+    { icon: 'solar:user-bold-duotone', label: 'Account Preferences & Security', path: '/dashboard/profile' },
+    { icon: 'solar:target-bold-duotone', label: 'Job Updates', path: '/dashboard/applied-jobs' },
 ];
 
 const DashboardSidebar = ({ sidebarOpen, onClose, currentPath, onLogout, sidebarRef, isEmployee = false }: DashboardSidebarProps) => {
-    const sidebarItems = isEmployee ? [...baseSidebarItems, ...hrisItems] : baseSidebarItems;
+    const sidebarItems = isEmployee ? employeeSidebarItems : baseSidebarItems;
     return (
         <>
             <style jsx global>{`

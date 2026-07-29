@@ -130,7 +130,9 @@ const Dashboard = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [showIncompleteAccountModal, setShowIncompleteAccountModal] = useState(false);
-    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const [isEmployee, setIsEmployee] = useState(false);
+    const [leaveBalances, setLeaveBalances] = useState<Array<{leave_type:string; total_allocated:number; used:number; remaining:number; carried_forward:number;}>>([]);
+    const [leaveHistory, setLeaveHistory] = useState<Array<{id:string; leave_type:string; start_date:string; end_date:string; days:number; reason:string; status:string; created_at:string;}>>([]);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -155,14 +157,20 @@ const Dashboard = () => {
         if (!token) return;
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const [profileResponse, cvResponse] = await Promise.all([
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/info`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
 
-            if (response.ok) {
-                const data = await response.json();
+            let isNameEmpty = true;
+            let hasCv = false;
+
+            if (profileResponse.ok) {
+                const data = await profileResponse.json();
                 if (data.success && data.user) {
                     const userData = data.user;
                     const firstName = userData.first_name || '';
@@ -180,13 +188,21 @@ const Dashboard = () => {
                         newsletter: userData.newsletter || false,
                         isGoogleUser: userData.is_oauth_user || false,
                     });
-                    if (!firstName.trim() && !lastName.trim()) {
-                        setShowIncompleteAccountModal(true);
-                    }
+                    isNameEmpty = !firstName.trim() && !lastName.trim();
                 }
-            } else if (response.status === 401) {
+            } else if (profileResponse.status === 401) {
                 localStorage.removeItem('jwtToken');
                 router.push('/signin');
+                return;
+            }
+
+            if (cvResponse.ok) {
+                const cvData = await cvResponse.json();
+                hasCv = !!(cvData.status === 'success' && cvData.data && cvData.data.file_url);
+            }
+
+            if (isNameEmpty || !hasCv) {
+                setShowIncompleteAccountModal(true);
             }
         } catch (error) {
         }
@@ -307,6 +323,23 @@ const Dashboard = () => {
                     const jobDetails = await Promise.all(jobDetailsPromises);
                     setSuggestedJobs(jobDetails.filter(job => job !== null) as Job[]);
                 }
+
+                const empRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/employees/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (empRes.ok) {
+                    const empData = await empRes.json();
+                    const emp = empData.status === 'success' && !!empData.data?.employee;
+                    setIsEmployee(emp);
+                    if (emp) {
+                        const [balRes, histRes] = await Promise.all([
+                            fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/balance`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                            fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/history`, { headers: { 'Authorization': `Bearer ${token}` } })
+                        ]);
+                        if (balRes.ok) { const b = await balRes.json(); setLeaveBalances(b.data || []); }
+                        if (histRes.ok) { const h = await histRes.json(); setLeaveHistory(h.data || []); }
+                    }
+                }
             } catch {
             } finally {
                 setLoading(false);
@@ -354,25 +387,43 @@ const Dashboard = () => {
         });
     };
 
-    const handleDeleteAccount = async () => {
-        setIsDeletingAccount(true);
-        try {
-            const token = localStorage.getItem('jwtToken');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/account`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                localStorage.removeItem('jwtToken');
-                localStorage.removeItem('userData');
-                localStorage.removeItem('tokenExpiration');
-                window.location.replace('/');
-            }
-        } catch {
-        } finally {
-            setIsDeletingAccount(false);
-        }
+    const formatLeaveType = (type: string) => {
+        if (type === 'sick') return 'Medical Leave';
+        if (type === 'annual') return 'Annual Leave';
+        if (type === 'casual' || type === 'half_day') return 'Casual Leave';
+        if (type === 'unpaid') return 'Unpaid Leave';
+        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     };
+
+    const getMergedBalances = () => {
+        const merged: typeof leaveBalances = [];
+        let casualEntry: typeof leaveBalances[0] | null = null;
+        let halfDayEntry: typeof leaveBalances[0] | null = null;
+        for (const b of leaveBalances) {
+            if (b.leave_type === 'casual') casualEntry = b;
+            else if (b.leave_type === 'half_day') halfDayEntry = b;
+            else merged.push(b);
+        }
+        if (casualEntry && halfDayEntry) {
+            merged.unshift({ ...casualEntry, used: casualEntry.used + halfDayEntry.used, remaining: casualEntry.remaining + halfDayEntry.remaining, total_allocated: casualEntry.total_allocated + halfDayEntry.total_allocated, carried_forward: casualEntry.carried_forward + halfDayEntry.carried_forward });
+        } else if (casualEntry) { merged.unshift(casualEntry); }
+        else if (halfDayEntry) { merged.unshift({ ...halfDayEntry, leave_type: 'casual' }); }
+        return merged.filter(b => b.leave_type !== 'unpaid');
+    };
+
+    const getLeaveStatusColor = (status: string) => {
+        if (status === 'approved') return 'bg-green-100 text-green-700';
+        if (status === 'rejected') return 'bg-red-100 text-red-700';
+        if (status === 'pending') return 'bg-amber-100 text-amber-700';
+        return 'bg-gray-100 text-gray-600';
+    };
+
+    const recentLeaves = leaveHistory.filter(r => {
+        const created = new Date(r.created_at);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return created >= sevenDaysAgo;
+    });
 
     if (loading) {
         return (
@@ -401,142 +452,167 @@ const Dashboard = () => {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 w-full">
                             <button
-                                onClick={() => { setShowIncompleteAccountModal(false); router.push('/dashboard/profile'); }}
-                                className="flex-1 px-6 py-3 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] text-white text-base font-semibold font-montserrat transition-all"
+                                onClick={() => { setShowIncompleteAccountModal(false); router.push('/dashboard/resubmit-cv'); }}
+                                className="flex-1 px-4 py-2 rounded-[57px] bg-gradient-to-r from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] text-white text-sm font-semibold font-montserrat transition-all"
                             >
                                 Fill Details
                             </button>
                             <button
-                                onClick={handleDeleteAccount}
-                                disabled={isDeletingAccount}
-                                className="flex-1 px-6 py-3 rounded-[57px] border-2 border-red-400 text-red-500 text-base font-medium font-poppins hover:bg-red-50 transition-colors disabled:opacity-50"
+                                onClick={() => setShowIncompleteAccountModal(false)}
+                                className="flex-1 px-4 py-2 rounded-[57px] border-2 border-gray-300 text-gray-500 text-sm font-medium font-poppins hover:bg-gray-50 transition-colors"
                             >
-                                {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
+                                Maybe Later
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-            <div className="mb-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex flex-col justify-start items-start gap-2.5">
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
-                                Welcome back, {user?.first_name || 'User'}
-                            </h1>
-                        </div>
-                    </div>
-                </div>
+
+            <div className="mb-6">
+                <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
+                    Welcome back, {user?.first_name || 'User'} 👋
+                </h1>
+                <p className="text-sm text-gray-400 font-poppins mt-1">Here&apos;s a summary of your activity</p>
             </div>
 
             <div className="mb-8">
-                <h2 className="text-lg font-medium text-gray-700 mb-4">
-                    Your Applications at a Glance
-                </h2>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                    {statsCards.map((card, index) => (
-                        <Link
-                            key={index}
-                            href={card.path}
-                            className="bg-white rounded-lg shadow-md p-6 text-center relative overflow-hidden hover:shadow-lg transition-shadow"
-                        >
-                            <div className="absolute inset-0 z-0">
-                                <Image
-                                    src="/cards.svg"
-                                    alt="Background pattern"
-                                    layout="fill"
-                                    objectFit="cover"
-                                    className="w-full h-full"
-                                />
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Actions</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <Link href="/dashboard/resubmit-cv" className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5530fa]/10 to-[#f51da5]/10 flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5530fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div>
+                            <p className="text-xs font-semibold text-gray-700 group-hover:text-[#5530fa] transition-colors">Update Personal Details</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">CV & contact info</p>
+                        </div>
+                    </Link>
+                    <Link href="/dashboard/profile" className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5530fa]/10 to-[#f51da5]/10 flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f51da5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div>
+                            <p className="text-xs font-semibold text-gray-700 group-hover:text-[#f51da5] transition-colors">Account & Security</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Preferences & password</p>
+                        </div>
+                    </Link>
+                    {isEmployee && (
+                        <Link href="/dashboard/leave" className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5530fa]/10 to-[#f51da5]/10 flex items-center justify-center">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5530fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             </div>
-
-                            <div className="relative z-10">
-                                <h3 className="text-sm text-gray-600 mb-2">{card.title}</h3>
-                                {card.type === 'action' ? (
-                                    <>
-                                        <p className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] mb-1">{card.value}</p>
-                                        <p className="text-xs text-gray-500">{card.subtitle}</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p className="text-3xl font-light text-gray-600 mb-1">{card.value}</p>
-                                        <p className="text-xs text-gray-500">{card.subtitle}</p>
-                                    </>
-                                )}
+                            <div>
+                                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#5530fa] transition-colors">Apply for Leave</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">Manage your leaves</p>
                             </div>
                         </Link>
-                    ))}
+                    )}
+                    {isEmployee && (
+                        <Link href="/dashboard/hris" className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5530fa]/10 to-[#f51da5]/10 flex items-center justify-center">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f51da5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#f51da5] transition-colors">HRIS Profile</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">HR information</p>
+                            </div>
+                        </Link>
+                    )}
                 </div>
             </div>
 
+            {isEmployee && (
+                <>
+                    {recentLeaves.length > 0 && (
+                        <div className="mb-8">
+                            <div className="flex justify-between items-center mb-3">
+                                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Recent Leave Updates <span className="text-[10px] font-normal text-gray-400 normal-case ml-1">(last 7 days)</span></h2>
+                                <Link href="/dashboard/leave" className="text-xs text-[#5530fa] hover:underline flex items-center gap-1">
+                                    View all <ChevronRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                {recentLeaves.map(req => (
+                                    <div key={req.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="flex flex-col gap-0.5">
+                                            <p className="text-sm font-semibold text-gray-800">{formatLeaveType(req.leave_type)}</p>
+                                            <p className="text-xs text-gray-400">
+                                                {new Date(req.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(req.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · {req.days} day{req.days !== 1 ? 's' : ''}
+                                            </p>
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide self-start sm:self-auto ${getLeaveStatusColor(req.status)}`}>
+                                            {req.status}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {getMergedBalances().length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Leave Balances</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {getMergedBalances().map(bal => (
+                                    <div key={bal.leave_type} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{formatLeaveType(bal.leave_type)}</p>
+                                        <p className="text-3xl font-bold text-gray-900">{bal.remaining} <span className="text-sm font-normal text-gray-400">days left</span></p>
+                                        <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between text-xs">
+                                            <span className="text-gray-400">Allocated: <strong className="text-gray-700">{bal.total_allocated + bal.carried_forward}</strong></span>
+                                            <span className="text-gray-400">Used: <strong className="text-gray-700">{bal.used}</strong></span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
             <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-700">
-                        Recent Applications
-                    </h2>
-                    <Link href="/dashboard/applied-jobs" className="flex items-center text-sm text-gray-600 hover:text-purple-600">
-                        View all applied jobs
-                        <ChevronRight className="w-4 h-4 ml-1" />
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Job Updates</h2>
+                    <Link href="/dashboard/applied-jobs" className="text-xs text-[#5530fa] hover:underline flex items-center gap-1">
+                        View all <ChevronRight className="w-3 h-3" />
                     </Link>
                 </div>
-
-                <div className="w-full bg-white rounded-[9px] shadow-[0px_2px_20px_0px_rgba(170,170,170,0.20)] overflow-hidden">
+                <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-gray-200">
-                                    <th className="px-4 py-3 text-left">
-                                        <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                            Job Title
-                                        </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-left">
-                                        <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                            Status
-                                        </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-left">
-                                        <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                            Applied On
-                                        </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-center">
-                                        <div className="text-[#4e4e4e] text-[11px] font-medium font-poppins leading-none">
-                                            Action
-                                        </div>
-                                    </th>
+                                <tr className="border-b border-gray-100 bg-gray-50/60">
+                                    <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Job Title</th>
+                                    <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                                    <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Applied On</th>
+                                    <th className="px-5 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-gray-50">
                                 {applications.length > 0 ? (
                                     applications.map((app, index) => {
                                         const roleSlug = categoryToSlugMap[app.job_id?.category || ''] || 'other-roles';
-
+                                        const statusColors: Record<string, string> = {
+                                            pending: 'bg-amber-100 text-amber-700',
+                                            shortlisted: 'bg-blue-100 text-blue-700',
+                                            interviewed: 'bg-purple-100 text-purple-700',
+                                            hired: 'bg-green-100 text-green-700',
+                                            rejected: 'bg-red-100 text-red-700',
+                                        };
                                         return (
-                                            <tr key={index} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 text-left">
-                                                    <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                        {app.job_id?.title || 'N/A'}
-                                                    </div>
+                                            <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-5 py-3.5 text-sm font-medium text-gray-800">{app.job_id?.title || 'N/A'}</td>
+                                                <td className="px-5 py-3.5">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide ${statusColors[app.status] || 'bg-gray-100 text-gray-600'}`}>
+                                                        {app.status}
+                                                    </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-left">
-                                                    <div className="text-[11px] font-medium font-poppins leading-none text-gray-600">
-                                                        {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                                                    </div>
+                                                <td className="px-5 py-3.5 text-sm text-gray-500">
+                                                    {new Date(app.applied_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                                                 </td>
-                                                <td className="px-4 py-3 text-left">
-                                                    <div className="text-[#676767] text-[11px] font-medium font-poppins leading-none">
-                                                        {new Date(app.applied_at).toLocaleDateString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        })}
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
+                                                <td className="px-5 py-3.5 text-right">
                                                     <Link
                                                         href={`/jobs/${roleSlug}/${app.job_id._id}`}
-                                                        className="w-[198px] h-8 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-[15px] text-white text-[11px] font-medium font-poppins leading-none inline-flex items-center justify-center"
+                                                        className="inline-flex items-center px-4 py-1.5 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] rounded-full text-white text-[11px] font-semibold hover:opacity-90 transition-opacity"
                                                     >
                                                         View
                                                     </Link>
@@ -546,107 +622,13 @@ const Dashboard = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
-                                            No applications found
+                                        <td colSpan={4} className="px-5 py-8 text-center text-gray-400 text-sm">
+                                            No job applications yet. <Link href="/dashboard/all-jobs" className="text-[#5530fa] hover:underline">Browse jobs</Link>
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-
-            <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-700">
-                        Suggested Jobs
-                    </h2>
-                    <Link href="/dashboard/suggested-jobs" className="flex items-center text-sm text-gray-600 hover:text-purple-600">
-                        View all
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                </div>
-
-                <div className="relative">
-                    <div className="w-full overflow-x-auto pb-4">
-                        {suggestedJobs.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {suggestedJobs.map((job) => {
-                                    const roleSlug = categoryToSlugMap[job.category || ''] || 'other-roles';
-
-                                    return (
-                                        <Link
-                                            key={job.id}
-                                            href={`/jobs/${roleSlug}/${job.id}`}
-                                            className="group relative w-full bg-white rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] backdrop-blur-[20px] overflow-hidden px-6 py-12 hover:shadow-lg transition-shadow"
-                                        >
-                                            <div className="flex justify-between">
-                                                <div className="w-3/4">
-                                                    <h3 className="group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#F51DA5] group-hover:to-[#5530FA] text-base font-poppins leading-tight mb-2 text-[#6c6c6c] font-normal">
-                                                        {job.title}
-                                                    </h3>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c] mb-4">
-                                                        {job.location} ‐ Posted {job.postedDate ? formatTimeAgo(job.postedDate) : 'Recently'}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-3 gap-4 mb-6">
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">{job.type.replace('-', ' ')}</p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Job Type</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c]">
-                                                        {job.applicationDeadline ? formatDate(job.applicationDeadline) : 'N/A'}
-                                                    </p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Application deadline</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-medium font-poppins text-[#6c6c6c] capitalize">
-                                                        {job.experience || 'Not specified'}
-                                                    </p>
-                                                    <p className="text-[9px] font-poppins text-[#6c6c6c]">Experience level</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="absolute right-6 top-6 w-[60px] h-[60px] group-hover:w-[70px] group-hover:h-[70px] transition-all duration-300">
-                                                <div className="w-full h-full group-hover:hidden">
-                                                    <Image
-                                                        src="/upleft.svg"
-                                                        alt="Arrow"
-                                                        width={40}
-                                                        height={40}
-                                                        className="w-full h-full object-contain"
-                                                    />
-                                                </div>
-
-                                                <div className="hidden w-full h-full group-hover:block">
-                                                    <Image
-                                                        src="/upleft-hover.svg"
-                                                        alt="Hover Arrow"
-                                                        width={50}
-                                                        height={50}
-                                                        className="w-full h-full object-contain"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="w-full bg-gradient-to-l from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] py-3 text-white text-sm font-semibold font-montserrat text-center group-hover:from-[rgba(245,29,165,1)] group-hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                                                View Details
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <p className="text-gray-600 text-lg font-poppins">
-                                    No suggested jobs available. Upload your CV to get personalized job recommendations.
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

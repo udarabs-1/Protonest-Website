@@ -3,11 +3,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Footer() {
     const pathname = usePathname();
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+    const [isUserSignedIn, setIsUserSignedIn] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('jwtToken');
+        setIsUserSignedIn(!!token);
+    }, []);
 
     const isActive = (path: string): boolean => pathname === path;
 
@@ -136,6 +142,14 @@ export default function Footer() {
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         Contact Us
+                                    </Link>
+                                    <Link
+                                        href={isUserSignedIn ? '/dashboard' : '/signin'}
+                                        className={getNavLinkClass(isUserSignedIn ? '/dashboard' : '/signin', true)}
+                                        onMouseEnter={() => handleMouseEnter(isUserSignedIn ? '/dashboard' : '/signin')}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        ProtonestHR
                                     </Link>
                                 </div>
                             </div>
@@ -286,6 +300,9 @@ export default function Footer() {
                             </Link>
                             <Link href="/contact-us" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/contact-us', false)}`}>Contact Us</div>
+                            </Link>
+                            <Link href={isUserSignedIn ? '/dashboard' : '/signin'} className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass(isUserSignedIn ? '/dashboard' : '/signin', false)}`}>ProtonestHR</div>
                             </Link>
                         </div>
                     </div>

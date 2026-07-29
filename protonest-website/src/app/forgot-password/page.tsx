@@ -180,14 +180,11 @@ export default function ForgotPassword() {
                         </Link>
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
                             Forgot Password?
                         </h1>
-                    </div>
-
-                    <div className="mb-6 text-[#949494] text-sm font-medium font-['Poppins']">
-                        Enter your email address and we&apos;ll send you a link to reset your password.
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Enter your email address and we&apos;ll send you a link to reset your password.</p>
                     </div>
 
                     <form className="space-y-4" onSubmit={handleSubmit}>

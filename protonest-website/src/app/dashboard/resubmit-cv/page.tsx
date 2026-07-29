@@ -229,7 +229,7 @@ const ResubmitCVPage = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Resubmit CV' }
+        { label: 'Update Personal Details' }
     ];
 
     useEffect(() => {
@@ -1043,7 +1043,7 @@ const ResubmitCVPage = () => {
                                     />
                                 </div>
                                 <h1 className="text-xl sm:text-2xl lg:text-[25px] font-semibold text-[#6c6c6c] font-['Montserrat']">
-                                    {pendingJob ? `Upload CV to Apply for ${pendingJob.jobTitle}` : hasCVUploaded ? 'Resubmit Your CV' : 'Upload Your CV'}
+                                    Update Personal Details
                                 </h1>
                             </div>
                             <p className="text-[#6c6c6c] text-xs sm:text-sm font-normal font-['Montserrat'] max-w-full">
@@ -1055,6 +1055,33 @@ const ResubmitCVPage = () => {
                                 }
                             </p>
                         </div>
+                        {hasCVUploaded && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const jwtToken = localStorage.getItem('jwtToken');
+                                        if (!jwtToken) return;
+                                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
+                                            headers: { 'Authorization': `Bearer ${jwtToken}` }
+                                        });
+                                        if (res.ok) {
+                                            const blob = await res.blob();
+                                            const url = window.URL.createObjectURL(blob);
+                                            const w = window.open(url, '_blank');
+                                            if (w) setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                                            else window.URL.revokeObjectURL(url);
+                                        }
+                                    } catch {}
+                                }}
+                                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Montserrat'] hover:opacity-90 transition-opacity text-xs sm:text-sm"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                Preview CV
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
