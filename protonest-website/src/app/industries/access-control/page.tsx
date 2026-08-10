@@ -62,10 +62,13 @@ function Hero() {
     <PageHero
       backgroundImage="/access-control.png"
       heading={{
-        beforeGradient: "Access Control",
-        gradientText: "IoT Development Services",
+        gradientText: "IoT Product Development for Access Control Systems",
       }}
-      description="Secure, reliable, and easy-to-manage connected access control products built end to end."
+      description="Protonest helps access control companies build smart locks, connected access devices, firmware, mobile apps, cloud dashboards, and product testing systems."
+      cta={{
+        label: "Book a Call",
+        href: "/book-a-call",
+      }}
       height="h-[400px] sm:h-[480px] lg:h-[553px]"
     />
   );
@@ -74,10 +77,13 @@ function Hero() {
 function Intro() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader prefix="Access Control" highlight="IoT Solutions" />
+      <SectionHeader highlight="Build access control products without splitting the work across teams" />
       <div className="max-w-4xl">
         <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed">
-          Intro content coming soon.
+          Access control products need hardware, firmware, software, cloud
+          systems, and testing to work together. Protonest helps product teams
+          build smart locks, access devices, dashboards, and mobile app
+          features from prototype to usable product.
         </p>
       </div>
     </section>
@@ -87,10 +93,28 @@ function Intro() {
 function ClientProof() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader prefix="Trusted by Teams Building" highlight="Access Control Products" />
-      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)]">
-        Client proof content coming soon.
-      </p>
+      <SectionHeader highlight="Access control product work" />
+      <div className="max-w-4xl rounded-[24px] overflow-hidden bg-white shadow-lg">
+        <div className="p-6 sm:p-8 flex flex-col gap-3">
+          <span className="text-[13px] font-medium font-poppins uppercase tracking-wide text-[#999999]">
+            Related project
+          </span>
+          <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+            Smart Door Lock System for Entryphone UK
+          </h3>
+          <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
+            Protonest worked on a smart door lock system for Entryphone UK. The
+            project is relevant to access control product teams building
+            connected devices, firmware, and system-level product features.
+          </p>
+          <a
+            href="/portfolio/smart-door-lock-system-for-entryphone-uk"
+            className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+          >
+            <span className="underline">View project</span> &gt;
+          </a>
+        </div>
+      </div>
     </section>
   );
 }
@@ -172,28 +196,6 @@ function FAQs() {
   );
 }
 
-function FinalCTA() {
-  return (
-    <section className="w-full py-16 md:py-20 lg:py-24 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] text-center">
-      <h2 className="text-[24px] lg:text-[30px] xl:text-[36px] font-medium font-montserrat mb-4">
-        <span className="text-[rgba(108,108,108,1)]">Let&apos;s Talk About Your </span>
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-          Access Control Project
-        </span>
-      </h2>
-      <p className="text-[15px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] max-w-2xl mx-auto mb-8">
-        Book a free call to discuss your product idea or the technical challenge.
-      </p>
-      <a
-        href="/contact-us#book-a-call"
-        className="inline-flex items-center justify-center w-[220px] h-[55px] lg:h-[60px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 font-poppins font-medium text-[15px] lg:text-[16px]"
-      >
-        Book a Free Call
-      </a>
-    </section>
-  );
-}
-
 export default function AccessControlPage() {
   return (
     <div>
@@ -214,7 +216,6 @@ export default function AccessControlPage() {
       <WhyProtonest />
       <UsefulResources />
       <FAQs />
-      <FinalCTA />
       <Footer />
     </div>
   );

@@ -13,6 +13,10 @@ interface PageHeroProps {
     description?: string | React.ReactNode;
     height?: string;
     paddingTop?: boolean;
+    cta?: {
+        label: string;
+        href: string;
+    };
 }
 
 export default function PageHero({
@@ -21,7 +25,8 @@ export default function PageHero({
     heading,
     description,
     height = 'h-[400px] sm:h-[480px] lg:h-[553px]',
-    paddingTop = false
+    paddingTop = false,
+    cta
 }: PageHeroProps) {
     return (
         <section className={`${height} relative ${paddingTop ? 'pt-20' : ''}`}>
@@ -94,6 +99,14 @@ export default function PageHero({
                         <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
                             {description}
                         </p>
+                    )}
+                    {cta && (
+                        <a
+                            href={cta.href}
+                            className="mt-8 lg:mt-12 inline-flex items-center justify-center w-[220px] h-[55px] lg:h-[60px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 font-poppins font-medium text-[15px] lg:text-[16px]"
+                        >
+                            {cta.label}
+                        </a>
                     )}
                 </div>
             </div>
