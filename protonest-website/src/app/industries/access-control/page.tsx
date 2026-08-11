@@ -6,14 +6,12 @@ import PageHero from "../../components/page-hero";
 import SectionHeader from "../../components/section-header";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://protonest.co"
-  ),
-  title: "Access Control IoT Development Services | Protonest",
+  metadataBase: new URL("https://www.protonest.co"),
+  title: "Access Control IoT Development | Protonest",
   description:
-    "Protonest designs and develops secure, reliable access control IoT products — smart locks, door access control, and connected access systems.",
+    "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
   alternates: {
-    canonical: "https://protonest.co/industries/access-control",
+    canonical: "https://www.protonest.co/industries/access-control",
   },
   robots: {
     index: true,
@@ -21,17 +19,26 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://protonest.co/industries/access-control",
+    url: "https://www.protonest.co/industries/access-control",
     siteName: "Protonest",
-    title: "Access Control IoT Development Services | Protonest",
+    title: "Access Control IoT Development | Protonest",
     description:
-      "Protonest designs and develops secure, reliable access control IoT products — smart locks, door access control, and connected access systems.",
+      "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
+    images: [
+      {
+        url: "https://www.protonest.co/protonest-opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Protonest access control IoT development services",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Access Control IoT Development Services | Protonest",
+    title: "Access Control IoT Development | Protonest",
     description:
-      "Protonest designs and develops secure, reliable access control IoT products — smart locks, door access control, and connected access systems.",
+      "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
+    images: ["https://www.protonest.co/protonest-opengraph-image.jpg"],
   },
 };
 
