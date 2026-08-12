@@ -51,6 +51,7 @@ function Hero() {
         gradientText: "IoT Product Development for Access Control Systems",
       }}
       description="Protonest helps access control companies build smart locks, connected access devices, firmware, mobile apps, cloud dashboards, and product testing systems."
+      darkOverlay
       cta={{
         label: "Book a Call",
         href: "/book-a-call",

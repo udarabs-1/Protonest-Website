@@ -14,6 +14,7 @@ interface PageHeroProps {
     description?: string | React.ReactNode;
     height?: string;
     paddingTop?: boolean;
+    darkOverlay?: boolean;
     cta?: {
         label: string;
         href: string;
@@ -28,6 +29,7 @@ export default function PageHero({
     description,
     height = 'h-[400px] sm:h-[480px] lg:h-[553px]',
     paddingTop = false,
+    darkOverlay = false,
     cta
 }: PageHeroProps) {
     return (
@@ -73,6 +75,13 @@ export default function PageHero({
                         )}
                     </div>
 
+                    {darkOverlay && (
+                        <div
+                            className="absolute inset-0 z-10 bg-gradient-to-b from-black/40 via-black/55 to-black/70"
+                            aria-hidden="true"
+                        ></div>
+                    )}
+
                     <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
                     <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10"></div>
                 </>
@@ -83,7 +92,7 @@ export default function PageHero({
                     <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                         {heading.beforeGradient && (
                             <>
-                                <span className="text-[#6c6c6c]">{heading.beforeGradient}</span>
+                                <span className={`${darkOverlay ? 'text-white' : 'text-[#6c6c6c]'}`}>{heading.beforeGradient}</span>
                                 <br />
                             </>
                         )}
@@ -93,12 +102,12 @@ export default function PageHero({
                         {heading.afterGradient && (
                             <>
                                 <br />
-                                <span className="text-[#6c6c6c]">{heading.afterGradient}</span>
+                                <span className={`${darkOverlay ? 'text-white' : 'text-[#6c6c6c]'}`}>{heading.afterGradient}</span>
                             </>
                         )}
                     </h1>
                     {description && (
-                        <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+                        <p className={`text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto ${darkOverlay ? 'text-white/90' : 'text-[rgba(108,108,108,1)]'}`}>
                             {description}
                         </p>
                     )}
