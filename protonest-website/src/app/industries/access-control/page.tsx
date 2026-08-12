@@ -46,6 +46,7 @@ function Hero() {
   return (
     <PageHero
       backgroundImage="/access-control.png"
+      backgroundAlt="Access control IoT product development by Protonest"
       heading={{
         gradientText: "IoT Product Development for Access Control Systems",
       }}

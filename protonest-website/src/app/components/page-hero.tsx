@@ -5,6 +5,7 @@ import Image from 'next/image';
 interface PageHeroProps {
     backgroundImage?: string;
     backgroundImageMobile?: string;
+    backgroundAlt?: string;
     heading: {
         beforeGradient?: string;
         gradientText: string;
@@ -22,6 +23,7 @@ interface PageHeroProps {
 export default function PageHero({
     backgroundImage,
     backgroundImageMobile,
+    backgroundAlt = '',
     heading,
     description,
     height = 'h-[400px] sm:h-[480px] lg:h-[553px]',
@@ -38,35 +40,35 @@ export default function PageHero({
                                 <div className="absolute inset-0 block sm:hidden">
                                     <Image
                                         src={backgroundImageMobile}
-                                        alt=""
+                                        alt={backgroundAlt}
                                         fill
                                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                                         priority={true}
                                         quality={100}
-                                        aria-hidden="true"
+                                        aria-hidden={backgroundAlt ? undefined : 'true'}
                                     />
                                 </div>
                                 <div className="absolute inset-0 hidden sm:block">
                                     <Image
                                         src={backgroundImage}
-                                        alt=""
+                                        alt={backgroundAlt}
                                         fill
                                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                                         priority={true}
                                         quality={100}
-                                        aria-hidden="true"
+                                        aria-hidden={backgroundAlt ? undefined : 'true'}
                                     />
                                 </div>
                             </>
                         ) : (
                             <Image
                                 src={backgroundImage}
-                                alt=""
+                                alt={backgroundAlt}
                                 fill
                                 style={{ objectFit: 'cover', objectPosition: 'center' }}
                                 priority={true}
                                 quality={100}
-                                aria-hidden="true"
+                                aria-hidden={backgroundAlt ? undefined : 'true'}
                             />
                         )}
                     </div>
