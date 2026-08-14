@@ -50,7 +50,22 @@ function Hero() {
       heading={{
         gradientText: "IoT Product Development for Access Control Systems",
       }}
-      description="Protonest helps access control companies build smart locks, connected access devices, firmware, mobile apps, cloud dashboards, and product testing systems."
+      description={
+        <>
+          <span className="block">
+            Protonest provides IoT product development services to help
+            companies in the access control industry build security-first smart
+            systems.
+          </span>
+          <span className="block mt-3">
+            A defining feature of any access control system is its ability to
+            consistently maintain a high level of security. By collaborating
+            closely with expert security partners, we are well equipped to
+            ensure that security is integrated into the system from the very
+            earliest stages of development.
+          </span>
+        </>
+      }
       darkOverlay
       cta={{
         label: "Book a Call",
@@ -64,13 +79,13 @@ function Hero() {
 function Intro() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader highlight="Build access control products without splitting the work across teams" />
+      <SectionHeader highlight="Build secure access control products all in one place" />
       <div className="max-w-4xl">
         <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed">
-          Access control products need hardware, firmware, software, cloud
-          systems, and testing to work together. Protonest helps product teams
-          build smart locks, access devices, dashboards, and mobile app
-          features from prototype to usable product.
+          Smart access control systems need to bring together hardware,
+          software, and cloud systems, with adequate security planning.
+          Protonest helps product teams bring all these functions together to
+          transform prototypes into usable products.
         </p>
       </div>
     </section>
@@ -80,7 +95,7 @@ function Intro() {
 function ClientProof() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader highlight="Access control product work" />
+      <SectionHeader highlight="Access Control Projects" />
       <div className="max-w-4xl rounded-[24px] overflow-hidden bg-white shadow-lg">
         <div className="p-6 sm:p-8 flex flex-col gap-3">
           <span className="text-[13px] font-medium font-poppins uppercase tracking-wide text-[#999999]">
@@ -90,9 +105,9 @@ function ClientProof() {
             Smart Door Lock System for Entryphone UK
           </h3>
           <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
-            Protonest worked on a smart door lock system for Entryphone UK. The
-            project is relevant to access control product teams building
-            connected devices, firmware, and system-level product features.
+            Protonest worked on a smart door lock system for Entryphone UK. Read
+            more about the work we did to help them build connected access
+            control devices.
           </p>
           <a
             href="/portfolio/smart-door-lock-system-for-entryphone-uk"
@@ -109,127 +124,96 @@ function ClientProof() {
 const PROBLEMS = [
   {
     title: "Device connection issues",
-    body: "Smart locks and access devices need stable communication between the device, app, and backend. We help plan and test that connection.",
+    body: "Plan and test stable communication between the device, app, and backend.",
   },
   {
-    title: "Battery drain",
-    body: "Access devices often need to run for long periods without charging. We help improve power use through hardware and firmware decisions.",
-  },
-  {
-    title: "Firmware bugs",
-    body: "Lock states, access rules, alerts, and recovery flows depend on reliable firmware. We help build and test firmware for real product use.",
+    title: "Firmware and recovery failures",
+    body: "Build and test firmware for lock states, access rules, alerts, and recovery.",
   },
   {
     title: "App and device sync issues",
-    body: "Access permissions, device status, and logs need to update correctly. We help connect the app, device, and backend with clear data flow.",
+    body: "Connect access permissions, device status, and logs through a clear data flow.",
   },
   {
-    title: "Missing dashboards",
-    body: "Product teams often need dashboards for devices, users, logs, alerts, and settings. We help build those systems.",
+    title: "Security considered too late",
+    body: "Bring security input into product decisions early through our security partnership.",
+  },
+  {
+    title: "Missing product management tools",
+    body: "Build dashboards for devices, users, permissions, logs, alerts, and settings.",
   },
   {
     title: "Weak prototype handoff",
-    body: "A working demo is not the same as a usable product. We help improve prototypes for stability, testing, and real use.",
-  },
-];
-
-const BUILDS = [
-  {
-    title: "Smart lock systems",
-    body: "We help build smart lock products across hardware, firmware, app features, cloud connection, and testing.",
-  },
-  {
-    title: "Door access control devices",
-    body: "We support connected devices for doors, shared spaces, commercial buildings, and controlled entry points.",
-  },
-  {
-    title: "Mobile access systems",
-    body: "We build app features for device setup, lock control, user access, lock status, and product settings.",
-  },
-  {
-    title: "Cloud-connected controllers",
-    body: "We help connect access control hardware to backend systems for remote control, alerts, users, and device updates.",
-  },
-  {
-    title: "Access monitoring dashboards",
-    body: "We build dashboards for device status, access logs, users, permissions, alerts, and product settings.",
-  },
-  {
-    title: "Biometric access control systems",
-    body: "We support biometric access products where hardware, firmware, software, and backend logic need to work together.",
+    body: "Improve prototypes for stability, testing, and real use.",
   },
 ];
 
 const SERVICES = [
   {
     title: "Hardware design",
-    body: "We help design and improve connected lock devices, controllers, sensor inputs, and enclosures.",
+    body: "Design or improve existing smart locks, sensor inputs, and enclosures.",
   },
   {
     title: "Embedded firmware development",
-    body: "We develop firmware for device control, lock states, connectivity, power use, alerts, and product logic.",
-  },
-  {
-    title: "Mobile app development",
-    body: "We build app features for setup, lock control, user access, device status, and notifications.",
+    body: "Develop firmware logic for device control, connectivity, and alerts.",
   },
   {
     title: "Web dashboard development",
-    body: "We build dashboards for access logs, device status, user roles, permissions, alerts, and product settings.",
+    body: "Build dashboards to control locks remotely, update devices, manage user access, view device status, and receive alerts.",
+  },
+  {
+    title: "Mobile app development",
+    body: "Build mobile apps with features for controlling locks, viewing access options, device status, and product settings",
   },
   {
     title: "Cloud and backend development",
-    body: "We build backend systems that connect devices, apps, dashboards, access events, and users.",
+    body: "Develop the cloud backend and deploy to connect devices with apps and dashboards.",
   },
   {
-    title: "Testing",
-    body: "We test device behaviour, firmware stability, app flows, connectivity, and failure cases.",
+    title: "Security input",
+    body: "Embed security-related measures in the relevant stages of product development.",
   },
   {
-    title: "Product improvement",
-    body: "We help improve existing prototypes so they work better in real use.",
+    title: "Testing and product improvement",
+    body: "Test device behaviour, firmware, app flows, connectivity, and failure cases, then improve the product.",
   },
 ];
 
 const HOW_WE_WORK_STEPS = [
   {
     title: "Understand the product",
-    body: "We review the use case, users, access flow, device needs, power limits, and product goals.",
+    body: "We review the use case, device needs, and security needs thoroughly to understand the client's product goals.",
   },
   {
     title: "Plan the system",
-    body: "We map how the hardware, firmware, app, backend, dashboard, and data should work together.",
+    body: "We map how the hardware, firmware, software, and security requirements should work together.",
   },
   {
-    title: "Build the prototype",
-    body: "We build the hardware, firmware, app, backend, or dashboard needed for the first working version.",
+    title: "Build and test",
+    body: "We build the required product parts and test for functionality and any possible failure cases.",
   },
   {
-    title: "Test the behaviour",
-    body: "We test lock control, connectivity, access states, alerts, logs, app flows, and failure cases.",
-  },
-  {
-    title: "Improve the product",
-    body: "We refine the product based on testing, feedback, and real use needs.",
+    title: "Improve for real use",
+    body: "We refine the product through testing, feedback, and end-user needs.",
   },
 ];
 
 const WHY_PROTONEST = [
   {
-    title: "One team across the product",
-    body: "We can support hardware, firmware, embedded systems, mobile apps, dashboards, backend systems, and testing.",
+    title: "One product team",
+    body: "We handle the full-stack IoT development lifecycle, starting from hardware design to backend development and testing.",
   },
   {
-    title: "Relevant access control work",
-    body: "We have worked on smart door lock and access control product work for an international client.",
+    title: "Security-first input",
+    body: "Our expert security partners bring valuable insights to the product development process from the early stages",
   },
   {
-    title: "Prototype support",
-    body: "We help teams move past the demo stage and improve the product for real use.",
+    title: "Relevant experience",
+    body: "We have previous experience catering to the requirements of international clients working on access control projects.",
   },
   {
-    title: "Practical engineering",
-    body: "We focus on device control, connection stability, power use, access logs, and user experience.",
+    title: "Built past the demo",
+    body: "Our team will support you in moving your product from the prototype stage to a production-grade output.",
   },
 ];
 
@@ -254,34 +238,29 @@ const RESOURCES = [
 
 const FAQ_ITEMS = [
   {
-    question: "Can Protonest build custom IoT hardware for access control systems?",
+    question: "Who will be our main point of contact during the access control project?",
     answer:
-      "Yes. Protonest can support custom hardware for smart locks, controllers, sensors, and connected access devices.",
+      "A Project Manager will be assigned to ensure smooth communication between your team and ours",
   },
   {
-    question: "Do you develop firmware for smart locks and access control devices?",
+    question: "How do you provide visibility into the ongoing work of our access control project?",
     answer:
-      "Yes. We develop firmware for lock control, device states, connectivity, power use, alerts, and access logic.",
+      "We can provide you with weekly progress updates, demo builds, and read-only access to repositories.",
   },
   {
-    question: "Can you connect access control devices to mobile apps?",
+    question: "Do you work under NDAs?",
     answer:
-      "Yes. We can build app features for setup, lock control, user access, device status, notifications, and settings.",
+      "Yes, we can enter into a non-disclosure agreement depending on your requirement.",
   },
   {
-    question: "Can you build a dashboard for access logs and device monitoring?",
+    question: "How does your revision policy work?",
     answer:
-      "Yes. We can build backend systems and dashboards for logs, device status, users, alerts, roles, and permissions.",
+      "We provide up to 2 major revisions during projects and minor adjustments as part of ongoing development cycles.",
   },
   {
-    question: "Do you work with biometric access control systems?",
+    question: "How is post-development support given for access control projects?",
     answer:
-      "Yes. We can support biometric access products where hardware, firmware, backend, and user software need to work together.",
-  },
-  {
-    question: "Can you improve an existing access control prototype?",
-    answer:
-      "Yes. We can review the hardware, firmware, app, backend, and testing gaps, then help improve the product.",
+      "We will provide short term scopes on an adhoc basis and long term support on a contract basis.",
   },
 ];
 
@@ -459,31 +438,17 @@ function ProblemsWeSolve() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
       <SectionHeader highlight="Access control problems we help solve" />
+      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl">
+        When the critical components of a smart access control system are
+        developed separately by different service partners, it can create
+        friction when they work together as one system.
+      </p>
       <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl mb-10">
-        Many access control products fail because the device, app, and backend
-        are built separately. We help product teams fix these gaps before they
-        become real user problems.
+        We provide you with full-stack IoT development services to help you
+        bridge this gap.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {PROBLEMS.map((item) => (
-          <Card key={item.title} title={item.title} body={item.body} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function WhatWeBuild() {
-  return (
-    <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader highlight="What we build for access control companies" />
-      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl mb-10">
-        Protonest helps access control companies build connected devices and
-        software for entry control, device monitoring, user access, and product
-        management.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-        {BUILDS.map((item) => (
           <Card key={item.title} title={item.title} body={item.body} />
         ))}
       </div>
@@ -495,10 +460,6 @@ function Services() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
       <SectionHeader highlight="Services for access control products" />
-      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl mb-10">
-        Protonest can support the main technical parts of an access control
-        product, from device hardware to connected software.
-      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {SERVICES.map((item) => (
           <Card key={item.title} title={item.title} body={item.body} />
@@ -511,11 +472,7 @@ function Services() {
 function HowWeWork() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader highlight="How we build access control IoT products" />
-      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl mb-10">
-        We help teams move from product idea or prototype to tested connected
-        product.
-      </p>
+      <SectionHeader highlight="Our IoT product development workflow" />
       <ol className="space-y-6">
         {HOW_WE_WORK_STEPS.map((step, index) => (
           <li
@@ -544,10 +501,6 @@ function WhyProtonest() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
       <SectionHeader highlight="Why access control teams work with Protonest" />
-      <p className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] leading-relaxed max-w-4xl mb-10">
-        Protonest is useful when your product needs hardware, firmware,
-        software, and testing to work together.
-      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch">
         {WHY_PROTONEST.map((item) => (
           <Card key={item.title} title={item.title} body={item.body} />
@@ -623,7 +576,6 @@ export default function AccessControlPage() {
       <Intro />
       <ClientProof />
       <ProblemsWeSolve />
-      <WhatWeBuild />
       <Services />
       <HowWeWork />
       <WhyProtonest />
