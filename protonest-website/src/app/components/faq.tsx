@@ -6,42 +6,52 @@ const faqs = [
     {
         id: "iot-projects",
         question: "What kind of IoT projects can you help with?",
-        answer: "We can assist with a wide range of IoT projects, including smart home devices, wearable technology, industrial automation, and healthcare solutions. If you have a unique idea, feel free to reach out, and we can discuss how to bring it to life."
+        answer: "We can help with IoT product development across hardware, firmware, embedded systems, IoT software, dashboards, testing, and product support. This can include connected devices, access control systems, industrial IoT solutions, wearable technology, smart products, and custom IoT systems."
     },
     {
-        id: "preparation",
-        question: "What do I need to prepare before ordering?",
-        answer: "Please organize the project idea, scope, and any specific requirements or preferred technologies. We'll guide you through the rest."
+        id: "early-idea",
+        question: "Can I contact you if my IoT idea is still early?",
+        answer: "Yes. You can contact us with an early idea, rough concept, prototype, or existing product. If the scope is not fully defined yet, share the problem you want to solve, who the product is for, and what you already know about the device or system."
+    },
+    {
+        id: "project-inquiry",
+        question: "What should I include in my project inquiry?",
+        answer: "Include the product goal, device type, current stage, expected timeline, target users, and the type of support you need. If you already have sketches, requirements, hardware notes, firmware details, or software requirements, mention them in the message."
+    },
+    {
+        id: "hardware-and-software",
+        question: "Can you help with both hardware and software?",
+        answer: "Yes. We can support your connected product idea with hardware design, firmware development, embedded systems, IoT software, dashboards, testing, and product improvements. If your project needs multiple engineering areas, include that in your inquiry."
+    },
+    {
+        id: "existing-product",
+        question: "Can you review or improve an existing IoT product?",
+        answer: "Yes. We can review existing IoT products, prototypes, hardware, firmware, software, or system architecture. We can help identify technical issues, improve reliability, support new features, or plan the next development stage."
     },
     {
         id: "nda",
-        question: "Are you comfortable signing a Non-Disclosure Agreement (NDA)?",
-        answer: "Absolutely, we're happy to sign it."
+        question: "Can you sign a Non-Disclosure Agreement before discussing the project?",
+        answer: "Yes. We can review and sign an NDA before discussing sensitive project details. Mention the NDA requirement in your message so we can handle it before the technical discussion starts."
     },
     {
         id: "getting-started",
-        question: "How do I get started with my IoT project?",
-        answer: "You can start by filling out our detailed project questionnaire on our website or simply send a message. This helps us understand your requirements and provide you with a detailed proposal including task, cost and time breakdown. You can also ask for a scheduled consultation with one of our team members to discuss your needs."
+        question: "How do I start an IoT project with you?",
+        answer: "Submit the contact form or book a call with us. Share the project goal, current stage, technical needs, and timeline. We will review the requirement and guide the next step, which may include a technical discussion, scope review, or proposal."
     },
     {
-        id: "quality-assurance",
-        question: "How do you ensure the quality of the product?",
-        answer: "We follow testing and validation procedures to ensure the highest quality and reliability of the product. Fine-tuning and continuous improvements are part of the development process to achieve best performance."
+        id: "product-quality",
+        question: "How do you check product quality?",
+        answer: "We use testing and validation throughout the development process. Depending on the project, this can include hardware checks, firmware testing, connectivity testing, software testing, device behavior checks, and product readiness review before delivery."
     },
     {
-        id: "shipping",
-        question: "Can you build the product and ship to my address?",
-        answer: "Yes, I can build it from scratch, conduct thorough testing, and ship it to your address."
+        id: "build-test-ship",
+        question: "Can you build, test, and ship a product?",
+        answer: "Yes. We can build, test, and ship products based on the confirmed project scope, technical requirements, and delivery plan. Shipping details, quantity, destination, and handover requirements should be confirmed during the project discussion."
     },
     {
-        id: "support",
-        question: "Do you provide support after the project is completed?",
-        answer: "Yes, I offer ongoing support and consultation to ensure your IoT project continues to function smoothly."
-    },
-    {
-        id: "proposal-timeline",
-        question: "How long will it take for me to get a proposal for my requirement?",
-        answer: "48 Hours"
+        id: "response-timeline",
+        question: "How long does it take to receive a response or proposal?",
+        answer: "We aim to respond within 48 hours after receiving clear project details. A full proposal may take longer if the requirement needs technical review, hardware analysis, timeline planning, or cost estimation."
     }
 ];
 
@@ -132,12 +142,17 @@ export default function FAQSection() {
         >
 
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-8 md:mb-12">
-                <h2
-                    id="faq-title"
-                    className="inline-block w-fit text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-2xl lg:text-[26px] xl:text-3xl font-normal font-poppins"
-                >
-                    FAQs
-                </h2>
+                <div className="flex flex-col gap-2">
+                    <h2
+                        id="faq-title"
+                        className="inline-block w-fit text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-2xl lg:text-[26px] xl:text-3xl font-normal font-poppins"
+                    >
+                        Frequently Asked Questions
+                    </h2>
+                    <p className="max-w-[640px] text-[13px] sm:text-sm md:text-[15px] font-normal font-poppins text-[#6c6c6c] leading-relaxed">
+                        These answers help visitors understand what to send before contacting Protonest about an IoT product, prototype, embedded system, or connected device requirement.
+                    </p>
+                </div>
                 <div className="text-base xl:text-[18px] font-normal font-poppins">
                     <button
                         onClick={scrollToGetInTouch}
