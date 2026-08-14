@@ -224,7 +224,7 @@ const industries = [
     image: "/access-control.png",
     alt: "Protonest access control IoT development services",
     description:
-      "We help you build smart lock, door access control, and connected access control system products that are secure, reliable, and easy to manage.",
+      "We help you build smart locks and door access control systems that are secure, reliable, and easy to manage.",
   },
   {
     slug: "manufacturing",
@@ -232,7 +232,7 @@ const industries = [
     image: "/manufacturing.png",
     alt: "Protonest industrial IoT monitoring and factory automation support",
     description:
-      "We support factory automation, industrial IoT monitoring, and predictive maintenance systems that help teams track equipment, data, and performance.",
+      "We support factory automation, industrial IoT monitoring, and predictive maintenance systems that help teams track equipment and performance.",
   },
   {
     slug: "automobile",
@@ -240,7 +240,7 @@ const industries = [
     image: "/automobile.png",
     alt: "Protonest automotive IoT and vehicle telematics development",
     description:
-      "We build automotive IoT, vehicle telematics, GPS tracking, and connected mobility systems for vehicles, fleets, and transport products.",
+      "We build automotive IoT, vehicle telematics, and GPS tracking for your vehicles and fleets.",
   },
   {
     slug: "sports",
@@ -248,7 +248,7 @@ const industries = [
     image: "/sports.png",
     alt: "Protonest wearable IoT and sports technology development",
     description:
-      "We develop wearable IoT, athlete tracking, smart sports equipment, and connected performance systems for physical sports and training environments.",
+      "We develop wearable IoT, athlete tracking, and smart sports equipment for physical sports and training.",
   },
 ];
 
@@ -273,18 +273,18 @@ function LargeScreenHeroSection() {
         <div className="flex flex-col items-center justify-center h-full px-[60px] xl:px-[133px] 2xl:px-[180px] relative z-10 pt-8 xl:pt-10 pb-20 xl:pb-24">
           <h1 className="text-center lg:text-[38px] xl:text-[45px] font-medium font-montserrat leading-tight">
             <span className="text-[rgba(108,108,108,1)]">
-              Reliable IoT Development Partner
+              Your Reliable Partner in IoT
             </span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-              for Global Teams
+              Development Services
             </span>
           </h1>
 
           <p className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-8 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
-            Protonest provides IoT development services for global startups,
-            companies, and businesses across access control, manufacturing,
-            automobile, and other industries.
+            At Protonest, we design, build, and connect scalable IoT solutions.
+            <br />
+            Built fast. Built right.
           </p>
 
           <div className="flex justify-center space-x-[33px] mt-8 h-[60px] xl:h-[65px] font-poppins font-medium text-[15px] xl:text-[16px]">
@@ -292,7 +292,7 @@ function LargeScreenHeroSection() {
               href="/contact-us#book-a-call"
               className="w-[280px] xl:w-[312px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 flex items-center justify-center"
             >
-              Book a Free Call
+              Start Your IoT Project
             </Link>
           </div>
         </div>
@@ -313,9 +313,9 @@ function LargeScreenHeroSection() {
 
         <div className="flex flex-col items-start justify-start h-full px-[60px] xl:px-[133px] 2xl:px-[180px]">
           <SectionHeader
-            prefix="Trusted by Companies Building"
-            highlight="Connected Products"
-            description="We've built IoT products for many innovative companies. When they build, they build with us."
+            prefix="Trusted by Pioneers in"
+            highlight="Innovation"
+            description="We provide services for innovative companies building smart products. When they build, they build with us."
             linkLabel="About Us"
             linkHref="/about-us"
           />
@@ -347,24 +347,24 @@ function SmallScreenHeroSection() {
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 relative z-10">
           <h1 className="text-center text-[28px] sm:text-[30px] md:text-[32px] font-medium font-montserrat leading-tight">
             <span className="text-[rgba(108,108,108,1)]">
-              Reliable IoT Development Partner
+              Your Reliable Partner in IoT
             </span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-              for Global Teams
+              Development Services
             </span>
           </h1>
 
           <p className="text-center text-[14px] font-normal font-poppins mt-5 sm:mt-6 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
-            Protonest provides IoT development services for global startups,
-            companies, and businesses across access control, manufacturing,
-            automobile, and other industries.
+            At Protonest, we design, build, and connect scalable IoT solutions.
+            <br />
+            Built fast. Built right.
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mt-6 font-poppins font-medium text-[14px]">
             <Link href="/contact-us#book-a-call">
               <button className="w-[230px] sm:w-[280px] h-[50px] sm:h-[55px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[30px] sm:rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300">
-                Book a Free Call
+                Start Your IoT Project
               </button>
             </Link>
           </div>
@@ -388,17 +388,17 @@ function SmallScreenHeroSection() {
           <div aria-hidden="true" className="flex justify-start mb-6">
             <div className="text-[24px] sm:text-[26px] font-medium font-montserrat">
               <span className="text-[rgba(108,108,108,1)]">
-                Trusted by Companies Building{" "}
+                Trusted by Pioneers in{" "}
               </span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-                Connected Products
+                Innovation
               </span>
             </div>
           </div>
           <div className="flex flex-col justify-between items-start w-full mb-8 gap-4">
             <p className="text-[14px] font-normal font-poppins text-[rgba(108,108,108,1)]">
-              We&#39;ve built IoT products for many innovative companies. When
-              they build, they build with us.
+              We provide services for innovative companies building smart
+              products. When they build, they build with us.
             </p>
             <Link href="/about-us">
               <div className="text-[14px] lg:text-[18px] font-normal font-poppins cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
@@ -465,9 +465,9 @@ function IndustriesSection() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
       <SectionHeader
-        prefix="Industries We Support With"
-        highlight="IoT Development Services"
-        description="Protonest supports IoT engineering across access control, manufacturing, automobile, and sports products."
+        prefix="Industries We "
+        highlight="Support"
+        description="Our IoT development services support the engineering of access control, manufacturing, automotive, and sports products."
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {industries.map((industry) => (

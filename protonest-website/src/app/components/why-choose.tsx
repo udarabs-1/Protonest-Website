@@ -73,9 +73,9 @@ const WhyChooseProtonest = () => {
 
       <div className="relative z-10 px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
         <SectionHeader
-          prefix="Why Choose Protonest for"
-          highlight="IoT Development?"
-          description="Work with an IoT development company that supports connected product design across hardware, firmware, custom software, testing, and support."
+          prefix="Why Choose "
+          highlight="Protonest?"
+          description="Where bold ideas become connected products"
           linkLabel="Book a Call"
           linkHref="/contact-us#book-a-call"
         />
