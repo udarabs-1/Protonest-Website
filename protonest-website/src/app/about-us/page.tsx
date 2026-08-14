@@ -274,8 +274,8 @@ export default function About() {
                 </span>
               </h2>
 
-              <div className="relative mt-8 sm:mt-10 flex items-start justify-center lg:justify-start">
-                <div className="absolute -top-3 -left-4 sm:-left-6 text-gray-300">
+              <div className="relative mt-8 sm:mt-10 flex items-start justify-center lg:justify-start gap-3 sm:gap-5">
+                <div className="shrink-0 text-gray-300 -mt-1 sm:-mt-2">
                   <Image
                     src="/quotation1.svg"
                     alt="Opening quotation mark"
