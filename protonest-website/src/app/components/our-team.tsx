@@ -6,18 +6,39 @@ const OurTeamSection = () => {
   const teamMembers = [
     {
       id: 1,
-      title: "Creative Thinkers",
+      title: "Electronics Engineers",
       isLeft: true,
+      icon: 1,
     },
     {
       id: 2,
-      title: "Expert Engineers",
+      title: "Firmware Developers",
       isLeft: false,
+      icon: 2,
     },
     {
       id: 3,
-      title: "Designers",
+      title: "Software Engineers",
       isLeft: true,
+      icon: 3,
+    },
+    {
+      id: 4,
+      title: "Mechanical Engineers",
+      isLeft: false,
+      icon: 1,
+    },
+    {
+      id: 5,
+      title: "UI/UX Designers",
+      isLeft: true,
+      icon: 2,
+    },
+    {
+      id: 6,
+      title: "Project Managers & QA Experts",
+      isLeft: false,
+      icon: 3,
     },
   ];
 
@@ -88,7 +109,7 @@ const OurTeamSection = () => {
               >
                 <div className="w-28 h-28 xl:w-32 xl:h-32 mb-6 transition-transform duration-300 group-hover:scale-105">
                   <Image
-                    src={`/team${member.id}.svg`}
+                    src={`/team${member.icon}.svg`}
                     alt={`${member.title} icon`}
                     width={128}
                     height={128}
@@ -118,7 +139,7 @@ const OurTeamSection = () => {
                 >
                   <div className="w-20 h-20 sm:w-24 sm:h-24 mb-0 transition-transform duration-300 hover:scale-105">
                     <Image
-                      src={`/team${member.id}.svg`}
+                      src={`/team${member.icon}.svg`}
                       alt={`${member.title} icon`}
                       width={96}
                       height={96}
