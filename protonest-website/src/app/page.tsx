@@ -473,26 +473,55 @@ function IndustriesSection() {
         {industries.map((industry) => (
           <div
             key={industry.slug}
-            className="rounded-[24px] overflow-hidden bg-white shadow-lg flex flex-col h-full"
+            className={`rounded-[24px] overflow-hidden bg-white shadow-lg flex flex-col h-full ${
+              industry.slug === "access-control"
+                ? "hover:shadow-xl transition-shadow cursor-pointer"
+                : ""
+            }`}
           >
-            <div className="relative w-full h-[200px] flex-shrink-0">
-              <Image
-                src={industry.image}
-                alt={industry.alt}
-                fill
-                quality={80}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="p-6 flex flex-col flex-1">
-              <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent mb-3">
-                {industry.title}
-              </h3>
-              <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
-                {industry.description}
-              </p>
-            </div>
+            {industry.slug === "access-control" ? (
+              <Link href={`/industries/${industry.slug}`} className="flex flex-col h-full">
+                <div className="relative w-full h-[200px] flex-shrink-0">
+                  <Image
+                    src={industry.image}
+                    alt={industry.alt}
+                    fill
+                    quality={80}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent mb-3">
+                    {industry.title}
+                  </h3>
+                  <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
+                    {industry.description}
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <>
+                <div className="relative w-full h-[200px] flex-shrink-0">
+                  <Image
+                    src={industry.image}
+                    alt={industry.alt}
+                    fill
+                    quality={80}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent mb-3">
+                    {industry.title}
+                  </h3>
+                  <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
+                    {industry.description}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
