@@ -154,9 +154,9 @@ const TestimonialSection = () => {
 
       <div className="relative z-10 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
         <SectionHeader
-          prefix="What Our Customers"
+          prefix="What Our Clients"
           highlight="Say"
-          description="Read how customers describe Protonest's communication, engineering support, product delivery, and post-launch collaboration."
+          description="Read how customers describe the engineering support and post-launch collaboration given by Protonest."
           align="center"
         />
 

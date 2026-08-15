@@ -237,9 +237,9 @@ function ResearchAndProjectContent() {
         <PageHero
           backgroundImage="/research-1.webp"
           heading={{
-            gradientText: "Research and Projects"
+            gradientText: "Portfolio"
           }}
-          description="Explore our latest research and innovative projects in IoT and embedded systems"
+          description="Explore Protonest's IoT portfolio of smart devices, hardware development, firmware, embedded systems, access control, and GPS tracking systems"
         />
 
         <section className="relative z-30 -mt-[140px] py-8 sm:py-12 lg:py-16 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">

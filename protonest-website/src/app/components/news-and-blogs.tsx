@@ -71,7 +71,7 @@ const NewsAndBlogs = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <SectionHeader
-          prefix="Read Latest News and"
+          prefix="Latest News and "
           highlight="Blog Articles"
           description="Updates, insights, and announcements from our work and thinking."
           align="center"

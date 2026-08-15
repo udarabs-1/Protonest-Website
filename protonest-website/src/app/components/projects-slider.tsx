@@ -92,7 +92,7 @@ export default function ProjectSlider() {
                                 Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                             </h2>
                             <p className="text-[16px] xl:text-[18px] 2xl:text-[19px] mt-2 text-[#6c6c6c] font-poppins">
-                                See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
+                                See how Protonest helps teams build IoT products.
                             </p>
                         </div>
                         <div className="flex gap-4">
@@ -206,7 +206,7 @@ export default function ProjectSlider() {
                                     Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                                 </h2>
                                 <p className="text-[14px] mt-2 text-[#6c6c6c] font-poppins">
-                                    See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
+                                    See how Protonest helps teams build IoT products.
                                 </p>
                             </div>
                             <div className="hidden sm:flex gap-4">
