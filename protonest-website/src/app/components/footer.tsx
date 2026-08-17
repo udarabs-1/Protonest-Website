@@ -112,12 +112,12 @@ export default function Footer() {
                                         Careers
                                     </Link>
                                     <Link
-                                        href="/research-and-project"
-                                        className={getNavLinkClass('/research-and-project', true)}
-                                        onMouseEnter={() => handleMouseEnter('/research-and-project')}
+                                        href="/portfolio"
+                                        className={getNavLinkClass('/portfolio', true)}
+                                        onMouseEnter={() => handleMouseEnter('/portfolio')}
                                         onMouseLeave={handleMouseLeave}
                                     >
-                                        Research
+                                        Portfolio
                                     </Link>
                                     <Link
                                         href="/blog"
@@ -285,8 +285,8 @@ export default function Footer() {
                             <Link href="/careers" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/careers', false)}`}>Careers</div>
                             </Link>
-                            <Link href="/research-and-project" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/research', false)}`}>Research</div>
+                            <Link href="/portfolio" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/portfolio', false)}`}>Portfolio</div>
                             </Link>
                         </div>
 
