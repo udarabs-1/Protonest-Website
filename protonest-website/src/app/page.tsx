@@ -235,8 +235,8 @@ const industries = [
       "We support factory automation, industrial IoT monitoring, and predictive maintenance systems that help teams track equipment and performance.",
   },
   {
-    slug: "automobile",
-    title: "Automobile",
+    slug: "automotive",
+    title: "Automotive",
     image: "/automobile.png",
     alt: "Protonest automotive IoT and vehicle telematics development",
     description:
