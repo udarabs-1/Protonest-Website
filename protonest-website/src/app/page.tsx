@@ -317,7 +317,7 @@ function LargeScreenHeroSection() {
             highlight="Innovation"
             description="We provide services for innovative companies building smart products. When they build, they build with us."
             linkLabel="About Us"
-            linkHref="/about-us"
+            linkHref="/about"
           />
           <ClientMarquee />
         </div>
@@ -400,7 +400,7 @@ function SmallScreenHeroSection() {
               We provide services for innovative companies building smart
               products. When they build, they build with us.
             </p>
-            <Link href="/about-us">
+            <Link href="/about">
               <div className="text-[14px] lg:text-[18px] font-normal font-poppins cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
                 <span className="underline">About Us</span> &gt;
               </div>

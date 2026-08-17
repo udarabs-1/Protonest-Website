@@ -128,9 +128,9 @@ export default function Footer() {
                                         Blog
                                     </Link>
                                     <Link
-                                        href="/about-us"
-                                        className={getNavLinkClass('/about-us', true)}
-                                        onMouseEnter={() => handleMouseEnter('/about-us')}
+                                        href="/about"
+                                        className={getNavLinkClass('/about', true)}
+                                        onMouseEnter={() => handleMouseEnter('/about')}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         About Us
@@ -295,8 +295,8 @@ export default function Footer() {
                             <Link href="/blog" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/blog', false)}`}>Blog</div>
                             </Link>
-                            <Link href="/about-us" className="inline-flex justify-start items-center gap-[7px]">
-                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/about-us', false)}`}>About Us</div>
+                            <Link href="/about" className="inline-flex justify-start items-center gap-[7px]">
+                                <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/about', false)}`}>About Us</div>
                             </Link>
                             <Link href="/contact-us" className="inline-flex justify-start items-center gap-[7px]">
                                 <div className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass('/contact-us', false)}`}>Contact Us</div>
