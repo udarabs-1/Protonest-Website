@@ -147,7 +147,7 @@ export default function ProjectSlider() {
                     >
                         {projects.map((project) => (
                             <SwiperSlide key={project.id} style={{ height: 'auto' }}>
-                                <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                <Link href={`/portfolio/project/${project.slug}`} className="block h-full">
                                     <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                         <div className="relative w-full aspect-video flex-shrink-0">
                                             <Image
@@ -176,7 +176,7 @@ export default function ProjectSlider() {
                     </Swiper>
 
                     <div className="mt-12 text-center">
-                        <Link href="/research-and-project?tab=projects">
+                        <Link href="/portfolio?tab=projects">
                             <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-poppins text-[14px] lg:text-[15px] xl:text-[16px]">
                                 View All Projects
                             </button>
@@ -278,7 +278,7 @@ export default function ProjectSlider() {
                         >
                             {projects.map((project) => (
                                 <SwiperSlide key={project.id} style={{ height: 'auto' }}>
-                                    <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                    <Link href={`/portfolio/project/${project.slug}`} className="block h-full">
                                         <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                             <div className="relative w-full aspect-video flex-shrink-0">
                                                 <Image
@@ -309,7 +309,7 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-8 text-center">
-                        <Link href="/research-and-project?tab=projects">
+                        <Link href="/portfolio?tab=projects">
                             <button className="w-[160px] h-[45px] gradient-button font-medium font-poppins text-[13px] hover:font-semibold transition">
                                 View All Projects
                             </button>

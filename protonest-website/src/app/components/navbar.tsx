@@ -69,9 +69,9 @@ export default function Navbar() {
 
     const navItems: NavItem[] = [
         { href: "/", label: "Home" },
-        { href: "/about-us", label: "About Us" },
+        { href: "/about", label: "About Us" },
         { href: "/blog", label: "Blog" },
-        { href: "/research-and-project", label: "Research & Projects" },
+        { href: "/portfolio", label: "Portfolio" },
         { href: "/careers", label: "Careers", isConditional: true },
         { href: "/contact-us", label: "Contact Us" }
     ];

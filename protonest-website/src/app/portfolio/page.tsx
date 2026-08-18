@@ -39,7 +39,7 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 100): string =>
 
 const ContentCard = ({ item, type }: { item: ResearchProject; type: 'research' | 'projects' }) => {
   return (
-    <Link href={`/research-and-project/${type === 'research' ? 'research' : 'project'}/${item.slug}?tab=${type}`} passHref>
+    <Link href={`/portfolio/${type === 'research' ? 'research' : 'project'}/${item.slug}?tab=${type}`} passHref>
       <article
         className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer"
       >
@@ -214,10 +214,10 @@ function ResearchAndProjectContent() {
         />
         <meta name="keywords" content="IoT research, embedded systems projects, electronics projects, Protonest projects, innovation, prototyping" />
 
-        <link rel="canonical" href="https://protonest.co/research-and-project" />
+        <link rel="canonical" href="https://protonest.co/portfolio" />
 
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/research-and-project" />
+        <meta property="og:url" content="https://protonest.co/portfolio" />
         <meta property="og:title" content="Research & Projects - Protonest" />
         <meta property="og:description" content="Explore Protonest's most impactful work in IoT and embedded systems." />
 
@@ -227,7 +227,7 @@ function ResearchAndProjectContent() {
             "@type": "CollectionPage",
             "name": "Protonest Research & Projects",
             "description": "A collection of Protonest's research and projects in IoT and embedded systems.",
-            "url": "https://protonest.co/research-and-project"
+            "url": "https://protonest.co/portfolio"
           })}
         </script>
       </Head>
@@ -250,7 +250,7 @@ function ResearchAndProjectContent() {
                   setActiveTab('research');
                   setShowAll(false);
                   setSearchTerm('');
-                  window.history.pushState({}, '', '/research-and-project?tab=research');
+                  window.history.pushState({}, '', '/portfolio?tab=research');
                 }}
                 className={`h-[48px] sm:h-[52px] py-4 px-6 sm:px-8 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeTab === 'research'
                   ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'
@@ -266,7 +266,7 @@ function ResearchAndProjectContent() {
                   setActiveTab('projects');
                   setShowAll(false);
                   setSearchTerm('');
-                  window.history.pushState({}, '', '/research-and-project?tab=projects');
+                  window.history.pushState({}, '', '/portfolio?tab=projects');
                 }}
                 className={`h-[48px] sm:h-[52px] py-4 px-6 sm:px-8 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${activeTab === 'projects'
                   ? 'bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white'

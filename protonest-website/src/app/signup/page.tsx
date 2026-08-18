@@ -713,9 +713,9 @@ export default function SignUp() {
                                 label={
                                     <span>
                                         I agree to the{' '}
-                                        <a href="/terms-and-conditions" target="_blank" className="text-[#5530fa] hover:underline">Terms &amp; Conditions</a>
+                                        <a href="/legal/terms-and-conditions" target="_blank" className="text-[#5530fa] hover:underline">Terms &amp; Conditions</a>
                                         {' '}and{' '}
-                                        <a href="/privacy-policy" target="_blank" className="text-[#5530fa] hover:underline">Privacy Policy</a>
+                                        <a href="/legal/privacy-policy" target="_blank" className="text-[#5530fa] hover:underline">Privacy Policy</a>
                                     </span>
                                 }
                             />
@@ -867,9 +867,9 @@ export default function SignUp() {
                             label={
                                 <span>
                                     I agree to the{' '}
-                                    <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">Terms and Conditions</Link>
+                                    <Link href="/legal/terms-and-conditions" className="text-[#5530fa] hover:underline">Terms and Conditions</Link>
                                     {' '}and{' '}
-                                    <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">Privacy Policy</Link>
+                                    <Link href="/legal/privacy-policy" className="text-[#5530fa] hover:underline">Privacy Policy</Link>
                                 </span>
                             }
                         />

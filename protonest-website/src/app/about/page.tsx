@@ -96,10 +96,10 @@ export default function About() {
           content="IoT prototyping company, about Protonest, IoT engineering team, hardware prototyping experts"
         />
 
-        <link rel="canonical" href="https://protonest.co/about-us" />
+        <link rel="canonical" href="https://protonest.co/about" />
 
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/about-us" />
+        <meta property="og:url" content="https://protonest.co/about" />
         <meta property="og:title" content="About Us - Protonest" />
         <meta
           property="og:description"
@@ -113,7 +113,7 @@ export default function About() {
             name: "About Protonest",
             description:
               "Learn about our IoT prototyping services and engineering team",
-            url: "https://protonest.co/about-us",
+            url: "https://protonest.co/about",
             about: {
               "@type": "Organization",
               name: "Protonest",
