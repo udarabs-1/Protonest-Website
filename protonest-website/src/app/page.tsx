@@ -12,10 +12,11 @@ import ServicesSection from "./components/services";
 import StatsSection from "./components/stats-section";
 import TestimonialSection from "./components/testimonials";
 import WhyChooseProtonest from "./components/why-choose";
+import { ArrowUpRight } from "lucide-react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://protonest.co"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://protonest.co",
   ),
   title: "IoT Development Services for Global Product Teams | Protonest",
   description:
@@ -416,44 +417,54 @@ function SmallScreenHeroSection() {
 function FeaturedTestimonial() {
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader prefix="Client" highlight="Success Stories" align="center" />
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center max-w-5xl mx-auto">
-        <div className="w-full lg:w-2/5">
-          <video
-            controls
-            playsInline
-            className="w-full max-w-xs mx-auto lg:mx-0 rounded-[16px] lg:rounded-[20px] shadow-lg"
-            aria-label="Entryphone client testimonial about Protonest IoT development services and high quality product delivery"
-          >
-            <source src="/entryphone-testimonial.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <div className="w-full lg:w-1/2 flex flex-col justify-center gap-6">
-          <div className="relative h-[48px] w-[140px]">
-            <Image
-              src="/client4.svg"
-              alt="Entryphone client testimonial for Protonest IoT development services"
-              fill
-              quality={85}
-              sizes="140px"
-              className="object-contain object-left"
-            />
+      <SectionHeader
+        prefix="Client"
+        highlight="Success Stories"
+        align="center"
+      />
+      <div className="max-w-5xl mx-auto rounded-[24px] lg:rounded-[32px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 p-2 sm:p-3 lg:p-4">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center rounded-[20px] lg:rounded-[28px] bg-white px-6 py-8 sm:p-8 lg:p-10 shadow-[0_12px_40px_rgba(85,48,250,0.08)]">
+          <div className="w-full lg:w-2/5">
+            <video
+              controls
+              playsInline
+              className="w-full max-w-xs mx-auto lg:mx-0 rounded-[16px] lg:rounded-[20px] shadow-lg"
+              aria-label="Entryphone client testimonial about Protonest IoT development services and high quality product delivery"
+            >
+              <source src="/entryphone-testimonial.mp4" type="video/mp4" />
+            </video>
           </div>
-          <blockquote>
-            <p className="text-[15px] lg:text-[17px] font-normal font-poppins text-[#333333] leading-relaxed italic">
-              &#8220;I&#8217;ve worked with Protonest on a development project
-              and have been really impressed by their technical ability, clear
-              communication, and professional approach. Everything has been
-              handled carefully and to a high standard.&#8221;
-            </p>
-          </blockquote>
-          <div>
-            <p className="text-[15px] font-medium font-poppins text-[#333333]">
-              Oliver Ashbee
-            </p>
-            <p className="text-[13px] font-normal font-poppins text-[#999999]">
-              entryphone, UK
-            </p>
+
+          <div className="w-full lg:w-1/2 flex flex-col justify-center gap-6">
+            <div className="relative h-[48px] w-[140px]">
+              <Image
+                src="/client4.svg"
+                alt="Entryphone client testimonial for Protonest IoT development services"
+                fill
+                quality={85}
+                sizes="140px"
+                className="object-contain object-left"
+              />
+            </div>
+
+            <blockquote>
+              <p className="text-[15px] lg:text-[17px] font-normal font-poppins text-[#333333] leading-relaxed italic">
+                &#8220;I&#8217;ve worked with Protonest on a development project
+                and have been really impressed by their technical ability, clear
+                communication, and professional approach. Everything has been
+                handled carefully and to a high standard.&#8221;
+              </p>
+            </blockquote>
+
+            <div>
+              <p className="text-[15px] font-medium font-poppins text-[#333333]">
+                Oliver Ashbee
+              </p>
+
+              <p className="text-[13px] font-normal font-poppins text-[#999999]">
+                entryphone, UK
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -463,67 +474,74 @@ function FeaturedTestimonial() {
 
 function IndustriesSection() {
   return (
-    <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+    <section className="w-full overflow-hidden px-4 py-12 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <SectionHeader
         prefix="Industries We "
         highlight="Support"
         description="Our IoT development services support the engineering of access control, manufacturing, automotive, and sports products."
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-        {industries.map((industry) => (
-          <div
-            key={industry.slug}
-            className={`rounded-[24px] overflow-hidden bg-white shadow-lg flex flex-col h-full ${
-              industry.slug === "access-control"
-                ? "hover:shadow-xl transition-shadow cursor-pointer"
-                : ""
-            }`}
-          >
-            {industry.slug === "access-control" ? (
-              <Link href={`/industries/${industry.slug}`} className="flex flex-col h-full">
-                <div className="relative w-full h-[200px] flex-shrink-0">
-                  <Image
-                    src={industry.image}
-                    alt={industry.alt}
-                    fill
-                    quality={80}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent mb-3">
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+        {industries.map((industry, index) => {
+          const isClickable = industry.slug === "access-control";
+
+          const cardContent = (
+            <>
+              <Image
+                src={industry.image}
+                alt={industry.alt}
+                fill
+                quality={85}
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/5" />
+
+              <div className="absolute left-4 top-4 flex h-9 min-w-9 items-center justify-center rounded-full bg-white/90 px-3 font-poppins text-[12px] font-medium text-[#5530FA] shadow-sm backdrop-blur-sm">
+                {String(index + 1).padStart(2, "0")}
+              </div>
+
+              <div className="absolute inset-x-3 bottom-3 flex h-[180px] flex-col overflow-hidden rounded-[20px] bg-white/95 p-5 shadow-[0_12px_35px_rgba(23,23,23,0.12)] backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-1">
+                <div className="flex flex-shrink-0 items-start justify-between gap-4">
+                  <h3 className="line-clamp-1 bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text font-montserrat text-[18px] font-medium text-transparent">
                     {industry.title}
                   </h3>
-                  <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
-                    {industry.description}
-                  </p>
+
+                  {isClickable && (
+                    <ArrowUpRight
+                      aria-hidden="true"
+                      className="h-5 w-5 flex-shrink-0 text-[#5530FA] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      strokeWidth={1.8}
+                    />
+                  )}
                 </div>
-              </Link>
-            ) : (
-              <>
-                <div className="relative w-full h-[200px] flex-shrink-0">
-                  <Image
-                    src={industry.image}
-                    alt={industry.alt}
-                    fill
-                    quality={80}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent mb-3">
-                    {industry.title}
-                  </h3>
-                  <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
-                    {industry.description}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+
+                <p className="mt-3 line-clamp-4 overflow-hidden font-poppins text-[13px] font-normal leading-relaxed text-[#6C6C6C]">
+                  {industry.description}
+                </p>
+              </div>
+            </>
+          );
+
+          const cardClasses =
+            "group relative aspect-[3/4] min-h-[460px] w-full overflow-hidden rounded-[26px] bg-[#F5F3FF]";
+
+          return isClickable ? (
+            <Link
+              key={industry.slug}
+              href={`/industries/${industry.slug}`}
+              className={cardClasses}
+              aria-label={`Learn more about ${industry.title}`}
+            >
+              {cardContent}
+            </Link>
+          ) : (
+            <article key={industry.slug} className={cardClasses}>
+              {cardContent}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -531,26 +549,31 @@ function IndustriesSection() {
 
 function FinalCTA() {
   return (
-    <section className="w-full py-16 md:py-20 lg:py-24 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] text-center">
-      <h2 className="text-[24px] lg:text-[30px] xl:text-[36px] font-medium font-montserrat mb-4">
-        <span className="text-[rgba(108,108,108,1)]">
-          Let&#39;s Talk About Your{" "}
-        </span>
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgba(85,48,250,1)] via-[rgba(245,29,165,1)] to-[rgba(108,154,225,1)]">
-          IoT Development Project
-        </span>
-      </h2>
-      <p className="text-[15px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] max-w-2xl mx-auto mb-8">
-        Book a free call to discuss your product idea or the technical
-        challenge. We can help you review the scope, architecture, and next
-        steps.
-      </p>
-      <Link
-        href="/contact-us#book-a-call"
-        className="inline-flex items-center justify-center w-[220px] h-[55px] lg:h-[60px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 font-poppins font-medium text-[15px] lg:text-[16px]"
-      >
-        Book a Free Call
-      </Link>
+    <section className="w-full px-4 py-16 sm:px-8 md:py-20 lg:px-[60px] lg:py-24 xl:px-[133px] 2xl:px-[180px]">
+      <div className="mx-auto max-w-5xl rounded-[26px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 p-2 sm:p-3 lg:rounded-[34px] lg:p-4">
+        <div className="relative overflow-hidden rounded-[22px] bg-white px-6 py-12 text-center shadow-[0_12px_40px_rgba(85,48,250,0.07)] sm:px-10 sm:py-14 lg:rounded-[28px] lg:px-16 lg:py-16">
+          <h2 className="mx-auto mb-4 max-w-3xl font-montserrat text-[24px] font-medium leading-tight lg:text-[30px] xl:text-[36px]">
+            <span className="text-[#6C6C6C]">Let&#39;s Talk About Your </span>
+
+            <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+              IoT Development Project
+            </span>
+          </h2>
+
+          <p className="mx-auto mb-8 max-w-2xl font-poppins text-[15px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[18px]">
+            Book a free call to discuss your product idea or technical
+            challenge. We can help you review the scope, architecture, and next
+            steps.
+          </p>
+
+          <Link
+            href="/contact-us#book-a-call"
+            className="inline-flex h-[55px] w-[220px] items-center justify-center rounded-[57px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-poppins text-[15px] font-medium text-white transition-all duration-300 hover:from-[#F51DA5] hover:to-[#5530FA] hover:shadow-[0_10px_25px_rgba(85,48,250,0.18)] lg:h-[60px] lg:text-[16px]"
+          >
+            Book a Free Call
+          </Link>
+        </div>
+      </div>
     </section>
   );
 }
