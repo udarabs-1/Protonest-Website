@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useRef } from "react";
 import SectionHeader from "./section-header";
 import { useOnScreen } from "./use-on-screen";
+import { ArrowUpRight } from "lucide-react";
 
 const truncateToSentences = (
   text: string,
-  sentenceCount: number = 2
+  sentenceCount: number = 2,
 ): string => {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   return sentences.slice(0, sentenceCount).join(" ").trim();
@@ -15,7 +16,7 @@ const truncateToSentences = (
 
 const truncateByWords = (
   text: string,
-  wordLimit: number = 30
+  wordLimit: number = 30,
 ): { truncated: string; isTruncated: boolean } => {
   const words = text.split(" ");
   if (words.length <= wordLimit) {
@@ -31,7 +32,8 @@ const NewsAndBlogs = () => {
   const blogs = [
     {
       id: 1,
-      title: "Zigbee Communication Reliability Using ESP32-C6 with Inbuilt and External Antennas",
+      title:
+        "Zigbee Communication Reliability Using ESP32-C6 with Inbuilt and External Antennas",
       image: "/blogs4.avif",
       description:
         "The success of Zigbee communications often comes down to the performance of the antenna you use with your ESP32-C6 module. The onboard PCB antenna on the ESP32-C6 module has proven to be decent for low-range applications, but it will begin to degrade significantly in real-world environments. Upgrading to a properly tuned and matched antenna boosts overall Zigbee network reliability.",
@@ -47,7 +49,8 @@ const NewsAndBlogs = () => {
     },
     {
       id: 3,
-      title: "Testing UWB Ranging Reliability: How Antenna Alignment Affects Accuracy",
+      title:
+        "Testing UWB Ranging Reliability: How Antenna Alignment Affects Accuracy",
       image: "/blogs6.avif",
       description:
         "Accurate tracking and positioning in robotics and embedded systems often depend on Ultra-Wideband (UWB) distance measurements. In controlled bench tests using DWM3000 modules, reliable results were obtained when both antennas were aligned in the same direction. However, when the antennas were rotated to different angles, the measured distances consistently decreased, accompanied by weaker signal reception. These findings highlight how antenna orientation can influence short-range UWB performance and provide practical guidance for maintaining measurement accuracy in real-world deployments.",
@@ -115,65 +118,68 @@ const BlogCard = ({
   const shouldShowEffects = isMobile ? isVisible : false;
 
   return (
-    <Link href={blog.link} className="block w-full max-w-[345px]">
-      <div
+    <Link
+      href={blog.link}
+      className="block h-full w-full max-w-[380px] rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4"
+    >
+      <article
         ref={ref}
-        className={`group w-full h-[400px] sm:h-[460px] flex flex-col relative bg-white/5 rounded-[20px] sm:rounded-[35px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] sm:shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-4 sm:p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer ${shouldShowEffects
-          ? "shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]"
-          : ""
-          }`}
+        className={`group relative flex h-full min-h-[440px] w-full flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_4px_18px_rgba(23,23,23,0.06)] transition-all duration-300 sm:rounded-[28px] md:hover:-translate-y-1 md:hover:shadow-[0_14px_35px_rgba(85,48,250,0.10)] ${
+          shouldShowEffects
+            ? "-translate-y-1 shadow-[0_14px_35px_rgba(85,48,250,0.10)]"
+            : ""
+        }`}
       >
-        <div className="relative w-full h-[140px] sm:h-[164px] rounded-[8px] sm:rounded-[11px] overflow-hidden mb-4 sm:mb-6 flex-shrink-0">
+        <div className="relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden">
           <Image
             src={blog.image}
             alt={`${blog.title} blog post image`}
             fill
             priority={index === 0}
             quality={index === 0 ? 85 : 75}
-            sizes="(max-width: 768px) 279px, (max-width: 1024px) 345px, 279px"
-            className={`object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? "scale-105 grayscale" : ""
-              }`}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+            className={`object-cover transition-transform duration-700 ease-out md:group-hover:scale-[1.04] ${
+              shouldShowEffects ? "scale-[1.04]" : ""
+            }`}
           />
 
-          <div
-            className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 flex items-center justify-center ${shouldShowEffects
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4"
-              }`}
-          >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
-              Read Article
+          <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
+        </div>
+
+        <div className="flex flex-1 flex-col p-5 sm:p-6">
+          <h3 className="font-montserrat text-[18px] font-medium leading-snug text-[#333333] transition-colors duration-300 group-hover:text-[#5530FA] sm:text-[20px]">
+            {blog.title}
+          </h3>
+
+          {(() => {
+            const { truncated, isTruncated } = truncateByWords(
+              blog.description,
+              26,
+            );
+
+            return (
+              <p className="mt-3 font-poppins text-[13px] font-normal leading-relaxed text-[#6C6C6C] sm:text-[14px]">
+                {truncated}
+                {isTruncated && "..."}
+              </p>
+            );
+          })()}
+
+          <div className="mt-auto flex items-center justify-between pt-6">
+            <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text font-poppins text-[13px] font-medium text-transparent sm:text-[14px]">
+              Read article
             </span>
+
+            <ArrowUpRight
+              aria-hidden="true"
+              className="h-5 w-5 text-[#5530FA] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              strokeWidth={1.8}
+            />
           </div>
         </div>
 
-        <h3
-          className={`w-full max-w-[240px] mx-auto text-center text-sm sm:text-base font-normal font-poppins mb-3 sm:mb-4 px-2 transition-all duration-300 md:text-[#4d4d4d] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects
-            ? "text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]"
-            : "text-[#4d4d4d]"
-            }`}
-        >
-          {blog.title}
-        </h3>
-
-        {(() => {
-          const { truncated, isTruncated } = truncateByWords(
-            blog.description,
-            30
-          );
-          return (
-            <p className="w-full max-w-[279px] mx-auto text-center text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed px-2 flex-grow">
-              {truncated}
-              {isTruncated && "... "}
-              {isTruncated && (
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-medium">
-                  Read Article
-                </span>
-              )}
-            </p>
-          );
-        })()}
-      </div>
+        <div className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] transition-transform duration-500 group-hover:scale-x-100" />
+      </article>
     </Link>
   );
 };
