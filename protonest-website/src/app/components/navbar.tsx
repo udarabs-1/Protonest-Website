@@ -1,18 +1,33 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+type DropdownKey = "industries" | "company" | "resources";
+
+interface DropdownItem {
+  id: string;
+  href: string;
+  label: string;
+  description: string;
+  isConditional?: boolean;
+}
+
 interface NavItem {
   href: string;
   label: string;
+  hasDropdown?: boolean;
+  key?: DropdownKey;
   isConditional?: boolean;
 }
 
 export default function Navbar() {
+  const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(
+    null,
+  );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isUserSignedIn, setIsUserSignedIn] = useState(false);
@@ -26,6 +41,58 @@ export default function Navbar() {
     const token = localStorage.getItem("jwtToken");
     setIsUserSignedIn(!!token);
   }, []);
+
+  const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
+    industries: [
+      {
+        id: "industries-access-control",
+        href: "/industries/access-control",
+        label: "Access Control",
+        description:
+          "IoT product development for connected access control systems.",
+      },
+    ],
+    company: [
+      {
+        id: "company-about",
+        href: "/about",
+        label: "About",
+        description: "Learn about Protonest, our work, and our team.",
+      },
+      {
+        id: "company-careers",
+        href: "/careers",
+        label: "Careers",
+        description: "Explore open roles and opportunities at Protonest.",
+        isConditional: true,
+      },
+      {
+        id: "company-contact",
+        href: "/contact-us",
+        label: "Contact Us",
+        description: "Get in touch with our team about your project.",
+      },
+    ],
+    resources: [
+      {
+        id: "resources-blog",
+        href: "/blog",
+        label: "Blog",
+        description: "Insights, trends & stories from the IoT frontier.",
+      },
+      {
+        id: "resources-projects",
+        href: "/portfolio",
+        label: "Projects",
+        description: "Explore our work and research conducted by our team.",
+      },
+    ],
+  };
+
+  const toggleDropdown = (dropdown: DropdownKey) => {
+    setProfileDropdownOpen(false);
+    setActiveDropdown((current) => (current === dropdown ? null : dropdown));
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -45,6 +112,7 @@ export default function Navbar() {
   }, []);
 
   const handleNavigation = () => {
+    setActiveDropdown(null);
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
   };
@@ -60,6 +128,7 @@ export default function Navbar() {
   };
 
   const handleProfileIconClick = () => {
+    setActiveDropdown(null);
     if (isUserSignedIn) {
       router.push("/dashboard");
       setProfileDropdownOpen(false);
@@ -70,14 +139,37 @@ export default function Navbar() {
 
   const navItems: NavItem[] = [
     { href: "/", label: "Home" },
-    { href: "/about", label: "About Us" },
-    { href: "/blog", label: "Blog" },
-    { href: "/portfolio", label: "Portfolio" },
-    { href: "/careers", label: "Careers", isConditional: true },
-    { href: "/contact-us", label: "Contact Us" },
+    {
+      href: "/industries",
+      label: "Industries",
+      hasDropdown: true,
+      key: "industries",
+    },
+    { href: "/company", label: "Company", hasDropdown: true, key: "company" },
+    {
+      href: "/resources",
+      label: "Resources",
+      hasDropdown: true,
+      key: "resources",
+    },
   ];
 
   const isNavItemActive = (item: NavItem) => {
+    if (item.hasDropdown && item.key) {
+      const hasActiveChild = dropdownItems[item.key].some((dropdownItem) => {
+        if (dropdownItem.isConditional && isUserSignedIn) {
+          return pathname === "/dashboard/all-jobs";
+        }
+
+        return (
+          pathname === dropdownItem.href ||
+          pathname.startsWith(`${dropdownItem.href}/`)
+        );
+      });
+
+      return activeDropdown === item.key || hasActiveChild;
+    }
+
     if (item.isConditional && isUserSignedIn) {
       return pathname === "/dashboard/all-jobs";
     }
@@ -88,7 +180,39 @@ export default function Navbar() {
     const isActive = isNavItemActive(item);
     if (!isActive) return false;
     if (hoveredItem && hoveredItem !== item.href) return false;
+    if (activeDropdown && !item.hasDropdown) return false;
     return true;
+  };
+
+  const dropdownVariants: Variants = {
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.2, ease: "easeOut" },
+    },
+    closed: {
+      opacity: 0,
+      y: -10,
+      transition: { duration: 0.2, ease: "easeIn" },
+    },
+  };
+
+  const itemVariants: Variants = {
+    open: (index: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: index * 0.03, duration: 0.2, ease: "easeOut" },
+    }),
+    closed: {
+      opacity: 0,
+      y: -5,
+      transition: { duration: 0.2 },
+    },
+  };
+
+  const overlayVariants: Variants = {
+    open: { opacity: 1, transition: { duration: 0.2 } },
+    closed: { opacity: 0, transition: { duration: 0.15 } },
   };
 
   return (
@@ -116,6 +240,7 @@ export default function Navbar() {
                 <div className="font-montserrat text-sm lg:text-[15px] xl:text-base 2xl:text-lg flex items-center space-x-3 lg:space-x-[25px] xl:space-x-[35px] 2xl:space-x-[45px]">
                   {navItems.map((item) => {
                     const showGradient = shouldShowGradient(item);
+                    const hasDropdown = item.hasDropdown;
                     const isHovered = hoveredItem === item.href;
                     const isConditional = item.isConditional;
 
@@ -127,8 +252,17 @@ export default function Navbar() {
                             className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
                             onMouseEnter={() => setHoveredItem(item.href)}
                             onMouseLeave={() => setHoveredItem(null)}
+                            aria-expanded={
+                              hasDropdown
+                                ? activeDropdown === item.key
+                                : undefined
+                            }
+                            aria-haspopup={hasDropdown ? "menu" : undefined}
                             onClick={(e) => {
-                              if (isConditional) {
+                              if (hasDropdown && item.key) {
+                                e.preventDefault();
+                                toggleDropdown(item.key);
+                              } else if (isConditional) {
                                 handleCareersClick(e);
                               } else {
                                 handleNavigation();
@@ -140,6 +274,30 @@ export default function Navbar() {
                             >
                               {item.label}
                             </span>
+                            {hasDropdown && (
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke={
+                                  showGradient || isHovered
+                                    ? "#f51da5"
+                                    : "currentColor"
+                                }
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                                className={`transition-transform duration-200 ${
+                                  activeDropdown === item.key
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                              >
+                                <path d="m6 9 6 6 6-6" />
+                              </svg>
+                            )}
                           </Link>
                         </div>
                       </div>
@@ -221,7 +379,7 @@ export default function Navbar() {
                                 backgroundClip: "text",
                               }}
                             >
-                              My Account
+                              Protonest
                             </p>
                           </div>
                           <div className="px-3 pb-3 flex flex-col gap-0.5">
@@ -278,6 +436,73 @@ export default function Navbar() {
               </div>
             </div>
           </nav>
+
+          <AnimatePresence mode="wait">
+            {activeDropdown && (
+              <>
+                <motion.div
+                  className="fixed inset-0 top-[100px] z-30 bg-transparent lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
+                  onClick={handleNavigation}
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                  variants={overlayVariants}
+                  aria-hidden="true"
+                />
+
+                <motion.div
+                  key={activeDropdown}
+                  className="fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                  variants={dropdownVariants}
+                  role="menu"
+                  aria-label={`${activeDropdown} navigation`}
+                >
+                  <div className="absolute left-0 top-2 h-px w-full bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30" />
+
+                  <div className="container px-4 py-[35px] sm:px-8 md:px-16 lg:px-[100px] lg:py-[25px] xl:px-[133px] xl:py-[28px] 2xl:px-[180px] 2xl:py-[30px]">
+                    <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
+                      {dropdownItems[activeDropdown].map(
+                        (dropdownItem, index) => (
+                          <motion.div
+                            key={dropdownItem.id}
+                            custom={index}
+                            initial="closed"
+                            animate="open"
+                            exit="closed"
+                            variants={itemVariants}
+                            role="none"
+                          >
+                            <Link
+                              href={dropdownItem.href}
+                              className="group block w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px]"
+                              role="menuitem"
+                              onClick={(e) => {
+                                if (dropdownItem.isConditional) {
+                                  handleCareersClick(e);
+                                } else {
+                                  handleNavigation();
+                                }
+                              }}
+                            >
+                              <div className="mb-2 inline-block text-sm text-[#83848b] group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent lg:text-[15px] xl:text-base 2xl:text-lg">
+                                {dropdownItem.label}
+                              </div>
+                              <div className="text-xs leading-relaxed text-[#83848b] group-hover:text-black 2xl:text-sm">
+                                {dropdownItem.description}
+                              </div>
+                            </Link>
+                          </motion.div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
           <div className="pt-[100px] lg:pt-[105px] xl:pt-[115px] 2xl:pt-[125px]"></div>
         </div>
@@ -459,7 +684,7 @@ export default function Navbar() {
           <AnimatePresence>
             {mobileMenuOpen && (
               <motion.div
-                className="fixed top-0 right-0 w-[319px] md:w-[420px] h-full z-50 bg-white/80 backdrop-blur-[20px] shadow-2xl"
+                className="fixed top-0 right-0 w-[319px] md:w-[420px] h-full z-50 overflow-y-auto bg-white/80 backdrop-blur-[20px] shadow-2xl"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
@@ -495,34 +720,114 @@ export default function Navbar() {
 
                 <div className="w-[250px] md:w-[350px] left-[34px] md:left-[35px] top-[157px] md:top-[180px] absolute inline-flex flex-col justify-center items-start gap-[35px] md:gap-[42px]">
                   {navItems.map((item, index) => {
+                    const showGradient = shouldShowGradient(item);
+                    const hasDropdown = item.hasDropdown;
                     const isConditional = item.isConditional;
 
                     return (
                       <div key={index} className="w-full">
-                        <Link
-                          href={item.href}
-                          className="inline-flex justify-start items-center gap-[7px] md:gap-[10px] w-full hover:scale-105 transition-transform origin-left"
-                          onClick={(e) => {
-                            if (isConditional) {
-                              handleCareersClick(e);
-                            } else {
-                              handleNavigation();
-                            }
-                          }}
-                        >
-                          <span
-                            className={`text-base md:text-lg font-montserrat transition-all duration-200 ${
-                              pathname === item.href ||
-                              (isConditional &&
-                                isUserSignedIn &&
-                                pathname === "/dashboard/all-jobs")
-                                ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text"
-                                : "text-[#83848b] hover:text-[#f51da5]"
-                            }`}
+                        {hasDropdown ? (
+                          <button
+                            type="button"
+                            className="inline-flex w-full origin-left items-center justify-start gap-[7px] text-left transition-transform hover:scale-105 md:gap-[10px]"
+                            aria-expanded={activeDropdown === item.key}
+                            aria-controls={`mobile-${item.key}-menu`}
+                            onClick={() => {
+                              if (item.key) {
+                                toggleDropdown(item.key);
+                              }
+                            }}
                           >
-                            {item.label}
-                          </span>
-                        </Link>
+                            <span
+                              className={`font-montserrat text-base transition-all duration-200 md:text-lg ${
+                                showGradient
+                                  ? "bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text text-transparent"
+                                  : "text-[#83848b] hover:text-[#f51da5]"
+                              }`}
+                            >
+                              {item.label}
+                            </span>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke={showGradient ? "#f51da5" : "#83848b"}
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                              className={`transition-transform duration-200 ${
+                                activeDropdown === item.key ? "rotate-180" : ""
+                              }`}
+                            >
+                              <path d="m6 9 6 6 6-6" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            className="inline-flex w-full origin-left items-center justify-start gap-[7px] transition-transform hover:scale-105 md:gap-[10px]"
+                            onClick={(e) => {
+                              if (isConditional) {
+                                handleCareersClick(e);
+                              } else {
+                                handleNavigation();
+                              }
+                            }}
+                          >
+                            <span
+                              className={`font-montserrat text-base transition-all duration-200 md:text-lg ${
+                                showGradient
+                                  ? "bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text text-transparent"
+                                  : "text-[#83848b] hover:text-[#f51da5]"
+                              }`}
+                            >
+                              {item.label}
+                            </span>
+                          </Link>
+                        )}
+
+                        <AnimatePresence initial={false}>
+                          {hasDropdown &&
+                            activeDropdown === item.key &&
+                            item.key && (
+                              <motion.div
+                                id={`mobile-${item.key}-menu`}
+                                className="mt-4 pl-6 md:mt-5 md:pl-8"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <div className="flex flex-col gap-[19px] md:gap-[24px]">
+                                  {dropdownItems[item.key].map(
+                                    (dropdownItem) => (
+                                      <Link
+                                        key={dropdownItem.id}
+                                        href={dropdownItem.href}
+                                        className="group block origin-left transition-transform hover:scale-105"
+                                        onClick={(e) => {
+                                          if (dropdownItem.isConditional) {
+                                            handleCareersClick(e);
+                                          } else {
+                                            handleNavigation();
+                                          }
+                                        }}
+                                      >
+                                        <div className="font-montserrat text-base text-[#83848b] transition-all duration-200 group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent md:text-lg">
+                                          {dropdownItem.label}
+                                        </div>
+                                        <div className="mt-1 font-montserrat text-xs text-[#83848b] transition-colors duration-200 group-hover:text-black md:mt-1.5 md:text-sm">
+                                          {dropdownItem.description}
+                                        </div>
+                                      </Link>
+                                    ),
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
