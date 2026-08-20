@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ClientMarquee from "./components/client-marquee";
 import ClientsMap from "./components/clients-map";
+import FinalCTA from "./components/final-cta";
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import NewsAndBlogs from "./components/news-and-blogs";
@@ -225,7 +226,7 @@ const industries = [
     image: "/access-control.png",
     alt: "Protonest access control IoT development services",
     description:
-      "We help you build smart locks and door access control systems that are secure, reliable, and easy to manage.",
+      "We help you build smart access control systems that are secure and reliable.",
   },
   {
     slug: "manufacturing",
@@ -233,7 +234,7 @@ const industries = [
     image: "/manufacturing.png",
     alt: "Protonest industrial IoT monitoring and factory automation support",
     description:
-      "We support factory automation, industrial IoT monitoring, and predictive maintenance systems that help teams track equipment and performance.",
+      "We support industrial monitoring and predictive maintenance systems that help teams track factory performance.",
   },
   {
     slug: "automotive",
@@ -284,7 +285,7 @@ function LargeScreenHeroSection() {
 
           <p className="text-center text-[16px] xl:text-[18px] font-normal font-poppins mt-8 px-[200px] xl:px-[320px] text-[rgba(108,108,108,1)]">
             At Protonest, we design, build, and connect scalable IoT solutions.
-            <br />
+            <br /> <br />
             Built fast. Built right.
           </p>
 
@@ -316,7 +317,7 @@ function LargeScreenHeroSection() {
           <SectionHeader
             prefix="Trusted by Pioneers in"
             highlight="Innovation"
-            description="We provide services for innovative companies building smart products. When they build, they build with us."
+            description="We provide services for companies with smart product ideas. When they build, they build with us."
             linkLabel="About Us"
             linkHref="/about"
           />
@@ -358,7 +359,7 @@ function SmallScreenHeroSection() {
 
           <p className="text-center text-[14px] font-normal font-poppins mt-5 sm:mt-6 px-4 sm:px-8 text-[rgba(108,108,108,1)]">
             At Protonest, we design, build, and connect scalable IoT solutions.
-            <br />
+            <br /> <br />
             Built fast. Built right.
           </p>
 
@@ -398,8 +399,8 @@ function SmallScreenHeroSection() {
           </div>
           <div className="flex flex-col justify-between items-start w-full mb-8 gap-4">
             <p className="text-[14px] font-normal font-poppins text-[rgba(108,108,108,1)]">
-              We provide services for innovative companies building smart
-              products. When they build, they build with us.
+              We provide services for companies with smart product ideas. When
+              they build, they build with us.
             </p>
             <Link href="/about">
               <div className="text-[14px] lg:text-[18px] font-normal font-poppins cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300">
@@ -542,37 +543,6 @@ function IndustriesSection() {
             </article>
           );
         })}
-      </div>
-    </section>
-  );
-}
-
-function FinalCTA() {
-  return (
-    <section className="w-full px-4 py-16 sm:px-8 md:py-20 lg:px-[60px] lg:py-24 xl:px-[133px] 2xl:px-[180px]">
-      <div className="mx-auto max-w-5xl rounded-[26px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 p-2 sm:p-3 lg:rounded-[34px] lg:p-4">
-        <div className="relative overflow-hidden rounded-[22px] bg-white px-6 py-12 text-center shadow-[0_12px_40px_rgba(85,48,250,0.07)] sm:px-10 sm:py-14 lg:rounded-[28px] lg:px-16 lg:py-16">
-          <h2 className="mx-auto mb-4 max-w-3xl font-montserrat text-[24px] font-medium leading-tight lg:text-[30px] xl:text-[36px]">
-            <span className="text-[#6C6C6C]">Let&#39;s Talk About Your </span>
-
-            <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
-              IoT Development Project
-            </span>
-          </h2>
-
-          <p className="mx-auto mb-8 max-w-2xl font-poppins text-[15px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[18px]">
-            Book a free call to discuss your product idea or technical
-            challenge. We can help you review the scope, architecture, and next
-            steps.
-          </p>
-
-          <Link
-            href="/contact-us#book-a-call"
-            className="inline-flex h-[55px] w-[220px] items-center justify-center rounded-[57px] bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-poppins text-[15px] font-medium text-white transition-all duration-300 hover:from-[#F51DA5] hover:to-[#5530FA] hover:shadow-[0_10px_25px_rgba(85,48,250,0.18)] lg:h-[60px] lg:text-[16px]"
-          >
-            Book a Free Call
-          </Link>
-        </div>
       </div>
     </section>
   );

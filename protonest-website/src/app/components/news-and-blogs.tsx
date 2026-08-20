@@ -76,7 +76,7 @@ const NewsAndBlogs = () => {
         <SectionHeader
           prefix="Latest News and "
           highlight="Blog Articles"
-          description="Updates, insights, and announcements from our work and thinking."
+          description="Updates, insights, and announcements from our work."
           align="center"
         />
 

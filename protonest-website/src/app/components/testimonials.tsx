@@ -84,7 +84,7 @@ const TestimonialSection = () => {
     pauseOnFocus: false,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
   };
 
   const desktopCarouselSettings = {
@@ -99,7 +99,7 @@ const TestimonialSection = () => {
     pauseOnHover: true,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
     responsive: [
       {
         breakpoint: 1280,
@@ -156,7 +156,7 @@ const TestimonialSection = () => {
         <SectionHeader
           prefix="What Our Clients"
           highlight="Say"
-          description="Read how customers describe the engineering support and post-launch collaboration given by Protonest."
+          description="How customers describe the engineering services offered by Protonest."
           align="center"
         />
 
@@ -232,10 +232,10 @@ const TestimonialCard = ({
 }) => {
   const cardProps = isMobile
     ? {
-      onTouchStart: onInteractionStart,
-      onTouchEnd: onInteractionEnd,
-      onTouchMove: onInteractionStart,
-    }
+        onTouchStart: onInteractionStart,
+        onTouchEnd: onInteractionEnd,
+        onTouchMove: onInteractionStart,
+      }
     : {};
 
   return (

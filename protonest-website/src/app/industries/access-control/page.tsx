@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
+import FinalCTA from "../../components/final-cta";
 import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
 import PageHero from "../../components/page-hero";
@@ -579,10 +580,10 @@ function Services() {
     <section className="w-full bg-[#F7F5FC] px-4 py-14 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <div className="mx-auto max-w-[1280px]">
         <h2 className="max-w-3xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-          Services for{" "}
           <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text text-transparent">
-            access control products
+            Services{" "}
           </span>
+          we provide
         </h2>
 
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-12">
@@ -726,7 +727,7 @@ function UsefulResources() {
       <div className="mx-auto max-w-[1280px]">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <h2 className="max-w-2xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-            Useful resources for access control product teams
+            Useful resources
           </h2>
 
           <p className="max-w-2xl font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:justify-self-end lg:text-[16px]">
@@ -775,7 +776,7 @@ function FAQs() {
     <section className="w-full bg-[#F8F7FC] px-4 py-14 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
         <h2 className="max-w-xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-          FAQs about access control IoT development
+          Frequently asked questions
         </h2>
 
         <div>
@@ -809,41 +810,6 @@ function FAQs() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Final CTA                                                                  */
-/* -------------------------------------------------------------------------- */
-
-function FinalCTA() {
-  return (
-    <section className="w-full px-4 py-16 sm:px-8 md:py-20 lg:px-[60px] lg:py-24 xl:px-[133px] 2xl:px-[180px]">
-      <div className="mx-auto max-w-5xl rounded-[26px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 p-2 sm:p-3 lg:rounded-[34px] lg:p-4">
-        <div className="rounded-[22px] bg-white px-6 py-12 text-center shadow-[0_12px_40px_rgba(85,48,250,0.07)] sm:px-10 sm:py-14 lg:rounded-[28px] lg:px-16 lg:py-16">
-          <h2 className="mx-auto mb-4 max-w-3xl font-montserrat text-[24px] font-medium leading-tight lg:text-[30px] xl:text-[36px]">
-            <span className="text-[#6C6C6C]">Let&#39;s Talk About Your </span>
-
-            <span className="bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
-              IoT Development Project
-            </span>
-          </h2>
-
-          <p className="mx-auto mb-8 max-w-2xl font-poppins text-[15px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[18px]">
-            Book a free call to discuss your product idea or the technical
-            challenge. We can help you review the scope, architecture, and next
-            steps.
-          </p>
-
-          <Link
-            href="/contact-us#book-a-call"
-            className="inline-flex h-[55px] w-[220px] items-center justify-center rounded-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5] font-poppins text-[15px] font-medium text-white transition-all duration-300 hover:from-[#F51DA5] hover:to-[#5530FA] hover:shadow-[0_10px_25px_rgba(85,48,250,0.18)] lg:h-[60px] lg:text-[16px]"
-          >
-            Book a Free Call
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function AccessControlPage() {
   return (
     <div>
@@ -863,7 +829,10 @@ export default function AccessControlPage() {
       <WhyProtonest />
       <UsefulResources />
       <FAQs />
-      <FinalCTA />
+      <FinalCTA
+        highlightedText="IoT Development Project"
+        description="Book a free call to discuss your product idea or the technical challenge. We can help you review the scope, architecture, and next steps."
+      />
       <Footer />
     </div>
   );
