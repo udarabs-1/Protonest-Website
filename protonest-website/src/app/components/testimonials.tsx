@@ -84,7 +84,7 @@ const TestimonialSection = () => {
     pauseOnFocus: false,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
   };
 
   const desktopCarouselSettings = {
@@ -99,7 +99,7 @@ const TestimonialSection = () => {
     pauseOnHover: true,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
     responsive: [
       {
         breakpoint: 1280,
@@ -156,7 +156,7 @@ const TestimonialSection = () => {
         <SectionHeader
           prefix="What Our Clients"
           highlight="Say"
-          description="Read how customers describe the engineering support and post-launch collaboration given by Protonest."
+          description="How customers describe the engineering services offered by Protonest."
           align="center"
         />
 
@@ -213,7 +213,7 @@ const TestimonialSection = () => {
   );
 };
 
-const TestimonialCard = ({
+export const TestimonialCard = ({
   name,
   company,
   text,
@@ -232,10 +232,10 @@ const TestimonialCard = ({
 }) => {
   const cardProps = isMobile
     ? {
-      onTouchStart: onInteractionStart,
-      onTouchEnd: onInteractionEnd,
-      onTouchMove: onInteractionStart,
-    }
+        onTouchStart: onInteractionStart,
+        onTouchEnd: onInteractionEnd,
+        onTouchMove: onInteractionStart,
+      }
     : {};
 
   return (
@@ -276,6 +276,60 @@ const TestimonialCard = ({
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+type TestimonialMarqueeItem = {
+  name: string;
+  company: string;
+  text: string;
+  avatar: string;
+};
+
+export const TestimonialMarquee = ({
+  testimonials,
+}: {
+  testimonials: TestimonialMarqueeItem[];
+}) => {
+  const settings = {
+    dots: false,
+    infinite: testimonials.length > 1,
+    speed: 600,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    autoplay: testimonials.length > 1,
+    autoplaySpeed: 3500,
+    pauseOnHover: true,
+    pauseOnFocus: true,
+    swipeToSlide: true,
+    touchThreshold: 10,
+    cssEase: "ease-in-out",
+  };
+
+  return (
+    <div
+      className="mr-auto w-full max-w-[550px]"
+      role="region"
+      aria-label="Client testimonials"
+      aria-live="off"
+    >
+      <Slider {...settings}>
+        {testimonials.map((testimonial) => (
+          <div
+            key={`${testimonial.name}-${testimonial.company}`}
+            className="px-2 pb-5"
+          >
+            <TestimonialCard
+              name={testimonial.name}
+              company={testimonial.company}
+              text={testimonial.text}
+              avatar={testimonial.avatar}
+            />
+          </div>
+        ))}
+      </Slider>
     </div>
   );
 };

@@ -5,9 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
-import Blogs from '../components/blogs';
 import Footer from '../components/footer';
 import Navbar from '../components/navbar';
+import NewsAndBlogs from '../components/news-and-blogs';
 import PageHero from '../components/page-hero';
 
 const RoleCard = ({ role, onClick }: {
@@ -181,7 +181,12 @@ export default function CareersPage() {
                 </section>
             </main>
 
-            <Blogs />
+            <NewsAndBlogs
+                prefix=""
+                highlight="Insights"
+                suffix="from the Field"
+                description={null}
+            />
 
 
             <section className="relative w-full min-h-screen flex items-center justify-center overflow-visible">
