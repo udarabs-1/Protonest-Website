@@ -35,7 +35,7 @@ export interface FooterSection {
 export const SITE_LINKS = {
   home: "/",
   careers: "/careers",
-  bookCall: "/contact-us#book-a-call",
+  bookCall: "/contact-us",
   signIn: "/signin",
   dashboard: "/dashboard",
   jobs: "/dashboard/all-jobs",

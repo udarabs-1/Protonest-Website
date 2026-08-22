@@ -77,7 +77,7 @@ const WhyChooseProtonest = () => {
           highlight="Protonest?"
           description="Where bold ideas become connected products"
           linkLabel="Book a Call"
-          linkHref="/contact-us#book-a-call"
+          linkHref="/contact-us"
         />
 
         <div className="block lg:hidden space-y-8 pt-8">

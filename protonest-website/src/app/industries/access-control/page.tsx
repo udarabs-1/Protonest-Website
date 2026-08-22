@@ -367,7 +367,7 @@ function Hero() {
           </p>
 
           <Link
-            href="/contact-us#book-a-call"
+            href="/contact-us"
             className="mt-8 inline-flex h-[56px] items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5] px-8 font-poppins text-[15px] font-medium text-white transition-all duration-300 hover:shadow-[0_12px_30px_rgba(85,48,250,0.20)]"
           >
             Book a Call

@@ -48,7 +48,6 @@ export default function Contact() {
   useEffect(() => {
     let isMounted = true;
     const formScriptId = "hubspot-form-script";
-    const meetingScriptId = "hubspot-meeting-script";
 
     // We generate a strict runtime ID to defend against React Strict Mode race conditions
     const currentUniqueId =
@@ -97,23 +96,8 @@ export default function Contact() {
       renderForm();
     }
 
-    // Load Meeting Scheduler Script
-    // First remove any old instances so it correctly re-scans the DOM on load
-    const existingMeetingScript = document.getElementById(meetingScriptId);
-    if (existingMeetingScript) existingMeetingScript.remove();
-
-    const meetingScript = document.createElement("script");
-    meetingScript.src =
-      "https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js";
-    meetingScript.id = meetingScriptId;
-    meetingScript.async = true;
-    document.body.appendChild(meetingScript);
-
     return () => {
       isMounted = false; // Cleanup flag to stop stray background execution
-      if (document.getElementById(meetingScriptId)) {
-        document.getElementById(meetingScriptId)?.remove();
-      }
       // Leave the form script globally loaded, but DOM cleanup happens naturally by React
     };
   }, []);
@@ -174,18 +158,6 @@ export default function Contact() {
             </div>
           </div>
         </section>
-
-        <div
-          id="book-a-call"
-          className="relative w-full scroll-mt-[65px] lg:scroll-mt-[80px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pt-10 md:pt-14 lg:pt-16"
-        >
-          <div className="w-full min-h-[550px] flex items-start justify-center">
-            <div
-              className="w-full meetings-iframe-container"
-              data-src="https://meetings-na2.hubspot.com/udara-kumarasena?embed=true"
-            ></div>
-          </div>
-        </div>
 
         <div className="relative w-full h-auto mt-4 md:mt-8 pt-8">
           <div className="pointer-events-none absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[1100px] lg:h-[1100px] xl:h-[1050px] 2xl:h-[1000px] overflow-hidden">

@@ -12,7 +12,7 @@ export default function FinalCTA({
   description =
     "Book a free call to discuss your product idea or technical challenge. We can help you review the scope, architecture, and next steps.",
   buttonLabel = "Book a Free Call",
-  buttonHref = "/contact-us#book-a-call",
+  buttonHref = "/contact-us",
 }: FinalCTAProps) {
   return (
     <section className="w-full px-4 py-16 sm:px-8 md:py-20 lg:px-[60px] lg:py-24 xl:px-[133px] 2xl:px-[180px]">
