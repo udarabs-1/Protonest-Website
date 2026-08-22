@@ -37,6 +37,9 @@ export default function Navbar() {
   const router = useRouter();
   const desktopDropdownRef = useRef<HTMLDivElement>(null);
   const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
@@ -90,10 +93,40 @@ export default function Navbar() {
     ],
   };
 
+  const cancelDropdownClose = () => {
+    if (dropdownCloseTimeoutRef.current) {
+      clearTimeout(dropdownCloseTimeoutRef.current);
+      dropdownCloseTimeoutRef.current = null;
+    }
+  };
+
+  const openDropdownOnHover = (dropdown: DropdownKey) => {
+    cancelDropdownClose();
+    setProfileDropdownOpen(false);
+    setActiveDropdown(dropdown);
+  };
+
+  const scheduleDropdownClose = () => {
+    cancelDropdownClose();
+    dropdownCloseTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+      dropdownCloseTimeoutRef.current = null;
+    }, 150);
+  };
+
   const toggleDropdown = (dropdown: DropdownKey) => {
+    cancelDropdownClose();
     setProfileDropdownOpen(false);
     setActiveDropdown((current) => (current === dropdown ? null : dropdown));
   };
+
+  useEffect(() => {
+    return () => {
+      if (dropdownCloseTimeoutRef.current) {
+        clearTimeout(dropdownCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -113,6 +146,7 @@ export default function Navbar() {
   }, []);
 
   const handleNavigation = () => {
+    cancelDropdownClose();
     setActiveDropdown(null);
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
@@ -251,8 +285,23 @@ export default function Navbar() {
                           <Link
                             href={item.href}
                             className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
-                            onMouseEnter={() => setHoveredItem(item.href)}
-                            onMouseLeave={() => setHoveredItem(null)}
+                            onMouseEnter={() => {
+                              setHoveredItem(item.href);
+                              if (hasDropdown && item.key) {
+                                openDropdownOnHover(item.key);
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredItem(null);
+                              if (hasDropdown) {
+                                scheduleDropdownClose();
+                              }
+                            }}
+                            onFocus={() => {
+                              if (hasDropdown && item.key) {
+                                openDropdownOnHover(item.key);
+                              }
+                            }}
                             aria-expanded={
                               hasDropdown
                                 ? activeDropdown === item.key
@@ -434,6 +483,8 @@ export default function Navbar() {
                 <motion.div
                   key={activeDropdown}
                   className="fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
+                  onMouseEnter={cancelDropdownClose}
+                  onMouseLeave={scheduleDropdownClose}
                   initial="closed"
                   animate="open"
                   exit="closed"
