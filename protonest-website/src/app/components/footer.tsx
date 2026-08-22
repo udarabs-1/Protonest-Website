@@ -3,17 +3,73 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+interface FooterLink {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+const footerSections: FooterSection[] = [
+  {
+    title: "Navigate",
+    links: [{ label: "Home", href: "/" }],
+  },
+  {
+    title: "Industries",
+    links: [{ label: "Access Control", href: "/industries/access-control" }],
+  },
+  {
+    title: "Solutions",
+    links: [
+      {
+        label: "Protonest Connect",
+        href: "https://protonestconnect.co/",
+        external: true,
+      },
+      {
+        label: "Protonest Master",
+        href: "https://protonestmaster.co/",
+        external: true,
+      },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Contact Us", href: "/contact-us" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Blog", href: "/blog" },
+      { label: "Projects", href: "/portfolio" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/legal/privacy-policy" },
+      {
+        label: "Terms & Conditions",
+        href: "/legal/terms-and-conditions",
+      },
+    ],
+  },
+];
 
 export default function Footer() {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [isUserSignedIn, setIsUserSignedIn] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
-    setIsUserSignedIn(!!token);
-  }, []);
 
   const isActive = (path: string): boolean => pathname === path;
 
@@ -78,98 +134,68 @@ export default function Footer() {
           <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
 
           <div className="relative z-20 lg:px-[60px] xl:px-[80px] 2xl:px-[98px]">
-            <div className="w-full flex lg:pt-[120px] xl:pt-[150px] 2xl:pt-[180px] justify-between">
-              <Image
-                src="/logo.webp"
-                alt="Protonest Logo"
-                width={149}
-                height={106}
-                priority={false}
-                quality={90}
-                sizes="(max-width: 1024px) 120px, (max-width: 1280px) 135px, 149px"
-                className="lg:w-[120px] lg:h-[85px] xl:w-[135px] xl:h-[96px] 2xl:w-[149px] 2xl:h-[106px]"
-              />
-              <div className="flex flex-col justify-center">
-                <div className="font-montserrat lg:text-[12px] xl:text-[14px] 2xl:text-[16px] lg:space-x-[25px] xl:space-x-[30px] 2xl:space-x-[35px] text-right">
-                  <Link
-                    href="/"
-                    className={getNavLinkClass("/", true)}
-                    onMouseEnter={() => handleMouseEnter("/")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/careers"
-                    className={getNavLinkClass("/careers", true)}
-                    onMouseEnter={() => handleMouseEnter("/careers")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    Careers
-                  </Link>
-                  <Link
-                    href="/portfolio"
-                    className={getNavLinkClass("/portfolio", true)}
-                    onMouseEnter={() => handleMouseEnter("/portfolio")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    Portfolio
-                  </Link>
-                  <Link
-                    href="/blog"
-                    className={getNavLinkClass("/blog", true)}
-                    onMouseEnter={() => handleMouseEnter("/blog")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    Blog
-                  </Link>
-                  <Link
-                    href="/about"
-                    className={getNavLinkClass("/about", true)}
-                    onMouseEnter={() => handleMouseEnter("/about")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    About Us
-                  </Link>
-                  <Link
-                    href="/contact-us"
-                    className={getNavLinkClass("/contact-us", true)}
-                    onMouseEnter={() => handleMouseEnter("/contact-us")}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    Contact Us
-                  </Link>
-                  <Link
-                    href={isUserSignedIn ? "/dashboard" : "/signin"}
-                    className={getNavLinkClass(
-                      isUserSignedIn ? "/dashboard" : "/signin",
-                      true,
-                    )}
-                    onMouseEnter={() =>
-                      handleMouseEnter(
-                        isUserSignedIn ? "/dashboard" : "/signin",
-                      )
-                    }
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    ProtonestHR
-                  </Link>
-                </div>
-              </div>
+            <div className="w-full lg:pt-[90px] xl:pt-[115px] 2xl:pt-[140px]">
+              <nav
+                aria-label="Footer navigation"
+                className="grid w-full grid-cols-3 gap-x-8 gap-y-6 font-montserrat xl:grid-cols-6 xl:gap-x-7 2xl:gap-x-9"
+              >
+                {footerSections.map((section) => (
+                  <div key={section.title}>
+                    <h2 className="mb-3 text-[12px] font-medium text-[#4d4d4d] xl:text-[13px] 2xl:text-[14px]">
+                      {section.title}
+                    </h2>
+                    <div className="flex flex-col items-start gap-2">
+                      {section.links.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          target={link.external ? "_blank" : undefined}
+                          rel={link.external ? "noopener" : undefined}
+                          className={`text-left text-[11px] leading-snug transition-colors xl:text-[12px] 2xl:text-[13px] ${getNavLinkClass(link.href, true)}`}
+                          onMouseEnter={() => handleMouseEnter(link.href)}
+                          onMouseLeave={handleMouseLeave}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </nav>
             </div>
 
-            <div className="flex justify-between items-end lg:mt-[8px] xl:mt-[9px] 2xl:mt-[10px]">
-              <div className="lg:text-[10px] xl:text-[11px] 2xl:text-[14px] font-poppins text-[#6c6c6c] lg:max-w-[280px] xl:max-w-[320px] 2xl:max-w-none">
+            <div className="mt-6 grid grid-cols-[auto_1fr_auto] grid-rows-2 items-center gap-x-8 border-y border-white/30 py-5 xl:mt-7 xl:py-6 2xl:mt-8">
+              <div className="contents">
+                <Link
+                  href="/"
+                  aria-label="Protonest home"
+                  className="row-span-2"
+                >
+                  <Image
+                    src="/logo.webp"
+                    alt="Protonest Logo"
+                    width={149}
+                    height={106}
+                    priority={false}
+                    quality={90}
+                    sizes="(max-width: 1024px) 100px, (max-width: 1280px) 115px, 130px"
+                    className="h-auto w-[100px] xl:w-[115px] 2xl:w-[130px]"
+                  />
+                </Link>
+
+              <div className="col-start-2 row-start-2 mt-2 font-poppins text-[10px] text-[#6c6c6c] xl:max-w-[320px] xl:text-[11px] 2xl:max-w-none 2xl:text-[14px]">
                 503/A, Welivita Road, Kaduwela, Colombo, Sri Lanka. 10640
               </div>
-              <Link href="/contact-us#book-a-call">
-                <button className="lg:w-[120px] lg:h-[36px] xl:w-[135px] xl:h-[40px] 2xl:w-[147px] 2xl:h-[44px] lg:text-[12px] xl:text-[14px] 2xl:text-[16px] bg-none border border-[#83848b] text-[#83848b] lg:p-[8px] xl:p-[9px] 2xl:p-[10px] rounded-[30px] hover:scale-105 hover:cursor-pointer">
-                  Book a Call
-                </button>
+
+              <Link
+                href="/contact-us#book-a-call"
+                className="col-start-3 row-span-2 row-start-1 flex h-[36px] w-[120px] items-center justify-center rounded-[30px] border border-[#83848b] font-poppins text-[12px] text-[#83848b] transition-transform hover:scale-105 xl:h-[40px] xl:w-[135px] xl:text-[14px] 2xl:h-[44px] 2xl:w-[147px] 2xl:text-[16px]"
+              >
+                Book a Call
               </Link>
             </div>
 
-            <div className="flex lg:space-x-[15px] xl:space-x-[18px] 2xl:space-x-[20px] w-auto h-[17px] lg:mt-[30px] xl:mt-[35px] 2xl:mt-[40px] cursor-pointer text-[#4d4d4d]">
+            <div className="col-start-2 row-start-1 flex h-[17px] w-auto cursor-pointer space-x-[15px] self-end text-[#4d4d4d] xl:space-x-[18px] 2xl:space-x-[20px]">
               <Link
                 href="https://lk.linkedin.com/company/protonestiot"
                 target="_blank"
@@ -239,15 +265,16 @@ export default function Footer() {
                 </svg>
               </Link>
             </div>
+            </div>
 
-            <div className="bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent font-poppins lg:text-[10px] xl:text-[11px] 2xl:text-[14px] lg:mt-[80px] xl:mt-[100px] 2xl:mt-[120px] w-fit mx-auto">
+            <div className="mx-auto mt-6 w-fit bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text font-poppins text-[10px] text-transparent xl:mt-8 xl:text-[11px] 2xl:mt-10 2xl:text-[14px]">
               © 2023–{new Date().getFullYear()} Protonest. All rights reserved.
             </div>
           </div>
         </div>
       </div>
 
-      <div className="block lg:hidden w-full h-[643px] md:h-[720px] relative">
+      <div className="block lg:hidden w-full h-[760px] md:h-[850px] relative">
         <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
           <video
             autoPlay
@@ -279,7 +306,7 @@ export default function Footer() {
         <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] bg-gradient-to-t from-transparent to-white z-10" />
 
         <div className="relative z-20 h-full">
-          <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[322px] md:top-[380px] absolute">
+          <div className="w-[149px] h-[106px] md:w-[170px] md:h-[120px] left-1/2 -translate-x-1/2 top-[350px] md:top-[420px] absolute">
             <Image
               src="/logo.webp"
               alt="Protonest Logo"
@@ -292,11 +319,11 @@ export default function Footer() {
             />
           </div>
 
-          <div className="w-[211px] md:w-[280px] left-1/2 -translate-x-1/2 top-[467px] md:top-[545px] absolute text-center text-[#6c6c6c] text-xs md:text-sm font-normal font-poppins">
+          <div className="w-[211px] md:w-[280px] left-1/2 -translate-x-1/2 top-[535px] md:top-[620px] absolute text-center text-[#6c6c6c] text-xs md:text-sm font-normal font-poppins">
             503/A, Welivita Road, Kaduwela, Colombo, Sri Lanka. 10640
           </div>
 
-          <div className="left-1/2 -translate-x-1/2 top-[514px] md:top-[590px] absolute inline-flex justify-center items-center gap-[26px] md:gap-[32px]">
+          <div className="left-1/2 -translate-x-1/2 top-[495px] md:top-[575px] absolute inline-flex justify-center items-center gap-[26px] md:gap-[32px]">
             <Link
               href="https://lk.linkedin.com/company/protonestiot"
               target="_blank"
@@ -367,87 +394,40 @@ export default function Footer() {
             </Link>
           </div>
 
-          <div className="w-[280px] md:w-[320px] left-1/2 -translate-x-1/2 top-[51px] md:top-[60px] absolute flex justify-start items-start gap-[60px] md:gap-[80px]">
-            <div className="inline-flex flex-col justify-start items-start gap-5 md:gap-6">
-              <Link
-                href="/"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/", false)}`}
-                >
-                  Home
+          <nav
+            aria-label="Footer navigation"
+            className="absolute left-1/2 top-[45px] grid w-[280px] -translate-x-1/2 grid-cols-2 gap-x-10 gap-y-6 md:top-[55px] md:w-[430px] md:gap-x-16 md:gap-y-7"
+          >
+            {footerSections.map((section) => (
+              <div key={section.title}>
+                <h2 className="mb-2 font-montserrat text-sm font-medium text-[#4d4d4d] md:text-base">
+                  {section.title}
+                </h2>
+                <div className="flex flex-col items-start gap-1.5 md:gap-2">
+                  {section.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      target={link.external ? "_blank" : undefined}
+                      rel={link.external ? "noopener" : undefined}
+                      className={`text-left font-montserrat text-xs leading-snug md:text-sm ${getNavLinkClass(link.href, false)}`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-              <Link
-                href="/careers"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/careers", false)}`}
-                >
-                  Careers
-                </div>
-              </Link>
-              <Link
-                href="/portfolio"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/portfolio", false)}`}
-                >
-                  Portfolio
-                </div>
-              </Link>
-            </div>
+              </div>
+            ))}
+          </nav>
 
-            <div className="inline-flex flex-col justify-start items-start gap-5 md:gap-6">
-              <Link
-                href="/blog"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/blog", false)}`}
-                >
-                  Blog
-                </div>
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/about", false)}`}
-                >
-                  About Us
-                </div>
-              </Link>
-              <Link
-                href="/contact-us"
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass("/contact-us", false)}`}
-                >
-                  Contact Us
-                </div>
-              </Link>
-              <Link
-                href={isUserSignedIn ? "/dashboard" : "/signin"}
-                className="inline-flex justify-start items-center gap-[7px]"
-              >
-                <div
-                  className={`text-center text-sm md:text-base font-montserrat leading-normal ${getNavLinkClass(isUserSignedIn ? "/dashboard" : "/signin", false)}`}
-                >
-                  ProtonestHR
-                </div>
-              </Link>
-            </div>
-          </div>
+          <div
+            aria-hidden="true"
+            className="absolute left-8 right-8 top-[320px] h-px bg-gradient-to-r from-transparent via-[#a3a3a3]/40 to-transparent md:left-12 md:right-12 md:top-[385px]"
+          />
 
           <Link
             href="/contact-us#book-a-call"
-            className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[215px] md:top-[250px]"
+            className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[590px] md:top-[685px]"
           >
             <button className="w-full p-2.5 md:p-3 rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5 hover:scale-105">
               <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal hover:scale-105">
@@ -456,7 +436,12 @@ export default function Footer() {
             </button>
           </Link>
 
-          <div className="w-full px-4 md:px-8 left-1/2 -translate-x-1/2 top-[573px] md:top-[650px] absolute text-center bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent text-xs md:text-sm font-normal font-poppins leading-normal">
+          <div
+            aria-hidden="true"
+            className="absolute left-8 right-8 top-[665px] h-px bg-gradient-to-r from-transparent via-[#a3a3a3]/40 to-transparent md:left-12 md:right-12 md:top-[760px]"
+          />
+
+          <div className="w-full px-4 md:px-8 left-1/2 -translate-x-1/2 top-[705px] md:top-[795px] absolute text-center bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent text-xs md:text-sm font-normal font-poppins leading-normal">
             © 2023–{new Date().getFullYear()} Protonest. All rights reserved.
           </div>
         </div>
