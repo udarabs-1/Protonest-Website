@@ -12,6 +12,7 @@ import SectionHeader from "./components/section-header";
 import ServicesSection from "./components/services";
 import StatsSection from "./components/stats-section";
 import TestimonialSection from "./components/testimonials";
+import TestimonialVideoPlayer from "./components/testimonial-video-player";
 import WhyChooseProtonest from "./components/why-choose";
 import { ArrowUpRight } from "lucide-react";
 
@@ -402,14 +403,14 @@ function FeaturedTestimonial() {
       <div className="max-w-5xl mx-auto rounded-[24px] lg:rounded-[32px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 p-2 sm:p-3 lg:p-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center rounded-[20px] lg:rounded-[28px] bg-white px-6 py-8 sm:p-8 lg:p-10 shadow-[0_12px_40px_rgba(85,48,250,0.08)]">
           <div className="w-full lg:w-2/5">
-            <video
-              controls
-              playsInline
-              className="w-full max-w-xs mx-auto lg:mx-0 rounded-[16px] lg:rounded-[20px] shadow-lg"
-              aria-label="Entryphone client testimonial about Protonest IoT development services and high quality product delivery"
-            >
-              <source src="/entryphone-testimonial.mp4" type="video/mp4" />
-            </video>
+            <div className="w-full max-w-xs mx-auto lg:mx-0">
+              <TestimonialVideoPlayer
+                src="/entryphone-testimonial.mp4"
+                ariaLabel="Oliver Ashby of The Entry Phone Company shares his experience working with Protonest"
+                name="Oliver Ashby"
+                company="The Entry Phone Company, UK"
+              />
+            </div>
           </div>
 
           <div className="w-full lg:w-1/2 flex flex-col justify-center gap-6">
@@ -426,22 +427,17 @@ function FeaturedTestimonial() {
 
             <blockquote>
               <p className="text-[15px] lg:text-[17px] font-normal font-poppins text-[#333333] leading-relaxed italic">
-                &#8220;I&#8217;ve worked with Protonest on a development project
-                and have been really impressed by their technical ability, clear
-                communication, and professional approach. Everything has been
-                handled carefully and to a high standard.&#8221;
+                &#8220;We&#8217;ve worked with Udara and the Protonest team on
+                cloud- and mobile-based access control and intercom projects.
+                What stands out most is how easy they are to work with.
+                They&#8217;re collaborative, flexible, and genuinely invested in
+                the product and business goals. Communication has been
+                excellent, the work consistently strong, and they&#8217;ve become a
+                trusted partner in our development process. I&#8217;m happy to
+                recommend Udara and the Protonest team as reliable development
+                partners.&#8221;
               </p>
             </blockquote>
-
-            <div>
-              <p className="text-[15px] font-medium font-poppins text-[#333333]">
-                Oliver Ashbee
-              </p>
-
-              <p className="text-[13px] font-normal font-poppins text-[#999999]">
-                entryphone, UK
-              </p>
-            </div>
           </div>
         </div>
       </div>

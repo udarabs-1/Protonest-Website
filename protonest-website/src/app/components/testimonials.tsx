@@ -43,9 +43,9 @@ const TestimonialSection = () => {
     },
     {
       id: 5,
-      name: "Oliver Ashbee",
-      company: "entryphone, UK",
-      text: "I’ve worked with Protonest on a development project and have been really impressed by their technical ability, clear communication, and professional approach. Everything has been handled carefully and to a high standard.",
+      name: "Oliver Ashby",
+      company: "The Entry Phone Company, UK",
+      text: "The Protonest team is collaborative, flexible, and genuinely invested in our product and business goals. Communication has been excellent, the work consistently strong, and they have become a trusted partner in our development process.",
       avatar: "/profile-1.svg",
     },
     {

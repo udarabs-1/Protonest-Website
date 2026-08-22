@@ -49,7 +49,8 @@
     "resend": "^6.0.0",
     "slick-carousel": "^1.8.1",
     "solar-icon-set": "^2.0.1",
-    "swiper": "^11.2.8"
+    "swiper": "^11.2.8",
+    "video.js": "^8.24.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
