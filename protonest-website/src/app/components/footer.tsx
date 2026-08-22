@@ -122,7 +122,7 @@ export default function Footer() {
                 />
               </Link>
 
-              <div className="col-span-2 col-start-1 row-start-3 flex min-w-0 flex-col gap-4 font-poppins text-[#6c6c6c]">
+              {/* <div className="col-span-2 col-start-1 row-start-3 flex min-w-0 flex-col gap-4 font-poppins text-[#6c6c6c]">
                 {CONTACT_DETAILS.addresses.map((address) => (
                   <address key={address.id} className="min-w-0 not-italic">
                     <span className="mb-1 block text-sm font-medium text-[#4d4d4d]">
@@ -133,7 +133,7 @@ export default function Footer() {
                     </span>
                   </address>
                 ))}
-              </div>
+              </div> */}
 
               <Link
                 href={SITE_LINKS.bookCall}

@@ -325,6 +325,7 @@ export default function Contact() {
 
         <FAQSection />
       </div>
+
       <Footer />
     </div>
   );
