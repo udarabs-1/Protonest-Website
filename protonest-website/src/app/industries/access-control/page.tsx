@@ -440,9 +440,8 @@ function ClientProof() {
           <div className="rounded-[22px] bg-white p-6 sm:p-8 lg:rounded-[28px] lg:p-10">
             <div className="relative h-[42px] w-[150px]">
               <Image
-                src="/client4.svg"
-                alt=""
-                aria-hidden="true"
+                src="/protonest-client-entryphone.svg"
+                alt="Entryphone logo"
                 fill
                 sizes="150px"
                 className="object-contain object-left"

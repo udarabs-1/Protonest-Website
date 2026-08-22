@@ -415,8 +415,8 @@ function FeaturedTestimonial() {
           <div className="w-full lg:w-1/2 flex flex-col justify-center gap-6">
             <div className="relative h-[48px] w-[140px]">
               <Image
-                src="/client4.svg"
-                alt="Entryphone client testimonial for Protonest IoT development services"
+                src="/protonest-client-entryphone.svg"
+                alt="Entryphone logo"
                 fill
                 quality={85}
                 sizes="140px"
