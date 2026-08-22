@@ -128,20 +128,16 @@ const WHY_PROTONEST = [
 
 const RESOURCES = [
   {
-    title: "Selecting a perfect battery for an IoT project",
-    href: "/blog/selecting-a-perfect-battery-for-an-iot-project",
+    title: "Mobile Access Control Architecture: BLE, NFC and Credential Management",
+    href: "/blog/mobile-access-control-architecture:-ble,-nfc-and-credential-management",
   },
   {
-    title: "Communication method for an IoT project: selection guide",
-    href: "/blog/communication-method-for-an-iot-project-selection-guide",
+    title: "Biometric Access Control Systems: What Product Teams Need to Design",
+    href: "/blog/biometric-access-control-systems:-what-product-teams-need-to-design",
   },
   {
-    title: "Selecting the perfect cloud backend for an IoT project",
-    href: "/blog/selecting-the-perfect-cloud-backend-for-an-iot-project",
-  },
-  {
-    title: "PCB component management system",
-    href: "/blog/pcb-component-management-system",
+    title: "Which Access Credential Is Right for Your Product",
+    href: "/blog/which-access-credential-is-right-for-your-product",
   },
 ];
 
