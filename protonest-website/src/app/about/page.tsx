@@ -1,6 +1,5 @@
 "use client";
 import { Icon } from "@iconify/react";
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
@@ -89,50 +88,6 @@ export default function About() {
 
   return (
     <div className="overflow-x-hidden">
-      <Head>
-        <title>About Us - Protonest</title>
-        <meta
-          name="description"
-          content="Learn about Protonest - our IoT prototyping expertise, engineering team, and how we help innovators transform ideas into functional prototypes since 2023."
-        />
-        <meta
-          name="keywords"
-          content="IoT prototyping company, about Protonest, IoT engineering team, hardware prototyping experts"
-        />
-
-        <link rel="canonical" href="https://protonest.co/about" />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/about" />
-        <meta property="og:title" content="About Us - Protonest" />
-        <meta
-          property="og:description"
-          content="Discover our team's journey in IoT prototyping and how we turn visionary ideas into scalable systems since 2023."
-        />
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "AboutPage",
-            name: "About Protonest",
-            description:
-              "Learn about our IoT prototyping services and engineering team",
-            url: "https://protonest.co/about",
-            about: {
-              "@type": "Organization",
-              name: "Protonest",
-              foundingDate: "2023-06",
-              founder: {
-                "@type": "Person",
-                name: "Udara Kumarasena",
-                jobTitle: "CEO",
-              },
-              numberOfEmployees: "20+",
-              keywords: "IoT prototyping, hardware development",
-            },
-          })}
-        </script>
-      </Head>
       <Navbar />
       <div>
         <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] mt-[50px]">

@@ -4,7 +4,6 @@ import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
 import PageHero from "@/app/components/page-hero";
 import { useOnScreen } from "@/app/components/use-on-screen";
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,6 +22,92 @@ interface Blog {
   created_at: string;
   updated_at: string;
 }
+
+const blogJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://protonest.co/#organization",
+      name: "Protonest",
+      url: "https://protonest.co/",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://protonest.co/logo.webp",
+      },
+      description:
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
+      sameAs: [
+        "https://lk.linkedin.com/company/protonestiot",
+        "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
+        "https://x.com/ProtonestIoT",
+        "https://www.facebook.com/profile.php?id=61562590660146",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://protonest.co/#website",
+      url: "https://protonest.co/",
+      name: "Protonest",
+      publisher: {
+        "@id": "https://protonest.co/#organization",
+      },
+      inLanguage: "en",
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": "https://protonest.co/blog#webpage",
+      url: "https://protonest.co/blog",
+      name: "Blog | Protonest",
+      description:
+        "Read the Protonest IoT blog for practical articles, guides, reliability tests, and product development insights.",
+      isPartOf: {
+        "@id": "https://protonest.co/#website",
+      },
+      about: {
+        "@id": "https://protonest.co/#organization",
+      },
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: "https://protonest.co/og-image-home.png",
+        width: 1200,
+        height: 630,
+        caption: "Protonest IoT blog articles and product development insights",
+      },
+      breadcrumb: {
+        "@id": "https://protonest.co/blog#breadcrumb",
+      },
+      inLanguage: "en",
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://protonest.co/blog#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://protonest.co/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Blog",
+          item: "https://protonest.co/blog",
+        },
+      ],
+    },
+  ],
+};
+
+const BlogJsonLd = () => (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(blogJsonLd).replace(/</g, "\\u003c"),
+    }}
+  />
+);
 
 const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
   const textContent = htmlContent.replace(/<[^>]*>/g, '');
@@ -311,6 +396,7 @@ export default function BlogSection() {
   if (loading) {
     return (
       <div>
+        <BlogJsonLd />
         <Navbar />
         <div className="flex justify-center items-center min-h-screen">
           <div className="text-center">
@@ -372,39 +458,7 @@ export default function BlogSection() {
         </defs>
       </svg>
 
-      <Head>
-
-        <title>Blog - Protonest</title>
-        <meta
-          name="description"
-          content="Explore Protonest's IoT blog for expert insights on prototyping, hardware development, and cutting-edge IoT technology trends."
-        />
-        <meta name="keywords" content="IoT blog, prototyping insights, hardware development, IoT technology, sensor selection, IoT communication" />
-
-
-        <link rel="canonical" href="https://protonest.co/blog" />
-
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/blog" />
-        <meta property="og:title" content="Blog - Protonest" />
-        <meta property="og:description" content="Expert articles on IoT prototyping, hardware selection, and system design from Protonest engineers." />
-
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Blog",
-            "name": "Protonest IoT Blog",
-            "description": "Expert insights on IoT prototyping and hardware development",
-            "url": "https://protonest.co/blog",
-            "publisher": {
-              "@type": "Organization",
-              "name": "Protonest",
-            },
-          })}
-        </script>
-      </Head>
+      <BlogJsonLd />
       <Navbar />
       <main className="mb-30">
 

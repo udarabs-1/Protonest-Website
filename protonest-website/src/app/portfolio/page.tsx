@@ -1,6 +1,5 @@
 "use client";
 
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -22,6 +21,91 @@ interface ResearchProject {
   created_at: string;
   updated_at: string;
 }
+
+const portfolioJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://protonest.co/#organization",
+      name: "Protonest",
+      url: "https://protonest.co/",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://protonest.co/logo.webp",
+      },
+      description:
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
+      sameAs: [
+        "https://lk.linkedin.com/company/protonestiot",
+        "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
+        "https://x.com/ProtonestIoT",
+        "https://www.facebook.com/profile.php?id=61562590660146",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://protonest.co/#website",
+      url: "https://protonest.co/",
+      name: "Protonest",
+      publisher: {
+        "@id": "https://protonest.co/#organization",
+      },
+      inLanguage: "en",
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": "https://protonest.co/portfolio#webpage",
+      url: "https://protonest.co/portfolio",
+      name: "Portfolio | Protonest",
+      description: "Explore the portfolio of projects delivered by Protonest.",
+      isPartOf: {
+        "@id": "https://protonest.co/#website",
+      },
+      about: {
+        "@id": "https://protonest.co/#organization",
+      },
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: "https://protonest.co/og-image-home.png",
+        width: 1200,
+        height: 630,
+        caption: "Protonest IoT portfolio and connected product projects",
+      },
+      breadcrumb: {
+        "@id": "https://protonest.co/portfolio#breadcrumb",
+      },
+      inLanguage: "en",
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://protonest.co/portfolio#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://protonest.co/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Portfolio",
+          item: "https://protonest.co/portfolio",
+        },
+      ],
+    },
+  ],
+};
+
+const PortfolioJsonLd = () => (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(portfolioJsonLd).replace(/</g, "\\u003c"),
+    }}
+  />
+);
 
 const extractExcerpt = (htmlContent: string, maxLength: number = 100): string => {
   const textContent = htmlContent.replace(/<[^>]*>/g, '');
@@ -65,6 +149,7 @@ export default function ResearchAndProjectPage() {
   return (
     <Suspense fallback={
       <div className="overflow-x-hidden">
+        <PortfolioJsonLd />
         <Navbar />
         <div className="flex justify-center items-center min-h-screen">
           <div className="w-8 h-8 border-4 border-gray-300 border-t-[#5530fa] rounded-full animate-spin"></div>
@@ -206,31 +291,7 @@ function ResearchAndProjectContent() {
 
   return (
     <div>
-      <Head>
-        <title>Research & Projects - Protonest</title>
-        <meta
-          name="description"
-          content="Explore Protonest's cutting-edge research and innovative projects in IoT, embedded systems, and electronics. From proof-of-concepts to real-world deployments."
-        />
-        <meta name="keywords" content="IoT research, embedded systems projects, electronics projects, Protonest projects, innovation, prototyping" />
-
-        <link rel="canonical" href="https://protonest.co/portfolio" />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/portfolio" />
-        <meta property="og:title" content="Research & Projects - Protonest" />
-        <meta property="og:description" content="Explore Protonest's most impactful work in IoT and embedded systems." />
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            "name": "Protonest Research & Projects",
-            "description": "A collection of Protonest's research and projects in IoT and embedded systems.",
-            "url": "https://protonest.co/portfolio"
-          })}
-        </script>
-      </Head>
+      <PortfolioJsonLd />
       <Navbar />
       <div className="mb-30">
 

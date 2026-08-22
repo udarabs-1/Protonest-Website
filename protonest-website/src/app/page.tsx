@@ -19,9 +19,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://protonest.co",
   ),
-  title: "IoT Development Services for Global Product Teams | Protonest",
+  title: "Protonest | Your Reliable Partner in IoT Development Services",
   description:
-    "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+    "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
   alternates: {
     canonical: "https://protonest.co/",
   },
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://protonest.co/",
     siteName: "Protonest",
-    title: "IoT Development Services for Global Product Teams | Protonest",
+    title: "Protonest | Your Reliable Partner in IoT Development Services",
     description:
-      "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+      "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
     images: [
       {
         url: "/og-image-home.png",
@@ -47,9 +47,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IoT Development Services for Global Product Teams | Protonest",
+    title: "IoT Development Services for Global Product Teams",
     description:
-      "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+      "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
     images: ["/og-image-home.png"],
   },
 };
@@ -67,25 +67,12 @@ const homeJsonLd = {
         url: "https://protonest.co/logo.webp",
       },
       description:
-        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
       sameAs: [
         "https://lk.linkedin.com/company/protonestiot",
         "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
         "https://x.com/ProtonestIoT",
         "https://www.facebook.com/profile.php?id=61562590660146",
-      ],
-      knowsAbout: [
-        "IoT development services",
-        "IoT product development",
-        "IoT hardware development",
-        "embedded systems development",
-        "firmware development",
-        "custom software solutions",
-        "IoT consulting services",
-        "access control IoT",
-        "industrial IoT monitoring",
-        "automotive IoT",
-        "wearable IoT",
       ],
     },
     {
@@ -102,9 +89,9 @@ const homeJsonLd = {
       "@type": "WebPage",
       "@id": "https://protonest.co/#webpage",
       url: "https://protonest.co/",
-      name: "IoT Development Services for Global Product Teams | Protonest",
+      name: "Protonest | Your Reliable Partner in IoT Development Services",
       description:
-        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
       isPartOf: {
         "@id": "https://protonest.co/#website",
       },
@@ -116,16 +103,20 @@ const homeJsonLd = {
         url: "https://protonest.co/og-image-home.png",
         width: 1200,
         height: 630,
+        caption: "Protonest IoT development services for global product teams",
       },
       mainEntity: {
         "@id": "https://protonest.co/#iot-development-services",
       },
+      inLanguage: "en",
     },
     {
       "@type": "Service",
       "@id": "https://protonest.co/#iot-development-services",
       name: "IoT Development Services",
       serviceType: "IoT development services",
+      description:
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
       provider: {
         "@id": "https://protonest.co/#organization",
       },
@@ -133,21 +124,6 @@ const homeJsonLd = {
         "@type": "Place",
         name: "Global",
       },
-      audience: {
-        "@type": "BusinessAudience",
-        audienceType:
-          "Global startups, companies, product teams, and engineering teams",
-      },
-      description:
-        "Protonest provides IoT development services across IoT product strategy, IoT hardware development, embedded systems, firmware, custom software, testing, product validation, IoT consulting, and post-launch support.",
-      serviceOutput: [
-        "IoT product development plan",
-        "IoT hardware design",
-        "Firmware and embedded systems",
-        "Cloud software and dashboards",
-        "Product testing and validation",
-        "IoT consulting and support",
-      ],
       hasOfferCatalog: {
         "@type": "OfferCatalog",
         name: "Protonest IoT Development Services",
@@ -158,7 +134,7 @@ const homeJsonLd = {
               "@type": "Service",
               name: "IoT Product Strategy",
               description:
-                "IoT product development planning, product design direction, feature scope, technical direction, and delivery roadmap support.",
+                "We will work with you to turn an early idea into a clear IoT product development plan that feels achievable and grounded from day one.",
             },
           },
           {
@@ -167,25 +143,25 @@ const homeJsonLd = {
               "@type": "Service",
               name: "IoT Hardware Development",
               description:
-                "IoT hardware, sensors, electronics, enclosures, and system architecture for connected products.",
+                "We design PCBs, enclosures, and product architecture that is reliable and easy to support in real use.",
             },
           },
           {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Firmware and Embedded Systems Development",
+              name: "Firmware Development",
               description:
-                "Embedded systems, firmware, device logic, communication modules, and sensor integrations for real product use.",
+                "We develop reliable firmware for embedded products, including device logic, sensor and actuator integration, communication protocols, and testing for real operating conditions.",
             },
           },
           {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Software and Dashboard Development",
+              name: "Software Development",
               description:
-                "Custom software solutions that connect IoT devices to cloud platforms, dashboards, mobile apps, and monitoring systems.",
+                "We build clean, dependable front-end and backend software that supports your IoT product.",
             },
           },
           {
@@ -194,7 +170,7 @@ const homeJsonLd = {
               "@type": "Service",
               name: "Testing and Product Validation",
               description:
-                "Connectivity, reliability, performance, power usage, and product readiness testing before launch.",
+                "We test your products for reliability and performance under realistic conditions before launch.",
             },
           },
           {
@@ -203,7 +179,7 @@ const homeJsonLd = {
               "@type": "Service",
               name: "IoT Consulting and Support",
               description:
-                "IoT consulting services for architecture decisions, product direction, troubleshooting, updates, and post-launch improvements.",
+                "We provide IoT consulting to help you make better product decisions, along with post-development support, updates, and improvements.",
             },
           },
         ],
