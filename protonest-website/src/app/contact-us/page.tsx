@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { CONTACT_DETAILS } from "@/lib/contact-details";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
@@ -34,6 +35,12 @@ const contactTestimonials = [
     avatar: "/profile-1.svg",
   },
 ];
+
+const addressIcons = {
+  us: "solar:global-bold",
+  office: "solar:buildings-2-bold",
+  hq: "solar:map-point-wave-bold",
+} as const;
 
 export default function Contact() {
   const formContainerRef = useRef<HTMLDivElement>(null);
@@ -187,7 +194,7 @@ export default function Contact() {
         </div>
 
         <div className="relative w-full max-w-[1440px] mx-auto h-auto mt-4 md:mt-8 pt-8">
-          <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[780px] lg:h-[780px] xl:h-[780px] 2xl:h-[585px] overflow-hidden">
+          <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[1100px] lg:h-[1100px] xl:h-[1050px] 2xl:h-[1000px] overflow-hidden">
             <div className="hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
                 src="/contact-3.svg"
@@ -210,54 +217,41 @@ export default function Contact() {
               <span className="text-[#6c6c6c]">Directly</span>
             </h2>
             <p className="max-w-[720px] mx-auto mt-4 sm:mt-5 md:mt-6 text-[13px] sm:text-[14px] md:text-[15px] font-normal font-poppins text-[#6c6c6c] leading-relaxed">
-              Contact Protonest by phone or email, or write to us at our
-              address. Use the contact form for project inquiries and technical
-              requirements.
+              Contact Protonest by phone or email, or write to us at one of our
+              addresses. Use the contact form for project inquiries and
+              technical requirements.
             </p>
           </div>
 
-          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 justify-items-center items-stretch gap-6 sm:gap-8 px-4 sm:px-8 md:px-12 lg:px-[60px] xl:px-[80px] 2xl:px-[40px]">
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:map-point-wave-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 justify-items-center items-stretch gap-6 sm:gap-8 px-4 sm:px-8 md:px-12 lg:px-[60px] xl:px-[80px] 2xl:px-[40px]">
+            {CONTACT_DETAILS.addresses.map((address) => (
+              <div
+                key={address.id}
+                className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] xl:col-span-2 bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden"
+              >
+                <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
+                  <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
+                    <Icon
+                      icon={addressIcons[address.id]}
+                      className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Headquarters
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[190px] sm:top-[200px] md:top-[240px] lg:top-[280px] text-center text-[#6c6c6c] text-[14px] xl:text-[20px] font-medium font-poppins px-2">
-                Kaduwela, Colombo,
-                <br />
-                Sri Lanka
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
-            </div>
-
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:buildings-2-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
+                <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
+                  {address.label}
                 </div>
+                <address className="absolute not-italic w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[190px] sm:top-[200px] md:top-[240px] lg:top-[280px] text-center text-[#6c6c6c] text-[14px] xl:text-[18px] font-medium font-poppins px-2">
+                  {address.lines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </address>
+                <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
               </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Office
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[190px] sm:top-[200px] md:top-[240px] lg:top-[280px] text-center text-[#6c6c6c] text-[14px] xl:text-[20px] font-medium font-poppins px-2">
-                392 Horana Rd,
-                <br />
-                Pannipitiya 10132
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
-            </div>
+            ))}
 
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
+            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] xl:col-span-2 xl:col-start-2 bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
               <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
                   <Icon
@@ -269,13 +263,16 @@ export default function Contact() {
               <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
                 Phone
               </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] text-[14px] xl:text-xl font-medium font-poppins">
-                +94 771 482 755
-              </div>
+              <a
+                href={CONTACT_DETAILS.phone.href}
+                className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] hover:text-[#5530FA] transition-colors text-[14px] xl:text-xl font-medium font-poppins"
+              >
+                {CONTACT_DETAILS.phone.display}
+              </a>
               <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
             </div>
 
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
+            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] xl:col-span-2 bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
               <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
                   <Icon
@@ -287,9 +284,12 @@ export default function Contact() {
               <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
                 Email
               </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] text-[14px] xl:text-xl font-medium font-poppins px-2">
-                info@protonest.co
-              </div>
+              <a
+                href={`mailto:${CONTACT_DETAILS.email}`}
+                className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] hover:text-[#5530FA] transition-colors text-[14px] xl:text-xl font-medium font-poppins px-2"
+              >
+                {CONTACT_DETAILS.email}
+              </a>
               <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
             </div>
           </div>

@@ -4,68 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-
-interface FooterLink {
-  label: string;
-  href: string;
-  external?: boolean;
-}
-
-interface FooterSection {
-  title: string;
-  links: FooterLink[];
-}
-
-const footerSections: FooterSection[] = [
-  {
-    title: "Navigate",
-    links: [{ label: "Home", href: "/" }],
-  },
-  {
-    title: "Industries",
-    links: [{ label: "Access Control", href: "/industries/access-control" }],
-  },
-  {
-    title: "Solutions",
-    links: [
-      {
-        label: "Protonest Connect",
-        href: "https://protonestconnect.co/",
-        external: true,
-      },
-      {
-        label: "Protonest Master",
-        href: "https://protonestmaster.co/",
-        external: true,
-      },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "/about" },
-      { label: "Careers", href: "/careers" },
-      { label: "Contact Us", href: "/contact-us" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Blog", href: "/blog" },
-      { label: "Projects", href: "/portfolio" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { label: "Privacy Policy", href: "/legal/privacy-policy" },
-      {
-        label: "Terms & Conditions",
-        href: "/legal/terms-and-conditions",
-      },
-    ],
-  },
-];
+import { CONTACT_DETAILS } from "@/lib/contact-details";
+import {
+  FOOTER_SECTIONS,
+  SITE_LINKS,
+  SOCIAL_LINKS,
+} from "@/lib/navigation";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -101,7 +45,7 @@ export default function Footer() {
 
   return (
     <>
-      <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[450px] xl:h-[520px] 2xl:h-[578px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
+      <div className="hidden lg:block w-full lg:px-[60px] xl:px-[133px] 2xl:px-[180px] lg:h-[500px] xl:h-[550px] 2xl:h-[600px] lg:mb-[50px] xl:mb-[60px] 2xl:mb-[70px]">
         <div className="rounded-b-[25px] relative h-full overflow-hidden">
           <div className="absolute inset-0 z-0">
             <video
@@ -139,7 +83,7 @@ export default function Footer() {
                 aria-label="Footer navigation"
                 className="grid w-full grid-cols-3 gap-x-8 gap-y-6 font-montserrat xl:grid-cols-6 xl:gap-x-7 2xl:gap-x-9"
               >
-                {footerSections.map((section) => (
+                {FOOTER_SECTIONS.map((section) => (
                   <div key={section.title}>
                     <h2 className="mb-3 text-[12px] font-medium text-[#4d4d4d] xl:text-[13px] 2xl:text-[14px]">
                       {section.title}
@@ -167,7 +111,7 @@ export default function Footer() {
             <div className="mt-6 grid grid-cols-[auto_1fr_auto] grid-rows-2 items-center gap-x-8 border-y border-white/30 py-5 xl:mt-7 xl:py-6 2xl:mt-8">
               <div className="contents">
                 <Link
-                  href="/"
+                  href={SITE_LINKS.home}
                   aria-label="Protonest home"
                   className="row-span-2"
                 >
@@ -183,21 +127,30 @@ export default function Footer() {
                   />
                 </Link>
 
-              <div className="col-start-2 row-start-2 mt-2 font-poppins text-[10px] text-[#6c6c6c] xl:max-w-[320px] xl:text-[11px] 2xl:max-w-none 2xl:text-[14px]">
-                503/A, Welivita Road, Kaduwela, Colombo, Sri Lanka. 10640
-              </div>
+                <div className="col-start-2 row-start-2 mt-3 grid grid-cols-3 gap-4 font-poppins text-[#6c6c6c]">
+                  {CONTACT_DETAILS.addresses.map((address) => (
+                    <address key={address.id} className="not-italic">
+                      <span className="mb-1 block text-[9px] font-medium text-[#4d4d4d] xl:text-[10px] 2xl:text-[11px]">
+                        {address.label}
+                      </span>
+                      <span className="block text-[9px] leading-relaxed xl:text-[10px] 2xl:text-[11px]">
+                        {address.formatted}
+                      </span>
+                    </address>
+                  ))}
+                </div>
 
-              <Link
-                href="/contact-us#book-a-call"
-                className="col-start-3 row-span-2 row-start-1 flex h-[36px] w-[120px] items-center justify-center rounded-[30px] border border-[#83848b] font-poppins text-[12px] text-[#83848b] transition-transform hover:scale-105 xl:h-[40px] xl:w-[135px] xl:text-[14px] 2xl:h-[44px] 2xl:w-[147px] 2xl:text-[16px]"
-              >
-                Book a Call
-              </Link>
-            </div>
+                <Link
+                  href={SITE_LINKS.bookCall}
+                  className="col-start-3 row-span-2 row-start-1 flex h-[36px] w-[120px] items-center justify-center rounded-[30px] border border-[#83848b] font-poppins text-[12px] text-[#83848b] transition-transform hover:scale-105 xl:h-[40px] xl:w-[135px] xl:text-[14px] 2xl:h-[44px] 2xl:w-[147px] 2xl:text-[16px]"
+                >
+                  Book a Call
+                </Link>
+              </div>
 
             <div className="col-start-2 row-start-1 flex h-[17px] w-auto cursor-pointer space-x-[15px] self-end text-[#4d4d4d] xl:space-x-[18px] 2xl:space-x-[20px]">
               <Link
-                href="https://lk.linkedin.com/company/protonestiot"
+                href={SOCIAL_LINKS.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
@@ -215,7 +168,7 @@ export default function Footer() {
                 </svg>
               </Link>
               <Link
-                href="https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about"
+                href={SOCIAL_LINKS.youtube}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
@@ -233,7 +186,7 @@ export default function Footer() {
                 </svg>
               </Link>
               <Link
-                href="https://x.com/ProtonestIoT"
+                href={SOCIAL_LINKS.x}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="X"
@@ -247,7 +200,7 @@ export default function Footer() {
                 </svg>
               </Link>
               <Link
-                href="https://www.facebook.com/profile.php?id=61562590660146"
+                href={SOCIAL_LINKS.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
@@ -274,7 +227,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="block lg:hidden w-full h-[760px] md:h-[850px] relative">
+      <div className="block lg:hidden w-full h-[900px] md:h-[920px] relative">
         <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
           <video
             autoPlay
@@ -319,13 +272,22 @@ export default function Footer() {
             />
           </div>
 
-          <div className="w-[211px] md:w-[280px] left-1/2 -translate-x-1/2 top-[535px] md:top-[620px] absolute text-center text-[#6c6c6c] text-xs md:text-sm font-normal font-poppins">
-            503/A, Welivita Road, Kaduwela, Colombo, Sri Lanka. 10640
+          <div className="absolute left-1/2 top-[530px] grid w-[270px] -translate-x-1/2 grid-cols-1 gap-3 text-center font-poppins text-[#6c6c6c] md:top-[620px] md:w-[620px] md:grid-cols-3 md:gap-5">
+            {CONTACT_DETAILS.addresses.map((address) => (
+              <address key={address.id} className="not-italic">
+                <span className="mb-1 block text-[11px] font-medium text-[#4d4d4d] md:text-xs">
+                  {address.label}
+                </span>
+                <span className="block text-[10px] leading-relaxed md:text-xs">
+                  {address.formatted}
+                </span>
+              </address>
+            ))}
           </div>
 
           <div className="left-1/2 -translate-x-1/2 top-[495px] md:top-[575px] absolute inline-flex justify-center items-center gap-[26px] md:gap-[32px]">
             <Link
-              href="https://lk.linkedin.com/company/protonestiot"
+              href={SOCIAL_LINKS.linkedin}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
@@ -343,7 +305,7 @@ export default function Footer() {
               </svg>
             </Link>
             <Link
-              href="https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about"
+              href={SOCIAL_LINKS.youtube}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="YouTube"
@@ -361,7 +323,7 @@ export default function Footer() {
               </svg>
             </Link>
             <Link
-              href="https://x.com/ProtonestIoT"
+              href={SOCIAL_LINKS.x}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="X"
@@ -375,7 +337,7 @@ export default function Footer() {
               </svg>
             </Link>
             <Link
-              href="https://www.facebook.com/profile.php?id=61562590660146"
+              href={SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -398,7 +360,7 @@ export default function Footer() {
             aria-label="Footer navigation"
             className="absolute left-1/2 top-[45px] grid w-[280px] -translate-x-1/2 grid-cols-2 gap-x-10 gap-y-6 md:top-[55px] md:w-[430px] md:gap-x-16 md:gap-y-7"
           >
-            {footerSections.map((section) => (
+            {FOOTER_SECTIONS.map((section) => (
               <div key={section.title}>
                 <h2 className="mb-2 font-montserrat text-sm font-medium text-[#4d4d4d] md:text-base">
                   {section.title}
@@ -426,8 +388,8 @@ export default function Footer() {
           />
 
           <Link
-            href="/contact-us#book-a-call"
-            className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[590px] md:top-[685px]"
+            href={SITE_LINKS.bookCall}
+            className="absolute w-[280px] md:w-[300px] left-1/2 -translate-x-1/2 top-[730px] md:top-[735px]"
           >
             <button className="w-full p-2.5 md:p-3 rounded-[30px] md:rounded-[35px] border border-[#83848b] inline-flex justify-center items-center gap-2.5 hover:scale-105">
               <div className="text-right text-[#83848b] text-sm md:text-base font-poppins leading-normal hover:scale-105">
@@ -438,10 +400,10 @@ export default function Footer() {
 
           <div
             aria-hidden="true"
-            className="absolute left-8 right-8 top-[665px] h-px bg-gradient-to-r from-transparent via-[#a3a3a3]/40 to-transparent md:left-12 md:right-12 md:top-[760px]"
+            className="absolute left-8 right-8 top-[805px] h-px bg-gradient-to-r from-transparent via-[#a3a3a3]/40 to-transparent md:left-12 md:right-12 md:top-[810px]"
           />
 
-          <div className="w-full px-4 md:px-8 left-1/2 -translate-x-1/2 top-[705px] md:top-[795px] absolute text-center bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent text-xs md:text-sm font-normal font-poppins leading-normal">
+          <div className="w-full px-4 md:px-8 left-1/2 -translate-x-1/2 top-[845px] md:top-[850px] absolute text-center bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text text-transparent text-xs md:text-sm font-normal font-poppins leading-normal">
             © 2023–{new Date().getFullYear()} Protonest. All rights reserved.
           </div>
         </div>
