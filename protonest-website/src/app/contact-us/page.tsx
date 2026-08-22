@@ -1,6 +1,5 @@
 "use client";
 import { Icon } from "@iconify/react";
-import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import FAQSection from "../components/faq";
@@ -114,51 +113,6 @@ export default function Contact() {
 
   return (
     <div>
-      <Head>
-        <title>Contact Us - Protonest</title>
-        <meta
-          name="description"
-          content="Contact Protonest's IoT prototyping team for project inquiries, consultations, or partnership opportunities. Book a Call to get started."
-        />
-        <meta
-          name="keywords"
-          content="IoT prototyping contact, Protonest email, IoT development consultation, hardware prototyping consultation"
-        />
-
-        <link rel="canonical" href="https://protonest.co/contact-us" />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://protonest.co/contact-us" />
-        <meta property="og:title" content="Contact Us - Protonest" />
-        <meta
-          property="og:description"
-          content="Get in touch with our IoT engineering team for prototyping services and project consultations."
-        />
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ContactPage",
-            name: "Contact Protonest",
-            description: "IoT prototyping consultation and inquiry form",
-            url: "https://protonest.co/contact-us",
-            contactPoint: {
-              "@type": "ContactPoint",
-              telephone: "+94 771 482 755",
-              email: "info@protonest.co",
-              contactType: "customer service",
-              areaServed: "Global",
-              availableLanguage: "English",
-            },
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: "392 Horana Rd, Pannipitiya 10132",
-              addressLocality: "Colombo",
-              addressCountry: "Sri Lanka",
-            },
-          })}
-        </script>
-      </Head>
       <Navbar />
       <div>
         <section className="relative w-full overflow-hidden">

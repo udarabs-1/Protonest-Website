@@ -767,7 +767,7 @@ export default function SignUp() {
                         </Link>
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-5 pb-5 border-b border-gray-200 text-center">
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign Up</span>
                         </h1>

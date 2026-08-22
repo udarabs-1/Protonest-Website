@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
@@ -190,25 +189,12 @@ const accessControlJsonLd = {
         url: "https://protonest.co/logo.webp",
       },
       description:
-        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, automobile, and other industries.",
+        "Protonest provides IoT development services for global startups, companies, and businesses across access control, manufacturing, and other industries.",
       sameAs: [
         "https://lk.linkedin.com/company/protonestiot",
         "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
         "https://x.com/ProtonestIoT",
         "https://www.facebook.com/profile.php?id=61562590660146",
-      ],
-      knowsAbout: [
-        "IoT development services",
-        "IoT product development",
-        "IoT hardware development",
-        "embedded systems development",
-        "firmware development",
-        "custom software solutions",
-        "IoT consulting services",
-        "access control IoT",
-        "industrial IoT monitoring",
-        "automotive IoT",
-        "wearable IoT",
       ],
     },
     {
@@ -225,9 +211,9 @@ const accessControlJsonLd = {
       "@type": "WebPage",
       "@id": "https://protonest.co/industries/access-control#webpage",
       url: "https://protonest.co/industries/access-control",
-      name: "Access Control IoT Development | Protonest",
+      name: "Access Control | IoT Development Services | Protonest",
       description:
-        "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
+        "Protonest provides IoT product development services to help companies in the access control industry build security-first smart systems.",
       isPartOf: {
         "@id": "https://protonest.co/#website",
       },
@@ -236,31 +222,42 @@ const accessControlJsonLd = {
       },
       primaryImageOfPage: {
         "@type": "ImageObject",
-        url: "https://protonest.co/protonest-opengraph-image.jpg",
+        url: "https://protonest.co/og-image-home.png",
         width: 1200,
         height: 630,
+        caption: "Protonest access control IoT development services",
       },
       breadcrumb: {
         "@id": "https://protonest.co/industries/access-control#breadcrumb",
       },
+      mainEntity: {
+        "@id": "https://protonest.co/industries/access-control#service",
+      },
+      inLanguage: "en",
     },
     {
       "@type": "Service",
       "@id": "https://protonest.co/industries/access-control#service",
-      name: "Access Control IoT Development",
+      name: "Access Control | IoT Development Services",
       serviceType: "IoT product development for access control systems",
+      description:
+        "Protonest provides IoT product development services to help companies in the access control industry build security-first smart systems.",
       provider: {
         "@id": "https://protonest.co/#organization",
       },
+      areaServed: {
+        "@type": "Place",
+        name: "Global",
+      },
       hasOfferCatalog: {
         "@type": "OfferCatalog",
-        name: "Access Control IoT Development Services",
+        name: "Access Control | Product Development Services",
         itemListElement: [
           {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Smart lock product development",
+              name: "Hardware design",
             },
           },
           {
@@ -274,21 +271,35 @@ const accessControlJsonLd = {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Mobile app development for access control products",
+              name: "Web dashboard development",
             },
           },
           {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "Dashboard development for access control products",
+              name: "Mobile app development",
             },
           },
           {
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
-              name: "IoT product testing",
+              name: "Cloud and backend development",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Security input",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Testing and product improvement",
             },
           },
         ],
@@ -307,12 +318,6 @@ const accessControlJsonLd = {
         {
           "@type": "ListItem",
           position: 2,
-          name: "Industries",
-          item: "https://protonest.co/industries",
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
           name: "Access Control",
           item: "https://protonest.co/industries/access-control",
         },
@@ -320,6 +325,7 @@ const accessControlJsonLd = {
     },
     {
       "@type": "FAQPage",
+      "@id": "https://protonest.co/industries/access-control#faq",
       mainEntity: FAQ_ITEMS.map((item) => ({
         "@type": "Question",
         name: item.question,
@@ -330,43 +336,6 @@ const accessControlJsonLd = {
       })),
     },
   ],
-};
-
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.protonest.co"),
-  title: "Access Control IoT Development | Protonest",
-  description:
-    "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
-  alternates: {
-    canonical: "https://www.protonest.co/industries/access-control",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    type: "website",
-    url: "https://www.protonest.co/industries/access-control",
-    siteName: "Protonest",
-    title: "Access Control IoT Development | Protonest",
-    description:
-      "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
-    images: [
-      {
-        url: "https://www.protonest.co/protonest-opengraph-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Protonest access control IoT development services",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Access Control IoT Development | Protonest",
-    description:
-      "Build smart locks, access control devices, firmware, mobile apps, cloud dashboards, and connected security products with Protonest.",
-    images: ["https://www.protonest.co/protonest-opengraph-image.jpg"],
-  },
 };
 
 /* -------------------------------------------------------------------------- */
