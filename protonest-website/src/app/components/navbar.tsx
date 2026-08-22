@@ -6,13 +6,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-type DropdownKey = "industries" | "company" | "resources";
+type DropdownKey = "industries" | "solutions" | "company" | "resources";
 
 interface DropdownItem {
   id: string;
   href: string;
   label: string;
   description: string;
+  external?: boolean;
   isConditional?: boolean;
 }
 
@@ -54,6 +55,23 @@ export default function Navbar() {
         label: "Access Control",
         description:
           "IoT product development for connected access control systems.",
+      },
+    ],
+    solutions: [
+      {
+        id: "solutions-protonest-connect",
+        href: "https://protonestconnect.co/",
+        label: "Protonest Connect",
+        description: "Launch and manage IoT systems without the backend hassle.",
+        external: true,
+      },
+      {
+        id: "solutions-protonest-master",
+        href: "https://protonestmaster.co/",
+        label: "Protonest Master",
+        description:
+          "Configure, deploy, and monitor connected industrial IoT devices.",
+        external: true,
       },
     ],
     company: [
@@ -179,6 +197,12 @@ export default function Navbar() {
       label: "Industries",
       hasDropdown: true,
       key: "industries",
+    },
+    {
+      href: "/solutions",
+      label: "Solutions",
+      hasDropdown: true,
+      key: "solutions",
     },
     { href: "/company", label: "Company", hasDropdown: true, key: "company" },
     {
@@ -467,74 +491,81 @@ export default function Navbar() {
             </div>
           </nav>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {activeDropdown && (
-              <>
-                <motion.div
-                  className="fixed inset-0 top-[100px] z-30 bg-transparent lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
-                  onClick={handleNavigation}
-                  initial="closed"
-                  animate="open"
-                  exit="closed"
-                  variants={overlayVariants}
-                  aria-hidden="true"
-                />
-
-                <motion.div
-                  key={activeDropdown}
-                  className="fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
-                  onMouseEnter={cancelDropdownClose}
-                  onMouseLeave={scheduleDropdownClose}
-                  initial="closed"
-                  animate="open"
-                  exit="closed"
-                  variants={dropdownVariants}
-                  role="menu"
-                  aria-label={`${activeDropdown} navigation`}
-                >
-                  <div className="absolute left-0 top-2 h-px w-full bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30" />
-
-                  <div className="container px-4 py-[35px] sm:px-8 md:px-16 lg:px-[100px] lg:py-[25px] xl:px-[133px] xl:py-[28px] 2xl:px-[180px] 2xl:py-[30px]">
-                    <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
-                      {dropdownItems[activeDropdown].map(
-                        (dropdownItem, index) => (
-                          <motion.div
-                            key={dropdownItem.id}
-                            custom={index}
-                            initial="closed"
-                            animate="open"
-                            exit="closed"
-                            variants={itemVariants}
-                            role="none"
-                          >
-                            <Link
-                              href={dropdownItem.href}
-                              className="group block w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px]"
-                              role="menuitem"
-                              onClick={(e) => {
-                                if (dropdownItem.isConditional) {
-                                  handleCareersClick(e);
-                                } else {
-                                  handleNavigation();
-                                }
-                              }}
-                            >
-                              <div className="mb-2 inline-block text-sm text-[#83848b] group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent lg:text-[15px] xl:text-base 2xl:text-lg">
-                                {dropdownItem.label}
-                              </div>
-                              <div className="text-xs leading-relaxed text-[#83848b] group-hover:text-black 2xl:text-sm">
-                                {dropdownItem.description}
-                              </div>
-                            </Link>
-                          </motion.div>
-                        ),
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              </>
+              <motion.div
+                className="fixed inset-0 top-[100px] z-30 bg-transparent lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
+                onClick={handleNavigation}
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={overlayVariants}
+                aria-hidden="true"
+              />
             )}
           </AnimatePresence>
+
+          {(Object.keys(dropdownItems) as DropdownKey[]).map((dropdownKey) => {
+            const isOpen = activeDropdown === dropdownKey;
+
+            return (
+              <motion.div
+                key={dropdownKey}
+                className={`fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px] ${
+                  isOpen
+                    ? "visible pointer-events-auto"
+                    : "invisible pointer-events-none"
+                }`}
+                onMouseEnter={cancelDropdownClose}
+                onMouseLeave={scheduleDropdownClose}
+                initial={false}
+                animate={isOpen ? "open" : "closed"}
+                variants={dropdownVariants}
+                role="menu"
+                aria-hidden={!isOpen}
+                aria-label={`${dropdownKey} navigation`}
+              >
+                <div className="absolute left-0 top-2 h-px w-full bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30" />
+
+                <div className="container px-4 py-[35px] sm:px-8 md:px-16 lg:px-[100px] lg:py-[25px] xl:px-[133px] xl:py-[28px] 2xl:px-[180px] 2xl:py-[30px]">
+                  <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
+                    {dropdownItems[dropdownKey].map((dropdownItem, index) => (
+                      <motion.div
+                        key={dropdownItem.id}
+                        custom={index}
+                        initial={false}
+                        animate={isOpen ? "open" : "closed"}
+                        variants={itemVariants}
+                        role="none"
+                      >
+                        <Link
+                          href={dropdownItem.href}
+                          className="group block w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px]"
+                          role="menuitem"
+                          target={dropdownItem.external ? "_blank" : undefined}
+                          rel={dropdownItem.external ? "noopener" : undefined}
+                          onClick={(e) => {
+                            if (dropdownItem.isConditional) {
+                              handleCareersClick(e);
+                            } else {
+                              handleNavigation();
+                            }
+                          }}
+                        >
+                          <div className="mb-2 inline-block text-sm text-[#83848b] group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent lg:text-[15px] xl:text-base 2xl:text-lg">
+                            {dropdownItem.label}
+                          </div>
+                          <div className="text-xs leading-relaxed text-[#83848b] group-hover:text-black 2xl:text-sm">
+                            {dropdownItem.description}
+                          </div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
 
           <div className="pt-[100px] lg:pt-[105px] xl:pt-[115px] 2xl:pt-[125px]"></div>
         </div>
@@ -819,6 +850,8 @@ export default function Navbar() {
                                         key={dropdownItem.id}
                                         href={dropdownItem.href}
                                         className="group block origin-left transition-transform hover:scale-105"
+                                        target={dropdownItem.external ? "_blank" : undefined}
+                                        rel={dropdownItem.external ? "noopener" : undefined}
                                         onClick={(e) => {
                                           if (dropdownItem.isConditional) {
                                             handleCareersClick(e);
