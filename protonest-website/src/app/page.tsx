@@ -428,14 +428,15 @@ function FeaturedTestimonial() {
             <blockquote>
               <p className="text-[15px] lg:text-[17px] font-normal font-poppins text-[#333333] leading-relaxed italic">
                 &#8220;We&#8217;ve worked with Udara and the Protonest team on
-                cloud- and mobile-based access control and intercom projects.
+                cloud and mobile-based access control and intercom projects.
                 What stands out most is how easy they are to work with.
                 They&#8217;re collaborative, flexible, and genuinely invested in
-                the product and business goals. Communication has been
-                excellent, the work consistently strong, and they&#8217;ve become a
-                trusted partner in our development process. I&#8217;m happy to
-                recommend Udara and the Protonest team as reliable development
-                partners.&#8221;
+                the product and business goals.
+                <br /> <br />
+                Communication has been excellent, the work consistently strong,
+                and they&#8217;ve become a trusted partner in our development
+                process. I&#8217;m happy to recommend Udara and the Protonest
+                team as reliable development partners.&#8221;
               </p>
             </blockquote>
           </div>
