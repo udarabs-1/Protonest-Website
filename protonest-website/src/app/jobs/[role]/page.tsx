@@ -1,6 +1,7 @@
 'use client';
 
 import Footer from '@/app/components/footer';
+import JobRoleNavigation from '@/app/components/job-role-navigation';
 import Navbar from '@/app/components/navbar';
 import PageHero from '@/app/components/page-hero';
 import Image from 'next/image';
@@ -468,6 +469,14 @@ export default function RolePage() {
             />
 
             <main className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-0 pb-8 sm:py-12 lg:py-16">
+                <section aria-labelledby="job-category-navigation-title" className="mb-10 lg:mb-14">
+                    <h2 id="job-category-navigation-title" className="sr-only">Browse jobs by category</h2>
+                    <JobRoleNavigation
+                        activeRole={roleKey}
+                        className="w-full max-w-[1127px] mx-auto"
+                    />
+                </section>
+
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     <aside className="w-full lg:w-1/4 hidden lg:block">

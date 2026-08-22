@@ -188,8 +188,8 @@ export default function Contact() {
         </div>
 
         <div className="relative w-full h-auto mt-4 md:mt-8 pt-8">
-          <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[1100px] lg:h-[1100px] xl:h-[1050px] 2xl:h-[1000px] overflow-hidden">
-            <div className="hidden md:block max-w-[1440px] mr-auto h-full">
+          <div className="pointer-events-none absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[1100px] lg:h-[1100px] xl:h-[1050px] 2xl:h-[1000px] overflow-hidden">
+            <div className="relative hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
                 src="/contact-3.svg"
                 alt="Contact cards background"

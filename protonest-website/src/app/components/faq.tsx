@@ -86,7 +86,7 @@ function FAQItem({ faq, isOpen, onToggle }: FAQItemProps) {
           onClick={onToggle}
           aria-expanded={isOpen}
           aria-controls={panelId}
-          className="group flex w-full items-center justify-between gap-5 py-5 text-left md:py-6"
+          className="group flex w-full items-center justify-between gap-5 rounded-sm py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4 md:py-6"
         >
           <span
             className={`font-poppins text-sm font-normal leading-relaxed transition-colors duration-300 lg:text-[15px] xl:text-base ${
@@ -101,7 +101,7 @@ function FAQItem({ faq, isOpen, onToggle }: FAQItemProps) {
           <ChevronDown
             aria-hidden="true"
             strokeWidth={1.8}
-            className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
+            className={`h-5 w-5 flex-shrink-0 transition-all duration-300 motion-reduce:transition-none ${
               isOpen
                 ? "rotate-180 text-[#5530FA]"
                 : "text-[#6C6C6C] group-hover:text-[#5530FA]"
@@ -114,16 +114,12 @@ function FAQItem({ faq, isOpen, onToggle }: FAQItemProps) {
         id={panelId}
         role="region"
         aria-labelledby={buttonId}
-        aria-hidden={!isOpen}
-        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
-          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-        }`}
+        hidden={!isOpen}
+        className="animate-[faq-reveal_200ms_ease-out] motion-reduce:animate-none"
       >
-        <div className="overflow-hidden">
-          <p className="max-w-[800px] pb-5 pr-10 font-poppins text-sm font-normal leading-relaxed text-[#6C6C6C] md:pb-6 lg:text-[15px] xl:text-base">
-            {faq.answer}
-          </p>
-        </div>
+        <p className="max-w-[800px] pb-5 pr-10 font-poppins text-sm font-normal leading-relaxed text-[#6C6C6C] md:pb-6 lg:text-[15px] xl:text-base">
+          {faq.answer}
+        </p>
       </div>
     </div>
   );
@@ -144,23 +140,21 @@ export default function FAQSection() {
   }, []);
 
   const scrollToGetInTouch = useCallback(() => {
-    const getInTouchSection =
-      document.querySelector("form") ||
-      document.querySelector('[data-section="get-in-touch"]');
+    const getInTouchSection = document.getElementById("get-in-touch");
 
     if (!getInTouchSection) return;
 
     const elementRect = getInTouchSection.getBoundingClientRect();
     const elementTop = elementRect.top + window.pageYOffset;
     const navbarHeight = getNavbarHeight();
-    const viewportHeight = window.innerHeight;
-    const elementHeight = elementRect.height;
-    const centerOffset = (viewportHeight - elementHeight) / 2;
-    const scrollToPosition = elementTop - navbarHeight - centerOffset;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const scrollToPosition = Math.max(0, elementTop - navbarHeight - 24);
 
     window.scrollTo({
       top: scrollToPosition,
-      behavior: "smooth",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
   }, [getNavbarHeight]);
 
@@ -191,7 +185,7 @@ export default function FAQSection() {
           <button
             type="button"
             onClick={scrollToGetInTouch}
-            className="mt-6 cursor-pointer font-poppins text-base font-normal text-[rgba(108,108,108,1)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] hover:bg-clip-text hover:text-transparent xl:text-[18px]"
+            className="mt-6 cursor-pointer rounded-sm font-poppins text-base font-normal text-[rgba(108,108,108,1)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] hover:bg-clip-text hover:text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4 motion-reduce:transition-none xl:text-[18px]"
             aria-label="Navigate to contact form"
           >
             <span className="underline hover:underline-offset-0">
