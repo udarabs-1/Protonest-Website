@@ -211,7 +211,7 @@ const industries = [
     image: "/manufacturing.png",
     alt: "Protonest industrial IoT monitoring and factory automation support",
     description:
-      "We support industrial monitoring and predictive maintenance systems that help teams track factory performance.",
+      "We support industrial monitoring and predictive maintenance to help teams track factory performance.",
   },
   {
     slug: "automotive",
