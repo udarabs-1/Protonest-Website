@@ -43,9 +43,9 @@ const TestimonialSection = () => {
     },
     {
       id: 5,
-      name: "Oliver Ashbee",
-      company: "entryphone, UK",
-      text: "I’ve worked with Protonest on a development project and have been really impressed by their technical ability, clear communication, and professional approach. Everything has been handled carefully and to a high standard.",
+      name: "Oliver Ashby",
+      company: "Entryphone Company, UK",
+      text: "The Protonest team is collaborative, flexible, and genuinely invested in our product and business goals. Communication has been excellent, the work consistently strong, and they have become a trusted partner in our development process.",
       avatar: "/profile-1.svg",
     },
     {
@@ -84,7 +84,7 @@ const TestimonialSection = () => {
     pauseOnFocus: false,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
   };
 
   const desktopCarouselSettings = {
@@ -99,7 +99,7 @@ const TestimonialSection = () => {
     pauseOnHover: true,
     swipeToSlide: true,
     touchThreshold: 10,
-    cssEase: 'ease-in-out',
+    cssEase: "ease-in-out",
     responsive: [
       {
         breakpoint: 1280,
@@ -154,9 +154,9 @@ const TestimonialSection = () => {
 
       <div className="relative z-10 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
         <SectionHeader
-          prefix="Innovation Backed by"
-          highlight="Experience"
-          description="Words from those who've experienced our process, people, and product delivery first-hand."
+          prefix="What Our Clients"
+          highlight="Say"
+          description="How customers describe the engineering services offered by Protonest."
           align="center"
         />
 
@@ -203,7 +203,7 @@ const TestimonialSection = () => {
           <Link href="/contact-us">
             <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
               <span className="text-white text-sm md:text-base font-medium">
-                Contact Us
+                Book a Call
               </span>
             </button>
           </Link>
@@ -213,7 +213,7 @@ const TestimonialSection = () => {
   );
 };
 
-const TestimonialCard = ({
+export const TestimonialCard = ({
   name,
   company,
   text,
@@ -232,10 +232,10 @@ const TestimonialCard = ({
 }) => {
   const cardProps = isMobile
     ? {
-      onTouchStart: onInteractionStart,
-      onTouchEnd: onInteractionEnd,
-      onTouchMove: onInteractionStart,
-    }
+        onTouchStart: onInteractionStart,
+        onTouchEnd: onInteractionEnd,
+        onTouchMove: onInteractionStart,
+      }
     : {};
 
   return (
@@ -276,6 +276,60 @@ const TestimonialCard = ({
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+type TestimonialMarqueeItem = {
+  name: string;
+  company: string;
+  text: string;
+  avatar: string;
+};
+
+export const TestimonialMarquee = ({
+  testimonials,
+}: {
+  testimonials: TestimonialMarqueeItem[];
+}) => {
+  const settings = {
+    dots: false,
+    infinite: testimonials.length > 1,
+    speed: 600,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    autoplay: testimonials.length > 1,
+    autoplaySpeed: 3500,
+    pauseOnHover: true,
+    pauseOnFocus: true,
+    swipeToSlide: true,
+    touchThreshold: 10,
+    cssEase: "ease-in-out",
+  };
+
+  return (
+    <div
+      className="mr-auto w-full max-w-[550px]"
+      role="region"
+      aria-label="Client testimonials"
+      aria-live="off"
+    >
+      <Slider {...settings}>
+        {testimonials.map((testimonial) => (
+          <div
+            key={`${testimonial.name}-${testimonial.company}`}
+            className="px-2 pb-5"
+          >
+            <TestimonialCard
+              name={testimonial.name}
+              company={testimonial.company}
+              text={testimonial.text}
+              avatar={testimonial.avatar}
+            />
+          </div>
+        ))}
+      </Slider>
     </div>
   );
 };

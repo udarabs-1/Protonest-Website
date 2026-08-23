@@ -17,7 +17,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "IoT Development Services by Protonest",
+  metadataBase: new URL("https://protonest.co"),
+  title: "Protonest",
 };
 
 export const viewport = {

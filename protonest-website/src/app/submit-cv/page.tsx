@@ -747,7 +747,11 @@ export default function OnboardingPage() {
                     <LoadingSpinner />
                 </div>
                 <div className="text-center text-[#6c6c6c] text-sm sm:text-base md:text-lg font-normal font-poppins leading-[25px] sm:leading-[28px] md:leading-[30px]">
-                    Thanks for uploading your CV!<br />Parsing your CV to match your areas of expertise
+                    {pendingJob ? (
+                        <>Thanks for uploading your CV!</>
+                    ) : (
+                        <>Thanks for uploading your CV!<br />Parsing your CV to match your areas of expertise</>
+                    )}
                 </div>
             </div>
         </ModalWrapper>

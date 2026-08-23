@@ -134,7 +134,7 @@ const CustomCheckbox = ({
                 <Check size={16} className="text-white" strokeWidth={3} />
             )}
         </div>
-        <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-normal font-['Poppins'] leading-relaxed">{label}</span>
+        <span className="text-gray-600 text-sm font-normal font-['Poppins'] leading-relaxed">{label}</span>
     </button>
 );
 
@@ -154,6 +154,13 @@ export default function SignUp() {
     const [pendingJob, setPendingJob] = useState<PendingJobApplication | null>(null);
     const [googleLoadError, setGoogleLoadError] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
+    const [showAccountCreatedModal, setShowAccountCreatedModal] = useState<boolean>(false);
+    const [showGoogleConsentModal, setShowGoogleConsentModal] = useState<boolean>(false);
+    const [googleTermsConsent, setGoogleTermsConsent] = useState<boolean>(false);
+    const [googleNewsletterConsent, setGoogleNewsletterConsent] = useState<boolean>(false);
+    const [googleJobUpdatesConsent, setGoogleJobUpdatesConsent] = useState<boolean>(false);
+    const [pendingGoogleCredential, setPendingGoogleCredential] = useState<{ credential: string; email: string; firstName: string; lastName: string; googleId: string } | null>(null);
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
 
     const apiConfig = useMemo(() => ({
         apiUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -222,22 +229,38 @@ export default function SignUp() {
 
     const handleGoogleSignUp = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignUp called - SIGNUP flow');
-        setIsLoading(true);
         setError('');
 
         try {
             const payload: DecodedGooglePayload = JSON.parse(atob(response.credential.split('.')[1]));
 
-            const googleUserData = {
+            setPendingGoogleCredential({
+                credential: response.credential,
                 email: payload.email,
                 firstName: payload.given_name || '',
                 lastName: payload.family_name || '',
                 googleId: payload.sub,
-                verified: payload.email_verified
-            };
+            });
+            setGoogleTermsConsent(false);
+            setGoogleNewsletterConsent(false);
+            setGoogleJobUpdatesConsent(false);
+            setShowGoogleConsentModal(true);
+        } catch (error) {
+            console.error('Google signup error:', error);
+            setError('Google signup failed. Please try again.');
+        }
+    }, []);
 
-            console.log('Google user data:', googleUserData);
+    const handleGoogleConsentConfirm = useCallback(async (): Promise<void> => {
+        if (!pendingGoogleCredential) return;
 
+        setShowGoogleConsentModal(false);
+        setIsLoading(true);
+        setError('');
+
+        const { credential, email: gEmail, firstName: gFirst, lastName: gLast, googleId } = pendingGoogleCredential;
+
+        try {
             console.log('Calling SIGNUP API:', `${apiConfig.apiUrl}/api/v1/auth/google-signup`);
 
             const pendingJobStr = localStorage.getItem('pendingJobApplication');
@@ -252,18 +275,18 @@ export default function SignUp() {
                         skipTalentPool = true;
                         jobId = pendingJobData.jobId;
                     }
-                } catch (error) {
-                    console.error('Error parsing pending job application:', error);
+                } catch (err) {
+                    console.error('Error parsing pending job application:', err);
                 }
             }
 
             const requestData = {
-                first_name: googleUserData.firstName,
-                last_name: googleUserData.lastName,
-                email: googleUserData.email,
-                google_id: googleUserData.googleId,
-                job_updates: true,
-                newsletter: true,
+                first_name: gFirst,
+                last_name: gLast,
+                email: gEmail,
+                google_id: googleId,
+                job_updates: googleJobUpdatesConsent,
+                newsletter: googleNewsletterConsent,
                 skip_talent_pool: skipTalentPool,
                 oauth_provider: 'google',
                 ...(jobId && { job_id: jobId })
@@ -271,13 +294,8 @@ export default function SignUp() {
 
             const signupResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/google-signup`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...requestData,
-                    id_token: response.credential
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...requestData, id_token: credential }),
             });
 
             const signupData = await signupResponse.json();
@@ -298,35 +316,30 @@ export default function SignUp() {
                 localStorage.setItem('userData', JSON.stringify(signupData.data.user));
             }
 
-            try {
-
-                const fullName = googleUserData.lastName
-                    ? `${googleUserData.firstName} ${googleUserData.lastName}`.trim()
-                    : googleUserData.firstName;
-
-                const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: fullName,
-                        email: googleUserData.email,
-                        career_updates: true,
-                        newsletter: true
-                    }),
-                });
-
-                const subscriptionData = await subscriptionResponse.json();
-
-                if (!subscriptionResponse.ok) {
-                    console.warn('Subscription creation failed:', subscriptionData.message);
+            if (googleJobUpdatesConsent || googleNewsletterConsent) {
+                try {
+                    const fullName = gLast ? `${gFirst} ${gLast}`.trim() : gFirst;
+                    const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: fullName,
+                            email: gEmail,
+                            career_updates: googleJobUpdatesConsent,
+                            newsletter: googleNewsletterConsent
+                        }),
+                    });
+                    const subscriptionData = await subscriptionResponse.json();
+                    if (!subscriptionResponse.ok) {
+                        console.warn('Subscription creation failed:', subscriptionData.message);
+                    }
+                } catch (subscriptionError) {
+                    console.warn('Subscription error:', subscriptionError);
                 }
-            } catch (subscriptionError) {
-                console.warn('Subscription error:', subscriptionError);
             }
 
-            window.location.replace('/submit-cv');
+            setPendingGoogleCredential(null);
+            setShowAccountCreatedModal(true);
 
         } catch (error) {
             console.error('Google signup error:', error);
@@ -334,7 +347,7 @@ export default function SignUp() {
         } finally {
             setIsLoading(false);
         }
-    }, [apiConfig.apiUrl]);
+    }, [pendingGoogleCredential, googleJobUpdatesConsent, googleNewsletterConsent, apiConfig.apiUrl]);
 
     const handleGoogleSignUpRef = useRef(handleGoogleSignUp);
 
@@ -503,24 +516,30 @@ export default function SignUp() {
         }
     }, [googleLoadError]);
 
-    const handleSignUp = useCallback(async (): Promise<void> => {
+    const validateForm = useCallback((): boolean => {
         setError('');
-
         if (!email || !password || !confirmPassword || !firstName || !lastName || !agreedToTerms) {
             setError('Please fill in all required fields');
-            return;
+            return false;
         }
-
         if (password.length < 8) {
             setError('Password must be at least 8 characters');
-            return;
+            return false;
         }
-
         if (password !== confirmPassword) {
             setError('Passwords do not match');
-            return;
+            return false;
         }
+        return true;
+    }, [email, password, confirmPassword, firstName, lastName, agreedToTerms]);
 
+    const handleSignUpClick = useCallback(() => {
+        if (!validateForm()) return;
+        setShowSubscriptionModal(true);
+    }, [validateForm]);
+
+    const handleSignUp = useCallback(async (): Promise<void> => {
+        setShowSubscriptionModal(false);
         setIsLoading(true);
 
         try {
@@ -554,9 +573,7 @@ export default function SignUp() {
 
             const signupResponse = await fetch(`${apiConfig.apiUrl}/api/v1/auth/signup`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData),
             });
 
@@ -581,9 +598,7 @@ export default function SignUp() {
                 try {
                     const subscriptionResponse = await fetch(`${apiConfig.apiUrl}/api/v1/public/subscribe`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             name: `${firstName} ${lastName}`,
                             email: email,
@@ -591,9 +606,7 @@ export default function SignUp() {
                             newsletter: newsletter
                         }),
                     });
-
                     const subscriptionData = await subscriptionResponse.json();
-
                     if (!subscriptionResponse.ok) {
                         console.warn('Subscription creation failed:', subscriptionData.message);
                     }
@@ -602,7 +615,7 @@ export default function SignUp() {
                 }
             }
 
-            window.location.replace('/submit-cv');
+            setShowAccountCreatedModal(true);
 
         } catch (error) {
             console.error('Signup error:', error);
@@ -610,7 +623,7 @@ export default function SignUp() {
         } finally {
             setIsLoading(false);
         }
-    }, [firstName, lastName, email, password, confirmPassword, agreedToTerms, jobUpdates, newsletter, apiConfig.apiUrl]);
+    }, [firstName, lastName, email, password, confirmPassword, jobUpdates, newsletter, apiConfig.apiUrl]);
 
     const isFormValid = useMemo(() => {
         return email.trim() !== '' &&
@@ -621,481 +634,265 @@ export default function SignUp() {
             agreedToTerms;
     }, [email, password, confirmPassword, firstName, lastName, agreedToTerms]);
 
-    const getTitle = useCallback((): React.ReactElement => {
-        if (pendingJob) {
-            return (
-                <>
-                    <span className="text-gray-400">Join the </span>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest </span>
-                    <span className="text-gray-400">Team</span>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <span className="text-gray-400">Join the </span>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Protonest </span>
-                    <span className="text-gray-400">Talent Pool</span>
-                </>
-            );
-        }
-    }, [pendingJob]);
 
     return (
-        <div className="bg-white">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
-
-            <div className="block lg:hidden">
-                <div className="relative w-full min-h-screen bg-white">
-
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
+            {showAccountCreatedModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                        <div className="text-center">
+                            <div className="mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-[#5530fa] to-[#f51da5] flex items-center justify-center mx-auto">
+                                <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-800 mb-3 font-['Montserrat']">Your Account has been Created!</h3>
+                            <p className="text-gray-500 mb-6 font-['Poppins'] text-sm">Welcome to Protonest. Let&apos;s get your profile set up.</p>
+                            <button
+                                onClick={() => { setShowAccountCreatedModal(false); window.location.replace('/submit-cv'); }}
+                                className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200"
+                            >
+                                Continue
+                            </button>
                         </div>
-                    </div>
-
-
-                    <div className="absolute left-0 top-64 w-10 h-72 bg-gradient-to-r from-white/0 to-white sm:hidden pointer-events-none" />
-                    <div className="absolute left-0 top-96 w-10 h-60 bg-gradient-to-r from-white/0 to-white hidden sm:block md:hidden pointer-events-none" />
-
-
-                    <div className="relative z-10 pb-8">
-
-                        <header className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Link href="/">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={112}
-                                    height={80}
-                                    priority
-                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
-                                />
-                            </Link>
-                        </header>
-
-
-                        <main className="px-4 sm:px-8 md:px-16 pt-8 sm:pt-12 md:pt-16">
-
-                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-6 sm:mb-8 md:mb-10">
-                                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
-                                    {getTitle()}
-                                </h1>
-                            </div>
-
-
-                            <form className="w-full pr-2 space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
-
-                                <button
-                                    type="button"
-                                    onClick={handleGoogleSignUpClick}
-                                    disabled={isLoading || googleLoadError}
-                                    className="w-full h-14 sm:h-16 md:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 sm:gap-5 md:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    aria-label="Sign up with Google"
-                                >
-                                    <Image
-                                        src="/google.svg"
-                                        alt=""
-                                        width={40}
-                                        height={40}
-                                        className="w-8 h-8 sm:w-10 sm:h-10"
-                                    />
-                                    <span className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                        {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
-                                    </span>
-                                </button>
-
-
-                                <div className="flex items-center space-x-4 my-6 sm:my-8">
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                    <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">or continue</span>
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                </div>
-
-
-                                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                                    <div className="w-full sm:w-1/2 h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                        <input
-                                            type="text"
-                                            placeholder="First Name"
-                                            value={firstName}
-                                            onChange={handleFirstNameChange}
-                                            className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
-                                            required
-                                            aria-label="First Name"
-                                        />
-                                    </div>
-                                    <div className="w-full sm:w-1/2 h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                        <input
-                                            type="text"
-                                            placeholder="Last Name"
-                                            value={lastName}
-                                            onChange={handleLastNameChange}
-                                            className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
-                                            required
-                                            aria-label="Last Name"
-                                        />
-                                    </div>
-                                </div>
-
-
-                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        value={email}
-                                        onChange={handleEmailChange}
-                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
-                                        required
-                                        aria-label="Email"
-                                    />
-                                </div>
-
-
-                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Password with 8 or more characters"
-                                        value={password}
-                                        onChange={handlePasswordChange}
-                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
-                                        required
-                                        aria-label="Password"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={togglePassword}
-                                        className="text-gray-400 cursor-pointer"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                    >
-                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-
-
-                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Re-enter password"
-                                        value={confirmPassword}
-                                        onChange={handleConfirmPasswordChange}
-                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] outline-none"
-                                        required
-                                        aria-label="Confirm Password"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={toggleConfirmPassword}
-                                        className="text-gray-400 cursor-pointer"
-                                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                                    >
-                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-
-
-                                <div className="space-y-2">
-                                    <CustomCheckbox
-                                        checked={jobUpdates}
-                                        onChange={() => setJobUpdates(prev => !prev)}
-                                        label="Subscribe to our careers page and receive updates of future job postings via email."
-                                    />
-                                </div>
-
-
-                                <div className="space-y-2">
-                                    <CustomCheckbox
-                                        checked={newsletter}
-                                        onChange={() => setNewsletter(prev => !prev)}
-                                        label="Subscribe to the Protonest Newsletter and receive updates on recent news and blog posts."
-                                    />
-                                </div>
-
-
-                                <div className="space-y-2">
-                                    <CustomCheckbox
-                                        checked={agreedToTerms}
-                                        onChange={toggleAgreedToTerms}
-                                        label={(
-                                            <span>
-                                                I understand and agree to the{' '}
-                                                <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">
-                                                    Protonest Terms and Conditions
-                                                </Link>{' '}
-                                                and{' '}
-                                                <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">
-                                                    Privacy Policy
-                                                </Link>
-                                            </span>
-                                        )}
-                                    />
-                                </div>
-
-
-                                {error && (
-                                    <div className="text-red-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']" role="alert">
-                                        {error}
-                                    </div>
-                                )}
-                            </form>
-
-
-                            <div className="mt-6">
-                                <button
-                                    onClick={handleSignUp}
-                                    disabled={isLoading || !isFormValid}
-                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] outline outline-offset-[-1px] text-white text-base sm:text-lg md:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? 'Processing...' : 'Continue to Upload the CV to Sign Up'}
-                                </button>
-                            </div>
-
-
-                            <div className="w-full mt-6 sm:mt-8 md:mt-10">
-                                <div className="text-center">
-                                    <span className="text-gray-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">Already have an account? </span>
-                                    <Link href="/signin" className="text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
-                                        Sign In
-                                    </Link>
-                                </div>
-                            </div>
-                        </main>
                     </div>
                 </div>
-            </div>
+            )}
+
+            {showSubscriptionModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl px-8 py-8 max-w-md w-full shadow-2xl">
+                        <div className="flex items-start justify-between mb-5">
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-800 font-['Montserrat']">Stay in the Loop</h3>
+                                <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Choose what updates you&apos;d like to receive</p>
+                            </div>
+                            <button
+                                onClick={() => setShowSubscriptionModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer mt-0.5 ml-4 flex-shrink-0"
+                                aria-label="Close and go back to form"
+                            >
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                            </button>
+                        </div>
+                        <div className="space-y-4 mb-6">
+                            <CustomCheckbox
+                                checked={jobUpdates}
+                                onChange={() => setJobUpdates(prev => !prev)}
+                                label="Career updates — get notified about future job postings."
+                            />
+                            <CustomCheckbox
+                                checked={newsletter}
+                                onChange={() => setNewsletter(prev => !prev)}
+                                label="Protonest newsletter — news, blog posts and product updates."
+                            />
+                        </div>
+                        <button
+                            onClick={handleSignUp}
+                            className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-['Poppins'] hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+                        >
+                            Continue
+                        </button>
+                    </div>
+                </div>
+            )}
 
 
-            <div className="hidden lg:block">
-                <div className="relative w-full min-h-screen bg-white">
 
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
+            {showGoogleConsentModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl px-8 py-8 max-w-md w-full shadow-2xl">
+                        <div className="mb-5">
+                            <h3 className="text-xl font-semibold text-gray-800 font-['Montserrat']">Almost there!</h3>
+                            <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Please confirm your preferences before creating your account.</p>
+                        </div>
+                        <div className="space-y-4 mb-6">
+                            <CustomCheckbox
+                                checked={googleTermsConsent}
+                                onChange={() => setGoogleTermsConsent(prev => !prev)}
+                                label={
+                                    <span>
+                                        I agree to the{' '}
+                                        <a href="/legal/terms-and-conditions" target="_blank" className="text-[#5530fa] hover:underline">Terms &amp; Conditions</a>
+                                        {' '}and{' '}
+                                        <a href="/legal/privacy-policy" target="_blank" className="text-[#5530fa] hover:underline">Privacy Policy</a>
+                                    </span>
+                                }
+                            />
+                            <CustomCheckbox
+                                checked={googleJobUpdatesConsent}
+                                onChange={() => setGoogleJobUpdatesConsent(prev => !prev)}
+                                label="Career updates — get notified about future job postings."
+                            />
+                            <CustomCheckbox
+                                checked={googleNewsletterConsent}
+                                onChange={() => setGoogleNewsletterConsent(prev => !prev)}
+                                label="Protonest newsletter — news, blog posts and product updates."
+                            />
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowGoogleConsentModal(false); setPendingGoogleCredential(null); }}
+                                className="flex-1 h-12 border border-gray-200 rounded-full text-gray-500 text-sm font-medium font-['Poppins'] hover:border-gray-300 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleGoogleConsentConfirm}
+                                disabled={!googleTermsConsent || isLoading}
+                                className="flex-1 h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-['Poppins'] hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Creating...' : 'Agree & Continue'}
+                            </button>
                         </div>
                     </div>
+                </div>
+            )}
 
+            <div className="absolute top-[-120px] left-[-80px] w-[400px] h-[400px] bg-gradient-to-br from-[#5530FA]/15 to-[#F51DA5]/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
 
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
+            <div className="relative z-10 w-full max-w-md">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-5">
+                        <Link href="/">
+                            <Image
+                                src="/logo.webp"
+                                alt="Protonest Logo"
+                                width={112}
+                                height={80}
+                                priority
+                                className="w-24 h-auto object-contain cursor-pointer"
+                            />
+                        </Link>
+                    </div>
 
-                        <div className="flex flex-col justify-center items-center min-h-screen">
-                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
+                    <div className="mb-5 pb-5 border-b border-gray-200 text-center">
+                        <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign Up</span>
+                        </h1>
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Welcome to ProtonestHR Portal!</p>
+                    </div>
 
-                                <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Link href="/">
-                                        <Image
-                                            src="/logo.webp"
-                                            alt="Protonest Logo"
-                                            width={112}
-                                            height={80}
-                                            priority
-                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
-                                        />
-                                    </Link>
-                                </header>
+                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSignUpClick(); }}>
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignUpClick}
+                            disabled={isLoading || googleLoadError}
+                            className="w-full h-12 px-6 rounded-full gradient-button flex items-center justify-center gap-3 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                            aria-label="Sign up with Google"
+                        >
+                            <Image src="/google.svg" alt="" width={20} height={20} className="w-5 h-5" />
+                            <span className="text-gray-600 text-sm font-medium font-['Poppins']">
+                                {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
+                            </span>
+                        </button>
 
-
-                                <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-medium font-['Montserrat'] leading-tight">
-                                        {getTitle()}
-                                    </h1>
-                                </div>
-
-
-                                <form className="max-w-2xl space-y-4 lg:space-y-3 xl:space-y-4 2xl:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleGoogleSignUpClick}
-                                        disabled={isLoading || googleLoadError}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-6 py-4 rounded-[57px] gradient-button inline-flex justify-center items-center gap-4 lg:gap-3 xl:gap-4 2xl:gap-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        aria-label="Sign up with Google"
-                                    >
-                                        <Image
-                                            src="/google.svg"
-                                            alt=""
-                                            width={48}
-                                            height={48}
-                                            className="w-9 h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 2xl:w-12 2xl:h-12"
-                                        />
-                                        <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
-                                        </span>
-                                    </button>
-
-
-                                    <div className="flex items-center space-x-4 my-6 lg:my-4 xl:my-6 2xl:my-8">
-                                        <div className="flex-1 h-px bg-gray-300"></div>
-                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">or continue</span>
-                                        <div className="flex-1 h-px bg-gray-300"></div>
-                                    </div>
-
-
-                                    <div className="flex gap-6">
-                                        <div className="w-1/2 h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                            <input
-                                                type="text"
-                                                placeholder="First Name"
-                                                value={firstName}
-                                                onChange={handleFirstNameChange}
-                                                className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
-                                                required
-                                                aria-label="First Name"
-                                            />
-                                        </div>
-                                        <div className="w-1/2 h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                            <input
-                                                type="text"
-                                                placeholder="Last Name"
-                                                value={lastName}
-                                                onChange={handleLastNameChange}
-                                                className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
-                                                required
-                                                aria-label="Last Name"
-                                            />
-                                        </div>
-                                    </div>
-
-
-                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center">
-                                        <input
-                                            type="email"
-                                            placeholder="Email"
-                                            value={email}
-                                            onChange={handleEmailChange}
-                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
-                                            required
-                                            aria-label="Email"
-                                        />
-                                    </div>
-
-
-                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="Password with 8 or more characters"
-                                            value={password}
-                                            onChange={handlePasswordChange}
-                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
-                                            required
-                                            aria-label="Password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={togglePassword}
-                                            className="text-gray-400 cursor-pointer"
-                                            aria-label={showPassword ? "Hide password" : "Show password"}
-                                        >
-                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                        </button>
-                                    </div>
-
-
-                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] border-1 border-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                        <input
-                                            type={showConfirmPassword ? "text" : "password"}
-                                            placeholder="Re-enter password"
-                                            value={confirmPassword}
-                                            onChange={handleConfirmPasswordChange}
-                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] outline-none"
-                                            required
-                                            aria-label="Confirm Password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={toggleConfirmPassword}
-                                            className="text-gray-400 cursor-pointer"
-                                            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                                        >
-                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                        </button>
-                                    </div>
-
-
-                                    <div className="space-y-2">
-                                        <CustomCheckbox
-                                            checked={jobUpdates}
-                                            onChange={() => setJobUpdates(prev => !prev)}
-                                            label="Subscribe to our careers page and receive updates of future job postings."
-                                        />
-                                    </div>
-
-
-                                    <div className="space-y-2">
-                                        <CustomCheckbox
-                                            checked={newsletter}
-                                            onChange={() => setNewsletter(prev => !prev)}
-                                            label="Subscribe to our Newsletter and receive updates."
-                                        />
-                                    </div>
-
-
-                                    <div className="space-y-2">
-                                        <CustomCheckbox
-                                            checked={agreedToTerms}
-                                            onChange={toggleAgreedToTerms}
-                                            label={(
-                                                <span>
-                                                    I understand and agree to the{' '}
-                                                    <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">
-                                                        Protonest Terms and Conditions
-                                                    </Link>{' '}
-                                                    and{' '}
-                                                    <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">
-                                                        Privacy Policy
-                                                    </Link>
-                                                </span>
-                                            )}
-                                        />
-                                    </div>
-
-
-                                    {error && (
-                                        <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']" role="alert">
-                                            {error}
-                                        </div>
-                                    )}
-                                </form>
-
-
-                                <div className="max-w-2xl mt-6">
-                                    <button
-                                        onClick={handleSignUp}
-                                        disabled={isLoading || !isFormValid}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer outline outline-offset-[-1px] text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isLoading ? 'Processing...' : 'Sign up and Continue to Upload CV'}
-                                    </button>
-                                </div>
-
-
-                                <div className="max-w-2xl mt-8 lg:mt-6 xl:mt-8 2xl:mt-12 flex justify-center">
-                                    <div className="text-center">
-                                        <span className="text-gray-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            Already have an account?
-                                        </span>
-                                        <Link href="/signin" className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent ml-1">
-                                            Sign In
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="flex items-center gap-3">
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                            <span className="text-gray-400 text-xs font-medium font-['Poppins']">or continue</span>
+                            <div className="flex-1 h-px bg-gray-200"></div>
                         </div>
 
-
-                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
-                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
-                                <Image
-                                    src="/signup1.webp"
-                                    alt="Welcome illustration"
-                                    width={800}
-                                    height={600}
-                                    priority
-                                    className="w-full h-full object-cover rounded-tr-[67px] rounded-tl-[67px] rounded-br-[67px]"
+                        <div className="flex gap-3">
+                            <div className="flex-1 h-12 px-4 bg-gray-50 rounded-full border border-gray-200 flex items-center">
+                                <input
+                                    type="text"
+                                    placeholder="First Name"
+                                    value={firstName}
+                                    onChange={handleFirstNameChange}
+                                    className="w-full bg-transparent text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none"
+                                    required
+                                    aria-label="First Name"
+                                />
+                            </div>
+                            <div className="flex-1 h-12 px-4 bg-gray-50 rounded-full border border-gray-200 flex items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Last Name"
+                                    value={lastName}
+                                    onChange={handleLastNameChange}
+                                    className="w-full bg-transparent text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none"
+                                    required
+                                    aria-label="Last Name"
                                 />
                             </div>
                         </div>
-                    </div>
+
+                        <div className="relative">
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={handleEmailChange}
+                                className="w-full h-12 px-5 bg-gray-50 rounded-full border border-gray-200 text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none focus:border-[#5530FA]/50 focus:bg-white transition-colors"
+                                required
+                                aria-label="Email"
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Password (8+ characters)"
+                                value={password}
+                                onChange={handlePasswordChange}
+                                className="w-full h-12 px-5 pr-11 bg-gray-50 rounded-full border border-gray-200 text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none focus:border-[#5530FA]/50 focus:bg-white transition-colors"
+                                required
+                                aria-label="Password"
+                            />
+                            <button type="button" onClick={togglePassword} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Re-enter password"
+                                value={confirmPassword}
+                                onChange={handleConfirmPasswordChange}
+                                className="w-full h-12 px-5 pr-11 bg-gray-50 rounded-full border border-gray-200 text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none focus:border-[#5530FA]/50 focus:bg-white transition-colors"
+                                required
+                                aria-label="Confirm Password"
+                            />
+                            <button type="button" onClick={toggleConfirmPassword} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+
+                        <CustomCheckbox
+                            checked={agreedToTerms}
+                            onChange={toggleAgreedToTerms}
+                            label={
+                                <span>
+                                    I agree to the{' '}
+                                    <Link href="/legal/terms-and-conditions" className="text-[#5530fa] hover:underline">Terms and Conditions</Link>
+                                    {' '}and{' '}
+                                    <Link href="/legal/privacy-policy" className="text-[#5530fa] hover:underline">Privacy Policy</Link>
+                                </span>
+                            }
+                        />
+
+                        {error && (
+                            <div className="text-red-500 text-xs font-medium font-['Poppins']" role="alert">{error}</div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={isLoading || !isFormValid}
+                            className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-['Poppins'] hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                        >
+                            {isLoading ? 'Creating account...' : 'Sign Up'}
+                        </button>
+
+                        <div className="text-center pt-1">
+                            <span className="text-gray-400 text-sm font-['Poppins']">Already have an account? </span>
+                            <Link href="/signin" className="text-[#5530FA] text-sm font-medium font-['Poppins'] hover:underline">
+                                Sign In
+                            </Link>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

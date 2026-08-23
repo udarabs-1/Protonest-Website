@@ -6,7 +6,6 @@ import {
     Camera,
     Edit,
     Save,
-    Trash2
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -70,9 +69,9 @@ const ProfilePage = () => {
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
     const [sendingResetLink, setSendingResetLink] = useState(false);
     const [showPasswordSuccess, setShowPasswordSuccess] = useState(false);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [deleteConfirmText, setDeleteConfirmText] = useState('');
-    const [deletingAccount, setDeletingAccount] = useState(false);
+    const [jobAlertsEnabled, setJobAlertsEnabled] = useState(false);
+    const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+    const [savingAlerts, setSavingAlerts] = useState(false);
 
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
@@ -94,7 +93,7 @@ const ProfilePage = () => {
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
-        { label: 'Profile' }
+        { label: 'Account Preferences & Security' }
     ];
 
     useEffect(() => {
@@ -170,6 +169,8 @@ const ProfilePage = () => {
 
                 setProfileData(mappedData);
                 setEditedData(mappedData);
+                setJobAlertsEnabled(userData.job_updates || false);
+                setNewsletterEnabled(userData.newsletter || false);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -343,64 +344,19 @@ const ProfilePage = () => {
         }
     };
 
-    const handleDeleteAccount = async () => {
-        if (deleteConfirmText !== 'DELETE') {
-            setError('Please type DELETE to confirm');
-            return;
-        }
-
+    const updateAlerts = async (jobUpdates: boolean, newsletter: boolean) => {
         try {
-            setDeletingAccount(true);
-            setError(null);
-
-            const response = await apiCall('/auth/user/account', {
-                method: 'DELETE',
+            setSavingAlerts(true);
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+            await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/user/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ job_updates: jobUpdates, newsletter })
             });
-
-            if (response.success) {
-                localStorage.removeItem('jwtToken');
-                setShowDeleteDialog(false);
-                router.push('/careers');
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete account');
-            console.error('Error deleting account');
+        } catch {
         } finally {
-            setDeletingAccount(false);
-        }
-    };
-
-    const handlePreviewCV = async () => {
-        try {
-            const jwtToken = localStorage.getItem('jwtToken');
-            if (!jwtToken) {
-                setError('Please log in to preview your CV');
-                return;
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/cv/file`, {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                },
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const newWindow = window.open(url, '_blank');
-
-                if (newWindow) {
-                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-                } else {
-                    window.URL.revokeObjectURL(url);
-                    setError('Please allow pop-ups to preview your CV');
-                }
-            } else {
-                setError('Failed to preview CV');
-            }
-        } catch (error) {
-            console.error('Error previewing CV:', error);
-            setError('Failed to preview CV');
+            setSavingAlerts(false);
         }
     };
 
@@ -414,67 +370,6 @@ const ProfilePage = () => {
 
     return (
         <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
-            {showDeleteDialog && (
-                <div
-                    className="font-poppins fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                    onClick={() => !deletingAccount && setShowDeleteDialog(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <Trash2 className="w-6 h-6 text-red-600" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-800">Delete Account</h3>
-                        </div>
-                        <p className="text-gray-600 mb-4 text-sm">
-                            This action cannot be undone. This will permanently delete your account and remove all your data including profile info, CV, saved jobs, and applications.
-                        </p>
-                        <p className="text-gray-600 mb-4 text-sm">
-                            Please type <strong className="text-red-600">DELETE</strong> to confirm:
-                        </p>
-                        <input
-                            type="text"
-                            value={deleteConfirmText}
-                            onChange={(e) => setDeleteConfirmText(e.target.value)}
-                            placeholder="Type DELETE to confirm"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 mb-6 text-sm"
-                            disabled={deletingAccount}
-                        />
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                onClick={() => {
-                                    setShowDeleteDialog(false);
-                                    setDeleteConfirmText('');
-                                }}
-                                disabled={deletingAccount}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleDeleteAccount}
-                                disabled={deletingAccount || deleteConfirmText !== 'DELETE'}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm cursor-pointer"
-                            >
-                                {deletingAccount ? (
-                                    <>
-                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                        Deleting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete Account
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {showPasswordSuccess && (
                 <div
@@ -770,48 +665,80 @@ const ProfilePage = () => {
                         </div>
                     )}
 
-                    <div className="mb-8 flex flex-col items-center sm:items-start">
-                        <h3 className="text-lg font-medium text-[#6c6c6c] font-['Poppins'] mb-4 text-center sm:text-left">Current CV</h3>
-                        <button
-                            onClick={handlePreviewCV}
-                            className="w-auto px-6 py-2 sm:px-6 sm:py-3 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-full text-white font-semibold font-['Montserrat'] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 text-xs sm:text-sm"
-                        >
-                            Preview CV
-                        </button>
-                    </div>
-                </div>
-
-                <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-8">
-                    <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
-                        <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
-                            <Icon
-                                icon="solar:shield-keyhole-bold-duotone"
-                                className="w-7 h-7"
-                            />
+                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-8">
+                        <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:bell-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            Notification Preferences
+                        </h3>
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <p className="text-sm font-medium text-[#6c6c6c] font-['Poppins']">Job Alert Emails</p>
+                                    <p className="text-xs text-gray-400 font-['Poppins'] mt-0.5">Receive email notifications when new matching jobs are posted</p>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        const next = !jobAlertsEnabled;
+                                        setJobAlertsEnabled(next);
+                                        await updateAlerts(next, newsletterEnabled);
+                                    }}
+                                    disabled={savingAlerts}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer flex-shrink-0 ${
+                                        jobAlertsEnabled ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'bg-gray-300'
+                                    }`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${jobAlertsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <p className="text-sm font-medium text-[#6c6c6c] font-['Poppins']">Newsletter</p>
+                                    <p className="text-xs text-gray-400 font-['Poppins'] mt-0.5">Receive platform updates and newsletter emails</p>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        const next = !newsletterEnabled;
+                                        setNewsletterEnabled(next);
+                                        await updateAlerts(jobAlertsEnabled, next);
+                                    }}
+                                    disabled={savingAlerts}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer flex-shrink-0 ${
+                                        newsletterEnabled ? 'bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'bg-gray-300'
+                                    }`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newsletterEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
                         </div>
-                        Account Security
-                    </h3>
+                    </div>
 
-                    {!profileData.isGoogleUser && (
-                        <button
-                            onClick={handleChangePassword}
-                            className="group inline-block w-full text-left cursor-pointer py-4 border-b border-gray-100"
-                        >
-                            <span className="text-[#6c6c6c]/80 group-hover:bg-gradient-to-r group-hover:from-[#5530fa] group-hover:to-[#f51da5] group-hover:text-transparent group-hover:bg-clip-text text-base font-normal font-['Poppins'] transition-all">
-                                Change Password
-                            </span>
-                        </button>
-                    )}
+                    <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-8">
+                        <h3 className="text-lg sm:text-[22px] font-medium text-[#6c6c6c] font-['Poppins'] mb-6 flex items-center gap-3">
+                            <div className="w-7 h-7 flex items-center justify-center gradient-icon flex-shrink-0">
+                                <Icon
+                                    icon="solar:shield-keyhole-bold-duotone"
+                                    className="w-7 h-7"
+                                />
+                            </div>
+                            Account Security
+                        </h3>
 
-                    <button
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="group inline-block w-full text-left cursor-pointer py-4"
-                    >
-                        <span className="text-red-600 group-hover:text-red-700 text-base font-normal font-['Poppins'] flex items-center gap-2 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                            Delete Account
-                        </span>
-                    </button>
+                        {!profileData.isGoogleUser && (
+                            <button
+                                onClick={handleChangePassword}
+                                className="group inline-block w-full text-left cursor-pointer py-4 border-b border-gray-100"
+                            >
+                                <span className="text-[#6c6c6c]/80 group-hover:bg-gradient-to-r group-hover:from-[#5530fa] group-hover:to-[#f51da5] group-hover:text-transparent group-hover:bg-clip-text text-base font-normal font-['Poppins'] transition-all">
+                                    Change Password
+                                </span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </DashboardLayout>

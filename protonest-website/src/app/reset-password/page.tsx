@@ -140,7 +140,7 @@ function ResetPasswordContent() {
     }
 
     return (
-        <div className="bg-white">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {showSuccess && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="w-full max-w-[833px] h-auto bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] backdrop-blur-[20px] p-8 md:p-12 relative">
@@ -157,196 +157,82 @@ function ResetPasswordContent() {
                 </div>
             )}
 
-            <div className="block lg:hidden">
-                <div className="relative w-full min-h-screen bg-white">
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
-                        </div>
+            <div className="absolute top-[-120px] left-[-80px] w-[400px] h-[400px] bg-gradient-to-br from-[#5530FA]/15 to-[#F51DA5]/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
+
+            <div className="relative z-10 w-full max-w-md">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-5">
+                        <Link href="/">
+                            <Image
+                                src="/logo.webp"
+                                alt="Protonest Logo"
+                                width={112}
+                                height={80}
+                                priority
+                                className="w-24 h-auto object-contain cursor-pointer"
+                            />
+                        </Link>
                     </div>
 
-                    <div className="relative z-10 pb-8">
-                        <header className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Link href="/">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={112}
-                                    height={80}
-                                    priority
-                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
-                                />
-                            </Link>
-                        </header>
-
-                        <main className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
-                            <div className="w-full mb-8 sm:mb-12 md:mb-16">
-                                <h1 className="text-2xl sm:text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] font-medium font-['Montserrat'] leading-tight">
-                                    Reset Your Password
-                                </h1>
-                            </div>
-
-                            <div className="w-full mb-6 sm:mb-8 md:mb-10 text-[#949494] text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                Enter a new password for your account.
-                            </div>
-
-                            <form className="w-full space-y-4 sm:space-y-6" onSubmit={handleResetPassword}>
-                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] outline outline-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                    <input
-                                        type={showNewPassword ? "text" : "password"}
-                                        placeholder="New Password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] focus:outline-none"
-                                        disabled={isLoading}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="text-gray-400 cursor-pointer"
-                                    >
-                                        {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-
-                                <div className="w-full h-14 sm:h-16 md:h-18 px-8 sm:px-10 md:px-12 bg-white rounded-[57px] outline outline-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Confirm New Password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full bg-transparent text-gray-400 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] focus:outline-none"
-                                        disabled={isLoading}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="text-gray-400 cursor-pointer"
-                                    >
-                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                    </button>
-                                </div>
-
-                                {error && (
-                                    <div className="text-red-500 text-sm sm:text-base md:text-lg font-medium font-['Poppins']">
-                                        {error}
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer text-white text-base sm:text-lg md:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? 'Resetting Password...' : 'Reset Password'}
-                                </button>
-                            </form>
-                        </main>
-                    </div>
-                </div>
-            </div>
-
-            <div className="hidden lg:block">
-                <div className="relative w-full min-h-screen bg-white">
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
-                        </div>
+                    <div className="mb-8">
+                        <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">
+                            Reset Your Password
+                        </h1>
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Enter a new password for your account.</p>
                     </div>
 
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
-                        <div className="flex flex-col justify-center items-center min-h-screen">
-                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
-                                <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Link href="/">
-                                        <Image
-                                            src="/logo.webp"
-                                            alt="Protonest Logo"
-                                            width={112}
-                                            height={80}
-                                            priority
-                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
-                                        />
-                                    </Link>
-                                </header>
-
-                                <div className="mb-6 lg:mb-4 xl:mb-6 2xl:mb-8">
-                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] font-medium font-['Montserrat'] leading-tight">
-                                        Reset Your Password
-                                    </h1>
-                                </div>
-
-                                <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-10 text-[#949494] text-base lg:text-sm xl:text-base 2xl:text-lg font-medium font-['Poppins']">
-                                    Enter a new password for your account.
-                                </div>
-
-                                <form className="max-w-2xl space-y-5 lg:space-y-4 xl:space-y-5 2xl:space-y-8" onSubmit={handleResetPassword}>
-                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] outline outline-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                        <input
-                                            type={showNewPassword ? "text" : "password"}
-                                            placeholder="New Password"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] focus:outline-none"
-                                            disabled={isLoading}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowNewPassword(!showNewPassword)}
-                                            className="text-gray-400 cursor-pointer"
-                                        >
-                                            {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                        </button>
-                                    </div>
-
-                                    <div className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-[57px] outline outline-[#c2c2c2] backdrop-blur-[50px] flex items-center justify-between">
-                                        <input
-                                            type={showConfirmPassword ? "text" : "password"}
-                                            placeholder="Confirm New Password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full bg-transparent text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] focus:outline-none"
-                                            disabled={isLoading}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="text-gray-400 cursor-pointer"
-                                        >
-                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                        </button>
-                                    </div>
-
-                                    {error && (
-                                        <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            {error}
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-l from-[#5530fa] to-[#f51da5] rounded-[57px] cursor-pointer text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isLoading ? 'Resetting Password...' : 'Reset Password'}
-                                    </button>
-                                </form>
-                            </div>
+                    <form className="space-y-4" onSubmit={handleResetPassword}>
+                        <div className="w-full h-12 px-5 bg-gray-50 rounded-full border border-gray-200 flex items-center justify-between">
+                            <input
+                                type={showNewPassword ? "text" : "password"}
+                                placeholder="New Password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full bg-transparent text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none"
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="text-gray-400 cursor-pointer ml-2"
+                            >
+                                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
 
-                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
-                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
-                                <Image
-                                    src="/login1.webp"
-                                    alt="Welcome illustration"
-                                    width={800}
-                                    height={600}
-                                    priority
-                                    className="w-full h-full object-cover rounded-tr-[67px] rounded-tl-[67px] rounded-br-[67px]"
-                                />
-                            </div>
+                        <div className="w-full h-12 px-5 bg-gray-50 rounded-full border border-gray-200 flex items-center justify-between">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirm New Password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full bg-transparent text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none"
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="text-gray-400 cursor-pointer ml-2"
+                            >
+                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
-                    </div>
+
+                        {error && (
+                            <div className="text-red-500 text-xs font-medium font-['Poppins']">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full cursor-pointer text-white text-sm font-semibold font-['Poppins'] hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                        >
+                            {isLoading ? 'Resetting Password...' : 'Reset Password'}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

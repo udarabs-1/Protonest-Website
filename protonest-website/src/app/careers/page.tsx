@@ -1,116 +1,14 @@
-'use client';
-
-import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
-import Blogs from '../components/blogs';
 import Footer from '../components/footer';
+import JobRoleNavigation from '../components/job-role-navigation';
 import Navbar from '../components/navbar';
+import NewsAndBlogs from '../components/news-and-blogs';
 import PageHero from '../components/page-hero';
 
-const RoleCard = ({ role, onClick }: {
-    role: { icon: string; title: string; slug: string };
-    onClick: (slug: string) => void;
-}) => {
-    const handleClick = useCallback(() => {
-        onClick(role.slug);
-    }, [onClick, role.slug]);
-
-    return (
-        <button
-            onClick={handleClick}
-            className="h-14 xl:h-[65.89px] min-w-[140px] xl:min-w-[160px] px-3 sm:px-6 py-2 sm:py-4 rounded-full xl:rounded-[57px] border gradient-button-static-3 flex items-center justify-center hover:bg-gradient-to-r hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] gap-1 sm:gap-2 transition-colors cursor-pointer group"
-            aria-label={`View ${role.title} positions`}
-        >
-            <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 min-w-0">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0 gradient-icon-default group-hover:scale-110 transition-all duration-300">
-                    <Icon
-                        icon={role.icon}
-                        className="w-full h-full group-hover:text-white"
-                    />
-                </div>
-                <div className="text-xs sm:text-base text-[#6c6c6c] font-medium font-['Montserrat'] group-hover:text-white whitespace-pre-line leading-tight overflow-hidden text-center">
-                    {role.title}
-                </div>
-            </div>
-        </button>
-    );
-};
-
 export default function CareersPage() {
-    const router = useRouter();
-
-    const roles = useMemo(() => [
-        { icon: 'solar:monitor-outline', title: 'Front-End', slug: 'front-end' },
-        { icon: 'solar:server-outline', title: 'Back-End', slug: 'back-end' },
-        { icon: 'solar:layers-minimalistic-outline', title: 'Full-Stack', slug: 'full-stack' },
-        { icon: 'solar:cpu-outline', title: 'Electronics', slug: 'electronics' },
-        { icon: 'solar:palette-outline', title: 'UI/UX\nDesigning', slug: 'ui-ux-designing' },
-        { icon: 'solar:settings-outline', title: 'Mechanical', slug: 'mechanical' },
-        { icon: 'solar:code-2-outline', title: 'Embedded\nFirmware', slug: 'embedded-firmware' },
-        { icon: 'solar:shield-check-outline', title: 'Quality\nAssurance', slug: 'quality-assurance' },
-        { icon: 'solar:user-plus-outline', title: 'Other Roles', slug: 'other-roles' }
-    ], []);
-
-    const handleRoleClick = useCallback((slug: string) => {
-        router.push(`/jobs/${slug}`);
-    }, [router]);
-
     return (
         <div className="min-h-screen relative">
-            <style jsx global>{`
-                .gradient-icon-default svg {
-                    width: 100%;
-                    height: 100%;
-                }
-                
-                .gradient-icon-default svg path {
-                    fill: url(#icon-gradient-default) !important;
-                }
-                
-                .gradient-icon-default svg circle {
-                    fill: url(#icon-gradient-default) !important;
-                }
-                
-                .gradient-icon-default svg rect {
-                    fill: url(#icon-gradient-default) !important;
-                }
-                
-                .gradient-icon-default svg polygon {
-                    fill: url(#icon-gradient-default) !important;
-                }
-
-                .group:hover .gradient-icon-default svg path {
-                    fill: white !important;
-                }
-                
-                .group:hover .gradient-icon-default svg circle {
-                    fill: white !important;
-                }
-                
-                .group:hover .gradient-icon-default svg rect {
-                    fill: white !important;
-                }
-                
-                .group:hover .gradient-icon-default svg polygon {
-                    fill: white !important;
-                }
-
-
-            `}</style>
-
-
-            <svg width="0" height="0" style={{ position: 'absolute' }}>
-                <defs>
-                    <linearGradient id="icon-gradient-default" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#5530FA" />
-                        <stop offset="100%" stopColor="#F51DA5" />
-                    </linearGradient>
-                </defs>
-            </svg>
-
             <Navbar />
 
 
@@ -148,15 +46,7 @@ export default function CareersPage() {
                     </div>
 
 
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 xl:gap-6 px-2 sm:px-4 lg:px-8 xl:px-[60px] mb-6 sm:mb-8 lg:mb-10 w-full max-w-4xl xl:max-w-[1127px]">
-                        {roles.map((role, index) => (
-                            <RoleCard
-                                key={`${role.slug}-${index}`}
-                                role={role}
-                                onClick={handleRoleClick}
-                            />
-                        ))}
-                    </div>
+                    <JobRoleNavigation className="px-2 sm:px-4 lg:px-8 xl:px-[60px] mb-6 sm:mb-8 lg:mb-10 w-full max-w-4xl xl:max-w-[1127px]" />
                 </section>
 
 
@@ -181,7 +71,12 @@ export default function CareersPage() {
                 </section>
             </main>
 
-            <Blogs />
+            <NewsAndBlogs
+                prefix=""
+                highlight="Insights"
+                suffix="from the Field"
+                description={null}
+            />
 
 
             <section className="relative w-full min-h-screen flex items-center justify-center overflow-visible">

@@ -70,6 +70,7 @@ export default function EmployeeLeavePage() {
     const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
     const [overlayLoading, setOverlayLoading] = useState(false);
+    const [editingLeaveId, setEditingLeaveId] = useState<string | null>(null);
 
     const formatLeaveType = (type: string) => {
         if (type === 'sick') return 'Medical Leave';
@@ -178,8 +179,8 @@ export default function EmployeeLeavePage() {
             setApplyError(null);
             setOverlayLoading(true);
             
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/apply`, {
-                method: 'POST',
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leave/me/${editingLeaveId ? `update/${editingLeaveId}` : 'apply'}`, {
+                method: editingLeaveId ? 'PUT' : 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -190,8 +191,9 @@ export default function EmployeeLeavePage() {
             const data = await res.json();
             
             if (res.ok) {
-                setSuccess('Leave request submitted successfully');
+                setSuccess(editingLeaveId ? 'Leave request updated successfully' : 'Leave request submitted successfully');
                 setShowApplyModal(false);
+                setEditingLeaveId(null);
                 setOverlayLoading(false);
                 const firstWithBalance = getMergedBalances(balances).find(b => b.leave_type !== 'unpaid' && b.remaining > 0); setApplyForm({ leave_type: employeeStatus === 'pre_boarding' ? 'unpaid' : (firstWithBalance ? firstWithBalance.leave_type : 'unpaid'), start_date: '', end_date: '', reason: '', half_day: false });
                 checkAuthAndFetch();
@@ -380,14 +382,34 @@ export default function EmployeeLeavePage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                {req.status === 'pending' && (
-                                                    <button 
-                                                        onClick={() => setCancelConfirmId(req.id)}
-                                                        className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors"
-                                                    >
-                                                        Cancel Request
-                                                    </button>
-                                                )}
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {req.status === 'pending' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingLeaveId(req.id);
+                                                                setApplyForm({
+                                                                    leave_type: req.leave_type,
+                                                                    start_date: req.start_date.split('T')[0],
+                                                                    end_date: req.end_date.split('T')[0],
+                                                                    reason: req.reason || '',
+                                                                    half_day: false
+                                                                });
+                                                                setShowApplyModal(true);
+                                                            }}
+                                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#5530FA]/20 text-[#5530FA] bg-[#5530FA]/5 hover:bg-[#5530FA]/10 transition-colors"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                    )}
+                                                    {req.status === 'pending' && (
+                                                        <button 
+                                                            onClick={() => setCancelConfirmId(req.id)}
+                                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors"
+                                                        >
+                                                            Cancel Request
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -405,8 +427,8 @@ export default function EmployeeLeavePage() {
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
                     <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full font-poppins" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-gray-900">Apply for Leave</h2>
-                            <button onClick={() => setShowApplyModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                            <h2 className="text-xl font-bold text-gray-900">{editingLeaveId ? 'Edit Leave Request' : 'Apply for Leave'}</h2>
+                            <button onClick={() => { setShowApplyModal(false); setEditingLeaveId(null); }} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
                         </div>
 
                         {applyError && (

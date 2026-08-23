@@ -5,6 +5,7 @@ import Image from 'next/image';
 interface PageHeroProps {
     backgroundImage?: string;
     backgroundImageMobile?: string;
+    backgroundAlt?: string;
     heading: {
         beforeGradient?: string;
         gradientText: string;
@@ -13,15 +14,23 @@ interface PageHeroProps {
     description?: string | React.ReactNode;
     height?: string;
     paddingTop?: boolean;
+    darkOverlay?: boolean;
+    cta?: {
+        label: string;
+        href: string;
+    };
 }
 
 export default function PageHero({
     backgroundImage,
     backgroundImageMobile,
+    backgroundAlt = '',
     heading,
     description,
     height = 'h-[400px] sm:h-[480px] lg:h-[553px]',
-    paddingTop = false
+    paddingTop = false,
+    darkOverlay = false,
+    cta
 }: PageHeroProps) {
     return (
         <section className={`${height} relative ${paddingTop ? 'pt-20' : ''}`}>
@@ -33,38 +42,45 @@ export default function PageHero({
                                 <div className="absolute inset-0 block sm:hidden">
                                     <Image
                                         src={backgroundImageMobile}
-                                        alt=""
+                                        alt={backgroundAlt}
                                         fill
                                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                                         priority={true}
                                         quality={100}
-                                        aria-hidden="true"
+                                        aria-hidden={backgroundAlt ? undefined : 'true'}
                                     />
                                 </div>
                                 <div className="absolute inset-0 hidden sm:block">
                                     <Image
                                         src={backgroundImage}
-                                        alt=""
+                                        alt={backgroundAlt}
                                         fill
                                         style={{ objectFit: 'cover', objectPosition: 'center' }}
                                         priority={true}
                                         quality={100}
-                                        aria-hidden="true"
+                                        aria-hidden={backgroundAlt ? undefined : 'true'}
                                     />
                                 </div>
                             </>
                         ) : (
                             <Image
                                 src={backgroundImage}
-                                alt=""
+                                alt={backgroundAlt}
                                 fill
                                 style={{ objectFit: 'cover', objectPosition: 'center' }}
                                 priority={true}
                                 quality={100}
-                                aria-hidden="true"
+                                aria-hidden={backgroundAlt ? undefined : 'true'}
                             />
                         )}
                     </div>
+
+                    {darkOverlay && (
+                        <div
+                            className="absolute inset-0 z-10 bg-gradient-to-b from-black/40 via-black/55 to-black/70"
+                            aria-hidden="true"
+                        ></div>
+                    )}
 
                     <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white to-transparent z-10"></div>
                     <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent z-10"></div>
@@ -76,7 +92,7 @@ export default function PageHero({
                     <h1 className="text-center text-[28px] sm:text-[32px] lg:text-[38px] xl:text-[45px] font-medium font-montserrat">
                         {heading.beforeGradient && (
                             <>
-                                <span className="text-[#6c6c6c]">{heading.beforeGradient}</span>
+                                <span className={`${darkOverlay ? 'text-white' : 'text-[#6c6c6c]'}`}>{heading.beforeGradient}</span>
                                 <br />
                             </>
                         )}
@@ -86,14 +102,22 @@ export default function PageHero({
                         {heading.afterGradient && (
                             <>
                                 <br />
-                                <span className="text-[#6c6c6c]">{heading.afterGradient}</span>
+                                <span className={`${darkOverlay ? 'text-white' : 'text-[#6c6c6c]'}`}>{heading.afterGradient}</span>
                             </>
                         )}
                     </h1>
                     {description && (
-                        <p className="text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto text-[rgba(108,108,108,1)]">
+                        <p className={`text-center text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] font-normal font-montserrat mt-6 sm:mt-8 lg:mt-12 px-4 sm:px-12 md:px-20 lg:px-auto ${darkOverlay ? 'text-white/90' : 'text-[rgba(108,108,108,1)]'}`}>
                             {description}
                         </p>
+                    )}
+                    {cta && (
+                        <a
+                            href={cta.href}
+                            className="mt-8 lg:mt-12 inline-flex items-center justify-center w-[220px] h-[55px] lg:h-[60px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 font-poppins font-medium text-[15px] lg:text-[16px]"
+                        >
+                            {cta.label}
+                        </a>
                     )}
                 </div>
             </div>

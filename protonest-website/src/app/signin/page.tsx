@@ -3,7 +3,8 @@
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface SignInGoogleOAuthConfig {
     client_id: string;
@@ -92,7 +93,8 @@ const MessageModal = ({ message, onClose }: { message: string; onClose: () => vo
     </div>
 );
 
-export default function ResponsiveSignIn() {
+function SignInContent() {
+    const searchParams = useSearchParams();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -144,6 +146,12 @@ export default function ResponsiveSignIn() {
     }, []);
 
     const handlePostSignInRedirect = useCallback(async () => {
+        const redirectTo = searchParams.get('redirect');
+        if (redirectTo && redirectTo.startsWith('/')) {
+            window.location.replace(redirectTo);
+            return;
+        }
+
         const pendingApplication = localStorage.getItem('pendingJobApplication');
 
         if (pendingApplication) {
@@ -168,7 +176,7 @@ export default function ResponsiveSignIn() {
         }
 
         window.location.replace('/dashboard');
-    }, []);
+    }, [searchParams]);
 
     const handleGoogleSignIn = useCallback(async (response: GoogleCredentialResponse): Promise<void> => {
         console.log('handleGoogleSignIn called - SIGNIN flow');
@@ -434,280 +442,123 @@ export default function ResponsiveSignIn() {
     }, [email, password]);
 
     return (
-        <div className="bg-white">
+        <div className="h-screen overflow-y-auto sm:overflow-hidden relative bg-gradient-to-br from-[#5530FA]/5 via-white to-[#F51DA5]/5 flex items-center justify-center px-4 py-4 sm:py-0">
             {modalMessage && <MessageModal message={modalMessage} onClose={closeModal} />}
 
+            <div className="absolute top-[-120px] left-[-80px] w-[400px] h-[400px] bg-gradient-to-br from-[#5530FA]/15 to-[#F51DA5]/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] bg-gradient-to-tl from-[#F51DA5]/15 to-[#6C9AE1]/10 rounded-full blur-[80px] pointer-events-none" />
 
-            <div className="block lg:hidden">
-                <div className="relative w-full min-h-screen bg-white">
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
-                        </div>
+            <div className="relative z-10 w-full max-w-md">
+                <div className="bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 px-8 sm:px-10 py-7 sm:py-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                    <div className="flex flex-col items-center mb-5">
+                        <Link href="/">
+                            <Image
+                                src="/logo.webp"
+                                alt="Protonest Logo"
+                                width={112}
+                                height={80}
+                                priority
+                                className="w-24 h-auto object-contain cursor-pointer"
+                            />
+                        </Link>
                     </div>
 
-                    <div className="absolute left-0 top-64 w-10 h-72 bg-gradient-to-r from-white/0 to-white sm:hidden pointer-events-none" />
-                    <div className="absolute left-0 top-96 w-10 h-60 bg-gradient-to-r from-white/0 to-white hidden sm:block md:hidden pointer-events-none" />
+                    <div className="mb-5 pb-5 border-b border-gray-200 text-center">
+                        <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign In</span>
+                        </h1>
+                        <p className="text-gray-400 text-sm font-['Poppins'] mt-1">Welcome to ProtonestHR Portal!</p>
+                    </div>
 
-                    <div className="relative z-10 pb-8">
-                        <header className="pt-11 px-4 sm:px-8 md:px-16">
-                            <Link href="/">
-                                <Image
-                                    src="/logo.webp"
-                                    alt="Protonest Logo"
-                                    width={112}
-                                    height={80}
-                                    priority
-                                    className="w-25 sm:w-30 md:w-35 object-contain cursor-pointer"
-                                />
+                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignInClick}
+                            disabled={isLoading || googleLoadError}
+                            className="w-full h-13 px-6 py-3 rounded-full gradient-button flex items-center justify-center gap-3 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                            aria-label="Sign in with Google"
+                        >
+                            <Image src="/google.svg" alt="" width={22} height={22} className="w-5 h-5" />
+                            <span className="text-gray-600 text-sm font-medium font-['Poppins']">
+                                {isLoading ? 'Signing in...' : googleLoadError ? 'Google Sign-in Unavailable' : 'Sign in with Google'}
+                            </span>
+                        </button>
+
+                        <div className="flex items-center gap-3 my-2">
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                            <span className="text-gray-400 text-xs font-medium font-['Poppins']">or continue</span>
+                            <div className="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={email}
+                                onChange={handleEmailChange}
+                                className="w-full h-12 px-5 bg-gray-50 rounded-full border border-gray-200 text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none focus:border-[#5530FA]/50 focus:bg-white transition-colors"
+                                required
+                                aria-label="Email address"
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Password"
+                                value={password}
+                                onChange={handlePasswordChange}
+                                className="w-full h-12 px-5 pr-11 bg-gray-50 rounded-full border border-gray-200 text-gray-600 text-sm font-medium font-['Poppins'] focus:outline-none focus:border-[#5530FA]/50 focus:bg-white transition-colors"
+                                required
+                                aria-label="Password"
+                            />
+                            <button
+                                type="button"
+                                onClick={togglePasswordVisibility}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            {error && (
+                                <div className="text-red-500 text-xs font-medium font-['Poppins']" role="alert">{error}</div>
+                            )}
+                            <Link
+                                href="/forgot-password"
+                                className="text-gray-400 text-xs font-medium font-['Poppins'] hover:text-[#5530FA] transition-colors ml-auto"
+                            >
+                                Forgot Password?
                             </Link>
-                        </header>
-
-                        <main className="px-4 sm:px-8 md:px-16 pt-16 sm:pt-20 md:pt-24">
-                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mb-4 sm:mb-6 md:mb-8">
-                                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium font-['Montserrat'] leading-tight">
-                                    <span className="text-gray-400">Sign In</span>
-                                </h1>
-                            </div>
-
-                            <form className="w-full space-y-4 sm:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
-                                <button
-                                    type="button"
-                                    onClick={handleGoogleSignInClick}
-                                    disabled={isLoading || googleLoadError}
-                                    className="w-full h-14 sm:h-16 md:h-18 px-6 py-4 rounded-full gradient-button flex items-center justify-center space-x-4 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    aria-label="Sign in with Google"
-                                >
-                                    <Image
-                                        src="/google.svg"
-                                        alt=""
-                                        width={40}
-                                        height={40}
-                                        className="w-8 h-8 sm:w-10 sm:h-10"
-                                    />
-                                    <span className="text-gray-600 text-sm sm:text-base font-medium font-['Poppins']">
-                                        {isLoading ? 'Signing in...' : googleLoadError ? 'Google Sign-in Unavailable' : 'Sign in with Google'}
-                                    </span>
-                                </button>
-
-                                <div className="flex items-center space-x-4 my-6 sm:my-8">
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                    <span className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins']">or continue</span>
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                </div>
-
-                                <div className="relative">
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        value={email}
-                                        onChange={handleEmailChange}
-                                        className="w-full h-12 sm:h-14 md:h-16 px-8 sm:px-10 md:px-12 bg-white rounded-full border border-gray-300 text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] backdrop-blur-[50px]"
-                                        required
-                                        aria-label="Email address"
-                                    />
-                                </div>
-
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Password"
-                                        value={password}
-                                        onChange={handlePasswordChange}
-                                        className="w-full h-12 sm:h-14 md:h-16 px-8 sm:px-10 md:px-12 pr-12 sm:pr-14 md:pr-16 bg-white rounded-full border border-gray-300 text-gray-600 text-sm sm:text-base md:text-lg font-medium font-['Poppins'] backdrop-blur-[50px]"
-                                        required
-                                        aria-label="Password"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={togglePasswordVisibility}
-                                        className="absolute right-4 sm:right-5 md:right-6 top-1/2 transform -translate-y-1/2 text-gray-400 rounded cursor-pointer"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                    >
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-                                    {error && (
-                                        <div className="text-red-500 text-sm sm:text-base font-medium font-['Poppins']" role="alert">
-                                            {error}
-                                        </div>
-                                    )}
-                                    <Link
-                                        href="/forgot-password"
-                                        className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded ml-auto"
-                                    >
-                                        Forgot Password?
-                                    </Link>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isLoading || !isFormValid}
-                                    className="w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-base sm:text-lg font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? 'Signing in...' : 'Sign in'}
-                                </button>
-
-                                <div className="w-full mt-6 text-center">
-                                    <div className="text-gray-500 text-sm sm:text-base font-medium font-['Poppins']">
-                                        If you don&apos;t already have an account,{' '}
-                                        <Link
-                                            href="/signup"
-                                            className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent"
-                                        >
-                                            Sign Up
-                                        </Link>
-                                    </div>
-                                </div>
-                            </form>
-                        </main>
-                    </div>
-                </div>
-            </div>
-
-
-            <div className="hidden lg:block">
-                <div className="relative w-full min-h-screen bg-white">
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/20">
-                            <div className="w-full h-full bg-gradient-to-b from-white/0 to-white" />
-                        </div>
-                    </div>
-
-                    <div className="relative z-10 min-h-screen grid lg:grid-cols-2">
-                        <div className="flex flex-col justify-center items-center min-h-screen">
-                            <div className="w-full max-w-3xl px-8 lg:px-12 xl:px-16 py-8">
-                                <header className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <Link href="/">
-                                        <Image
-                                            src="/logo.webp"
-                                            alt="Protonest Logo"
-                                            width={112}
-                                            height={80}
-                                            priority
-                                            className="w-20 h-16 lg:w-22 lg:h-17 xl:w-28 xl:h-18 2xl:w-28 2xl:h-20 object-contain cursor-pointer"
-                                        />
-                                    </Link>
-                                </header>
-
-                                <div className="mb-8 lg:mb-6 xl:mb-8 2xl:mb-12">
-                                    <h1 className="text-3xl lg:text-2xl xl:text-3xl 2xl:text-5xl font-medium font-['Montserrat'] leading-tight">
-                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign In</span>
-                                    </h1>
-                                </div>
-
-                                <form className="max-w-2xl space-y-5 lg:space-y-4 xl:space-y-5 2xl:space-y-8" onSubmit={(e) => { e.preventDefault(); handleSignIn(); }}>
-                                    <button
-                                        type="button"
-                                        onClick={handleGoogleSignInClick}
-                                        disabled={isLoading || googleLoadError}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-6 py-4 rounded-full gradient-button flex items-center justify-center space-x-4 lg:space-x-3 xl:space-x-4 2xl:space-x-6 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        aria-label="Sign in with Google"
-                                    >
-                                        <Image
-                                            src="/google.svg"
-                                            alt=""
-                                            width={48}
-                                            height={48}
-                                            className="w-9 h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 2xl:w-12 2xl:h-12"
-                                        />
-                                        <span className="text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            {isLoading ? 'Signing in...' : googleLoadError ? 'Google Sign-in Unavailable' : 'Sign in with Google'}
-                                        </span>
-                                    </button>
-
-                                    <div className="flex items-center space-x-4 my-8 lg:my-6 xl:my-8 2xl:my-12">
-                                        <div className="flex-1 h-px bg-gray-300"></div>
-                                        <span className="text-gray-400 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">or continue</span>
-                                        <div className="flex-1 h-px bg-gray-300"></div>
-                                    </div>
-
-                                    <div className="relative">
-                                        <input
-                                            type="email"
-                                            placeholder="Email"
-                                            value={email}
-                                            onChange={handleEmailChange}
-                                            className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 bg-white rounded-full border border-gray-300 text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] backdrop-blur-[50px]"
-                                            required
-                                            aria-label="Email address"
-                                        />
-                                    </div>
-
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="Password"
-                                            value={password}
-                                            onChange={handlePasswordChange}
-                                            className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 px-12 lg:px-10 xl:px-12 2xl:px-16 pr-14 lg:pr-12 xl:pr-14 2xl:pr-18 bg-white rounded-full border border-gray-300 text-gray-600 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins'] backdrop-blur-[50px]"
-                                            required
-                                            aria-label="Password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={togglePasswordVisibility}
-                                            className="absolute right-5 lg:right-4 xl:right-5 2xl:right-7 top-1/2 transform -translate-y-1/2 text-gray-400 rounded cursor-pointer"
-                                            aria-label={showPassword ? "Hide password" : "Show password"}
-                                        >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-
-                                    <div className="flex justify-between items-center">
-                                        {error && (
-                                            <div className="text-red-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']" role="alert">
-                                                {error}
-                                            </div>
-                                        )}
-                                        <Link
-                                            href="/forgot-password"
-                                            className="text-gray-400 text-sm sm:text-base font-medium font-['Poppins'] hover:text-gray-600 text-right rounded ml-auto"
-                                        >
-                                            Forgot Password?
-                                        </Link>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading || !isFormValid}
-                                        className="w-full h-14 lg:h-12 xl:h-14 2xl:h-18 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full cursor-pointer text-white text-base lg:text-sm xl:text-base 2xl:text-xl font-semibold font-['Poppins'] hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isLoading ? 'Signing In...' : 'Sign In'}
-                                    </button>
-
-                                    <div className="w-full text-center pt-4">
-                                        <div className="text-gray-500 text-base lg:text-sm xl:text-base 2xl:text-xl font-medium font-['Poppins']">
-                                            If you don&apos;t already have an account,{' '}
-                                            <Link
-                                                href="/signup"
-                                                className="text-gray-600 hover:bg-gradient-to-r hover:from-[#5530FA] hover:via-[#F51DA5] hover:to-[#6C9AE1] hover:bg-clip-text hover:text-transparent"
-                                            >
-                                                Sign Up
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
                         </div>
 
-                        <div className="hidden lg:flex items-stretch h-screen sticky top-0 self-start">
-                            <div className="w-full p-6 lg:p-4 xl:p-6 2xl:p-10 flex">
-                                <Image
-                                    src="/login1.webp"
-                                    alt="Welcome illustration"
-                                    width={800}
-                                    height={600}
-                                    priority
-                                    className="w-full h-full object-cover rounded-tr-[67px] rounded-tl-[67px] rounded-br-[67px]"
-                                />
-                            </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading || !isFormValid}
+                            className="w-full h-12 bg-gradient-to-r from-[#5530fa] to-[#f51da5] rounded-full text-white text-sm font-semibold font-['Poppins'] hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                        >
+                            {isLoading ? 'Signing in...' : 'Sign In'}
+                        </button>
+
+                        <div className="text-center pt-2">
+                            <span className="text-gray-400 text-sm font-['Poppins']">Don&apos;t have an account? </span>
+                            <Link href="/signup" className="text-[#5530FA] text-sm font-medium font-['Poppins'] hover:underline">
+                                Sign Up
+                            </Link>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SignInPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>}>
+            <SignInContent />
+        </Suspense>
     );
 }
