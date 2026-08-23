@@ -118,12 +118,14 @@ const OurTeamSection = () => {
                   key={member.id}
                   className="group flex flex-col items-center text-center"
                 >
-                  <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-[24px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 transition-transform duration-300 group-hover:scale-105 xl:h-32 xl:w-32">
-                    <Icon
-                      aria-hidden="true"
-                      className="h-12 w-12 text-[#5530FA] xl:h-14 xl:w-14"
-                      strokeWidth={1.6}
-                    />
+                  <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-[28px] bg-white p-2 shadow-[0_12px_32px_rgba(49,35,92,0.10)] ring-1 ring-[#5530FA]/5 transition-transform duration-300 group-hover:scale-105 xl:h-32 xl:w-32 xl:rounded-[30px]">
+                    <div className="flex h-full w-full items-center justify-center rounded-[20px] xl:rounded-[22px]">
+                      <Icon
+                        aria-hidden="true"
+                        className="h-12 w-12 text-[#5530FA] xl:h-14 xl:w-14"
+                        strokeWidth={1.6}
+                      />
+                    </div>
                   </div>
 
                   <h4 className="max-w-[276px] font-poppins text-[16px] font-normal text-[#4D4D4D] xl:text-lg">
@@ -150,12 +152,14 @@ const OurTeamSection = () => {
                       member.isLeft ? "" : "flex-row-reverse"
                     }`}
                   >
-                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-[#5530FA]/12 via-[#F51DA5]/8 to-[#6C9AE1]/12 transition-transform duration-300 hover:scale-105 sm:h-24 sm:w-24">
-                      <Icon
-                        aria-hidden="true"
-                        className="h-9 w-9 text-[#5530FA] sm:h-11 sm:w-11"
-                        strokeWidth={1.6}
-                      />
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-[22px] bg-white p-1.5 shadow-[0_10px_26px_rgba(49,35,92,0.10)] ring-1 ring-[#5530FA]/5 transition-transform duration-300 hover:scale-105 sm:h-24 sm:w-24 sm:rounded-[26px] sm:p-2">
+                      <div className="flex h-full w-full items-center justify-center rounded-[16px] sm:rounded-[18px]">
+                        <Icon
+                          aria-hidden="true"
+                          className="h-9 w-9 text-[#5530FA] sm:h-11 sm:w-11"
+                          strokeWidth={1.6}
+                        />
+                      </div>
                     </div>
 
                     <h4

@@ -491,7 +491,10 @@ function ProblemsWeSolve() {
         <div>
           <div className="lg:sticky lg:top-28">
             <h2 className="font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-              Access control problems we help solve
+              Access control{" "}
+              <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text text-transparent">
+                problems we help solve
+              </span>
             </h2>
 
             <div className="mt-6 space-y-4">
@@ -604,7 +607,10 @@ function HowWeWork() {
     <section className="w-full px-4 py-14 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <div className="mx-auto max-w-[1280px]">
         <h2 className="max-w-3xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-          Our IoT product development workflow
+          Our IoT product development{" "}
+          <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text text-transparent">
+            workflow
+          </span>
         </h2>
 
         <ol className="relative mt-12 grid gap-0 before:absolute before:bottom-6 before:left-[21px] before:top-6 before:w-px before:bg-[#DDD8EC] lg:grid-flow-col lg:auto-cols-fr lg:before:hidden">
@@ -641,7 +647,11 @@ function WhyProtonest() {
     <section className="w-full px-4 py-14 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[28px] bg-[#18151F] px-6 py-10 sm:px-8 sm:py-12 lg:rounded-[36px] lg:px-12 lg:py-16">
         <h2 className="max-w-3xl font-montserrat text-[28px] font-medium leading-tight text-white sm:text-[34px] lg:text-[42px]">
-          Why access control teams work with Protonest
+          Why{" "}
+          <span className="bg-gradient-to-r from-[#B9AEFF] to-[#FF73C6] bg-clip-text text-transparent">
+            access control teams
+          </span>{" "}
+          work with Protonest
         </h2>
 
         <div className="mt-10 grid border-t border-white/10 sm:grid-cols-2">
@@ -691,7 +701,10 @@ function UsefulResources() {
       <div className="mx-auto max-w-[1280px]">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <h2 className="max-w-2xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-            Useful resources
+            Useful{" "}
+            <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text text-transparent">
+              resources
+            </span>
           </h2>
 
           <p className="max-w-2xl font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:justify-self-end lg:text-[16px]">
@@ -740,7 +753,10 @@ function FAQs() {
     <section className="w-full bg-[#F8F7FC] px-4 py-14 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
       <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
         <h2 className="max-w-xl font-montserrat text-[28px] font-medium leading-tight text-[#333333] sm:text-[34px] lg:text-[42px]">
-          Frequently asked questions
+          Frequently asked{" "}
+          <span className="bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text text-transparent">
+            questions
+          </span>
         </h2>
 
         <div>
@@ -793,10 +809,7 @@ export default function AccessControlPage() {
       <WhyProtonest />
       <UsefulResources />
       <FAQs />
-      <FinalCTA
-        highlightedText="IoT Development Project"
-        description="Book a free call to discuss your product idea or the technical challenge. We can help you review the scope, architecture, and next steps."
-      />
+      <FinalCTA />
       <Footer />
     </div>
   );

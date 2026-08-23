@@ -211,7 +211,7 @@ const industries = [
     image: "/manufacturing.png",
     alt: "Protonest industrial IoT monitoring and factory automation support",
     description:
-      "We support industrial monitoring and predictive maintenance systems that help teams track factory performance.",
+      "We support industrial monitoring and predictive maintenance to help teams track factory performance.",
   },
   {
     slug: "automotive",
@@ -406,9 +406,9 @@ function FeaturedTestimonial() {
             <div className="w-full max-w-xs mx-auto lg:mx-0">
               <TestimonialVideoPlayer
                 src="/entryphone-testimonial.mp4"
-                ariaLabel="Oliver Ashby of The Entry Phone Company shares his experience working with Protonest"
+                ariaLabel="Oliver Ashby of the Entryphone Company shares his experience working with Protonest"
                 name="Oliver Ashby"
-                company="The Entry Phone Company, UK"
+                company="Entryphone Company, UK"
               />
             </div>
           </div>

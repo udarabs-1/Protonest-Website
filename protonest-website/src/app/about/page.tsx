@@ -350,10 +350,7 @@ export default function About() {
           <OurTeamSection />
         </div>
 
-        <FinalCTA
-          highlightedText="IoT Development Project"
-          description="Book a free call to discuss your product idea or the technical challenge. We can help you review the scope, architecture, and next steps."
-        />
+        <FinalCTA />
       </div>
       <Footer />
     </div>

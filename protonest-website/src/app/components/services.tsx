@@ -38,7 +38,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
   {
     title: "Firmware Development",
     description:
-      "We develop reliable firmware for embedded products, including device logic, sensor and actuator integration, communication protocols, and testing, ensuring performance under real-world operating conditions.",
+      "We develop reliable firmware for embedded products, including device logic, sensor and actuator integration, and communication protocols.",
     icon: <FiCode size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
@@ -46,7 +46,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
   {
     title: "Software Development",
     description:
-      "We build custom software solutions which are dependable and simple enough to easily support your IoT devices.",
+      "We build clean, dependable front-end and backend software that supports your IoT product.",
     icon: <FiCheckCircle size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
@@ -62,7 +62,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
   {
     title: "IoT Consulting and Support",
     description:
-      "We provide you with clear IoT consulting services to help you make better decisions or post development support with updates, and post-launch improvements.",
+      "We provide clear IoT consulting services to help you make better decisions, and post-development support with updates and maintenance.",
     icon: <FiGlobe size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
