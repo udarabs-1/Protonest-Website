@@ -128,20 +128,16 @@ const WHY_PROTONEST = [
 
 const RESOURCES = [
   {
-    title: "Selecting a perfect battery for an IoT project",
-    href: "/blog/selecting-a-perfect-battery-for-an-iot-project",
+    title: "Mobile Access Control Architecture: BLE, NFC and Credential Management",
+    href: "/blog/mobile-access-control-architecture:-ble,-nfc-and-credential-management",
   },
   {
-    title: "Communication method for an IoT project: selection guide",
-    href: "/blog/communication-method-for-an-iot-project-selection-guide",
+    title: "Biometric Access Control Systems: What Product Teams Need to Design",
+    href: "/blog/biometric-access-control-systems:-what-product-teams-need-to-design",
   },
   {
-    title: "Selecting the perfect cloud backend for an IoT project",
-    href: "/blog/selecting-the-perfect-cloud-backend-for-an-iot-project",
-  },
-  {
-    title: "PCB component management system",
-    href: "/blog/pcb-component-management-system",
+    title: "Which Access Credential Is Right for Your Product",
+    href: "/blog/which-access-credential-is-right-for-your-product",
   },
 ];
 
@@ -371,7 +367,7 @@ function Hero() {
           </p>
 
           <Link
-            href="/contact-us#book-a-call"
+            href="/contact-us"
             className="mt-8 inline-flex h-[56px] items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#5530FA] to-[#F51DA5] px-8 font-poppins text-[15px] font-medium text-white transition-all duration-300 hover:shadow-[0_12px_30px_rgba(85,48,250,0.20)]"
           >
             Book a Call
@@ -444,9 +440,8 @@ function ClientProof() {
           <div className="rounded-[22px] bg-white p-6 sm:p-8 lg:rounded-[28px] lg:p-10">
             <div className="relative h-[42px] w-[150px]">
               <Image
-                src="/client4.svg"
-                alt=""
-                aria-hidden="true"
+                src="/protonest-client-entryphone.svg"
+                alt="Entryphone logo"
                 fill
                 sizes="150px"
                 className="object-contain object-left"

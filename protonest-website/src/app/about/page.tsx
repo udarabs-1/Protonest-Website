@@ -117,7 +117,7 @@ export default function About() {
               reliable systems.
             </p>
             <Link
-              href="/contact-us#book-a-call"
+              href="/contact-us"
               className="mt-6 sm:mt-8 inline-flex items-center justify-center w-[160px] sm:w-[180px] h-[45px] sm:h-[50px] cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 font-poppins font-medium text-sm sm:text-base"
             >
               Book a Call

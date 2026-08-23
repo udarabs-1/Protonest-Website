@@ -43,9 +43,9 @@ const TestimonialSection = () => {
     },
     {
       id: 5,
-      name: "Oliver Ashbee",
-      company: "entryphone, UK",
-      text: "I’ve worked with Protonest on a development project and have been really impressed by their technical ability, clear communication, and professional approach. Everything has been handled carefully and to a high standard.",
+      name: "Oliver Ashby",
+      company: "The Entry Phone Company, UK",
+      text: "The Protonest team is collaborative, flexible, and genuinely invested in our product and business goals. Communication has been excellent, the work consistently strong, and they have become a trusted partner in our development process.",
       avatar: "/profile-1.svg",
     },
     {
@@ -200,7 +200,7 @@ const TestimonialSection = () => {
         </div>
 
         <div className="flex justify-center">
-          <Link href="/contact-us#book-a-call">
+          <Link href="/contact-us">
             <button className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-lg">
               <span className="text-white text-sm md:text-base font-medium">
                 Book a Call

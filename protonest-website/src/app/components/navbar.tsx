@@ -5,24 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
-type DropdownKey = "industries" | "company" | "resources";
-
-interface DropdownItem {
-  id: string;
-  href: string;
-  label: string;
-  description: string;
-  isConditional?: boolean;
-}
-
-interface NavItem {
-  href: string;
-  label: string;
-  hasDropdown?: boolean;
-  key?: DropdownKey;
-  isConditional?: boolean;
-}
+import {
+  DROPDOWN_ITEMS,
+  NAV_ITEMS,
+  SITE_LINKS,
+  type DropdownKey,
+  type NavItem,
+} from "@/lib/navigation";
 
 export default function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(
@@ -33,67 +22,53 @@ export default function Navbar() {
   const [isUserSignedIn, setIsUserSignedIn] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const pathname = usePathname();
-  const showCareersAuth = pathname === "/careers";
+  const showCareersAuth = pathname === SITE_LINKS.careers;
   const router = useRouter();
   const desktopDropdownRef = useRef<HTMLDivElement>(null);
   const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("jwtToken");
     setIsUserSignedIn(!!token);
   }, []);
 
-  const dropdownItems: Record<DropdownKey, DropdownItem[]> = {
-    industries: [
-      {
-        id: "industries-access-control",
-        href: "/industries/access-control",
-        label: "Access Control",
-        description:
-          "IoT product development for connected access control systems.",
-      },
-    ],
-    company: [
-      {
-        id: "company-about",
-        href: "/about",
-        label: "About",
-        description: "Learn about Protonest, our work, and our team.",
-      },
-      {
-        id: "company-careers",
-        href: "/careers",
-        label: "Careers",
-        description: "Explore open roles and opportunities at Protonest.",
-        isConditional: true,
-      },
-      {
-        id: "company-contact",
-        href: "/contact-us",
-        label: "Contact Us",
-        description: "Get in touch with our team about your project.",
-      },
-    ],
-    resources: [
-      {
-        id: "resources-blog",
-        href: "/blog",
-        label: "Blog",
-        description: "Insights, trends & stories from the IoT frontier.",
-      },
-      {
-        id: "resources-projects",
-        href: "/portfolio",
-        label: "Projects",
-        description: "Explore our work and research conducted by our team.",
-      },
-    ],
+  const cancelDropdownClose = () => {
+    if (dropdownCloseTimeoutRef.current) {
+      clearTimeout(dropdownCloseTimeoutRef.current);
+      dropdownCloseTimeoutRef.current = null;
+    }
+  };
+
+  const openDropdownOnHover = (dropdown: DropdownKey) => {
+    cancelDropdownClose();
+    setProfileDropdownOpen(false);
+    setActiveDropdown(dropdown);
+  };
+
+  const scheduleDropdownClose = () => {
+    cancelDropdownClose();
+    dropdownCloseTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+      dropdownCloseTimeoutRef.current = null;
+    }, 150);
   };
 
   const toggleDropdown = (dropdown: DropdownKey) => {
+    cancelDropdownClose();
     setProfileDropdownOpen(false);
     setActiveDropdown((current) => (current === dropdown ? null : dropdown));
   };
+
+  useEffect(() => {
+    return () => {
+      if (dropdownCloseTimeoutRef.current) {
+        clearTimeout(dropdownCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -113,6 +88,7 @@ export default function Navbar() {
   }, []);
 
   const handleNavigation = () => {
+    cancelDropdownClose();
     setActiveDropdown(null);
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
@@ -121,9 +97,9 @@ export default function Navbar() {
   const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     if (isUserSignedIn) {
-      router.push("/dashboard/all-jobs");
+      router.push(SITE_LINKS.jobs);
     } else {
-      router.push("/careers");
+      router.push(SITE_LINKS.careers);
     }
     handleNavigation();
   };
@@ -131,35 +107,18 @@ export default function Navbar() {
   const handleProfileIconClick = () => {
     setActiveDropdown(null);
     if (isUserSignedIn) {
-      router.push("/dashboard");
+      router.push(SITE_LINKS.dashboard);
       setProfileDropdownOpen(false);
     } else {
       setProfileDropdownOpen((prev) => !prev);
     }
   };
 
-  const navItems: NavItem[] = [
-    { href: "/", label: "Home" },
-    {
-      href: "/industries",
-      label: "Industries",
-      hasDropdown: true,
-      key: "industries",
-    },
-    { href: "/company", label: "Company", hasDropdown: true, key: "company" },
-    {
-      href: "/resources",
-      label: "Resources",
-      hasDropdown: true,
-      key: "resources",
-    },
-  ];
-
   const isNavItemActive = (item: NavItem) => {
     if (item.hasDropdown && item.key) {
-      const hasActiveChild = dropdownItems[item.key].some((dropdownItem) => {
+      const hasActiveChild = DROPDOWN_ITEMS[item.key].some((dropdownItem) => {
         if (dropdownItem.isConditional && isUserSignedIn) {
-          return pathname === "/dashboard/all-jobs";
+          return pathname === SITE_LINKS.jobs;
         }
 
         return (
@@ -172,7 +131,7 @@ export default function Navbar() {
     }
 
     if (item.isConditional && isUserSignedIn) {
-      return pathname === "/dashboard/all-jobs";
+      return pathname === SITE_LINKS.jobs;
     }
     return pathname === item.href;
   };
@@ -224,7 +183,7 @@ export default function Navbar() {
             <div className="container mx-auto">
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <Link href="/" onClick={handleNavigation}>
+                  <Link href={SITE_LINKS.home} onClick={handleNavigation}>
                     <Image
                       src="/logo.webp"
                       alt="Company Logo"
@@ -239,7 +198,7 @@ export default function Navbar() {
                 </div>
 
                 <div className="font-montserrat text-sm lg:text-[15px] xl:text-base 2xl:text-lg flex items-center space-x-3 lg:space-x-[25px] xl:space-x-[35px] 2xl:space-x-[45px]">
-                  {navItems.map((item) => {
+                  {NAV_ITEMS.map((item) => {
                     const showGradient = shouldShowGradient(item);
                     const hasDropdown = item.hasDropdown;
                     const isHovered = hoveredItem === item.href;
@@ -251,8 +210,23 @@ export default function Navbar() {
                           <Link
                             href={item.href}
                             className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
-                            onMouseEnter={() => setHoveredItem(item.href)}
-                            onMouseLeave={() => setHoveredItem(null)}
+                            onMouseEnter={() => {
+                              setHoveredItem(item.href);
+                              if (hasDropdown && item.key) {
+                                openDropdownOnHover(item.key);
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredItem(null);
+                              if (hasDropdown) {
+                                scheduleDropdownClose();
+                              }
+                            }}
+                            onFocus={() => {
+                              if (hasDropdown && item.key) {
+                                openDropdownOnHover(item.key);
+                              }
+                            }}
                             aria-expanded={
                               hasDropdown
                                 ? activeDropdown === item.key
@@ -308,7 +282,7 @@ export default function Navbar() {
 
                 <div className="font-poppins flex items-center space-x-3 lg:space-x-[16px] xl:space-x-[20px] 2xl:space-x-[24px]">
                   <Link
-                    href="/contact-us#book-a-call"
+                    href={SITE_LINKS.bookCall}
                     className="cursor-pointer flex items-center justify-center w-[110px] lg:w-[130px] xl:w-[147px] 2xl:w-[160px] h-[40px] lg:h-[42px] xl:h-[44px] 2xl:h-[48px] text-sm lg:text-[15px] xl:text-base 2xl:text-lg bg-none border gradient-button-static p-[8px] lg:p-[9px] xl:p-[10px] rounded-[30px]"
                   >
                     Book a Call
@@ -386,7 +360,7 @@ export default function Navbar() {
                             </div>
                             <div className="px-3 pb-3 flex flex-col gap-0.5">
                               <Link
-                                href="/signin"
+                                href={SITE_LINKS.signIn}
                                 id="navbar-dropdown-signin"
                                 onClick={handleNavigation}
                                 className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
@@ -418,72 +392,81 @@ export default function Navbar() {
             </div>
           </nav>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {activeDropdown && (
-              <>
-                <motion.div
-                  className="fixed inset-0 top-[100px] z-30 bg-transparent lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
-                  onClick={handleNavigation}
-                  initial="closed"
-                  animate="open"
-                  exit="closed"
-                  variants={overlayVariants}
-                  aria-hidden="true"
-                />
-
-                <motion.div
-                  key={activeDropdown}
-                  className="fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
-                  initial="closed"
-                  animate="open"
-                  exit="closed"
-                  variants={dropdownVariants}
-                  role="menu"
-                  aria-label={`${activeDropdown} navigation`}
-                >
-                  <div className="absolute left-0 top-2 h-px w-full bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30" />
-
-                  <div className="container px-4 py-[35px] sm:px-8 md:px-16 lg:px-[100px] lg:py-[25px] xl:px-[133px] xl:py-[28px] 2xl:px-[180px] 2xl:py-[30px]">
-                    <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
-                      {dropdownItems[activeDropdown].map(
-                        (dropdownItem, index) => (
-                          <motion.div
-                            key={dropdownItem.id}
-                            custom={index}
-                            initial="closed"
-                            animate="open"
-                            exit="closed"
-                            variants={itemVariants}
-                            role="none"
-                          >
-                            <Link
-                              href={dropdownItem.href}
-                              className="group block w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px]"
-                              role="menuitem"
-                              onClick={(e) => {
-                                if (dropdownItem.isConditional) {
-                                  handleCareersClick(e);
-                                } else {
-                                  handleNavigation();
-                                }
-                              }}
-                            >
-                              <div className="mb-2 inline-block text-sm text-[#83848b] group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent lg:text-[15px] xl:text-base 2xl:text-lg">
-                                {dropdownItem.label}
-                              </div>
-                              <div className="text-xs leading-relaxed text-[#83848b] group-hover:text-black 2xl:text-sm">
-                                {dropdownItem.description}
-                              </div>
-                            </Link>
-                          </motion.div>
-                        ),
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              </>
+              <motion.div
+                className="fixed inset-0 top-[100px] z-30 bg-transparent lg:top-[105px] xl:top-[115px] 2xl:top-[125px]"
+                onClick={handleNavigation}
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={overlayVariants}
+                aria-hidden="true"
+              />
             )}
           </AnimatePresence>
+
+          {(Object.keys(DROPDOWN_ITEMS) as DropdownKey[]).map((dropdownKey) => {
+            const isOpen = activeDropdown === dropdownKey;
+
+            return (
+              <motion.div
+                key={dropdownKey}
+                className={`fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px] ${
+                  isOpen
+                    ? "visible pointer-events-auto"
+                    : "invisible pointer-events-none"
+                }`}
+                onMouseEnter={cancelDropdownClose}
+                onMouseLeave={scheduleDropdownClose}
+                initial={false}
+                animate={isOpen ? "open" : "closed"}
+                variants={dropdownVariants}
+                role="menu"
+                aria-hidden={!isOpen}
+                aria-label={`${dropdownKey} navigation`}
+              >
+                <div className="absolute left-0 top-2 h-px w-full bg-gradient-to-r from-transparent via-[#a3a3a3] to-transparent opacity-30" />
+
+                <div className="container px-4 py-[35px] sm:px-8 md:px-16 lg:px-[100px] lg:py-[25px] xl:px-[133px] xl:py-[28px] 2xl:px-[180px] 2xl:py-[30px]">
+                  <div className="flex flex-wrap gap-4 lg:gap-[100px] xl:gap-[126px] 2xl:gap-[160px]">
+                    {DROPDOWN_ITEMS[dropdownKey].map((dropdownItem, index) => (
+                      <motion.div
+                        key={dropdownItem.id}
+                        custom={index}
+                        initial={false}
+                        animate={isOpen ? "open" : "closed"}
+                        variants={itemVariants}
+                        role="none"
+                      >
+                        <Link
+                          href={dropdownItem.href}
+                          className="group block w-full lg:w-[200px] xl:w-[214px] 2xl:w-[240px]"
+                          role="menuitem"
+                          target={dropdownItem.external ? "_blank" : undefined}
+                          rel={dropdownItem.external ? "noopener" : undefined}
+                          onClick={(e) => {
+                            if (dropdownItem.isConditional) {
+                              handleCareersClick(e);
+                            } else {
+                              handleNavigation();
+                            }
+                          }}
+                        >
+                          <div className="mb-2 inline-block text-sm text-[#83848b] group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text group-hover:text-transparent lg:text-[15px] xl:text-base 2xl:text-lg">
+                            {dropdownItem.label}
+                          </div>
+                          <div className="text-xs leading-relaxed text-[#83848b] group-hover:text-black 2xl:text-sm">
+                            {dropdownItem.description}
+                          </div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
 
           <div className="pt-[100px] lg:pt-[105px] xl:pt-[115px] 2xl:pt-[125px]"></div>
         </div>
@@ -509,7 +492,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
           >
             <div className="flex justify-between items-center max-w-7xl mx-auto">
-              <Link href="/" onClick={handleNavigation}>
+              <Link href={SITE_LINKS.home} onClick={handleNavigation}>
                 <Image
                   src="/logo.webp"
                   alt="Company Logo"
@@ -595,7 +578,7 @@ export default function Navbar() {
                           </div>
                           <div className="px-3 pb-3 flex flex-col gap-0.5">
                             <Link
-                              href="/signin"
+                              href={SITE_LINKS.signIn}
                               id="mobile-dropdown-signin"
                               onClick={handleNavigation}
                               className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium font-poppins text-[#6b7280] transition-colors duration-150 hover:bg-gray-50"
@@ -680,7 +663,7 @@ export default function Navbar() {
                 </div>
 
                 <div className="w-[250px] md:w-[350px] left-[34px] md:left-[35px] top-[157px] md:top-[180px] absolute inline-flex flex-col justify-center items-start gap-[35px] md:gap-[42px]">
-                  {navItems.map((item, index) => {
+                  {NAV_ITEMS.map((item, index) => {
                     const showGradient = shouldShowGradient(item);
                     const hasDropdown = item.hasDropdown;
                     const isConditional = item.isConditional;
@@ -762,12 +745,14 @@ export default function Navbar() {
                                 transition={{ duration: 0.2 }}
                               >
                                 <div className="flex flex-col gap-[19px] md:gap-[24px]">
-                                  {dropdownItems[item.key].map(
+                                  {DROPDOWN_ITEMS[item.key].map(
                                     (dropdownItem) => (
                                       <Link
                                         key={dropdownItem.id}
                                         href={dropdownItem.href}
                                         className="group block origin-left transition-transform hover:scale-105"
+                                        target={dropdownItem.external ? "_blank" : undefined}
+                                        rel={dropdownItem.external ? "noopener" : undefined}
                                         onClick={(e) => {
                                           if (dropdownItem.isConditional) {
                                             handleCareersClick(e);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CONTACT_DETAILS } from "@/lib/contact-details";
 
 const description = "Share your IoT product requirement with us.";
 
@@ -51,16 +52,12 @@ const contactJsonLd = {
         url: "https://protonest.co/logo.webp",
       },
       description: organizationDescription,
-      email: "info@protonest.co",
-      telephone: "+94771482755",
-      address: {
+      email: CONTACT_DETAILS.email,
+      telephone: CONTACT_DETAILS.phone.e164,
+      address: CONTACT_DETAILS.addresses.map((address) => ({
         "@type": "PostalAddress",
-        streetAddress: "503/A, Welivita Road",
-        addressLocality: "Kaduwela",
-        addressRegion: "Colombo",
-        postalCode: "10640",
-        addressCountry: "LK",
-      },
+        ...address.schema,
+      })),
       sameAs: [
         "https://lk.linkedin.com/company/protonestiot",
         "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
@@ -70,8 +67,8 @@ const contactJsonLd = {
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "sales",
-        email: "info@protonest.co",
-        telephone: "+94771482755",
+        email: CONTACT_DETAILS.email,
+        telephone: CONTACT_DETAILS.phone.e164,
         availableLanguage: "en",
         areaServed: "Global",
       },

@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { CONTACT_DETAILS } from "@/lib/contact-details";
 import FAQSection from "../components/faq";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
@@ -16,9 +17,9 @@ const contactTestimonials = [
     avatar: "/profile-1.svg",
   },
   {
-    name: "Oliver Ashbee",
-    company: "entryphone, UK",
-    text: "I've worked with Protonest on a development project and have been really impressed by their technical ability, clear communication, and professional approach. Everything has been handled carefully and to a high standard.",
+    name: "Oliver Ashby",
+    company: "The Entry Phone Company, UK",
+    text: "The Protonest team is collaborative, flexible, and genuinely invested in our product and business goals. Communication has been excellent, the work consistently strong, and they have become a trusted partner in our development process.",
     avatar: "/profile-1.svg",
   },
   {
@@ -35,13 +36,18 @@ const contactTestimonials = [
   },
 ];
 
+const addressIcons = {
+  us: "solar:global-bold",
+  office: "solar:buildings-2-bold",
+  hq: "solar:map-point-wave-bold",
+} as const;
+
 export default function Contact() {
   const formContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
     const formScriptId = "hubspot-form-script";
-    const meetingScriptId = "hubspot-meeting-script";
 
     // We generate a strict runtime ID to defend against React Strict Mode race conditions
     const currentUniqueId =
@@ -90,23 +96,8 @@ export default function Contact() {
       renderForm();
     }
 
-    // Load Meeting Scheduler Script
-    // First remove any old instances so it correctly re-scans the DOM on load
-    const existingMeetingScript = document.getElementById(meetingScriptId);
-    if (existingMeetingScript) existingMeetingScript.remove();
-
-    const meetingScript = document.createElement("script");
-    meetingScript.src =
-      "https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js";
-    meetingScript.id = meetingScriptId;
-    meetingScript.async = true;
-    document.body.appendChild(meetingScript);
-
     return () => {
       isMounted = false; // Cleanup flag to stop stray background execution
-      if (document.getElementById(meetingScriptId)) {
-        document.getElementById(meetingScriptId)?.remove();
-      }
       // Leave the form script globally loaded, but DOM cleanup happens naturally by React
     };
   }, []);
@@ -153,12 +144,6 @@ export default function Contact() {
                 </p>
 
                 <div className="mt-3">
-                  <SectionHeader
-                    prefix="What Our Clients"
-                    highlight="Say"
-                    align="left"
-                  />
-
                   <TestimonialMarquee testimonials={contactTestimonials} />
                 </div>
               </div>
@@ -174,21 +159,9 @@ export default function Contact() {
           </div>
         </section>
 
-        <div
-          id="book-a-call"
-          className="relative w-full scroll-mt-[65px] lg:scroll-mt-[80px] px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px] pt-10 md:pt-14 lg:pt-16"
-        >
-          <div className="w-full min-h-[550px] flex items-start justify-center">
-            <div
-              className="w-full meetings-iframe-container"
-              data-src="https://meetings-na2.hubspot.com/udara-kumarasena?embed=true"
-            ></div>
-          </div>
-        </div>
-
-        <div className="relative w-full max-w-[1440px] mx-auto h-auto mt-4 md:mt-8 pt-8">
-          <div className="absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[780px] lg:h-[780px] xl:h-[780px] 2xl:h-[585px] overflow-hidden">
-            <div className="hidden md:block max-w-[1440px] mr-auto h-full">
+        <div className="relative w-full h-auto mt-4 md:mt-8 pt-8">
+          <div className="pointer-events-none absolute inset-0 top-[40px] sm:top-[45px] md:top-[51px] lg:top-[57px] h-[400px] sm:h-[450px] md:h-[1100px] lg:h-[1100px] xl:h-[1050px] 2xl:h-[1000px] overflow-hidden">
+            <div className="relative hidden md:block max-w-[1440px] mr-auto h-full">
               <Image
                 src="/contact-3.svg"
                 alt="Contact cards background"
@@ -210,93 +183,121 @@ export default function Contact() {
               <span className="text-[#6c6c6c]">Directly</span>
             </h2>
             <p className="max-w-[720px] mx-auto mt-4 sm:mt-5 md:mt-6 text-[13px] sm:text-[14px] md:text-[15px] font-normal font-poppins text-[#6c6c6c] leading-relaxed">
-              Contact Protonest by phone or email, or write to us at our
-              address. Use the contact form for project inquiries and technical
-              requirements.
+              Contact Protonest by phone or email, or write to us at one of our
+              addresses. Use the contact form for project inquiries and
+              technical requirements.
             </p>
           </div>
 
-          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 justify-items-center items-stretch gap-6 sm:gap-8 px-4 sm:px-8 md:px-12 lg:px-[60px] xl:px-[80px] 2xl:px-[40px]">
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:map-point-wave-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
-                </div>
-              </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Headquarters
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[190px] sm:top-[200px] md:top-[240px] lg:top-[280px] text-center text-[#6c6c6c] text-[14px] xl:text-[20px] font-medium font-poppins px-2">
-                Kaduwela, Colombo,
-                <br />
-                Sri Lanka
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
-            </div>
+          <section className="relative z-10 w-full px-4 sm:px-8 md:px-12 lg:px-[90px] xl:px-[157px] 2xl:px-[180px]">
+            <div className="rounded-[32px] bg-gradient-to-br from-[#EEE9FF] via-[#F6F3FF] to-[#FFF0F8] p-3 sm:rounded-[36px] sm:p-4 lg:p-5">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-12">
+                <div className="rounded-[26px] border border-white bg-white p-6 sm:rounded-[30px] sm:p-8 lg:col-span-8 lg:p-10">
+                  <div className="mb-8 flex items-center gap-4">
+                    <div>
+                      <p className="font-poppins text-xs font-medium uppercase tracking-[0.14em] text-[#8A8A93]">
+                        Locations
+                      </p>
 
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:buildings-2-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
-                </div>
-              </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Office
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[190px] sm:top-[200px] md:top-[240px] lg:top-[280px] text-center text-[#6c6c6c] text-[14px] xl:text-[20px] font-medium font-poppins px-2">
-                392 Horana Rd,
-                <br />
-                Pannipitiya 10132
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
-            </div>
+                      <h2 className="mt-1 font-montserrat text-xl font-semibold text-[#3F3F46] sm:text-2xl">
+                        Our offices
+                      </h2>
+                    </div>
+                  </div>
 
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:phone-calling-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
-                </div>
-              </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Phone
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] text-[14px] xl:text-xl font-medium font-poppins">
-                +94 771 482 755
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
-            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3">
+                    {CONTACT_DETAILS.addresses.map((address) => (
+                      <article
+                        key={address.id}
+                        className="border-t border-[#ECECF1] py-6 first:border-t-0 first:pt-0 last:pb-0 md:border-l md:border-t-0 md:px-6 md:py-0 md:first:border-l-0 md:first:pl-0 md:last:pr-0"
+                      >
+                        <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#5530FA] to-[#F51DA5] text-white">
+                          <Icon
+                            icon={addressIcons[address.id]}
+                            className="h-5 w-5"
+                          />
+                        </div>
 
-            <div className="w-full max-w-[320px] h-[300px] sm:h-[310px] lg:h-[360px] bg-white/5 rounded-[25px] sm:rounded-[28px] md:rounded-[32px] lg:rounded-[35px] shadow-lg border border-white/10 backdrop-blur-[20px] relative overflow-hidden">
-              <div className="absolute w-full top-[40px] sm:top-[45px] md:top-[55px] lg:top-[60px] text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-gradient-to-br from-[#5530FA] to-[#F51DA5] rounded-full">
-                  <Icon
-                    icon="solar:letter-bold"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white"
-                  />
+                        <h3 className="font-montserrat text-sm font-semibold text-[#44444B]">
+                          {address.label}
+                        </h3>
+
+                        <address className="mt-3 not-italic font-poppins text-sm font-normal leading-6 text-[#74747D]">
+                          {address.lines.map((line) => (
+                            <span key={line} className="block">
+                              {line}
+                            </span>
+                          ))}
+                        </address>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:col-span-4 lg:grid-cols-1">
+                  <a
+                    href={CONTACT_DETAILS.phone.href}
+                    className="group flex min-h-[170px] flex-col justify-between rounded-[26px] border border-white bg-white p-6 transition-colors hover:border-[#DCD4FF] sm:rounded-[30px] sm:p-7"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#5530FA] to-[#F51DA5] text-white">
+                        <Icon
+                          icon="solar:phone-calling-bold"
+                          className="h-6 w-6"
+                        />
+                      </div>
+
+                      <Icon
+                        icon="solar:arrow-right-up-linear"
+                        className="h-5 w-5 text-[#9898A1] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#5530FA]"
+                      />
+                    </div>
+
+                    <div className="mt-8">
+                      <span className="block font-poppins text-sm font-medium text-[#74747D]">
+                        Phone
+                      </span>
+
+                      <span className="mt-2 block font-montserrat text-base font-semibold text-[#3F3F46] sm:text-lg">
+                        {CONTACT_DETAILS.phone.display}
+                      </span>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`mailto:${CONTACT_DETAILS.email}`}
+                    className="group flex min-h-[170px] flex-col justify-between rounded-[26px] border border-white bg-white p-6 transition-colors hover:border-[#F2CBE4] sm:rounded-[30px] sm:p-7"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#5530FA] to-[#F51DA5] text-white">
+                        <Icon icon="solar:letter-bold" className="h-6 w-6" />
+                      </div>
+
+                      <Icon
+                        icon="solar:arrow-right-up-linear"
+                        className="h-5 w-5 text-[#9898A1] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#F51DA5]"
+                      />
+                    </div>
+
+                    <div className="mt-8 min-w-0">
+                      <span className="block font-poppins text-sm font-medium text-[#74747D]">
+                        Email
+                      </span>
+
+                      <span className="mt-2 block break-words font-montserrat text-base font-semibold text-[#3F3F46] sm:text-lg">
+                        {CONTACT_DETAILS.email}
+                      </span>
+                    </div>
+                  </a>
                 </div>
               </div>
-              <div className="absolute w-full top-[160px] sm:top-[170px] md:top-[200px] lg:top-[232px] text-center text-transparent bg-clip-text bg-gradient-to-r from-[#4E4E4E] to-[#B4B4B4] text-sm lg:text-base font-normal font-poppins">
-                Email
-              </div>
-              <div className="absolute w-[250px] sm:w-[280px] md:w-[270px] lg:w-[277px] left-1/2 transform -translate-x-1/2 top-[200px] sm:top-[210px] md:top-[250px] lg:top-[289px] text-center text-[#6c6c6c] text-[14px] xl:text-xl font-medium font-poppins px-2">
-                info@protonest.co
-              </div>
-              <div className="absolute left-1/2 top-[140px] sm:top-[150px] md:top-[178px] lg:top-[196px] w-px h-px bg-[#767676] rounded-full transform -translate-x-1/2" />
             </div>
-          </div>
+          </section>
         </div>
 
         <FAQSection />
       </div>
+
       <Footer />
     </div>
   );
