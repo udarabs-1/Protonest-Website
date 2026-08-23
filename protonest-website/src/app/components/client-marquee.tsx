@@ -29,6 +29,11 @@ const ClientMarquee = () => {
             alt: "Patriot Ingenuities logo",
         },
         {
+            name: "NAPCO XRF",
+            logo: "/protonest-client-napcoxrf.svg",
+            alt: "NAPCO XRF logo",
+        },
+        {
             name: "Station 70",
             logo: "/protonest-client-station-70.svg",
             alt: "Station 70 logo",
