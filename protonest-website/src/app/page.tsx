@@ -406,8 +406,8 @@ function FeaturedTestimonial() {
             <div className="w-full max-w-xs mx-auto lg:mx-0">
               <TestimonialVideoPlayer
                 src="/entryphone-testimonial.mp4"
-                ariaLabel="Oliver Ashby of the Entryphone Company shares his experience working with Protonest"
-                name="Oliver Ashby"
+                ariaLabel="Oliver Ashbee of the Entryphone Company shares his experience working with Protonest"
+                name="Oliver Ashbee"
                 company="Entryphone Company, UK"
               />
             </div>

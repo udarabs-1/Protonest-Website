@@ -17,7 +17,7 @@ const contactTestimonials = [
     avatar: "/profile-1.svg",
   },
   {
-    name: "Oliver Ashby",
+    name: "Oliver Ashbee",
     company: "Entryphone Company, UK",
     text: "The Protonest team is collaborative, flexible, and genuinely invested in our product and business goals. Communication has been excellent, the work consistently strong, and they have become a trusted partner in our development process.",
     avatar: "/profile-1.svg",
@@ -41,6 +41,13 @@ const addressIcons = {
   office: "solar:buildings-2-bold",
   hq: "solar:map-point-wave-bold",
 } as const;
+
+const addressDisplayOrder = ["hq", "office", "us"] as const;
+
+const orderedAddresses = [...CONTACT_DETAILS.addresses].sort(
+  (a, b) =>
+    addressDisplayOrder.indexOf(a.id) - addressDisplayOrder.indexOf(b.id),
+);
 
 export default function Contact() {
   const formContainerRef = useRef<HTMLDivElement>(null);
@@ -206,7 +213,7 @@ export default function Contact() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3">
-                    {CONTACT_DETAILS.addresses.map((address) => (
+                    {orderedAddresses.map((address) => (
                       <article
                         key={address.id}
                         className="border-t border-[#ECECF1] py-6 first:border-t-0 first:pt-0 last:pb-0 md:border-l md:border-t-0 md:px-6 md:py-0 md:first:border-l-0 md:first:pl-0 md:last:pr-0"
