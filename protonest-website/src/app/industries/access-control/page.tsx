@@ -21,6 +21,34 @@ import {} from "lucide-react";
 
 const whyProtonestIcons = [ShieldCheck, Boxes, Workflow, Handshake];
 
+function ClientProof() {
+  return (
+    <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
+      <SectionHeader highlight="Access Control Projects" />
+      <div className="max-w-4xl rounded-[24px] overflow-hidden bg-white shadow-lg">
+        <div className="p-6 sm:p-8 flex flex-col gap-3">
+          <span className="text-[13px] font-medium font-poppins uppercase tracking-wide text-[#999999]">
+            Related project
+          </span>
+          <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
+            Smart Door Lock System for Entryphone UK
+          </h3>
+          <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
+            Protonest worked on a smart door lock system for Entryphone UK. Read
+            more about the work we did to help them build connected access
+            control devices.
+          </p>
+          <a
+            href="https://www.protonest.co/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
+            className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
+          >
+            <span className="underline">View project</span> &gt;
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
 const serviceIcons = [
   CircuitBoard,
   Cpu,
