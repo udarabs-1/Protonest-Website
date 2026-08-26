@@ -1,23 +1,9 @@
+import { ArrowUpRight, Boxes, ChevronDown, CircuitBoard, Cloud, Cpu, FlaskConical, Handshake, ShieldCheck, Smartphone, Workflow } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
 import FinalCTA from "../../components/final-cta";
 import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
-import PageHero from "../../components/page-hero";
-import SectionHeader from "../../components/section-header";
-import {
-  ShieldCheck,
-  Boxes,
-  Workflow,
-  Handshake,
-  CircuitBoard,
-  Cpu,
-  Smartphone,
-  Cloud,
-  FlaskConical,
-} from "lucide-react";
-import {} from "lucide-react";
 
 const whyProtonestIcons = [ShieldCheck, Boxes, Workflow, Handshake];
 
@@ -425,8 +411,9 @@ function Intro() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Client proof                                                               */
+/* Client Proof                                                                  */
 /* -------------------------------------------------------------------------- */
+
 
 function ClientProof() {
   return (
@@ -463,7 +450,7 @@ function ClientProof() {
             </p>
 
             <a
-              href="/portfolio/smart-door-lock-system-for-entryphone-uk"
+              href="/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
               className="group mt-7 inline-flex items-center gap-2 font-poppins text-[14px] font-medium text-[#5530FA]"
             >
               <span>View project</span>
@@ -561,9 +548,8 @@ function Services() {
             return (
               <article
                 key={item.title}
-                className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-white p-6 sm:p-8 ${
-                  isWide ? "lg:col-span-7" : "lg:col-span-5"
-                }`}
+                className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-white p-6 sm:p-8 ${isWide ? "lg:col-span-7" : "lg:col-span-5"
+                  }`}
               >
                 <div
                   aria-hidden="true"
@@ -661,9 +647,8 @@ function WhyProtonest() {
             return (
               <article
                 key={item.title}
-                className={`flex flex-col gap-5 border-b border-white/10 py-7 sm:p-8 lg:flex-row lg:items-start lg:gap-6 ${
-                  index % 2 === 0 ? "sm:border-r" : ""
-                }`}
+                className={`flex flex-col gap-5 border-b border-white/10 py-7 sm:p-8 lg:flex-row lg:items-start lg:gap-6 ${index % 2 === 0 ? "sm:border-r" : ""
+                  }`}
               >
                 <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] bg-white/[0.07]">
                   <Icon
