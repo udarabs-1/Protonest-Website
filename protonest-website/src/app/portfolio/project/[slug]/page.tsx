@@ -40,7 +40,7 @@ const formatDate = (dateString: string): string => {
 
 const ContentCard = ({ item }: { item: Content }) => {
     return (
-        <Link href={`/research-and-project/research/${item.slug}?tab=research`} passHref>
+        <Link href={`/portfolio/project/${item.slug}?tab=projects`} passHref>
             <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
                 <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
                     <Image
@@ -65,7 +65,7 @@ export default function ProjectDetailPage() {
     const slug = params.slug as string;
 
     const [content, setContent] = useState<Content | null>(null);
-    const [suggestedResearch, setSuggestedResearch] = useState<Content[]>([]);
+    const [suggestedProjects, setSuggestedProjects] = useState<Content[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +77,7 @@ export default function ProjectDetailPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/research/${slug}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/projects/${slug}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -86,9 +86,9 @@ export default function ProjectDetailPage() {
 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        throw new Error('Research not found');
+                        throw new Error('Project not found');
                     }
-                    throw new Error('Failed to fetch research');
+                    throw new Error('Failed to fetch project');
                 }
 
                 const result = await response.json();
@@ -97,35 +97,35 @@ export default function ProjectDetailPage() {
                     setContent(result.data);
 
                     try {
-                        const researchResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/research?published=true`, {
+                        const projectsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/projects?published=true`, {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                         });
 
-                        if (researchResponse.ok) {
-                            const researchResult = await researchResponse.json();
-                            if (researchResult.status === 'success') {
-                                const allResearch = researchResult.data || [];
-                                const currentResearchData = result.data;
+                        if (projectsResponse.ok) {
+                            const projectsResult = await projectsResponse.json();
+                            if (projectsResult.status === 'success') {
+                                const allProjects = projectsResult.data || [];
+                                const currentProjectData = result.data;
 
-                                const otherResearch = allResearch.filter((r: Content) => r.id !== currentResearchData.id);
+                                const otherProjects = allProjects.filter((p: Content) => p.id !== currentProjectData.id);
 
-                                const shuffled = otherResearch.sort(() => Math.random() - 0.5);
+                                const shuffled = otherProjects.sort(() => Math.random() - 0.5);
                                 const suggested = shuffled.slice(0, 2);
-                                setSuggestedResearch(suggested);
+                                setSuggestedProjects(suggested);
                             }
                         }
                     } catch (err) {
-                        console.error('Error fetching suggested research:', err);
+                        console.error('Error fetching suggested projects:', err);
                     }
                 } else {
-                    throw new Error(result.message || 'Failed to fetch research');
+                    throw new Error(result.message || 'Failed to fetch project');
                 }
             } catch (err) {
-                console.error('Error fetching research:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load research');
+                console.error('Error fetching project:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load project');
             } finally {
                 setLoading(false);
             }
@@ -156,12 +156,12 @@ export default function ProjectDetailPage() {
                 <div className="flex justify-center items-center min-h-[60vh]">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-[#6c6c6c] mb-4">
-                            {error === 'Research not found' ? 'Research Not Found' : 'Error Loading Research'}
+                            {error === 'Project not found' ? 'Project Not Found' : 'Error Loading Project'}
                         </h1>
                         <p className="text-[#6c6c6c] font-poppins mb-6">
-                            {error === 'Research not found'
-                                ? 'The research you are looking for does not exist or has been removed.'
-                                : error || 'Something went wrong while loading the research.'}
+                            {error === 'Project not found'
+                                ? 'The project you are looking for does not exist or has been removed.'
+                                : error || 'Something went wrong while loading the project.'}
                         </p>
                         <div className="space-x-4">
                             <button
@@ -174,7 +174,7 @@ export default function ProjectDetailPage() {
                                 href="/whats-new/research"
                                 className="px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors inline-block"
                             >
-                                View All Research
+                                View All Projects
                             </Link>
                         </div>
                     </div>
@@ -190,15 +190,15 @@ export default function ProjectDetailPage() {
                 <Navbar />
                 <div className="flex justify-center items-center min-h-[60vh]">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-[#6c6c6c] mb-4">Research Not Available</h1>
+                        <h1 className="text-2xl font-bold text-[#6c6c6c] mb-4">Project Not Available</h1>
                         <p className="text-[#6c6c6c] font-poppins mb-6">
-                            This research is not currently published.
+                            This project is not currently published.
                         </p>
                         <Link
                             href="/whats-new/research"
                             className="px-6 py-2 bg-[#5530fa] text-white rounded-lg font-poppins hover:bg-[#4520d9] transition-colors inline-block"
                         >
-                            View All Research
+                            View All Projects
                         </Link>
                     </div>
                 </div>
@@ -216,9 +216,9 @@ export default function ProjectDetailPage() {
                 <title>{content.title} - Protonest</title>
                 <meta name="description" content={content.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'} />
                 <meta name="author" content={content.author} />
-                <link rel="canonical" href={`https://protonest.co/whats-new/research/${content.slug}`} />
+                <link rel="canonical" href={`https://protonest.co/whats-new/project/${content.slug}`} />
                 <meta property="og:type" content="article" />
-                <meta property="og:url" content={`https://protonest.co/whats-new/research/${content.slug}`} />
+                <meta property="og:url" content={`https://protonest.co/whats-new/project/${content.slug}`} />
                 <meta property="og:title" content={content.title} />
                 <meta property="og:description" content={content.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'} />
                 {content.cover_image && <meta property="og:image" content={content.cover_image} />}
@@ -286,12 +286,12 @@ export default function ProjectDetailPage() {
                     />
                 </article>
 
-                {suggestedResearch.length > 0 && (
+                {suggestedProjects.length > 0 && (
                     <section className="pt-12">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Research</h2>
+                            <h2 className="text-[#6c6c6c] text-2xl font-medium font-montserrat">Explore More Projects</h2>
                             <Link
-                                href="/research-and-project?tab=research"
+                                href="/portfolio?tab=projects"
                                 className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
                             >
                                 <span className="underline">View more</span> &gt;
@@ -299,8 +299,8 @@ export default function ProjectDetailPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {suggestedResearch.map(research => (
-                                <ContentCard key={research.id} item={research} />
+                            {suggestedProjects.map(project => (
+                                <ContentCard key={project.id} item={project} />
                             ))}
                         </div>
                     </section>

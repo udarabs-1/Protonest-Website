@@ -1,179 +1,211 @@
 "use client";
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const faqs = [
-    {
-        id: "iot-projects",
-        question: "What kind of IoT projects can you help with?",
-        answer: "We can assist with a wide range of IoT projects, including smart home devices, wearable technology, industrial automation, and healthcare solutions. If you have a unique idea, feel free to reach out, and we can discuss how to bring it to life."
-    },
-    {
-        id: "preparation",
-        question: "What do I need to prepare before ordering?",
-        answer: "Please organize the project idea, scope, and any specific requirements or preferred technologies. We'll guide you through the rest."
-    },
-    {
-        id: "nda",
-        question: "Are you comfortable signing a Non-Disclosure Agreement (NDA)?",
-        answer: "Absolutely, we're happy to sign it."
-    },
-    {
-        id: "getting-started",
-        question: "How do I get started with my IoT project?",
-        answer: "You can start by filling out our detailed project questionnaire on our website or simply send a message. This helps us understand your requirements and provide you with a detailed proposal including task, cost and time breakdown. You can also ask for a scheduled consultation with one of our team members to discuss your needs."
-    },
-    {
-        id: "quality-assurance",
-        question: "How do you ensure the quality of the product?",
-        answer: "We follow testing and validation procedures to ensure the highest quality and reliability of the product. Fine-tuning and continuous improvements are part of the development process to achieve best performance."
-    },
-    {
-        id: "shipping",
-        question: "Can you build the product and ship to my address?",
-        answer: "Yes, I can build it from scratch, conduct thorough testing, and ship it to your address."
-    },
-    {
-        id: "support",
-        question: "Do you provide support after the project is completed?",
-        answer: "Yes, I offer ongoing support and consultation to ensure your IoT project continues to function smoothly."
-    },
-    {
-        id: "proposal-timeline",
-        question: "How long will it take for me to get a proposal for my requirement?",
-        answer: "48 Hours"
-    }
+  {
+    id: "iot-projects",
+    question: "What kind of IoT projects can you help with?",
+    answer:
+      "We can help with IoT product development across hardware, firmware, embedded systems, IoT software, dashboards, testing, and product support. This can include connected devices, access control systems, industrial IoT solutions, wearable technology, smart products, and custom IoT systems.",
+  },
+  {
+    id: "early-idea",
+    question: "Can I contact you if my IoT idea is still early?",
+    answer:
+      "Yes. You can contact us with an early idea, rough concept, prototype, or existing product. If the scope is not fully defined yet, share the problem you want to solve, who the product is for, and what you already know about the device or system.",
+  },
+  {
+    id: "project-inquiry",
+    question: "What should I include in my project inquiry?",
+    answer:
+      "Include the product goal, device type, current stage, expected timeline, target users, and the type of support you need. If you already have sketches, requirements, hardware notes, firmware details, or software requirements, mention them in the message.",
+  },
+  {
+    id: "hardware-and-software",
+    question: "Can you help with both hardware and software?",
+    answer:
+      "Yes. We can support your connected product idea with hardware design, firmware development, embedded systems, IoT software, dashboards, testing, and product improvements. If your project needs multiple engineering areas, include that in your inquiry.",
+  },
+  {
+    id: "existing-product",
+    question: "Can you review or improve an existing IoT product?",
+    answer:
+      "Yes. We can review existing IoT products, prototypes, hardware, firmware, software, or system architecture. We can help identify technical issues, improve reliability, support new features, or plan the next development stage.",
+  },
+  {
+    id: "nda",
+    question:
+      "Can you sign a Non-Disclosure Agreement before discussing the project?",
+    answer:
+      "Yes. We can review and sign an NDA before discussing sensitive project details. Mention the NDA requirement in your message so we can handle it before the technical discussion starts.",
+  },
+  {
+    id: "getting-started",
+    question: "How do I start an IoT project with you?",
+    answer:
+      "Submit the contact form or book a call with us. Share the project goal, current stage, technical needs, and timeline. We will review the requirement and guide the next step, which may include a technical discussion, scope review, or proposal.",
+  },
+  {
+    id: "product-quality",
+    question: "How do you check product quality?",
+    answer:
+      "We use testing and validation throughout the development process. Depending on the project, this can include hardware checks, firmware testing, connectivity testing, software testing, device behavior checks, and product readiness review before delivery.",
+  },
+  {
+    id: "build-test-ship",
+    question: "Can you build, test, and ship a product?",
+    answer:
+      "Yes. We can build, test, and ship products based on the confirmed project scope, technical requirements, and delivery plan. Shipping details, quantity, destination, and handover requirements should be confirmed during the project discussion.",
+  },
+  {
+    id: "response-timeline",
+    question: "How long does it take to receive a response or proposal?",
+    answer:
+      "We aim to respond within 48 hours after receiving clear project details. A full proposal may take longer if the requirement needs technical review, hardware analysis, timeline planning, or cost estimation.",
+  },
 ];
 
-const GradientIcon = ({ letter }: { letter: string }) => (
-    <div className="w-[30px] h-[30px] px-[13px] py-[7px] bg-[conic-gradient(from_180deg_at_50%_50%,_rgba(85,_48,_250,_0.93)_0deg,_rgba(245,_29,_165,_0.93)_360deg)] rounded-[20px] outline outline-offset-[-1px] outline-[#dedede] inline-flex flex-col justify-center items-center gap-2.5 flex-shrink-0">
-        <div className="text-white text-base font-normal font-poppins">{letter}</div>
+type FAQItemProps = {
+  faq: (typeof faqs)[number];
+  isOpen: boolean;
+  onToggle: () => void;
+};
+
+function FAQItem({ faq, isOpen, onToggle }: FAQItemProps) {
+  const buttonId = `faq-button-${faq.id}`;
+  const panelId = `faq-panel-${faq.id}`;
+
+  return (
+    <div className="border-b border-[#E5E5E5]">
+      <h3>
+        <button
+          id={buttonId}
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          className="group flex w-full items-center justify-between gap-5 rounded-sm py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4 md:py-6"
+        >
+          <span
+            className={`font-poppins text-sm font-normal leading-relaxed transition-colors duration-300 lg:text-[15px] xl:text-base ${
+              isOpen
+                ? "text-[#5530FA]"
+                : "text-[#3C3C3C] group-hover:text-[#5530FA]"
+            }`}
+          >
+            {faq.question}
+          </span>
+
+          <ChevronDown
+            aria-hidden="true"
+            strokeWidth={1.8}
+            className={`h-5 w-5 flex-shrink-0 transition-all duration-300 motion-reduce:transition-none ${
+              isOpen
+                ? "rotate-180 text-[#5530FA]"
+                : "text-[#6C6C6C] group-hover:text-[#5530FA]"
+            }`}
+          />
+        </button>
+      </h3>
+
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby={buttonId}
+        hidden={!isOpen}
+        className="animate-[faq-reveal_200ms_ease-out] motion-reduce:animate-none"
+      >
+        <p className="max-w-[800px] pb-5 pr-10 font-poppins text-sm font-normal leading-relaxed text-[#6C6C6C] md:pb-6 lg:text-[15px] xl:text-base">
+          {faq.answer}
+        </p>
+      </div>
     </div>
-);
-
-const FAQItem = ({ faq }: { faq: typeof faqs[0] }) => (
-    <div className="space-y-3 lg:space-y-4">
-
-        <div className="flex items-start gap-3 lg:gap-4">
-            <GradientIcon letter="Q" />
-            <h4 className="text-[#3C3C3C] text-sm lg:text-[15px] xl:text-base font-normal font-poppins mt-1 flex-1">
-                {faq.question}
-            </h4>
-        </div>
-
-
-        <div className="flex items-start gap-3 lg:gap-4">
-            <GradientIcon letter="A" />
-            <p className="text-[#6c6c6c]/93 text-sm lg:text-[15px] xl:text-base font-normal font-poppins mt-1 italic flex-1">
-                {faq.answer}
-            </p>
-        </div>
-    </div>
-);
+  );
+}
 
 export default function FAQSection() {
-    const [showAll, setShowAll] = useState(false);
+  const [openFaqId, setOpenFaqId] = useState<string | null>(faqs[0].id);
 
-    const getNavbarHeight = useCallback(() => {
+  const getNavbarHeight = useCallback(() => {
+    if (typeof window === "undefined") return 80;
 
-        if (typeof window === 'undefined') return 80;
+    const screenWidth = window.innerWidth;
 
-        const screenWidth = window.innerWidth;
+    if (screenWidth < 768) return 80;
+    if (screenWidth < 1024) return 100;
 
-        if (screenWidth < 768) {
-            return 80;
-        } else if (screenWidth < 1024) {
-            return 100;
-        } else {
-            return 120;
-        }
-    }, []);
+    return 120;
+  }, []);
 
-    const scrollToGetInTouch = useCallback(() => {
+  const scrollToGetInTouch = useCallback(() => {
+    const getInTouchSection = document.getElementById("get-in-touch");
 
-        const getInTouchSection = document.querySelector('form') ||
-            document.querySelector('[data-section="get-in-touch"]');
+    if (!getInTouchSection) return;
 
-        if (getInTouchSection) {
+    const elementRect = getInTouchSection.getBoundingClientRect();
+    const elementTop = elementRect.top + window.pageYOffset;
+    const navbarHeight = getNavbarHeight();
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const scrollToPosition = Math.max(0, elementTop - navbarHeight - 24);
 
-            const elementRect = getInTouchSection.getBoundingClientRect();
-            const elementTop = elementRect.top + window.pageYOffset;
+    window.scrollTo({
+      top: scrollToPosition,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, [getNavbarHeight]);
 
-            const navbarHeight = getNavbarHeight();
+  const toggleFaq = useCallback((faqId: string) => {
+    setOpenFaqId((currentId) => (currentId === faqId ? null : faqId));
+  }, []);
 
-            const viewportHeight = window.innerHeight;
-            const elementHeight = elementRect.height;
-            const centerOffset = (viewportHeight - elementHeight) / 2;
+  return (
+    <section
+      className="mt-20 mb-20 w-full px-4 py-6 sm:px-8 md:mt-32 md:mb-32 md:px-16 md:py-12 lg:px-24 xl:mt-30 xl:mb-40 xl:px-[133px] 2xl:px-[180px]"
+      aria-labelledby="faq-title"
+    >
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:items-start lg:gap-16 xl:gap-24">
+        <div className="lg:sticky lg:top-[150px]">
+          <h2
+            id="faq-title"
+            className="inline-block w-fit bg-gradient-to-r from-[#5530FA] to-[#F51DA5] bg-clip-text font-poppins text-2xl font-normal text-transparent lg:text-[26px] xl:text-3xl"
+          >
+            Frequently Asked Questions
+          </h2>
 
-            const scrollToPosition = elementTop - navbarHeight - centerOffset;
+          <p className="mt-3 max-w-[480px] font-poppins text-[13px] font-normal leading-relaxed text-[#6C6C6C] sm:text-sm md:text-[15px]">
+            These answers help visitors understand what to send before
+            contacting Protonest about an IoT product, prototype, embedded
+            system, or connected device requirement.
+          </p>
 
-            window.scrollTo({
-                top: scrollToPosition,
-                behavior: 'smooth'
-            });
-        }
-    }, [getNavbarHeight]);
+          <button
+            type="button"
+            onClick={scrollToGetInTouch}
+            className="mt-6 cursor-pointer rounded-sm font-poppins text-base font-normal text-[rgba(108,108,108,1)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] hover:bg-clip-text hover:text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4 motion-reduce:transition-none xl:text-[18px]"
+            aria-label="Navigate to contact form"
+          >
+            <span className="underline hover:underline-offset-0">
+              Still Have Questions?
+            </span>{" "}
+            <span className="underline-offset-0">&gt;</span>
+          </button>
+        </div>
 
-    const toggleShowAll = useCallback(() => {
-        setShowAll(prev => !prev);
-    }, []);
-
-    const { displayedFaqs, hasMoreFaqs } = useMemo(() => {
-        const displayedFaqs = showAll ? faqs : faqs.slice(0, 5);
-        const hasMoreFaqs = faqs.length > 5;
-
-        return { displayedFaqs, hasMoreFaqs };
-    }, [showAll]);
-
-    return (
-        <section
-            className="mt-20 md:mt-32 xl:mt-30 mb-20 md:mb-32 xl:mb-40 w-full px-4 sm:px-8 md:px-16 lg:px-24 xl:px-[133px] 2xl:px-[180px] py-6 md:py-12"
-            aria-labelledby="faq-title"
-        >
-
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0 mb-8 md:mb-12">
-                <h2
-                    id="faq-title"
-                    className="inline-block w-fit text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-2xl lg:text-[26px] xl:text-3xl font-normal font-poppins"
-                >
-                    FAQs
-                </h2>
-                <div className="text-base xl:text-[18px] font-normal font-poppins">
-                    <button
-                        onClick={scrollToGetInTouch}
-                        className="cursor-pointer text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
-                        aria-label="Navigate to contact form"
-                    >
-                        <span className="underline hover:underline-offset-0">Still Have Questions?</span> <span className="underline-offset-0">&gt;</span>
-                    </button>
-                </div>
-            </div>
-
-
-            <div className="mt-12 md:mt-16 lg:mt-20 w-full max-w-[870px] space-y-6 md:space-y-8">
-                {displayedFaqs.map((faq) => (
-                    <FAQItem
-                        key={faq.id}
-                        faq={faq}
-                    />
-                ))}
-            </div>
-
-
-            {hasMoreFaqs && (
-                <div className="flex justify-center mt-8 sm:mt-12 lg:mt-15">
-                    <button
-                        onClick={toggleShowAll}
-                        className="w-[160px] md:w-[180px] h-[45px] md:h-[52px] bg-gradient-to-l from-[#5530fa] to-[#f51da5] hover:from-[#f51da5] hover:to-[#5530fa] font-montserrat rounded-[25px] md:rounded-[30px] flex justify-center items-center gap-1 hover:shadow-lg"
-                        aria-expanded={showAll}
-                        aria-label={showAll ? "Show fewer FAQs" : "Show more FAQs"}
-                    >
-                        <span className="text-white text-sm md:text-base font-medium">
-                            {showAll ? "Show Less" : "Load More"}
-                        </span>
-                    </button>
-                </div>
-            )}
-        </section>
-    );
+        <div className="w-full border-t border-[#E5E5E5]">
+          {faqs.map((faq) => (
+            <FAQItem
+              key={faq.id}
+              faq={faq}
+              isOpen={openFaqId === faq.id}
+              onToggle={() => toggleFaq(faq.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }

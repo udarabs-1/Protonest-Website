@@ -14,9 +14,7 @@ export default async function Image({ params }: { params: { role: string; id: st
     let jobData = null;
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${id}`, {
-            next: { revalidate: 3600 },
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${id}`);
 
         if (response.ok) {
             const data = await response.json();

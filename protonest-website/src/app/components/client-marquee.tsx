@@ -3,11 +3,46 @@ import Marquee from "react-fast-marquee";
 
 const ClientMarquee = () => {
     const clients = [
-        { name: "Purbrook Engineering", logo: "/client1.svg" },
-        { name: "Stoll Photobox", logo: "/client2.svg" },
-        { name: "Perseo", logo: "/client3.svg" },
-        { name: "entryphone", logo: "/client4.svg" },
-        { name: "Patriot Ingenuities", logo: "/client5.png" }
+        {
+            name: "Purbrook Engineering",
+            logo: "/protonest-client-purbrook-engineering.svg",
+            alt: "Purbrook Engineering logo",
+        },
+        {
+            name: "Stoll Photobox",
+            logo: "/protonest-client-stoll-photobox.svg",
+            alt: "Stoll Photobox logo",
+        },
+        {
+            name: "Perseo",
+            logo: "/protonest-client-perseo.svg",
+            alt: "Perseo logo",
+        },
+        {
+            name: "Entryphone",
+            logo: "/protonest-client-entryphone.svg",
+            alt: "Entryphone logo",
+        },
+        {
+            name: "Patriot Ingenuities",
+            logo: "/protonest-client-patriot-ingenuities.png",
+            alt: "Patriot Ingenuities logo",
+        },
+        {
+            name: "NAPCO XRF",
+            logo: "/protonest-client-napcoxrf.svg",
+            alt: "NAPCO XRF logo",
+        },
+        {
+            name: "Station 70",
+            logo: "/protonest-client-station-70.svg",
+            alt: "Station 70 logo",
+        },
+        {
+            name: "Executive Risk Services",
+            logo: "/protonest-client-executive-risk-services.svg",
+            alt: "Executive Risk Services logo",
+        },
     ];
 
     return (
@@ -35,7 +70,7 @@ const ClientMarquee = () => {
                                 <div className="relative h-[60%] w-[60%]">
                                     <Image
                                         src={client.logo}
-                                        alt={`${client.name} logo`}
+                                        alt={client.alt}
                                         fill
                                         priority={index < 2}
                                         quality={85}
