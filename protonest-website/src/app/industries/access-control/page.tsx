@@ -110,7 +110,7 @@ function ClientProof() {
             control devices.
           </p>
           <a
-            href="/portfolio/smart-door-lock-system-for-entryphone-uk"
+            href="https://www.protonest.co/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
             className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
           >
             <span className="underline">View project</span> &gt;
