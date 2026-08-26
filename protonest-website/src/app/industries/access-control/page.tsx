@@ -4,38 +4,9 @@ import Link from "next/link";
 import FinalCTA from "../../components/final-cta";
 import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
-import SectionHeader from "../../components/section-header";
 
 const whyProtonestIcons = [ShieldCheck, Boxes, Workflow, Handshake];
 
-function ClientProof() {
-  return (
-    <section className="w-full py-12 md:py-16 lg:py-20 px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-      <SectionHeader highlight="Access Control Projects" />
-      <div className="max-w-4xl rounded-[24px] overflow-hidden bg-white shadow-lg">
-        <div className="p-6 sm:p-8 flex flex-col gap-3">
-          <span className="text-[13px] font-medium font-poppins uppercase tracking-wide text-[#999999]">
-            Related project
-          </span>
-          <h3 className="text-[18px] font-medium font-montserrat bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1] bg-clip-text text-transparent">
-            Smart Door Lock System for Entryphone UK
-          </h3>
-          <p className="text-[14px] font-normal font-poppins text-[#6C6C6C] leading-relaxed">
-            Protonest worked on a smart door lock system for Entryphone UK. Read
-            more about the work we did to help them build connected access
-            control devices.
-          </p>
-          <a
-            href="https://www.protonest.co/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
-            className="text-[14px] lg:text-[18px] font-normal font-poppins text-[rgba(108,108,108,1)] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#F51DA5] hover:to-[#5530FA] transition-all duration-300"
-          >
-            <span className="underline">View project</span> &gt;
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
 const serviceIcons = [
   CircuitBoard,
   Cpu,
@@ -433,6 +404,63 @@ function Intro() {
             Protonest helps product teams bring all these functions together to
             transform prototypes into usable products.
           </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Client Proof                                                                  */
+/* -------------------------------------------------------------------------- */
+
+
+function ClientProof() {
+  return (
+    <section className="w-full px-4 py-12 sm:px-8 md:py-16 lg:px-[60px] lg:py-20 xl:px-[133px] 2xl:px-[180px]">
+      <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#211347_0%,#5530FA_55%,#F51DA5_130%)] p-6 sm:p-8 lg:rounded-[36px] lg:p-12">
+        <div className="grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+          <h2 className="max-w-lg font-montserrat text-[30px] font-medium leading-tight text-white sm:text-[36px] lg:text-[46px]">
+            Access Control Projects
+          </h2>
+
+          <div className="rounded-[22px] bg-white p-6 sm:p-8 lg:rounded-[28px] lg:p-10">
+            <div className="relative h-[42px] w-[150px]">
+              <Image
+                src="/protonest-client-entryphone.svg"
+                alt="Entryphone logo"
+                fill
+                sizes="150px"
+                className="object-contain object-left"
+              />
+            </div>
+
+            <span className="mt-8 block font-poppins text-[13px] font-medium uppercase tracking-wide text-[#999999]">
+              Related project
+            </span>
+
+            <h3 className="mt-3 font-montserrat text-[21px] font-medium leading-snug text-[#333333] sm:text-[25px]">
+              Smart Door Lock System for Entryphone UK
+            </h3>
+
+            <p className="mt-4 font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C]">
+              Protonest worked on a smart door lock system for Entryphone UK.
+              Read more about the work we did to help them build connected
+              access control devices.
+            </p>
+
+            <a
+              href="/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
+              className="group mt-7 inline-flex items-center gap-2 font-poppins text-[14px] font-medium text-[#5530FA]"
+            >
+              <span>View project</span>
+
+              <ArrowUpRight
+                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                strokeWidth={1.8}
+              />
+            </a>
+          </div>
         </div>
       </div>
     </section>
