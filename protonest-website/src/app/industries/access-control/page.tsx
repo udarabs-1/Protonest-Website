@@ -18,28 +18,28 @@ const serviceIcons = [
 
 const PROBLEMS = [
   {
-    title: "Device connection issues",
-    body: "Plan and test stable communication between the device, app, and backend.",
+    title: "Using outdated technologies",
+    body: "Physical card-based or outdated systems require more manual intervention for access control and lack the speed or convenience that customers increasingly expect.",
   },
   {
-    title: "Firmware and recovery failures",
-    body: "Build and test firmware for lock states, access rules, alerts, and recovery.",
+    title: "Lacking technical expertise",
+    body: "Building IoT-based access control solutions requires specialized expertise in embedded systems and security, making commercial releases slow and costly for internal teams.",
   },
   {
-    title: "App and device sync issues",
-    body: "Connect access permissions, device status, and logs through a clear data flow.",
+    title: "Problems with product compatibility",
+    body: "Existing locks/readers/controllers may not work with newer software features due to differences in product types and generations.",
   },
   {
-    title: "Security considered too late",
-    body: "Bring security input into product decisions early through our security partnership.",
+    title: "Difficulties in product integration",
+    body: "Access-control products may not communicate smoothly with external software for CCTV, alarms, elevators, building-management systems, or third-party software.",
   },
   {
-    title: "Missing product management tools",
-    body: "Build dashboards for devices, users, permissions, logs, alerts, and settings.",
+    title: "Difficulty diagnosing device problems remotely",
+    body: "Manufacturers have limited visibility into hardware, network, or software failures, making remote fault diagnosis difficult.",
   },
   {
-    title: "Weak prototype handoff",
-    body: "Improve prototypes for stability, testing, and real use.",
+    title: "Product security testing gaps",
+    body: "Companies may lack the resources for the rigorous testing access control systems required to ensure connectivity, reliability, and security.",
   },
 ];
 
