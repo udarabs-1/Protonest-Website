@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import videojs from "video.js";
-import type Player from "video.js/dist/types/player";
-import "video.js/dist/video-js.css";
+import { useRef, useState } from "react";
 
 type TestimonialVideoPlayerProps = {
   src: string;
@@ -18,75 +15,34 @@ export default function TestimonialVideoPlayer({
   name,
   company,
 }: TestimonialVideoPlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<Player | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    if (!containerRef.current || playerRef.current) return;
-
-    const videoElement = document.createElement("video-js");
-    videoElement.classList.add("vjs-big-play-centered");
-    videoElement.setAttribute("aria-label", ariaLabel);
-    containerRef.current.appendChild(videoElement);
-
-    const player = videojs(videoElement, {
-      controls: true,
-      preload: "metadata",
-      responsive: true,
-      fluid: true,
-      aspectRatio: "9:16",
-      playsinline: true,
-      inactivityTimeout: 0,
-      enableSmoothSeeking: true,
-      controlBar: {
-        playToggle: false,
-      },
-      sources: [{ src, type: "video/mp4" }],
-    });
-    player.el().setAttribute("aria-label", ariaLabel);
-    const controlBar = player.getChild("ControlBar");
-    const progressControl = controlBar?.getChild("ProgressControl");
-    (controlBar?.el() as HTMLElement | undefined)?.style.setProperty(
-      "display",
-      "flex",
-      "important",
-    );
-    (progressControl?.el() as HTMLElement | undefined)?.style.setProperty(
-      "display",
-      "flex",
-      "important",
-    );
-    player.on("play", () => setIsPlaying(true));
-    player.on(["pause", "ended"], () => setIsPlaying(false));
-    playerRef.current = player;
-
-    return () => {
-      const player = playerRef.current;
-
-      if (player && !player.isDisposed()) {
-        player.dispose();
-      }
-
-      playerRef.current = null;
-    };
-  }, [ariaLabel, src]);
-
   const handlePlaybackToggle = () => {
-    const player = playerRef.current;
-
-    if (!player) return;
-
-    if (player.paused()) {
-      void player.play();
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
     } else {
-      player.pause();
+      video.pause();
     }
   };
 
   return (
     <div className="featured-testimonial-video relative overflow-hidden rounded-[20px] bg-[#111] shadow-[0_16px_36px_rgba(20,17,35,0.16)] lg:rounded-[24px]">
-      <div ref={containerRef} data-vjs-player />
+      <video
+        ref={videoRef}
+        src={`${src}#t=0.001`}
+        aria-label={ariaLabel}
+        preload="metadata"
+        playsInline
+        controls={false}
+        className="w-full"
+        style={{ aspectRatio: "9/16", display: "block" }}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+      />
 
       <button
         type="button"
