@@ -484,18 +484,7 @@ function ProblemsWeSolve() {
               </span>
             </h2>
 
-            <div className="mt-6 space-y-4">
-              <p className="font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[16px]">
-                When the critical components of a smart access control system
-                are developed separately by different service partners, it can
-                create friction when they work together as one system.
-              </p>
 
-              <p className="font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[16px]">
-                We provide you with full-stack IoT development services to help
-                you bridge this gap.
-              </p>
-            </div>
           </div>
         </div>
 
