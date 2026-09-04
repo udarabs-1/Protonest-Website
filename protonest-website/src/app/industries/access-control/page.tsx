@@ -1,23 +1,9 @@
+import { ArrowUpRight, Boxes, ChevronDown, CircuitBoard, Cloud, Cpu, FlaskConical, Handshake, ShieldCheck, Smartphone, Workflow } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
 import FinalCTA from "../../components/final-cta";
 import Footer from "../../components/footer";
 import Navbar from "../../components/navbar";
-import PageHero from "../../components/page-hero";
-import SectionHeader from "../../components/section-header";
-import {
-  ShieldCheck,
-  Boxes,
-  Workflow,
-  Handshake,
-  CircuitBoard,
-  Cpu,
-  Smartphone,
-  Cloud,
-  FlaskConical,
-} from "lucide-react";
-import {} from "lucide-react";
 
 const whyProtonestIcons = [ShieldCheck, Boxes, Workflow, Handshake];
 
@@ -32,28 +18,28 @@ const serviceIcons = [
 
 const PROBLEMS = [
   {
-    title: "Device connection issues",
-    body: "Plan and test stable communication between the device, app, and backend.",
+    title: "Using outdated technologies",
+    body: "Physical card-based or outdated systems require more manual intervention for access control and lack the speed or convenience that customers increasingly expect.",
   },
   {
-    title: "Firmware and recovery failures",
-    body: "Build and test firmware for lock states, access rules, alerts, and recovery.",
+    title: "Lacking technical expertise",
+    body: "Building IoT-based access control solutions requires specialized expertise in embedded systems and security, making commercial releases slow and costly for internal teams.",
   },
   {
-    title: "App and device sync issues",
-    body: "Connect access permissions, device status, and logs through a clear data flow.",
+    title: "Problems with product compatibility",
+    body: "Existing locks/readers/controllers may not work with newer software features due to differences in product types and generations.",
   },
   {
-    title: "Security considered too late",
-    body: "Bring security input into product decisions early through our security partnership.",
+    title: "Difficulties in product integration",
+    body: "Access-control products may not communicate smoothly with external software for CCTV, alarms, elevators, building-management systems, or third-party software.",
   },
   {
-    title: "Missing product management tools",
-    body: "Build dashboards for devices, users, permissions, logs, alerts, and settings.",
+    title: "Difficulty diagnosing device problems remotely",
+    body: "Manufacturers have limited visibility into hardware, network, or software failures, making remote fault diagnosis difficult.",
   },
   {
-    title: "Weak prototype handoff",
-    body: "Improve prototypes for stability, testing, and real use.",
+    title: "Product security testing gaps",
+    body: "Companies may lack the resources for the rigorous testing access control systems required to ensure connectivity, reliability, and security.",
   },
 ];
 
@@ -425,8 +411,9 @@ function Intro() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Client proof                                                               */
+/* Client Proof                                                                  */
 /* -------------------------------------------------------------------------- */
+
 
 function ClientProof() {
   return (
@@ -463,7 +450,7 @@ function ClientProof() {
             </p>
 
             <a
-              href="/portfolio/smart-door-lock-system-for-entryphone-uk"
+              href="/portfolio/project/smart-door-lock-system-for-entryphone,-uk"
               className="group mt-7 inline-flex items-center gap-2 font-poppins text-[14px] font-medium text-[#5530FA]"
             >
               <span>View project</span>
@@ -497,18 +484,7 @@ function ProblemsWeSolve() {
               </span>
             </h2>
 
-            <div className="mt-6 space-y-4">
-              <p className="font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[16px]">
-                When the critical components of a smart access control system
-                are developed separately by different service partners, it can
-                create friction when they work together as one system.
-              </p>
 
-              <p className="font-poppins text-[14px] font-normal leading-relaxed text-[#6C6C6C] lg:text-[16px]">
-                We provide you with full-stack IoT development services to help
-                you bridge this gap.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -561,9 +537,8 @@ function Services() {
             return (
               <article
                 key={item.title}
-                className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-white p-6 sm:p-8 ${
-                  isWide ? "lg:col-span-7" : "lg:col-span-5"
-                }`}
+                className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-white p-6 sm:p-8 ${isWide ? "lg:col-span-7" : "lg:col-span-5"
+                  }`}
               >
                 <div
                   aria-hidden="true"
@@ -661,9 +636,8 @@ function WhyProtonest() {
             return (
               <article
                 key={item.title}
-                className={`flex flex-col gap-5 border-b border-white/10 py-7 sm:p-8 lg:flex-row lg:items-start lg:gap-6 ${
-                  index % 2 === 0 ? "sm:border-r" : ""
-                }`}
+                className={`flex flex-col gap-5 border-b border-white/10 py-7 sm:p-8 lg:flex-row lg:items-start lg:gap-6 ${index % 2 === 0 ? "sm:border-r" : ""
+                  }`}
               >
                 <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px] bg-white/[0.07]">
                   <Icon
