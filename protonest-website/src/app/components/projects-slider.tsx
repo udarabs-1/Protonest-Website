@@ -176,7 +176,7 @@ export default function ProjectSlider() {
                     </Swiper>
 
                     <div className="mt-12 text-center">
-                        <Link href="/portfolio?tab=projects">
+                        <Link href="/portfolio#projects">
                             <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-poppins text-[14px] lg:text-[15px] xl:text-[16px]">
                                 View All Projects
                             </button>
@@ -309,7 +309,7 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-8 text-center">
-                        <Link href="/portfolio?tab=projects">
+                        <Link href="/portfolio#projects">
                             <button className="w-[160px] h-[45px] gradient-button font-medium font-poppins text-[13px] hover:font-semibold transition">
                                 View All Projects
                             </button>
