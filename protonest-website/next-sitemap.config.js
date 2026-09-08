@@ -9,7 +9,7 @@ module.exports = {
     ],
     additionalPaths: async () => [
         {
-            loc: 'https://www.protonest.co/industries/access-control',
+            loc: 'https://protonest.co/industries/access-control',
             changefreq: 'monthly',
             priority: 0.9,
         },

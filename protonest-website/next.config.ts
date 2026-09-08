@@ -4,6 +4,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.protonest.co',
+          },
+        ],
+        destination: 'https://protonest.co/:path*',
+        permanent: true,
+      },
+      {
         source: '/our-services',
         destination: '/',
         permanent: true,
