@@ -1,6 +1,29 @@
 import type { NextConfig } from "next";
 
+const noindexPaths = [
+  '/dashboard/:path*',
+  '/down',
+  '/forgot-password',
+  '/reset-password',
+  '/signin',
+  '/signup',
+  '/submit-cv',
+  '/unsubscribe',
+  '/careers/opengraph-image.jpg',
+];
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return noindexPaths.map((source) => ({
+      source,
+      headers: [
+        {
+          key: 'X-Robots-Tag',
+          value: 'noindex, nofollow',
+        },
+      ],
+    }));
+  },
   async redirects() {
     return [
       {
