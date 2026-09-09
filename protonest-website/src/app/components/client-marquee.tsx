@@ -25,7 +25,7 @@ const ClientMarquee = () => {
         },
         {
             name: "Patriot Ingenuities",
-            logo: "/protonest-client-patriot-ingenuities.png",
+            logo: "/protonest-client-patriot-ingenuities.webp",
             alt: "Patriot Ingenuities logo",
         },
         {

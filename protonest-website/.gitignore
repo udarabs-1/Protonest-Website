@@ -42,3 +42,5 @@ next-env.d.ts
 src/app/incomplete/**
 
 docs/website-content-reference.md
+
+codedb.snapshot
