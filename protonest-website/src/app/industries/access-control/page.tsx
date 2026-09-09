@@ -364,7 +364,7 @@ function Hero() {
         <div className="relative mx-auto w-full max-w-[680px] lg:max-w-none">
           <div className="relative aspect-[16/10] overflow-hidden rounded-[24px] sm:rounded-[30px]">
             <Image
-              src="/access-control.png"
+              src="/access-control.webp"
               alt="Access control IoT product development by Protonest"
               fill
               priority

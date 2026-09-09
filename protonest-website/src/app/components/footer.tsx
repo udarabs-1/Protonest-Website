@@ -49,25 +49,12 @@ export default function Footer() {
               muted
               loop
               playsInline
+              poster="/footerWeb-poster.webp"
               className="w-full h-full object-cover"
               style={{ objectPosition: "center" }}
             >
               <source src="/footerWeb.webm" type="video/webm" />
               <source src="/footerWeb.mp4" type="video/mp4" />
-
-              <Image
-                src="/footerWeb.gif"
-                unoptimized
-                alt="Footer background"
-                fill
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-                quality={60}
-                priority={false}
-                sizes="100vw"
-              />
             </video>
           </div>
 
@@ -231,25 +218,12 @@ export default function Footer() {
             muted
             loop
             playsInline
+            poster="/footerMobile-poster.webp"
             className="w-full h-full object-cover"
             style={{ objectPosition: "center" }}
           >
             <source src="/footerMobile.webm" type="video/webm" />
             <source src="/footerMobile.mp4" type="video/mp4" />
-
-            <Image
-              src="/footerMobile.gif"
-              unoptimized
-              alt="Footer background"
-              fill
-              style={{
-                objectFit: "cover",
-                objectPosition: "center",
-              }}
-              quality={50}
-              priority={false}
-              sizes="100vw"
-            />
           </video>
         </div>
 

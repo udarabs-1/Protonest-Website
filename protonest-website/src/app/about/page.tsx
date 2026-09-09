@@ -93,7 +93,7 @@ export default function About() {
         <div className="w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] mt-[50px]">
           <div className="relative w-full aspect-[16/9] sm:h-[55vw] sm:max-h-[680px] sm:min-h-[300px] rounded-[20px] md:rounded-[30px] overflow-hidden shadow-lg">
             <Image
-              src="/team.jpg"
+              src="/team.webp"
               alt="Protonest team working on IoT product development"
               fill
               priority={true}

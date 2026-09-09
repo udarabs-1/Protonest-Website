@@ -200,7 +200,7 @@ const industries = [
   {
     slug: "access-control",
     title: "Access Control",
-    image: "/access-control.png",
+    image: "/access-control.webp",
     alt: "Protonest access control IoT development services",
     description:
       "We help you build smart access control systems that are secure and reliable.",
@@ -208,7 +208,7 @@ const industries = [
   {
     slug: "manufacturing",
     title: "Manufacturing",
-    image: "/manufacturing.png",
+    image: "/manufacturing.webp",
     alt: "Protonest industrial IoT monitoring and factory automation support",
     description:
       "We support industrial monitoring and predictive maintenance to help teams track factory performance.",
@@ -216,7 +216,7 @@ const industries = [
   {
     slug: "automotive",
     title: "Automotive",
-    image: "/automobile.png",
+    image: "/automobile.webp",
     alt: "Protonest automotive IoT and vehicle telematics development",
     description:
       "We build automotive IoT, vehicle telematics, and GPS tracking for your vehicles and fleets.",
@@ -224,7 +224,7 @@ const industries = [
   {
     slug: "sports",
     title: "Sports",
-    image: "/sports.png",
+    image: "/sports.webp",
     alt: "Protonest wearable IoT and sports technology development",
     description:
       "We develop wearable IoT, athlete tracking, and smart sports equipment for physical sports and training.",

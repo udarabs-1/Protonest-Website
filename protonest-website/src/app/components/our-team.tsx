@@ -63,7 +63,7 @@ const OurTeamSection = () => {
         <div className="mb-8 hidden justify-center sm:mb-12 lg:mb-16">
           <div className="relative aspect-[16/9] w-full max-w-3xl overflow-hidden rounded-2xl shadow-lg">
             <Image
-              src="/team.jpg"
+              src="/team.webp"
               alt="Protonest team"
               fill
               priority

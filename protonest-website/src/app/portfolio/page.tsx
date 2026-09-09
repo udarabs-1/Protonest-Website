@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
@@ -132,7 +131,7 @@ const ContentCard = ({
 }) => {
   return (
     <Link
-      href={`/portfolio/${type === "research" ? "research" : "project"}/${item.slug}?tab=${type}`}
+      href={`/portfolio/${type === "research" ? "research" : "project"}/${item.slug}`}
       passHref
     >
       <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
@@ -186,16 +185,20 @@ function ResearchAndProjectContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  const searchParams = useSearchParams();
-
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "projects") {
-      setActiveTab("projects");
-    } else if (tab === "research") {
-      setActiveTab("research");
-    }
-  }, [searchParams]);
+    const syncTabFromHash = () => {
+      setActiveTab(window.location.hash === "#projects" ? "projects" : "research");
+    };
+
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+    window.addEventListener("popstate", syncTabFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncTabFromHash);
+      window.removeEventListener("popstate", syncTabFromHash);
+    };
+  }, []);
 
   const fetchResearch = useCallback(async () => {
     try {
@@ -330,7 +333,7 @@ function ResearchAndProjectContent() {
                   setActiveTab("research");
                   setShowAll(false);
                   setSearchTerm("");
-                  window.history.pushState({}, "", "/portfolio?tab=research");
+                  window.history.pushState({}, "", "/portfolio#research");
                 }}
                 className={`h-[48px] sm:h-[52px] py-4 px-6 sm:px-8 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${
                   activeTab === "research"
@@ -347,7 +350,7 @@ function ResearchAndProjectContent() {
                   setActiveTab("projects");
                   setShowAll(false);
                   setSearchTerm("");
-                  window.history.pushState({}, "", "/portfolio?tab=projects");
+                  window.history.pushState({}, "", "/portfolio#projects");
                 }}
                 className={`h-[48px] sm:h-[52px] py-4 px-6 sm:px-8 rounded-[57px] flex justify-center items-center gap-3 transition-colors ${
                   activeTab === "projects"
