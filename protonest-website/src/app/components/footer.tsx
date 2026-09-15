@@ -1,43 +1,10 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { CONTACT_DETAILS } from "@/lib/contact-details";
 import { FOOTER_SECTIONS, SITE_LINKS, SOCIAL_LINKS } from "@/lib/navigation";
+import FooterNavLinks from "./footer-nav-links";
 
 export default function Footer() {
-  const pathname = usePathname();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
-  const isActive = (path: string): boolean => pathname === path;
-
-  const getNavLinkClass = (path: string, isDesktop: boolean = true): string => {
-    const baseClass = "text-[#83848b]";
-    const gradientClass =
-      "text-transparent bg-clip-text bg-gradient-to-r from-[#f51da5] to-[#5530fa]";
-
-    if (isDesktop) {
-      if (hoveredItem === path) {
-        return gradientClass;
-      } else if (hoveredItem === null && isActive(path)) {
-        return gradientClass;
-      } else {
-        return baseClass;
-      }
-    } else {
-      return isActive(path) ? gradientClass : baseClass;
-    }
-  };
-
-  const handleMouseEnter = (path: string): void => {
-    setHoveredItem(path);
-  };
-
-  const handleMouseLeave = (): void => {
-    setHoveredItem(null);
-  };
 
   return (
     <>
@@ -62,33 +29,7 @@ export default function Footer() {
 
           <div className="relative z-20 grid grid-cols-6 content-start gap-x-12 gap-y-6 px-[60px] py-[70px] xl:gap-x-16 xl:px-[80px] xl:py-[80px] 2xl:gap-x-20 2xl:px-[98px] 2xl:py-[90px]">
             <div className="col-span-4 col-start-3 row-span-5 row-start-1 w-full">
-              <nav
-                aria-label="Footer navigation"
-                className="grid w-full grid-cols-4 content-start gap-x-8 gap-y-10 font-montserrat xl:gap-x-10 2xl:gap-x-12"
-              >
-                {FOOTER_SECTIONS.map((section) => (
-                  <div key={section.title}>
-                    <h2 className="mb-3 text-sm font-medium text-[#4d4d4d]">
-                      {section.title}
-                    </h2>
-                    <div className="flex flex-col items-start gap-2">
-                      {section.links.map((link) => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          target={link.external ? "_blank" : undefined}
-                          rel={link.external ? "noopener" : undefined}
-                          className={`text-left text-sm leading-snug transition-colors ${getNavLinkClass(link.href, true)}`}
-                          onMouseEnter={() => handleMouseEnter(link.href)}
-                          onMouseLeave={handleMouseLeave}
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </nav>
+              <FooterNavLinks sections={FOOTER_SECTIONS} variant="desktop" />
             </div>
 
             <div className="contents">
@@ -327,31 +268,7 @@ export default function Footer() {
             </Link>
           </div>
 
-          <nav
-            aria-label="Footer navigation"
-            className="col-span-2 row-start-6 mt-8 grid w-full grid-cols-2 gap-x-10 gap-y-6 md:gap-x-16 md:gap-y-7"
-          >
-            {FOOTER_SECTIONS.map((section) => (
-              <div key={section.title}>
-                <h2 className="mb-2 font-montserrat text-sm font-medium text-[#4d4d4d]">
-                  {section.title}
-                </h2>
-                <div className="flex flex-col items-start gap-1.5 md:gap-2">
-                  {section.links.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      target={link.external ? "_blank" : undefined}
-                      rel={link.external ? "noopener" : undefined}
-                      className={`text-left font-montserrat text-sm leading-snug ${getNavLinkClass(link.href, false)}`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </nav>
+          <FooterNavLinks sections={FOOTER_SECTIONS} variant="mobile" />
 
           <div
             aria-hidden="true"
