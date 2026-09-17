@@ -24,9 +24,7 @@
     "react-dom": "^19.2.1",
     "react-fast-marquee": "^1.6.5",
     "react-gradient-text": "^0.1.0",
-    "react-slick": "^0.30.3",
     "resend": "^6.0.0",
-    "slick-carousel": "^1.8.1",
     "swiper": "^11.2.8"
   },
   "devDependencies": {
@@ -37,7 +35,6 @@
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/react-slick": "^0.23.13",
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
     "tailwindcss": "^4",
