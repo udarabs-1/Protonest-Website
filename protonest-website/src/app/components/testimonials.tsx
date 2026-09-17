@@ -4,11 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, type CSSProperties } from "react";
 import type { Swiper as SwiperType } from "swiper";
-import "swiper/css";
-import "swiper/css/autoplay";
 import { Autoplay } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SectionHeader from "./section-header";
+import { SWIPER_CORE_CSS } from "./swiper-css";
 
 const SWIPER_TRANSITION_STYLE = {
   "--swiper-wrapper-transition-timing-function": "ease-in-out",
@@ -86,6 +85,7 @@ const TestimonialSection = () => {
 
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
+      <style>{SWIPER_CORE_CSS}</style>
       <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 bottom-0 md:bottom-0 lg:bottom-auto left-0 right-0 z-10">
         <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-full lg:h-[500px]">
           <Image
@@ -276,6 +276,7 @@ export const TestimonialMarquee = ({
       aria-label="Client testimonials"
       aria-live="off"
     >
+      <style>{SWIPER_CORE_CSS}</style>
       <Swiper
         modules={[Autoplay]}
         slidesPerView={1}
