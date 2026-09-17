@@ -241,6 +241,7 @@ function LargeScreenHeroSection() {
             alt="Protonest IoT development services"
             fill
             priority={true}
+            fetchPriority="high"
             quality={75}
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
@@ -315,7 +316,8 @@ function SmallScreenHeroSection() {
             alt="Protonest IoT development services"
             fill
             priority={true}
-            quality={70}
+            fetchPriority="high"
+            quality={75}
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
