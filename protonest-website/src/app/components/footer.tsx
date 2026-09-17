@@ -3,6 +3,17 @@ import Link from "next/link";
 import { CONTACT_DETAILS } from "@/lib/contact-details";
 import { FOOTER_SECTIONS, SITE_LINKS, SOCIAL_LINKS } from "@/lib/navigation";
 import FooterNavLinks from "./footer-nav-links";
+import LazyVideo from "./lazy-video";
+
+const DESKTOP_VIDEO_SOURCES = [
+  { src: "/footerWeb.webm", type: "video/webm" },
+  { src: "/footerWeb.mp4", type: "video/mp4" },
+];
+
+const MOBILE_VIDEO_SOURCES = [
+  { src: "/footerMobile.webm", type: "video/webm" },
+  { src: "/footerMobile.mp4", type: "video/mp4" },
+];
 
 export default function Footer() {
 
@@ -11,18 +22,12 @@ export default function Footer() {
       <div className="hidden w-full lg:mb-[50px] lg:block lg:px-[60px] xl:mb-[60px] xl:px-[133px] 2xl:mb-[70px] 2xl:px-[180px]">
         <div className="rounded-b-[25px] relative h-full overflow-hidden">
           <div className="absolute inset-0 z-0">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
+            <LazyVideo
+              sources={DESKTOP_VIDEO_SOURCES}
               poster="/footerWeb-poster.webp"
               className="w-full h-full object-cover"
               style={{ objectPosition: "center" }}
-            >
-              <source src="/footerWeb.webm" type="video/webm" />
-              <source src="/footerWeb.mp4" type="video/mp4" />
-            </video>
+            />
           </div>
 
           <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
@@ -154,18 +159,12 @@ export default function Footer() {
 
       <div className="relative block w-full lg:hidden">
         <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] overflow-hidden z-0">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
+          <LazyVideo
+            sources={MOBILE_VIDEO_SOURCES}
             poster="/footerMobile-poster.webp"
             className="w-full h-full object-cover"
             style={{ objectPosition: "center" }}
-          >
-            <source src="/footerMobile.webm" type="video/webm" />
-            <source src="/footerMobile.mp4" type="video/mp4" />
-          </video>
+          />
         </div>
 
         <div className="absolute inset-0 mx-4 my-4 md:mx-8 md:my-6 rounded-b-[25px] md:rounded-b-[35px] bg-gradient-to-t from-transparent to-white z-10" />
