@@ -478,7 +478,7 @@ function SignInContent() {
                             className="w-full h-13 px-6 py-3 rounded-full gradient-button flex items-center justify-center gap-3 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                             aria-label="Sign in with Google"
                         >
-                            <Image src="/google.svg" alt="" width={22} height={22} className="w-5 h-5" />
+                            <Image src="/google.svg" alt="Google" width={22} height={22} className="w-5 h-5" />
                             <span className="text-gray-600 text-sm font-medium font-['Poppins']">
                                 {isLoading ? 'Signing in...' : googleLoadError ? 'Google Sign-in Unavailable' : 'Sign in with Google'}
                             </span>

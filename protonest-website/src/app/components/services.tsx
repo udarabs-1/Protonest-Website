@@ -102,6 +102,7 @@ const ServicesSection = () => (
         fill
         priority={false}
         quality={85}
+        aria-hidden="true"
         className="object-cover"
       />
     </div>

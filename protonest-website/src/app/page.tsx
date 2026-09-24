@@ -286,6 +286,7 @@ function LargeScreenHeroSection() {
             fill
             priority={false}
             quality={70}
+            aria-hidden="true"
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
@@ -360,6 +361,7 @@ function SmallScreenHeroSection() {
             fill
             priority={false}
             quality={65}
+            aria-hidden="true"
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />

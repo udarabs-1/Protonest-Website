@@ -399,7 +399,7 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                 <div className="w-full h-full group-hover:hidden">
                     <Image
                         src="/upleft.svg"
-                        alt=""
+                        alt="Arrow"
                         width={40}
                         height={40}
                         className="w-full h-full object-contain"
@@ -408,7 +408,7 @@ const SimilarJobCard = ({ job, role }: { job: Job; role: string }) => (
                 <div className="hidden w-full h-full group-hover:block">
                     <Image
                         src="/upleft-hover.svg"
-                        alt=""
+                        alt="Hover Arrow"
                         width={50}
                         height={50}
                         className="w-full h-full object-contain"
