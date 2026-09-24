@@ -241,6 +241,7 @@ function LargeScreenHeroSection() {
             alt="Protonest IoT development services"
             fill
             priority={true}
+            fetchPriority="high"
             quality={75}
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
@@ -285,6 +286,7 @@ function LargeScreenHeroSection() {
             fill
             priority={false}
             quality={70}
+            aria-hidden="true"
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
@@ -315,7 +317,8 @@ function SmallScreenHeroSection() {
             alt="Protonest IoT development services"
             fill
             priority={true}
-            quality={70}
+            fetchPriority="high"
+            quality={75}
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
@@ -358,6 +361,7 @@ function SmallScreenHeroSection() {
             fill
             priority={false}
             quality={65}
+            aria-hidden="true"
             sizes="100vw"
             style={{ objectFit: "cover", objectPosition: "center" }}
           />

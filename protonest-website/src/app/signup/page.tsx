@@ -782,7 +782,7 @@ export default function SignUp() {
                             className="w-full h-12 px-6 rounded-full gradient-button flex items-center justify-center gap-3 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                             aria-label="Sign up with Google"
                         >
-                            <Image src="/google.svg" alt="" width={20} height={20} className="w-5 h-5" />
+                            <Image src="/google.svg" alt="Google" width={20} height={20} className="w-5 h-5" />
                             <span className="text-gray-600 text-sm font-medium font-['Poppins']">
                                 {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
                             </span>

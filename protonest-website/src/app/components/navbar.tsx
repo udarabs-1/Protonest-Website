@@ -207,49 +207,44 @@ export default function Navbar() {
                     return (
                       <div key={item.href} className="relative">
                         <div className="flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px]">
-                          <Link
-                            href={item.href}
-                            className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
-                            onMouseEnter={() => {
-                              setHoveredItem(item.href);
-                              if (hasDropdown && item.key) {
-                                openDropdownOnHover(item.key);
-                              }
-                            }}
-                            onMouseLeave={() => {
-                              setHoveredItem(null);
-                              if (hasDropdown) {
+                          {hasDropdown ? (
+                            <button
+                              type="button"
+                              className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none bg-transparent border-0 p-0 cursor-pointer ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
+                              style={{ font: "inherit" }}
+                              onMouseEnter={() => {
+                                setHoveredItem(item.href);
+                                if (item.key) {
+                                  openDropdownOnHover(item.key);
+                                }
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredItem(null);
                                 scheduleDropdownClose();
+                              }}
+                              onFocus={() => {
+                                if (item.key) {
+                                  openDropdownOnHover(item.key);
+                                }
+                              }}
+                              aria-expanded={activeDropdown === item.key}
+                              aria-haspopup="menu"
+                              aria-controls={
+                                item.key
+                                  ? `desktop-${item.key}-menu`
+                                  : undefined
                               }
-                            }}
-                            onFocus={() => {
-                              if (hasDropdown && item.key) {
-                                openDropdownOnHover(item.key);
-                              }
-                            }}
-                            aria-expanded={
-                              hasDropdown
-                                ? activeDropdown === item.key
-                                : undefined
-                            }
-                            aria-haspopup={hasDropdown ? "menu" : undefined}
-                            onClick={(e) => {
-                              if (hasDropdown && item.key) {
-                                e.preventDefault();
-                                toggleDropdown(item.key);
-                              } else if (isConditional) {
-                                handleCareersClick(e);
-                              } else {
-                                handleNavigation();
-                              }
-                            }}
-                          >
-                            <span
-                              className={`whitespace-nowrap ${showGradient || isHovered ? "" : "group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text"}`}
+                              onClick={() => {
+                                if (item.key) {
+                                  toggleDropdown(item.key);
+                                }
+                              }}
                             >
-                              {item.label}
-                            </span>
-                            {hasDropdown && (
+                              <span
+                                className={`whitespace-nowrap ${showGradient || isHovered ? "" : "group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text"}`}
+                              >
+                                {item.label}
+                              </span>
                               <svg
                                 width="16"
                                 height="16"
@@ -272,8 +267,76 @@ export default function Navbar() {
                               >
                                 <path d="m6 9 6 6 6-6" />
                               </svg>
-                            )}
-                          </Link>
+                            </button>
+                          ) : (
+                            <Link
+                              href={item.href}
+                              className={`group flex items-center gap-[5px] xl:gap-[7px] 2xl:gap-[8px] transition-none ${showGradient || isHovered ? "text-transparent bg-gradient-to-r from-[#f51da5] to-[#5530fa] bg-clip-text" : "text-[#83848b]"}`}
+                              onMouseEnter={() => {
+                                setHoveredItem(item.href);
+                                if (hasDropdown && item.key) {
+                                  openDropdownOnHover(item.key);
+                                }
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredItem(null);
+                                if (hasDropdown) {
+                                  scheduleDropdownClose();
+                                }
+                              }}
+                              onFocus={() => {
+                                if (hasDropdown && item.key) {
+                                  openDropdownOnHover(item.key);
+                                }
+                              }}
+                              aria-expanded={
+                                hasDropdown
+                                  ? activeDropdown === item.key
+                                  : undefined
+                              }
+                              aria-haspopup={hasDropdown ? "menu" : undefined}
+                              onClick={(e) => {
+                                if (hasDropdown && item.key) {
+                                  e.preventDefault();
+                                  toggleDropdown(item.key);
+                                } else if (isConditional) {
+                                  handleCareersClick(e);
+                                } else {
+                                  handleNavigation();
+                                }
+                              }}
+                            >
+                              <span
+                                className={`whitespace-nowrap ${showGradient || isHovered ? "" : "group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#f51da5] group-hover:to-[#5530fa] group-hover:bg-clip-text"}`}
+                              >
+                                {item.label}
+                              </span>
+                              {hasDropdown && (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke={
+                                    showGradient || isHovered
+                                      ? "#f51da5"
+                                      : "currentColor"
+                                  }
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                  className={`transition-transform duration-200 ${
+                                    activeDropdown === item.key
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}
+                                >
+                                  <path d="m6 9 6 6 6-6" />
+                                </svg>
+                              )}
+                            </Link>
+                          )}
                         </div>
                       </div>
                     );
@@ -412,6 +475,7 @@ export default function Navbar() {
             return (
               <motion.div
                 key={dropdownKey}
+                id={`desktop-${dropdownKey}-menu`}
                 className={`fixed left-0 top-[100px] z-40 w-full bg-white/80 font-montserrat backdrop-blur-[20px] lg:top-[105px] xl:top-[115px] 2xl:top-[125px] ${
                   isOpen
                     ? "visible pointer-events-auto"
