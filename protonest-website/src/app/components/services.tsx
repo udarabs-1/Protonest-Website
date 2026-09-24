@@ -1,13 +1,13 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import {
-  FiCheckCircle,
-  FiCode,
-  FiCpu,
-  FiGlobe,
-  FiSettings,
-  FiZap,
-} from "react-icons/fi";
+  CircleCheck,
+  Code,
+  Cpu,
+  Globe,
+  Settings,
+  Zap,
+} from "lucide-react";
 import SectionHeader from "./section-header";
 
 type ServiceCardData = {
@@ -23,7 +23,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "IoT Product Strategy",
     description:
       "We will work with you to turn an early idea into a clear IoT product development plan that feels achievable and grounded from day one.",
-    icon: <FiZap size={24} />,
+    icon: <Zap size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -31,7 +31,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "IoT Hardware Development",
     description:
       "We design PCBs, enclosures, and product architecture that is reliable and easy to support in real use.",
-    icon: <FiCpu size={24} />,
+    icon: <Cpu size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -39,7 +39,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "Firmware Development",
     description:
       "We develop reliable firmware for embedded products, including device logic, sensor and actuator integration, and communication protocols.",
-    icon: <FiCode size={24} />,
+    icon: <Code size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -47,7 +47,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "Software Development",
     description:
       "We build clean, dependable front-end and backend software that supports your IoT product.",
-    icon: <FiCheckCircle size={24} />,
+    icon: <CircleCheck size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -55,7 +55,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "Testing and Product Validation",
     description:
       "We test your products for reliability and performance under realistic conditions so you can launch them with confidence.",
-    icon: <FiSettings size={24} />,
+    icon: <Settings size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -63,7 +63,7 @@ const SERVICE_CARDS: ServiceCardData[] = [
     title: "IoT Consulting and Support",
     description:
       "We provide clear IoT consulting services to help you make better decisions, and post-development support with updates and maintenance.",
-    icon: <FiGlobe size={24} />,
+    icon: <Globe size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
