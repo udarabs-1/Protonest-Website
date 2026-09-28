@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
 @keyframes faq-reveal {
   from {
     opacity: 0;
