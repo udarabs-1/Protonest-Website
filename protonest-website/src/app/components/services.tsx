@@ -1,13 +1,13 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import {
-  FiCheckCircle,
-  FiCode,
-  FiCpu,
-  FiGlobe,
-  FiSettings,
-  FiZap,
-} from "react-icons/fi";
+  CircleCheck,
+  Code,
+  Cpu,
+  Globe,
+  Settings,
+  Zap,
+} from "lucide-react";
 import SectionHeader from "./section-header";
 
 type ServiceCardData = {
@@ -22,48 +22,48 @@ const SERVICE_CARDS: ServiceCardData[] = [
   {
     title: "IoT Product Strategy",
     description:
-      "You work with us to turn an early idea into a clear IoT product development plan, product design direction, feature scope, and delivery roadmap.",
-    icon: <FiZap size={24} />,
+      "We will work with you to turn an early idea into a clear IoT product development plan that feels achievable and grounded from day one.",
+    icon: <Zap size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
     title: "IoT Hardware Development",
     description:
-      "We design IoT hardware, sensors, electronics, enclosures, and system architecture around how your product will work in real use.",
-    icon: <FiCpu size={24} />,
+      "We design PCBs, enclosures, and product architecture that is reliable and easy to support in real use.",
+    icon: <Cpu size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Firmware and Embedded Systems Development",
+    title: "Firmware Development",
     description:
-      "We help you build reliable embedded systems, firmware, device logic, communication modules, and sensor integrations for real product use.",
-    icon: <FiCode size={24} />,
+      "We develop reliable firmware for embedded products, including device logic, sensor and actuator integration, and communication protocols.",
+    icon: <Code size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
-    title: "Software and Dashboard Development",
+    title: "Software Development",
     description:
-      "We build custom software solutions that connect your IoT devices to cloud platforms, dashboards, mobile apps, and monitoring systems.",
-    icon: <FiCheckCircle size={24} />,
+      "We build clean, dependable front-end and backend software that supports your IoT product.",
+    icon: <CircleCheck size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
     title: "Testing and Product Validation",
     description:
-      "We test connectivity, reliability, performance, power usage, and product readiness so you can move forward with confidence before launch.",
-    icon: <FiSettings size={24} />,
+      "We test your products for reliability and performance under realistic conditions so you can launch them with confidence.",
+    icon: <Settings size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
   {
     title: "IoT Consulting and Support",
     description:
-      "You get clear IoT consulting services for architecture decisions, product direction, troubleshooting, updates, and post-launch improvements.",
-    icon: <FiGlobe size={24} />,
+      "We provide clear IoT consulting services to help you make better decisions, and post-development support with updates and maintenance.",
+    icon: <Globe size={24} />,
     iconBg: "bg-[#5530FA]/5",
     iconRing: "ring-[#5530FA]/10",
   },
@@ -102,17 +102,18 @@ const ServicesSection = () => (
         fill
         priority={false}
         quality={85}
+        aria-hidden="true"
         className="object-cover"
       />
     </div>
 
     <div className="relative z-10 px-6 py-16 sm:px-10 lg:px-[133px] 2xl:px-[180px]">
       <SectionHeader
-        prefix="IoT Development Services Built"
-        highlight="Around Your Product"
+        prefix="Services We "
+        highlight="Offer"
         description="From Idea to Execution, We've Got You Covered."
         linkLabel="Book a Call"
-        linkHref="/contact-us#book-a-call"
+        linkHref="/contact-us"
       />
 
       <div className="mx-auto mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

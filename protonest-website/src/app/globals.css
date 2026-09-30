@@ -1,6 +1,61 @@
 @import "tailwindcss";
 
 :root {
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
+@keyframes faq-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.featured-testimonial-video .video-js {
+  overflow: hidden;
+  border-radius: inherit;
+  background: #101014;
+  font-family: var(--font-poppins), sans-serif;
+}
+
+.featured-testimonial-video .video-js .vjs-big-play-button {
+  display: none !important;
+}
+
+.featured-testimonial-video .video-js .vjs-control-bar {
+  display: flex !important;
+  visibility: visible;
+  opacity: 1;
+  z-index: 30;
+  height: 3.5em;
+  background: linear-gradient(to top, rgba(10, 8, 20, 0.94), transparent);
+}
+
+.featured-testimonial-video .video-js .vjs-progress-control {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  min-width: 72px;
+}
+
+.featured-testimonial-video .video-js .vjs-control:focus-visible,
+.featured-testimonial-video .video-js .vjs-slider:focus-visible {
+  outline: 2px solid white;
+  outline-offset: -3px;
+}
+
+.featured-testimonial-video .video-js .vjs-play-progress,
+.featured-testimonial-video .video-js .vjs-volume-level {
+  background: linear-gradient(90deg, #5530fa, #f51da5);
+}
+
+
+:root {
   --background: #ffffff;
   --foreground: #171717;
   color-scheme: light;

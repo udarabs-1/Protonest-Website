@@ -1,1 +1,8 @@
 .DS_Store
+
+# next.js
+/.next/
+/out/
+
+codedb.snapshot
+media-backups/

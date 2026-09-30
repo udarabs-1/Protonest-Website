@@ -3,11 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
-import 'swiper/css';
-import 'swiper/css/autoplay';
-import 'swiper/css/navigation';
 import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { SWIPER_CORE_CSS, SWIPER_NAVIGATION_CSS } from './swiper-css';
 
 const projects = [
     {
@@ -72,6 +70,7 @@ export default function ProjectSlider() {
 
     return (
         <div>
+            <style>{SWIPER_CORE_CSS + SWIPER_NAVIGATION_CSS}</style>
             <div className="hidden lg:block w-full py-20 lg:py-24 xl:py-28 2xl:py-30 relative">
                 <div className="absolute inset-0 -z-10">
                     <Image
@@ -92,7 +91,7 @@ export default function ProjectSlider() {
                                 Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                             </h2>
                             <p className="text-[16px] xl:text-[18px] 2xl:text-[19px] mt-2 text-[#6c6c6c] font-poppins">
-                                See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
+                                See how Protonest helps teams build IoT products.
                             </p>
                         </div>
                         <div className="flex gap-4">
@@ -147,7 +146,7 @@ export default function ProjectSlider() {
                     >
                         {projects.map((project) => (
                             <SwiperSlide key={project.id} style={{ height: 'auto' }}>
-                                <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                <Link href={`/portfolio/project/${project.slug}`} className="block h-full">
                                     <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                         <div className="relative w-full aspect-video flex-shrink-0">
                                             <Image
@@ -176,7 +175,7 @@ export default function ProjectSlider() {
                     </Swiper>
 
                     <div className="mt-12 text-center">
-                        <Link href="/research-and-project?tab=projects">
+                        <Link href="/portfolio#projects">
                             <button className="w-[160px] sm:w-[180px] h-[45px] lg:h-[50px] gradient-button font-poppins text-[14px] lg:text-[15px] xl:text-[16px]">
                                 View All Projects
                             </button>
@@ -206,7 +205,7 @@ export default function ProjectSlider() {
                                     Read Our Projects and <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Case Studies</span>
                                 </h2>
                                 <p className="text-[14px] mt-2 text-[#6c6c6c] font-poppins">
-                                    See how Protonest helps teams build IoT products across tracking, access control, smart devices, and manufacturing.
+                                    See how Protonest helps teams build IoT products.
                                 </p>
                             </div>
                             <div className="hidden sm:flex gap-4">
@@ -278,7 +277,7 @@ export default function ProjectSlider() {
                         >
                             {projects.map((project) => (
                                 <SwiperSlide key={project.id} style={{ height: 'auto' }}>
-                                    <Link href={`/research-and-project/project/${project.slug}`} className="block h-full">
+                                    <Link href={`/portfolio/project/${project.slug}`} className="block h-full">
                                         <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                             <div className="relative w-full aspect-video flex-shrink-0">
                                                 <Image
@@ -309,7 +308,7 @@ export default function ProjectSlider() {
                     </div>
 
                     <div className="mt-8 text-center">
-                        <Link href="/research-and-project?tab=projects">
+                        <Link href="/portfolio#projects">
                             <button className="w-[160px] h-[45px] gradient-button font-medium font-poppins text-[13px] hover:font-semibold transition">
                                 View All Projects
                             </button>

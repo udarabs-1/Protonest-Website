@@ -713,9 +713,9 @@ export default function SignUp() {
                                 label={
                                     <span>
                                         I agree to the{' '}
-                                        <a href="/terms-and-conditions" target="_blank" className="text-[#5530fa] hover:underline">Terms &amp; Conditions</a>
+                                        <a href="/legal/terms-and-conditions" target="_blank" className="text-[#5530fa] hover:underline">Terms &amp; Conditions</a>
                                         {' '}and{' '}
-                                        <a href="/privacy-policy" target="_blank" className="text-[#5530fa] hover:underline">Privacy Policy</a>
+                                        <a href="/legal/privacy-policy" target="_blank" className="text-[#5530fa] hover:underline">Privacy Policy</a>
                                     </span>
                                 }
                             />
@@ -767,7 +767,7 @@ export default function SignUp() {
                         </Link>
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-5 pb-5 border-b border-gray-200 text-center">
                         <h1 className="text-2xl sm:text-3xl font-medium font-['Montserrat'] leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] via-[#F51DA5] to-[#6C9AE1]">Sign Up</span>
                         </h1>
@@ -782,7 +782,7 @@ export default function SignUp() {
                             className="w-full h-12 px-6 rounded-full gradient-button flex items-center justify-center gap-3 hover:shadow-lg transition-shadow duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                             aria-label="Sign up with Google"
                         >
-                            <Image src="/google.svg" alt="" width={20} height={20} className="w-5 h-5" />
+                            <Image src="/google.svg" alt="Google" width={20} height={20} className="w-5 h-5" />
                             <span className="text-gray-600 text-sm font-medium font-['Poppins']">
                                 {isLoading ? 'Processing...' : googleLoadError ? 'Google Sign-up Unavailable' : 'Sign up with Google'}
                             </span>
@@ -867,9 +867,9 @@ export default function SignUp() {
                             label={
                                 <span>
                                     I agree to the{' '}
-                                    <Link href="/terms-and-conditions" className="text-[#5530fa] hover:underline">Terms and Conditions</Link>
+                                    <Link href="/legal/terms-and-conditions" className="text-[#5530fa] hover:underline">Terms and Conditions</Link>
                                     {' '}and{' '}
-                                    <Link href="/privacy-policy" className="text-[#5530fa] hover:underline">Privacy Policy</Link>
+                                    <Link href="/legal/privacy-policy" className="text-[#5530fa] hover:underline">Privacy Policy</Link>
                                 </span>
                             }
                         />
