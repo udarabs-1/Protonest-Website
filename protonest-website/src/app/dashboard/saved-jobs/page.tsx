@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardLayout from '@/app/components/dashboard-layout';
+import Pagination from '@/app/components/pagination';
 import { Icon } from '@iconify/react';
 import { MoreVertical, Search, X } from 'lucide-react';
 import Image from 'next/image';
@@ -255,7 +256,10 @@ const SavedJobs = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -326,7 +330,8 @@ const SavedJobs = () => {
 
             try {
                 setLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs`, {
+                const params = new URLSearchParams({ page: String(page), limit: String(itemsPerPage) });
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/saved-jobs?${params}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -334,10 +339,12 @@ const SavedJobs = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    const allSavedJobs = data.data || [];
+                    const allSavedJobs = data.data?.saved_jobs || data.data || [];
                     const activeSavedJobs = allSavedJobs.filter((job: SavedJob) => job.job_details.is_active !== false);
                     setSavedJobs(activeSavedJobs);
                     setFilteredJobs(activeSavedJobs);
+                    setTotalPages(data.data?.pagination?.total_pages || 1);
+                    setTotal(data.data?.pagination?.total || 0);
                 } else if (response.status === 401) {
                     localStorage.removeItem('jwtToken');
                     router.push('/signin');
@@ -350,7 +357,7 @@ const SavedJobs = () => {
 
         fetchSavedJobs();
         fetchUserProfile();
-    }, []);
+    }, [page, itemsPerPage]);
 
     useEffect(() => {
         let filtered = savedJobs;
@@ -421,14 +428,8 @@ const SavedJobs = () => {
         setActiveFilters(prev => prev.filter(filter => filter !== filterToRemove));
     };
 
-    const JOBS_PER_PAGE = 8;
-    const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
-    const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
-    const endIndex = startIndex + JOBS_PER_PAGE;
-    const jobsToShow = filteredJobs.slice(startIndex, endIndex);
-
     useEffect(() => {
-        setCurrentPage(1);
+        setPage(1);
     }, [searchQuery, activeFilters]);
 
     if (loading) {
@@ -495,43 +496,32 @@ const SavedJobs = () => {
 
                 <div className="flex-shrink-0">
                     <p className="text-sm text-gray-600 font-poppins">
-                        Showing {jobsToShow.length} of {filteredJobs.length} jobs
+                        Showing {filteredJobs.length} of {total} jobs
                     </p>
                 </div>
             </div>
 
             <div className="pb-8">
-                {jobsToShow.length > 0 ? (
+                {filteredJobs.length > 0 ? (
                     <>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {jobsToShow.map((job) => (
+                            {filteredJobs.map((job) => (
                                 <JobCard key={job._id} job={job} onRemove={removeSavedJob} />
                             ))}
                         </div>
 
-                        {totalPages > 1 && (
-                            <div className="flex justify-between items-center mt-6 pb-8">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    Previous
-                                </button>
-
-                                <span className="text-sm font-medium text-gray-700 font-poppins">
-                                    Page {currentPage} of {totalPages}
-                                </span>
-
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalItems={total}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={(p) => setPage(p)}
+                            onItemsPerPageChange={(limit) => {
+                                setItemsPerPage(limit);
+                                setPage(1);
+                            }}
+                            itemLabel="jobs"
+                        />
                     </>
                 ) : (
                     <div className="col-span-full text-center py-12">
