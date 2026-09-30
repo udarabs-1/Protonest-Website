@@ -5,7 +5,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = await params;
+    const { role, id } = await params;
+    const canonical = `https://protonest.co/jobs/${role}/${id}`;
 
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/jobs/${id}`, {
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             return {
                 title,
                 description,
+                alternates: { canonical },
                 openGraph: {
                     title,
                     description,
@@ -45,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title: 'Job Details - Protonest',
         description: 'Explore exciting career opportunities at Protonest',
+        alternates: { canonical },
         openGraph: {
             title: 'Job Opportunities - Protonest',
             description: 'Explore exciting career opportunities at Protonest',

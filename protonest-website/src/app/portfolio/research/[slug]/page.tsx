@@ -2,7 +2,6 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -212,18 +211,6 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="overflow-x-hidden">
-            <Head>
-                <title>{content.title} - Protonest</title>
-                <meta name="description" content={content.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'} />
-                <meta name="author" content={content.author} />
-                <link rel="canonical" href={`https://protonest.co/portfolio/research/${content.slug}`} />
-                <meta property="og:type" content="article" />
-                <meta property="og:url" content={`https://protonest.co/portfolio/research/${content.slug}`} />
-                <meta property="og:title" content={content.title} />
-                <meta property="og:description" content={content.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...'} />
-                {content.cover_image && <meta property="og:image" content={content.cover_image} />}
-            </Head>
-
             <Navbar />
 
             <div className="px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-10">
