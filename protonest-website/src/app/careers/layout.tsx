@@ -19,5 +19,10 @@ export const metadata: Metadata = {
         description: 'Protonest Careers',
     },
 };
-
-export { default } from './page';
+export default function CareersLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return <>{children}</>;
+}

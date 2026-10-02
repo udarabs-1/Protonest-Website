@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardLayout from '@/app/components/dashboard-layout';
+import Pagination from '@/app/components/pagination';
 import { Icon } from '@iconify/react';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
@@ -245,7 +246,10 @@ const AppliedJobs = () => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [profileData, setProfileData] = useState<ProfileData>({
         firstName: '',
         lastName: '',
@@ -316,7 +320,7 @@ const AppliedJobs = () => {
         }
         fetchAppliedJobs();
         fetchUserProfile();
-    }, []);
+    }, [page, itemsPerPage]);
 
     const fetchAppliedJobs = async () => {
         const token = localStorage.getItem('jwtToken');
@@ -326,47 +330,31 @@ const AppliedJobs = () => {
             setLoading(true);
             setError(null);
 
-            let response;
-            let applicationsData;
-
-            try {
-                response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
+            const params = new URLSearchParams({ page: String(page), limit: String(itemsPerPage) });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications?${params}`,
+                {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     }
-                });
-
-                if (response.status === 401) {
-                    localStorage.removeItem('jwtToken');
-                    router.push('/signin');
-                    return;
                 }
-                throw new Error(`HTTP error! status: ${response.status}`);
+            );
 
-                applicationsData = await response.json();
-            } catch {
-                console.log('Primary endpoint failed, trying fallback...');
-
-                try {
-                    response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/applications`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    applicationsData = await response.json();
-                } catch {
-                    throw new Error('Failed to fetch applications from all endpoints');
-                }
+            if (response.status === 401) {
+                localStorage.removeItem('jwtToken');
+                router.push('/signin');
+                return;
             }
 
-            const jobs: AppliedJob[] = applicationsData.data || applicationsData.applications || applicationsData || [];
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const applicationsData = await response.json();
+            const jobs: AppliedJob[] = applicationsData.data?.applications || applicationsData.data || applicationsData.applications || applicationsData || [];
+            setTotalPages(applicationsData.data?.pagination?.total_pages || 1);
+            setTotal(applicationsData.data?.pagination?.total || 0);
 
             if (jobs.length === 0) {
                 setAppliedJobs([]);
@@ -430,16 +418,8 @@ const AppliedJobs = () => {
         }
 
         setFilteredJobs(filtered);
-        setCurrentPage(1);
+        setPage(1);
     }, [searchQuery, activeFilter, appliedJobs]);
-
-
-
-    const JOBS_PER_PAGE = 8;
-    const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
-    const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
-    const endIndex = startIndex + JOBS_PER_PAGE;
-    const jobsToShow = filteredJobs.slice(startIndex, endIndex);
 
     if (loading) {
         return (
@@ -498,7 +478,7 @@ const AppliedJobs = () => {
 
                 <div className="flex-shrink-0">
                     <p className="text-sm text-gray-600 font-poppins">
-                        Showing {jobsToShow.length} of {filteredJobs.length} jobs
+                        Showing {filteredJobs.length} of {total} jobs
                     </p>
                 </div>
             </div>
@@ -516,37 +496,26 @@ const AppliedJobs = () => {
                     </div>
                 )}
 
-                {jobsToShow.length > 0 ? (
+                {filteredJobs.length > 0 ? (
                     <>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {jobsToShow.map((job) => (
+                            {filteredJobs.map((job) => (
                                 <AppliedJobCard key={job._id} job={job} />
                             ))}
                         </div>
 
-                        {totalPages > 1 && (
-                            <div className="flex justify-between items-center mt-6 pb-8">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    Previous
-                                </button>
-
-                                <span className="text-sm font-medium text-gray-700 font-poppins">
-                                    Page {currentPage} of {totalPages}
-                                </span>
-
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium font-poppins text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalItems={total}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={(p) => setPage(p)}
+                            onItemsPerPageChange={(limit) => {
+                                setItemsPerPage(limit);
+                                setPage(1);
+                            }}
+                            itemLabel="applications"
+                        />
                     </>
                 ) : (
                     <div className="col-span-full text-center py-12">

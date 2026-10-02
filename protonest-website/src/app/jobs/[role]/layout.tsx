@@ -41,5 +41,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
     };
 }
-
-export { default } from './page';
+export default function JobRoleLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return <>{children}</>;
+}
