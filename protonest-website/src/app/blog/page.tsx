@@ -275,7 +275,7 @@ export default function BlogSection() {
       setLoading(true);
       setError(null);
 
-      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`;
+      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true&limit=100`;
       if (category) {
         url += `&category=${encodeURIComponent(category)}`;
       }
@@ -294,7 +294,10 @@ export default function BlogSection() {
       const result = await response.json();
 
       if (result.status === 'success') {
-        setBlogs(result.data || []);
+        const blogsList = Array.isArray(result.data?.blogs)
+          ? result.data.blogs
+          : (Array.isArray(result.data) ? result.data : []);
+        setBlogs(blogsList);
       } else {
         throw new Error(result.message || 'Failed to fetch blogs');
       }
@@ -351,6 +354,7 @@ export default function BlogSection() {
   }, [checkScreenSize]);
 
   const filteredBlogs = useMemo(() => {
+    if (!Array.isArray(blogs)) return [];
     if (!searchTerm.trim()) return blogs;
 
     return blogs.filter(blog =>
@@ -360,10 +364,11 @@ export default function BlogSection() {
   }, [blogs, searchTerm]);
 
   const { visibleBlogs, shouldShowLoadMoreButton } = useMemo(() => {
+    const list = Array.isArray(filteredBlogs) ? filteredBlogs : [];
     const limit = isMobile ? 3 : 6;
-    const visibleCount = showAllBlogs ? filteredBlogs.length : limit;
-    const visibleBlogs = filteredBlogs.slice(0, visibleCount);
-    const shouldShowLoadMoreButton = filteredBlogs.length > limit;
+    const visibleCount = showAllBlogs ? list.length : limit;
+    const visibleBlogs = list.slice(0, visibleCount);
+    const shouldShowLoadMoreButton = list.length > limit;
 
     return { visibleBlogs, shouldShowLoadMoreButton };
   }, [filteredBlogs, isMobile, showAllBlogs]);
