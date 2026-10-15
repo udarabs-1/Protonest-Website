@@ -279,7 +279,9 @@ export default function BlogDetailPage() {
                         try {
                             const blogsJson = await blogsResult.value.json();
                             if (blogsJson.status === 'success') {
-                                const allBlogs = blogsJson.data || [];
+                                const allBlogs = Array.isArray(blogsJson.data?.blogs)
+                                    ? blogsJson.data.blogs
+                                    : (Array.isArray(blogsJson.data) ? blogsJson.data : []);
                                 const otherBlogs = allBlogs.filter((b: Blog) => b.id !== blogData.id);
                                 const shuffled = otherBlogs.sort(() => Math.random() - 0.5);
                                 setSuggestedBlogs(shuffled.slice(0, 2));
