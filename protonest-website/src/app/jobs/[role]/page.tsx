@@ -188,7 +188,7 @@ const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
         <div className="w-full h-full group-hover:hidden">
           <Image
             src="/upleft.svg"
-            alt=""
+            alt="Arrow"
             width={40}
             height={40}
             className="w-full h-full object-contain"
@@ -197,7 +197,7 @@ const JobCard = ({ job, roleKey }: { job: Job; roleKey: string }) => (
         <div className="hidden w-full h-full group-hover:block">
           <Image
             src="/upleft-hover.svg"
-            alt=""
+            alt="Hover Arrow"
             width={50}
             height={50}
             className="w-full h-full object-contain"
@@ -625,7 +625,7 @@ export default function RolePage() {
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
                   <Image
                     src="/search.svg"
-                    alt=""
+                    alt="Search"
                     width={24}
                     height={24}
                     className="w-full h-full text-[#6c6c6c]"

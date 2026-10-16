@@ -3,11 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
-import 'swiper/css';
-import 'swiper/css/autoplay';
-import 'swiper/css/navigation';
 import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { SWIPER_CORE_CSS, SWIPER_NAVIGATION_CSS } from './swiper-css';
 
 const projects = [
     {
@@ -72,6 +70,7 @@ export default function ProjectSlider() {
 
     return (
         <div>
+            <style>{SWIPER_CORE_CSS + SWIPER_NAVIGATION_CSS}</style>
             <div className="hidden lg:block w-full py-20 lg:py-24 xl:py-28 2xl:py-30 relative">
                 <div className="absolute inset-0 -z-10">
                     <Image

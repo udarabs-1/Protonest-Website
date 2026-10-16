@@ -1,10 +1,4 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-const WorldMap = dynamic(() => import("./world-map"), {
-  ssr: false,
-});
+import WorldMap from "./world-map";
 
 export default function ClientsMap() {
   const dots = [

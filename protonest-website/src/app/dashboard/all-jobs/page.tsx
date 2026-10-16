@@ -131,7 +131,7 @@ const JobCard = ({ job }: { job: Job }) => {
                     <div className="w-full h-full group-hover:hidden">
                         <Image
                             src="/upleft.svg"
-                            alt=""
+                            alt="Arrow"
                             width={40}
                             height={40}
                             className="w-full h-full object-contain"
@@ -140,7 +140,7 @@ const JobCard = ({ job }: { job: Job }) => {
                     <div className="hidden w-full h-full group-hover:block">
                         <Image
                             src="/upleft-hover.svg"
-                            alt=""
+                            alt="Hover Arrow"
                             width={50}
                             height={50}
                             className="w-full h-full object-contain"

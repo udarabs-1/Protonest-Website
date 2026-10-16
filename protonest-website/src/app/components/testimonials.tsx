@@ -2,15 +2,19 @@
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick-theme.css";
-import "slick-carousel/slick/slick.css";
+import { useRef, type CSSProperties } from "react";
+import type { Swiper as SwiperType } from "swiper";
+import { Autoplay } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import SectionHeader from "./section-header";
+import { SWIPER_CORE_CSS } from "./swiper-css";
+
+const SWIPER_TRANSITION_STYLE = {
+  "--swiper-wrapper-transition-timing-function": "ease-in-out",
+} as CSSProperties;
 
 const TestimonialSection = () => {
-  const sliderRef = useRef<Slider | null>(null);
-  const mobileSliderRef = useRef<Slider | null>(null);
+  const mobileSwiperRef = useRef<SwiperType | null>(null);
 
   const testimonials = [
     {
@@ -71,73 +75,17 @@ const TestimonialSection = () => {
     },
   ];
 
-  const mobileCarouselSettings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: false,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    pauseOnHover: false,
-    pauseOnFocus: false,
-    swipeToSlide: true,
-    touchThreshold: 10,
-    cssEase: "ease-in-out",
-  };
-
-  const desktopCarouselSettings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    arrows: false,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    pauseOnHover: true,
-    swipeToSlide: true,
-    touchThreshold: 10,
-    cssEase: "ease-in-out",
-    responsive: [
-      {
-        breakpoint: 1280,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          swipeToSlide: true,
-        },
-      },
-    ],
-  };
-
-  const handleCardMouseEnter = () => {
-    if (sliderRef.current) {
-      sliderRef.current.slickPause();
-    }
-  };
-
-  const handleCardMouseLeave = () => {
-    if (sliderRef.current) {
-      sliderRef.current.slickPlay();
-    }
-  };
-
   const handleMobileCardInteractionStart = () => {
-    if (mobileSliderRef.current) {
-      mobileSliderRef.current.slickPause();
-    }
+    mobileSwiperRef.current?.autoplay.stop();
   };
 
   const handleMobileCardInteractionEnd = () => {
-    if (mobileSliderRef.current) {
-      mobileSliderRef.current.slickPlay();
-    }
+    mobileSwiperRef.current?.autoplay.start();
   };
 
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 overflow-hidden relative">
+      <style>{SWIPER_CORE_CSS}</style>
       <div className="w-full px-2 sm:px-4 md:px-8 lg:px-[150px] xl:px-[250px] 2xl:px-[350px] absolute top-55 md:top-55 lg:top-47 2xl:top-52 bottom-0 md:bottom-0 lg:bottom-auto left-0 right-0 z-10">
         <div className="relative w-full rounded-[20px] md:rounded-[30px] lg:rounded-[37px] overflow-hidden h-full lg:h-[500px]">
           <Image
@@ -161,31 +109,58 @@ const TestimonialSection = () => {
         />
 
         <div className="lg:hidden mt-10 sm:mt-12 mb-2 sm:mb-4 md:mb-12 px-2">
-          <Slider ref={mobileSliderRef} {...mobileCarouselSettings}>
+          <Swiper
+            modules={[Autoplay]}
+            slidesPerView={1}
+            loop={true}
+            speed={500}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: false,
+            }}
+            onSwiper={(swiper) => {
+              mobileSwiperRef.current = swiper;
+            }}
+            style={SWIPER_TRANSITION_STYLE}
+          >
             {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="px-6 pb-6">
-                <TestimonialCard
-                  name={testimonial.name}
-                  company={testimonial.company}
-                  text={testimonial.text}
-                  avatar={testimonial.avatar}
-                  onInteractionStart={handleMobileCardInteractionStart}
-                  onInteractionEnd={handleMobileCardInteractionEnd}
-                  isMobile={true}
-                />
-              </div>
+              <SwiperSlide key={testimonial.id}>
+                <div className="px-6 pb-6">
+                  <TestimonialCard
+                    name={testimonial.name}
+                    company={testimonial.company}
+                    text={testimonial.text}
+                    avatar={testimonial.avatar}
+                    onInteractionStart={handleMobileCardInteractionStart}
+                    onInteractionEnd={handleMobileCardInteractionEnd}
+                    isMobile={true}
+                  />
+                </div>
+              </SwiperSlide>
             ))}
-          </Slider>
+          </Swiper>
         </div>
 
         <div className="hidden lg:block mt-2 mb-10 md:mb-12 lg:mb-16">
-          <Slider ref={sliderRef} {...desktopCarouselSettings}>
+          <Swiper
+            modules={[Autoplay]}
+            slidesPerView={2}
+            loop={true}
+            speed={500}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            breakpoints={{
+              1280: { slidesPerView: 3 },
+            }}
+            style={SWIPER_TRANSITION_STYLE}
+          >
             {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="px-3 xl:px-5">
-                <div
-                  onMouseEnter={handleCardMouseEnter}
-                  onMouseLeave={handleCardMouseLeave}
-                >
+              <SwiperSlide key={testimonial.id}>
+                <div className="px-3 xl:px-5">
                   <TestimonialCard
                     name={testimonial.name}
                     company={testimonial.company}
@@ -194,9 +169,9 @@ const TestimonialSection = () => {
                     isMobile={false}
                   />
                 </div>
-              </div>
+              </SwiperSlide>
             ))}
-          </Slider>
+          </Swiper>
         </div>
 
         <div className="flex justify-center">
@@ -292,21 +267,7 @@ export const TestimonialMarquee = ({
 }: {
   testimonials: TestimonialMarqueeItem[];
 }) => {
-  const settings = {
-    dots: false,
-    infinite: testimonials.length > 1,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: false,
-    autoplay: testimonials.length > 1,
-    autoplaySpeed: 3500,
-    pauseOnHover: true,
-    pauseOnFocus: true,
-    swipeToSlide: true,
-    touchThreshold: 10,
-    cssEase: "ease-in-out",
-  };
+  const hasMultiple = testimonials.length > 1;
 
   return (
     <div
@@ -315,21 +276,36 @@ export const TestimonialMarquee = ({
       aria-label="Client testimonials"
       aria-live="off"
     >
-      <Slider {...settings}>
+      <style>{SWIPER_CORE_CSS}</style>
+      <Swiper
+        modules={[Autoplay]}
+        slidesPerView={1}
+        loop={hasMultiple}
+        speed={600}
+        autoplay={
+          hasMultiple
+            ? {
+                delay: 3500,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }
+            : false
+        }
+        style={SWIPER_TRANSITION_STYLE}
+      >
         {testimonials.map((testimonial) => (
-          <div
-            key={`${testimonial.name}-${testimonial.company}`}
-            className="px-2 pb-5"
-          >
-            <TestimonialCard
-              name={testimonial.name}
-              company={testimonial.company}
-              text={testimonial.text}
-              avatar={testimonial.avatar}
-            />
-          </div>
+          <SwiperSlide key={`${testimonial.name}-${testimonial.company}`}>
+            <div className="px-2 pb-5">
+              <TestimonialCard
+                name={testimonial.name}
+                company={testimonial.company}
+                text={testimonial.text}
+                avatar={testimonial.avatar}
+              />
+            </div>
+          </SwiperSlide>
         ))}
-      </Slider>
+      </Swiper>
     </div>
   );
 };

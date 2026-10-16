@@ -107,6 +107,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title: 'Blog Post - Protonest',
         description: 'Read insightful IoT articles and engineering updates from Protonest.',
+        alternates: {
+            canonical: `https://protonest.co/blog/${slug}`,
+        },
         openGraph: {
             title: 'Blog - Protonest',
             description: 'Read insightful IoT articles and engineering updates from Protonest.',
@@ -120,5 +123,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
     };
 }
-
-export { default } from './page';
+export default function BlogPostLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return <>{children}</>;
+}

@@ -3,6 +3,9 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'Protonest Careers',
     description: 'Protonest Careers',
+    alternates: {
+        canonical: 'https://protonest.co/careers',
+    },
     openGraph: {
         title: 'Protonest Careers',
         description: 'Protonest Careers',
@@ -16,5 +19,10 @@ export const metadata: Metadata = {
         description: 'Protonest Careers',
     },
 };
-
-export { default } from './page';
+export default function CareersLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return <>{children}</>;
+}
