@@ -1,59 +1,73 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Swiper as SwiperType } from 'swiper';
 import { Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { SWIPER_CORE_CSS, SWIPER_NAVIGATION_CSS } from './swiper-css';
 
-const projects = [
-    {
-        id: 1,
-        title: 'Compact GPS Tracker',
-        image: '/project-1.png',
-        slug: 'compact-gps-tracker-prototype-for-adam-healy',
-        description: 'This handheld GPS tracker sends its location every 30 seconds using a unique device ID with indicators for network status, cloud connection and satellite lock. Its small case makes it easy to carry in a pocket or bag.'
-    },
-    {
-        id: 2,
-        title: 'Smart Door Lock',
-        image: '/project-2.png',
-        slug: 'smart-door-lock-system-for-entryphone,-uk',
-        description: 'The system manages smart locks, and manages all permissions through an admin and super admin portal.'
-    },
-    {
-        id: 3,
-        title: 'Smart WiFi Rebooter',
-        image: '/project-3.png',
-        slug: 'wifi-rebooter-system-for-perseo-srls,-italy',
-        description: 'This device monitors internet connectivity and restores access by rebooting the router when outages occur. It uses AP Mode for setup and STA Mode for daily use. A simple inbuilt web interface allows configuration and status checks.'
-    },
-    {
-        id: 4,
-        title: 'Soap Dose Tracking System',
-        image: '/project-4.png',
-        slug: 'soap-dose-tracking-system-for-1001cleanbox',
-        description: 'This device tracks dose count, temperature and UV index in real time. It displays cloud-synced messages and can be controlled through a simple web app.'
-    },
-    {
-        id: 5,
-        title: 'Compact Electronic Device',
-        image: '/project-5.png',
-        slug: 'compact-electronic-device',
-        description: 'This is a compact electronic device designed for everyday use.'
-    },
-    {
-        id: 6,
-        title: 'IoT Home Appliance',
-        image: '/project-6.png',
-        slug: 'iot-home-appliance',
-        description: 'This is a compact, waterproof IoT device combo designed to achieve reliable clipping with accurate sensor readings.'
-    },
-];
+type Project = {
+    id: string;
+    title: string;
+    slug: string;
+    content: string;
+    excerpt?: string;
+    cover_image?: string;
+    published_at?: string;
+    created_at: string;
+    updated_at: string;
+};
+
+const getTimestamp = (project: Project): number =>
+    new Date(project.published_at || project.created_at || project.updated_at).getTime() || 0;
+
+const getDescription = (project: Project): string =>
+    project.excerpt || project.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 export default function ProjectSlider() {
     const swiperRef = useRef<SwiperType | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchLatestProjects = async () => {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/projects?published=true`,
+                    { signal: controller.signal },
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch projects');
+                }
+
+                const result = await response.json();
+                const data = Array.isArray(result.data?.projects)
+                    ? result.data.projects
+                    : Array.isArray(result.data)
+                        ? result.data
+                        : [];
+
+                if (result.status === 'success') {
+                    setProjects(
+                        [...data]
+                            .sort((a: Project, b: Project) => getTimestamp(b) - getTimestamp(a))
+                            .slice(0, 6),
+                    );
+                }
+            } catch (error) {
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    console.error('Error fetching latest projects:', error);
+                }
+            }
+        };
+
+        fetchLatestProjects();
+
+        return () => controller.abort();
+    }, []);
 
     const handlePrev = () => {
         if (swiperRef.current) {
@@ -150,7 +164,7 @@ export default function ProjectSlider() {
                                     <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                         <div className="relative w-full aspect-video flex-shrink-0">
                                             <Image
-                                                src={project.image}
+                                                src={project.cover_image || '/logo.webp'}
                                                 alt={project.title}
                                                 fill
                                                 className="object-cover"
@@ -162,7 +176,7 @@ export default function ProjectSlider() {
                                                 {project.title}
                                             </h3>
                                             <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
-                                                {project.description}
+                                                {getDescription(project)}
                                             </p>
                                             <span className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
                                                 Read Project
@@ -281,7 +295,7 @@ export default function ProjectSlider() {
                                         <div className="bg-white rounded-[20px] overflow-hidden border border-gray-200 h-full transition-transform hover:scale-[1.02] duration-300 flex flex-col">
                                             <div className="relative w-full aspect-video flex-shrink-0">
                                                 <Image
-                                                    src={project.image}
+                                                    src={project.cover_image || '/logo.webp'}
                                                     alt={project.title}
                                                     fill
                                                     className="object-cover"
@@ -293,7 +307,7 @@ export default function ProjectSlider() {
                                                     {project.title}
                                                 </h3>
                                                 <p className="text-[#6c6c6c] text-xs font-normal font-poppins leading-relaxed mb-3 line-clamp-3 flex-1">
-                                                    {project.description}
+                                                    {getDescription(project)}
                                                 </p>
                                                    <span className="cursor-pointer text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-xs font-medium font-poppins hover:underline mt-auto">
                                                     Read Project
