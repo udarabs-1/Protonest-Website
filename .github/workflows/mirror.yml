@@ -1,0 +1,39 @@
+
+name: Mirror Repositories
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  git-mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Remove workflows
+        run: |
+          rm -rf .github/workflows
+
+      - name: Configure Git
+        run: |
+          git config user.name "udarabs-1"
+          git config user.email "kumarasenau@gmail.com"
+
+      - name: Commit changes if needed
+        run: |
+          git add -A
+          git diff --cached --quiet || git commit -m "chore: remove GitHub Actions workflows from mirror"
+
+      - name: Mirror Main Branch
+        env:
+          TARGET_URL: https://x-access-token:${{ secrets.PRODUCTION_PAT }}@github.com/udarabs-1/Protonest-Website.git
+        run: |
+          git remote add mirror-main "$TARGET_URL"
+          git push mirror-main HEAD:main --force
