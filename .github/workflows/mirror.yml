@@ -42,7 +42,7 @@ jobs:
           git add -A
           git diff --cached --quiet || git commit -m "chore: remove GitHub Actions workflows from mirror"
 
-      # Mirror the main branch
+      # Mirror the main branch to production main
       - name: Mirror Main Branch
         if: github.ref == 'refs/heads/main'
         env:
@@ -51,16 +51,16 @@ jobs:
           git remote add mirror-main "$TARGET_URL"
           git push mirror-main HEAD:main --force
 
-      # Mirror the test branch to the target main branch
+      # Mirror the test branch to testing test
       - name: Mirror Test Branch
         if: github.ref == 'refs/heads/test'
         env:
           TARGET_URL: https://x-access-token:${{ secrets.TEST_PAT }}@github.com/protonestsupport/Protonest-Website.git
         run: |
           git remote add mirror-test "$TARGET_URL"
-          git push mirror-test HEAD:main --force
+          git push mirror-test HEAD:test --force
 
-      # Mirror the dev branch to the target dev branch
+      # Mirror the dev branch to development dev
       - name: Mirror Dev Branch
         if: github.ref == 'refs/heads/dev'
         env:
