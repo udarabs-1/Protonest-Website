@@ -23,48 +23,40 @@ jobs:
         run: |
           rm -rf .github/workflows
 
-      # Configure Git for the main mirror
-      - name: Configure Git (Main)
-        if: github.ref == 'refs/heads/main'
+      # Configure Git
+      - name: Configure Git
         run: |
           git config user.name "udarabs-1"
           git config user.email "kumarasenau@gmail.com"
-
-      # Configure Git for test and dev mirrors
-      - name: Configure Git (Test & Dev)
-        if: github.ref == 'refs/heads/test' || github.ref == 'refs/heads/dev'
-        run: |
-          git config user.name "protonestsupport"
-          git config user.email "support@protonest.co"
 
       - name: Commit changes if needed
         run: |
           git add -A
           git diff --cached --quiet || git commit -m "chore: remove GitHub Actions workflows from mirror"
 
-      # Mirror the main branch to production main
+      # Mirror the main branch to main
       - name: Mirror Main Branch
         if: github.ref == 'refs/heads/main'
         env:
-          TARGET_URL: https://x-access-token:${{ secrets.PRODUCTION_PAT }}@github.com/udarabs-1/Protonest-Website.git
+          TARGET_URL: https://x-access-token:${{ secrets.PROTONEST_WEBSITE_PAT }}@github.com/udarabs-1/Protonest-Website.git
         run: |
           git remote add mirror-main "$TARGET_URL"
           git push mirror-main HEAD:main --force
 
-      # Mirror the test branch to testing test
+      # Mirror the test branch to test
       - name: Mirror Test Branch
         if: github.ref == 'refs/heads/test'
         env:
-          TARGET_URL: https://x-access-token:${{ secrets.TEST_PAT }}@github.com/protonestsupport/Protonest-Website.git
+          TARGET_URL: https://x-access-token:${{ secrets.PROTONEST_WEBSITE_PAT }}@github.com/udarabs-1/Protonest-Website.git
         run: |
           git remote add mirror-test "$TARGET_URL"
           git push mirror-test HEAD:test --force
 
-      # Mirror the dev branch to development dev
+      # Mirror the dev branch to dev
       - name: Mirror Dev Branch
         if: github.ref == 'refs/heads/dev'
         env:
-          TARGET_URL: https://x-access-token:${{ secrets.TEST_PAT }}@github.com/protonestsupport/Protonest-Website.git
+          TARGET_URL: https://x-access-token:${{ secrets.PROTONEST_WEBSITE_PAT }}@github.com/udarabs-1/Protonest-Website.git
         run: |
           git remote add mirror-dev "$TARGET_URL"
           git push mirror-dev HEAD:dev --force
