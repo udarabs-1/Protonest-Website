@@ -23,11 +23,19 @@ jobs:
         run: |
           rm -rf .github/workflows
 
-      # Configure Git
-      - name: Configure Git
+      # Configure Git for the main mirror
+      - name: Configure Git (Main)
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "udarabs-1"
           git config user.email "kumarasenau@gmail.com"
+
+      # Configure Git for test and dev mirrors
+      - name: Configure Git (Test & Dev)
+        if: github.ref == 'refs/heads/test' || github.ref == 'refs/heads/dev'
+        run: |
+          git config user.name "protonestsupport"
+          git config user.email "support@protonest.co"
 
       - name: Commit changes if needed
         run: |
