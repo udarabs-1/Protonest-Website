@@ -1,7 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
 import { CONTACT_DETAILS } from "@/lib/contact-details";
 import { FOOTER_SECTIONS, SITE_LINKS, SOCIAL_LINKS } from "@/lib/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import FooterNavLinks from "./footer-nav-links";
 import LazyVideo from "./lazy-video";
 
@@ -16,7 +16,6 @@ const MOBILE_VIDEO_SOURCES = [
 ];
 
 export default function Footer() {
-
   return (
     <>
       <div className="hidden w-full lg:mb-[50px] lg:block lg:px-[60px] xl:mb-[60px] xl:px-[133px] 2xl:mb-[70px] 2xl:px-[180px]">
@@ -32,8 +31,8 @@ export default function Footer() {
 
           <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white z-10" />
 
-          <div className="relative z-20 grid grid-cols-6 content-start gap-x-12 gap-y-6 px-[60px] py-[70px] xl:gap-x-16 xl:px-[80px] xl:py-[80px] 2xl:gap-x-20 2xl:px-[98px] 2xl:py-[90px]">
-            <div className="col-span-4 col-start-3 row-span-5 row-start-1 w-full">
+          <div className="relative z-20 grid grid-cols-12 content-start gap-x-8 gap-y-6 px-[60px] py-[70px] xl:gap-x-10 xl:px-[80px] xl:py-[80px] 2xl:gap-x-12 2xl:px-[98px] 2xl:py-[90px]">
+            <div className="col-span-6 col-start-7 row-span-5 row-start-1 w-full">
               <FooterNavLinks sections={FOOTER_SECTIONS} variant="desktop" />
             </div>
 
@@ -41,7 +40,7 @@ export default function Footer() {
               <Link
                 href={SITE_LINKS.home}
                 aria-label="Protonest home"
-                className="col-span-2 col-start-1 row-start-1 self-start"
+                className="col-span-3 col-start-1 row-start-1 self-start"
               >
                 <Image
                   src="/logo.webp"
@@ -55,29 +54,33 @@ export default function Footer() {
                 />
               </Link>
 
-              {/* <div className="col-span-2 col-start-1 row-start-3 flex min-w-0 flex-col gap-4 font-poppins text-[#6c6c6c]">
+              <div className="col-span-3 col-start-4 row-span-5 row-start-1 flex min-w-0 flex-col gap-4 font-poppins text-[#6c6c6c]">
                 {CONTACT_DETAILS.addresses.map((address) => (
                   <address key={address.id} className="min-w-0 not-italic">
                     <span className="mb-1 block text-sm font-medium text-[#4d4d4d]">
                       {address.label}
                     </span>
                     <span className="block text-sm leading-relaxed">
-                      {address.formatted}
+                      {address.lines.map((line) => (
+                        <span key={line} className="block">
+                          {line}
+                        </span>
+                      ))}
                     </span>
                   </address>
                 ))}
-              </div> */}
+              </div>
 
               <Link
                 href={SITE_LINKS.bookCall}
-                className="col-span-2 col-start-1 row-start-4 flex h-[40px] w-[135px] items-center justify-center self-start rounded-[30px] border border-[#83848b] font-poppins text-sm text-[#83848b] transition-transform hover:scale-105 2xl:h-[44px] 2xl:w-[147px]"
+                className="col-span-3 col-start-1 row-start-4 flex h-[40px] w-[135px] items-center justify-center self-start rounded-[30px] border border-[#83848b] font-poppins text-sm text-[#83848b] transition-transform hover:scale-105 2xl:h-[44px] 2xl:w-[147px]"
               >
                 Book a Call
               </Link>
             </div>
 
             <div className="contents">
-              <div className="col-span-2 col-start-1 row-start-2 flex cursor-pointer items-center space-x-[15px] self-start text-[#4d4d4d] xl:space-x-[18px] 2xl:space-x-[20px]">
+              <div className="col-span-3 col-start-1 row-start-2 flex cursor-pointer items-center space-x-[15px] self-start text-[#4d4d4d] xl:space-x-[18px] 2xl:space-x-[20px]">
                 <Link
                   href={SOCIAL_LINKS.linkedin}
                   target="_blank"
@@ -148,7 +151,7 @@ export default function Footer() {
                 </Link>
               </div>
 
-              <div className="col-span-2 col-start-1 row-start-5 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text font-poppins text-[10px] text-transparent xl:text-[11px] 2xl:text-sm">
+              <div className="col-span-3 col-start-1 row-start-5 bg-gradient-to-r from-[#F51DA5] to-[#5530FA] bg-clip-text font-poppins text-[10px] text-transparent xl:text-[11px] 2xl:text-sm">
                 © 2023–{new Date().getFullYear()} Protonest. All rights
                 reserved.
               </div>
@@ -190,7 +193,11 @@ export default function Footer() {
                   {address.label}
                 </span>
                 <span className="block text-sm leading-relaxed">
-                  {address.formatted}
+                  {address.lines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
                 </span>
               </address>
             ))}

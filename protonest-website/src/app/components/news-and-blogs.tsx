@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import SectionHeader from "./section-header";
 import { useOnScreen } from "./use-on-screen";
 import { ArrowUpRight } from "lucide-react";
@@ -13,13 +13,24 @@ type NewsAndBlogsProps = {
   description?: string | null;
 };
 
-const truncateToSentences = (
-  text: string,
-  sentenceCount: number = 2,
-): string => {
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
-  return sentences.slice(0, sentenceCount).join(" ").trim();
+type Blog = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  cover_image?: string;
+  published_at?: string;
+  created_at: string;
+  updated_at: string;
 };
+
+const getTimestamp = (blog: Blog): number =>
+  new Date(blog.published_at || blog.created_at || blog.updated_at).getTime() ||
+  0;
+
+const stripHtml = (content: string): string =>
+  content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
 const truncateByWords = (
   text: string,
@@ -41,34 +52,47 @@ const NewsAndBlogs = ({
   suffix,
   description = "Updates, insights, and announcements from our work.",
 }: NewsAndBlogsProps) => {
-  const blogs = [
-    {
-      id: 1,
-      title:
-        "Zigbee Communication Reliability Using ESP32-C6 with Inbuilt and External Antennas",
-      image: "/blogs4.avif",
-      description:
-        "The success of Zigbee communications often comes down to the performance of the antenna you use with your ESP32-C6 module. The onboard PCB antenna on the ESP32-C6 module has proven to be decent for low-range applications, but it will begin to degrade significantly in real-world environments. Upgrading to a properly tuned and matched antenna boosts overall Zigbee network reliability.",
-      link: "/blog/zigbee-communication-reliability-using-esp32-c6-with-inbuilt-and-external-antennas",
-    },
-    {
-      id: 2,
-      title: "PCB Component Management System",
-      image: "/blogs5.avif",
-      description:
-        "If you’ve worked on PCB product development, you've probably faced this problem: once PCB counts increase, component tracking stops matching reality. A BOM or spreadsheet may indicate parts are available, but a single missing component can stop the entire build. With each PCB containing hundreds of parts, it becomes hard to track what was used, what's left, and which project or revision consumed which components.",
-      link: "/blog/pcb-component-management-system",
-    },
-    {
-      id: 3,
-      title:
-        "Testing UWB Ranging Reliability: How Antenna Alignment Affects Accuracy",
-      image: "/blogs6.avif",
-      description:
-        "Accurate tracking and positioning in robotics and embedded systems often depend on Ultra-Wideband (UWB) distance measurements. In controlled bench tests using DWM3000 modules, reliable results were obtained when both antennas were aligned in the same direction. However, when the antennas were rotated to different angles, the measured distances consistently decreased, accompanied by weaker signal reception. These findings highlight how antenna orientation can influence short-range UWB performance and provide practical guidance for maintaining measurement accuracy in real-world deployments.",
-      link: "/blog/testing-uwb-ranging-reliability:-how-antenna-alignment-affects-accuracy",
-    },
-  ];
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchLatestBlogs = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true&limit=100`,
+          { signal: controller.signal },
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch blogs");
+        }
+
+        const result = await response.json();
+        const data = Array.isArray(result.data?.blogs)
+          ? result.data.blogs
+          : Array.isArray(result.data)
+            ? result.data
+            : [];
+
+        if (result.status === "success") {
+          setBlogs(
+            [...data]
+              .sort((a: Blog, b: Blog) => getTimestamp(b) - getTimestamp(a))
+              .slice(0, 3),
+          );
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name !== "AbortError") {
+          console.error("Error fetching latest blogs:", error);
+        }
+      }
+    };
+
+    fetchLatestBlogs();
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <div className="mt-15 sm:mt-20 lg:mt-32 xl:mt-40 relative w-full min-h-[500px] sm:min-h-[600px] lg:min-h-[642px] px-4 sm:px-6 lg:px-8">
@@ -115,13 +139,7 @@ const BlogCard = ({
   blog,
   index,
 }: {
-  blog: {
-    id: number;
-    title: string;
-    image: string;
-    description: string;
-    link: string;
-  };
+  blog: Blog;
   index: number;
 }) => {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -132,7 +150,7 @@ const BlogCard = ({
 
   return (
     <Link
-      href={blog.link}
+      href={`/blog/${blog.slug}`}
       className="block h-full w-full max-w-[380px] rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5530FA] focus-visible:ring-offset-4"
     >
       <article
@@ -145,7 +163,7 @@ const BlogCard = ({
       >
         <div className="relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden">
           <Image
-            src={blog.image}
+            src={blog.cover_image || "/logo.webp"}
             alt={`${blog.title} blog post image`}
             fill
             priority={index === 0}
@@ -166,7 +184,7 @@ const BlogCard = ({
 
           {(() => {
             const { truncated, isTruncated } = truncateByWords(
-              blog.description,
+              blog.excerpt || stripHtml(blog.content),
               26,
             );
 

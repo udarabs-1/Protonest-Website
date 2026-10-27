@@ -28,7 +28,7 @@ interface ActivityEntry { action: string; old_value?: string; new_value?: string
 interface EmployeeProfile {
     employee_id: string; job_title: string; department: string;
     employment_type: string; hod_name: string; hod_email: string; join_date: string;
-    work_email?: string; leave_balance: number; status: string;
+    leave_balance: number; status: string;
     probation_end_date?: string; confirmation_status?: string;
     activity_log?: ActivityEntry[];
     user_details?: { first_name: string; last_name: string; email: string; profile_image?: string; };
@@ -115,7 +115,7 @@ export default function HRISProfilePage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {[
                             ['Job Title', profile.job_title],
                             ['Department', profile.department],
@@ -125,11 +125,10 @@ export default function HRISProfilePage() {
                             ['Join Date', fmt(profile.join_date)],
                             ...(profile.probation_end_date ? [['Probation End Date', fmt(profile.probation_end_date)]] : []),
                             ['Confirmation Status', profile.confirmation_status ? profile.confirmation_status.charAt(0).toUpperCase() + profile.confirmation_status.slice(1) : (profile.status === 'active' ? 'Active' : 'Pre-boarding')],
-                            ...(profile.work_email ? [['Work Email', profile.work_email]] : []),
                         ].map(([label, value]) => (
-                            <div key={label} className="bg-gray-50 rounded-xl p-3">
+                            <div key={label} className="min-w-0 bg-gray-50 rounded-xl p-3">
                                 <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">{label}</div>
-                                <div className="text-sm font-medium text-gray-800 break-words">{value}</div>
+                                <div className="wrap-anywhere text-sm font-medium text-gray-800">{value}</div>
                             </div>
                         ))}
                     </div>
