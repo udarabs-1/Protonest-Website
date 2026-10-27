@@ -39,7 +39,7 @@ export default function FooterNavLinks({
     return (
       <nav
         aria-label="Footer navigation"
-        className="grid w-full grid-cols-4 content-start gap-x-8 gap-y-10 font-montserrat xl:gap-x-10 2xl:gap-x-12"
+        className="grid w-full grid-cols-3 content-start gap-x-6 gap-y-10 font-montserrat xl:gap-x-8 2xl:gap-x-10"
       >
         {sections.map((section) => (
           <div key={section.title}>

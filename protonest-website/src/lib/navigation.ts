@@ -149,10 +149,6 @@ const toFooterLink = (link: DropdownItem): FooterLink => ({
 
 export const FOOTER_SECTIONS: readonly FooterSection[] = [
   {
-    title: "Navigate",
-    links: [{ label: "Home", href: SITE_LINKS.home }],
-  },
-  {
     title: "Industries",
     links: DROPDOWN_ITEMS.industries.map(toFooterLink),
   },
