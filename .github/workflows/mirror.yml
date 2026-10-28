@@ -8,11 +8,41 @@ on:
       - test
       - dev
 
+permissions:
+  contents: read
+
 jobs:
   git-mirror:
     runs-on: ubuntu-latest
 
     steps:
+      # Check branch authorization before mirroring
+      - name: Check Branch Access
+        env:
+          ACTOR: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          echo "User: $ACTOR"
+          echo "Branch: $BRANCH"
+
+          case "$BRANCH" in
+            main|test)
+              if [[ "$ACTOR" != "udarabs-1" && "$ACTOR" != "shafeekms10" ]]; then
+                echo "::error::Unauthorized push to $BRANCH by $ACTOR"
+                exit 1
+              fi
+              ;;
+            dev)
+              echo "All collaborators can push to dev"
+              ;;
+            *)
+              echo "::error::Unsupported branch"
+              exit 1
+              ;;
+          esac
+
+          echo "Branch access verified"
+
       - name: Checkout Source Repo
         uses: actions/checkout@v4
         with:
