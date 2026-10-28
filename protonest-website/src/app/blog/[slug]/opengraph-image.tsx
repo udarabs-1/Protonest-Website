@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getCmsBlog } from '@/lib/cms-blogs';
 
 export const runtime = 'nodejs';
 export const alt = 'Blog Post';
@@ -14,14 +15,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
     let blogData = null;
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs/${slug}`, {
-            next: { revalidate: 3600 },
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            blogData = data.data;
-        }
+        blogData = await getCmsBlog(slug, { next: { revalidate: 60 } });
     } catch (error) {
         console.error('Error fetching blog data for OG image:', error);
     }

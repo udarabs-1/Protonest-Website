@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getCmsBlog, getCmsBlogs } from "@/lib/cms-blogs";
 
 
 interface Blog {
@@ -242,57 +243,29 @@ export default function BlogDetailPage() {
                 setLoading(true);
                 setError(null);
 
-                const [blogResult, blogsResult] = await Promise.allSettled([
-                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs/${slug}`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal,
-                    }),
-                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal,
+                const [blogData, allBlogs] = await Promise.all([
+                    getCmsBlog(slug, { signal }),
+                    getCmsBlogs(null, { signal }).catch((err) => {
+                        if ((err as Error)?.name !== 'AbortError') {
+                            console.error('Error fetching suggested blogs:', err);
+                        }
+                        return [];
                     }),
                 ]);
 
-                if (blogResult.status === 'rejected') {
-                    if ((blogResult.reason as Error)?.name === 'AbortError') return;
-                    throw new Error('Failed to fetch blog post');
+                if (!blogData) {
+                    throw new Error('Blog post not found');
                 }
 
-                const blogResponse = blogResult.value;
-                if (!blogResponse.ok) {
-                    throw new Error(blogResponse.status === 404 ? 'Blog post not found' : 'Failed to fetch blog post');
-                }
+                const contentWithIds = addIdsToHeadings(blogData.content);
+                const toc = extractTocItems(blogData.content);
 
-                const result = await blogResponse.json();
+                setBlog({ ...blogData, content: contentWithIds });
+                setTocItems(toc);
 
-                if (result.status === 'success') {
-                    const blogData = result.data;
-                    const contentWithIds = addIdsToHeadings(blogData.content);
-                    const toc = extractTocItems(blogData.content);
-
-                    setBlog({ ...blogData, content: contentWithIds });
-                    setTocItems(toc);
-
-                    if (blogsResult.status === 'fulfilled' && blogsResult.value.ok) {
-                        try {
-                            const blogsJson = await blogsResult.value.json();
-                            if (blogsJson.status === 'success') {
-                                const allBlogs = Array.isArray(blogsJson.data?.blogs)
-                                    ? blogsJson.data.blogs
-                                    : (Array.isArray(blogsJson.data) ? blogsJson.data : []);
-                                const otherBlogs = allBlogs.filter((b: Blog) => b.id !== blogData.id);
-                                const shuffled = otherBlogs.sort(() => Math.random() - 0.5);
-                                setSuggestedBlogs(shuffled.slice(0, 2));
-                            }
-                        } catch (err) {
-                            console.error('Error parsing suggested blogs:', err);
-                        }
-                    }
-                } else {
-                    throw new Error(result.message || 'Failed to fetch blog post');
-                }
+                const otherBlogs = allBlogs.filter((b: Blog) => b.id !== blogData.id);
+                const shuffled = otherBlogs.sort(() => Math.random() - 0.5);
+                setSuggestedBlogs(shuffled.slice(0, 2));
             } catch (err) {
                 if ((err as Error)?.name === 'AbortError') return;
                 console.error('Error fetching blog:', err);

@@ -13,6 +13,8 @@ const noindexPaths = [
   '/careers/opengraph-image.jpg',
 ];
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   async headers() {
     return noindexPaths.map((source) => ({
@@ -51,6 +53,8 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Lets next/image load media from a CMS running on localhost during development
+    dangerouslyAllowLocalIP: isDev,
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -63,6 +67,15 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cms.protonest.co',
+        port: '',
+        pathname: '/api/media/**',
+      },
+      ...(isDev
+        ? [{ protocol: 'http' as const, hostname: 'localhost', port: '3001', pathname: '/api/media/**' }]
+        : []),
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',

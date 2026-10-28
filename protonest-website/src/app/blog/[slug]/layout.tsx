@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { getCmsBlog } from '@/lib/cms-blogs';
 
 type Props = {
     params: Promise<{ slug: string }>;
@@ -16,14 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
 
     try {
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs/${slug}`,
-            { next: { revalidate: 3600 } }
-        );
+        const blog = await getCmsBlog(slug, { next: { revalidate: 60 } });
 
-        if (response.ok) {
-            const data = await response.json();
-            const blog = data.data;
+        if (blog) {
 
             const title = `${blog.title} | Protonest Blog`;
             const description = extractExcerpt(blog.content);

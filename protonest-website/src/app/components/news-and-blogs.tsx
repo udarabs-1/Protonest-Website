@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import SectionHeader from "./section-header";
 import { useOnScreen } from "./use-on-screen";
 import { ArrowUpRight } from "lucide-react";
+import { getCmsBlogs } from "@/lib/cms-blogs";
 
 type NewsAndBlogsProps = {
   prefix?: string;
@@ -59,29 +60,12 @@ const NewsAndBlogs = ({
 
     const fetchLatestBlogs = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true&limit=100`,
-          { signal: controller.signal },
+        const data = await getCmsBlogs(null, { signal: controller.signal });
+        setBlogs(
+          [...data]
+            .sort((a: Blog, b: Blog) => getTimestamp(b) - getTimestamp(a))
+            .slice(0, 3),
         );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch blogs");
-        }
-
-        const result = await response.json();
-        const data = Array.isArray(result.data?.blogs)
-          ? result.data.blogs
-          : Array.isArray(result.data)
-            ? result.data
-            : [];
-
-        if (result.status === "success") {
-          setBlogs(
-            [...data]
-              .sort((a: Blog, b: Blog) => getTimestamp(b) - getTimestamp(a))
-              .slice(0, 3),
-          );
-        }
       } catch (error) {
         if (error instanceof Error && error.name !== "AbortError") {
           console.error("Error fetching latest blogs:", error);

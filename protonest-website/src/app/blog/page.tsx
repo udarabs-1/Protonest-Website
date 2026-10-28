@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
+import { getCmsBlogCategories, getCmsBlogs } from "@/lib/cms-blogs";
 
 interface Blog {
   id: string;
@@ -252,19 +253,7 @@ export default function BlogSection() {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blog-categories`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.status === 'success' && Array.isArray(result.data)) {
-          setCategories(result.data.map((cat: { name: string }) => cat.name));
-        }
-      }
+      setCategories(await getCmsBlogCategories());
     } catch (err) {
       console.error('Error fetching categories:', err);
     }
@@ -275,32 +264,7 @@ export default function BlogSection() {
       setLoading(true);
       setError(null);
 
-      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true&limit=100`;
-      if (category) {
-        url += `&category=${encodeURIComponent(category)}`;
-      }
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch blogs');
-      }
-
-      const result = await response.json();
-
-      if (result.status === 'success') {
-        const blogsList = Array.isArray(result.data?.blogs)
-          ? result.data.blogs
-          : (Array.isArray(result.data) ? result.data : []);
-        setBlogs(blogsList);
-      } else {
-        throw new Error(result.message || 'Failed to fetch blogs');
-      }
+      setBlogs(await getCmsBlogs(category));
     } catch (err) {
       console.error('Error fetching blogs:', err);
       setError(err instanceof Error ? err.message : 'Failed to load blogs');
