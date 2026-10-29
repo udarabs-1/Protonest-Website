@@ -130,11 +130,12 @@ const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobi
     if (items.length === 0) return null;
 
     const tocContent = (
-        <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-[#d5d5d5] backdrop-blur-[20px] p-6 w-full">
+        <div className={`bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-[#d5d5d5] backdrop-blur-[20px] p-6 w-full ${isMobile ? '' : 'flex flex-col max-h-[calc(100vh-8rem)]'}`}>
             <h2 className="text-sm font-semibold text-[#6c6c6c] uppercase mb-4 font-montserrat tracking-wide">
                 Table of Contents
             </h2>
-            <nav>
+            {/* On desktop the list scrolls inside the card so the sticky TOC always fits on screen */}
+            <nav className={isMobile ? '' : 'min-h-0 overflow-y-auto pr-2'}>
                 <ul className="space-y-2">
                     {items.map((item) => (
                         <li
@@ -416,7 +417,7 @@ export default function BlogDetailPage() {
                 {blog.cover_image && (
                     <div className="mb-8 flex justify-center lg:hidden">
                         <div className="w-full max-w-2xl">
-                            <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                            <div className="relative w-full aspect-video max-h-[50vh] rounded-[11px] overflow-hidden">
                                 <Image
                                     src={blog.cover_image}
                                     alt={blog.title}
@@ -441,7 +442,7 @@ export default function BlogDetailPage() {
                     <div className="min-w-0">
                         {blog.cover_image && (
                             <div className="hidden lg:block w-full mb-6">
-                                <div className="relative w-full aspect-video rounded-[11px] overflow-hidden">
+                                <div className="relative w-full aspect-video max-h-[55vh] rounded-[11px] overflow-hidden">
                                     <Image
                                         src={blog.cover_image}
                                         alt={blog.title}
