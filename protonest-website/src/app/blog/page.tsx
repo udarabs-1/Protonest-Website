@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
-import { getCmsBlogCategories, getCmsBlogs } from "@/lib/cms-blogs";
+import { getCmsBlogCategories, getCmsBlogs, isCmsImage } from "@/lib/cms-blogs";
 
 interface Blog {
   id: string;
@@ -198,6 +198,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
         <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
           <Image
             src={blog.cover_image || '/default-blog-image.jpg'}
+            unoptimized={isCmsImage(blog.cover_image)}
             alt={blog.title}
             width={472}
             height={164}

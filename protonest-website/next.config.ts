@@ -73,6 +73,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/api/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cms.dev.protonest.co',
+        port: '',
+        pathname: '/api/media/**',
+      },
       ...(isDev
         ? [{ protocol: 'http' as const, hostname: 'localhost', port: '3001', pathname: '/api/media/**' }]
         : []),

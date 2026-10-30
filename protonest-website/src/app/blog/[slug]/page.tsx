@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { getCmsBlog, getCmsBlogs } from "@/lib/cms-blogs";
+import { getCmsBlog, getCmsBlogs, isCmsImage } from "@/lib/cms-blogs";
 
 
 interface Blog {
@@ -180,6 +180,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
                 <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
                     <Image
                         src={blog.cover_image || '/default-blog-image.jpg'}
+                        unoptimized={isCmsImage(blog.cover_image)}
                         alt={blog.title}
                         width={472}
                         height={164}
@@ -420,6 +421,7 @@ export default function BlogDetailPage() {
                             <div className="relative w-full aspect-video max-h-[50vh] rounded-[11px] overflow-hidden">
                                 <Image
                                     src={blog.cover_image}
+                                    unoptimized={isCmsImage(blog.cover_image)}
                                     alt={blog.title}
                                     fill
                                     className="object-cover"
@@ -445,6 +447,7 @@ export default function BlogDetailPage() {
                                 <div className="relative w-full aspect-video max-h-[55vh] rounded-[11px] overflow-hidden">
                                     <Image
                                         src={blog.cover_image}
+                                        unoptimized={isCmsImage(blog.cover_image)}
                                         alt={blog.title}
                                         fill
                                         className="object-cover"

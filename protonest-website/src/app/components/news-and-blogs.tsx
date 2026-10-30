@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import SectionHeader from "./section-header";
 import { useOnScreen } from "./use-on-screen";
 import { ArrowUpRight } from "lucide-react";
-import { getCmsBlogs } from "@/lib/cms-blogs";
+import { getCmsBlogs, isCmsImage } from "@/lib/cms-blogs";
 
 type NewsAndBlogsProps = {
   prefix?: string;
@@ -148,6 +148,7 @@ const BlogCard = ({
         <div className="relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden">
           <Image
             src={blog.cover_image || "/logo.webp"}
+            unoptimized={isCmsImage(blog.cover_image)}
             alt={`${blog.title} blog post image`}
             fill
             priority={index === 0}

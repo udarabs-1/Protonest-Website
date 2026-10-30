@@ -44,6 +44,12 @@ const mediaUrl = (media: Media): string | undefined => {
   return media.url.startsWith('http') ? media.url : `${CMS_URL}${media.url}`;
 };
 
+/**
+ * CMS media is already resized by the CMS (400/768/1026 px), so it's loaded directly
+ * instead of through Next.js image optimisation.
+ */
+export const isCmsImage = (src?: string | null): boolean => Boolean(src?.includes('/api/media/file/'));
+
 const names = (items?: Named[] | null): string[] =>
   (items ?? []).flatMap((item) => (item && typeof item === 'object' && item.name ? [item.name] : []));
 
