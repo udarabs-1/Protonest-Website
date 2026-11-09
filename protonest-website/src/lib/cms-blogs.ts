@@ -13,6 +13,8 @@ export interface CmsBlog {
   categories: string[];
   keywords: string[];
   author: string;
+  author_role?: string;
+  author_photo?: string;
   published: boolean;
   published_at?: string;
   created_at: string;
@@ -21,6 +23,7 @@ export interface CmsBlog {
 
 type Named = { name?: string } | string | null | undefined;
 type Media = { url?: string | null } | string | null | undefined;
+type Author = { name?: string; role?: string | null; photo?: Media } | string | null | undefined;
 
 type PayloadPost = {
   id: string;
@@ -28,7 +31,7 @@ type PayloadPost = {
   slug: string;
   content_html?: string | null;
   featuredImage?: Media;
-  author?: Named;
+  author?: Author;
   categories?: Named[] | null;
   tags?: Named[] | null;
   publishedAt?: string | null;
@@ -62,7 +65,10 @@ const toBlog = (post: PayloadPost): CmsBlog => ({
   cover_image: mediaUrl(post.featuredImage) ?? mediaUrl(post.seo?.image),
   categories: names(post.categories),
   keywords: names(post.tags),
-  author: post.author && typeof post.author === 'object' && post.author.name ? post.author.name : 'Protonest',
+  // Articles without an author are credited to the company
+  author: post.author && typeof post.author === 'object' && post.author.name ? post.author.name : 'Protonest IoT',
+  author_role: post.author && typeof post.author === 'object' ? post.author.role || undefined : undefined,
+  author_photo: post.author && typeof post.author === 'object' ? mediaUrl(post.author.photo) : undefined,
   published: post._status !== 'draft',
   published_at: post.publishedAt ?? undefined,
   created_at: post.publishedAt ?? post.createdAt,
@@ -119,7 +125,7 @@ export const getCmsBlog = async (slug: string, init?: RequestInit): Promise<CmsB
   const tenant = await tenantQuery(init);
   if (!tenant) return null;
   const { docs } = await cmsFetch<{ docs: PayloadPost[] }>(
-    `blog-posts?${tenant}&where[slug][equals]=${encodeURIComponent(slug)}&depth=1&limit=1`,
+    `blog-posts?${tenant}&where[slug][equals]=${encodeURIComponent(slug)}&depth=2&limit=1`,
     init,
   );
   return docs[0] ? toBlog(docs[0]) : null;

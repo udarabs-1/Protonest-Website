@@ -8,6 +8,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CMS_URL, getCmsBlog, getCmsBlogs, isCmsImage } from "@/lib/cms-blogs";
 import { articleFont } from "./fonts";
+import SocialIcon, { type SocialIconName } from "@/app/components/social-icon";
+import { SOCIAL_LINKS } from "@/lib/navigation";
+import { CONTACT_DETAILS } from "@/lib/contact-details";
 
 
 interface Blog {
@@ -19,6 +22,8 @@ interface Blog {
     categories: string[];
     keywords?: string[];
     author: string;
+    author_role?: string;
+    author_photo?: string;
     published: boolean;
     published_at?: string;
     created_at: string;
@@ -72,10 +77,9 @@ const extractTocItems = (htmlContent: string): TocItem[] => {
         const text = heading.textContent?.trim() || '';
         if (!text) return;
 
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const level = parseInt(heading.tagName.substring(1));
 
-        items.push({ id, text, level });
+        items.push({ id: heading.id, text, level });
     });
 
     return items;
@@ -85,10 +89,16 @@ const addIdsToHeadings = (htmlContent: string): string => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
     const headings = doc.querySelectorAll('h1, h2, h3');
+    const used = new Set<string>();
 
     headings.forEach((heading) => {
         const text = heading.textContent || '';
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const base = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        // Articles can repeat a heading, so later copies get -2, -3, ... to keep IDs unique
+        // (checked against every ID so far, in case a heading is literally named "x 2")
+        let id = base;
+        for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
+        used.add(id);
         heading.id = id;
     });
 
@@ -164,6 +174,24 @@ const enhanceArticleHtml = (htmlContent: string): string => {
 
 const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobile?: boolean }) => {
     const [activeId, setActiveId] = useState<string>('');
+    // The box follows the reader only when the whole list fits on screen; a long list
+    // scrolls with the page instead, so no item is ever hidden or needs an inner scrollbar
+    const asideRef = useRef<HTMLElement>(null);
+    const [fitsOnScreen, setFitsOnScreen] = useState(true);
+
+    useEffect(() => {
+        const aside = asideRef.current;
+        if (!aside) return;
+        const check = () => setFitsOnScreen(aside.offsetHeight <= window.innerHeight - 120);
+        check();
+        const observer = new ResizeObserver(check);
+        observer.observe(aside);
+        window.addEventListener('resize', check);
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', check);
+        };
+    }, [items]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -198,13 +226,13 @@ const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobi
     if (items.length === 0) return null;
 
     const tocContent = (
-        <div className={`rounded-lg border border-[#e5e5e5] bg-white p-8 w-full ${isMobile ? '' : 'flex flex-col max-h-[calc(100vh-8rem)]'}`}>
+        <div className="article-toc rounded-lg border border-[#e5e5e5] bg-white p-6 w-full">
             <h2 className="text-lg font-semibold tracking-tight text-[#0a0a0a]">
                 In this article
             </h2>
-            {/* On desktop the list scrolls inside the card so the sticky TOC always fits on screen */}
-            <nav className={`mt-6 ${isMobile ? '' : 'min-h-0 overflow-y-auto pr-2'}`}>
-                <ul className="space-y-3">
+            {/* The full list is shown, with no inner scrollbar, like the Protonest Master blog */}
+            <nav className="mt-5">
+                <ul className="space-y-4">
                     {items.map((item) => (
                         <li
                             key={item.id}
@@ -213,9 +241,9 @@ const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobi
                             <a
                                 href={`#${item.id}`}
                                 onClick={(e) => handleClick(e, item.id)}
-                                className={`block text-sm leading-6 transition-colors ${activeId === item.id
-                                    ? 'text-[#5530fa] font-semibold'
-                                    : 'text-[#525252] hover:text-[#0a0a0a]'
+                                className={`block text-[0.9375rem] leading-6 transition-colors ${activeId === item.id
+                                    ? 'text-[#0a0a0a] font-semibold'
+                                    : 'text-[#3f3f46] hover:text-[#5530fa]'
                                     }`}
                             >
                                 {item.text}
@@ -232,7 +260,7 @@ const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobi
     }
 
     return (
-        <aside className="hidden lg:block sticky top-24 h-fit self-start">
+        <aside ref={asideRef} className={`hidden lg:block h-fit self-start ${fitsOnScreen ? 'sticky top-24' : ''}`}>
             {tocContent}
         </aside>
     );
@@ -329,7 +357,7 @@ export default function BlogDetailPage() {
 
                 const articleHtml = enhanceArticleHtml(removeTitleHeading(blogData.content, blogData.title));
                 const contentWithIds = addIdsToHeadings(articleHtml);
-                const toc = extractTocItems(articleHtml);
+                const toc = extractTocItems(contentWithIds);
 
                 setBlog({ ...blogData, content: contentWithIds });
                 setTocItems(toc);
@@ -443,68 +471,159 @@ export default function BlogDetailPage() {
     const readTime = calculateReadTime(blog.content);
     const publishDate = blog.published_at || blog.created_at;
 
+    const shareUrl = encodeURIComponent(`https://protonest.co/blog/${blog.slug}`);
+    const shareTitle = encodeURIComponent(blog.title);
+    const shareLinks: { name: SocialIconName; label: string; href: string }[] = [
+        { name: 'x', label: 'Share on X', href: `https://x.com/intent/post?url=${shareUrl}&text=${shareTitle}` },
+        { name: 'linkedin', label: 'Share on LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` },
+        { name: 'facebook', label: 'Share on Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}` },
+        { name: 'email', label: 'Share by email', href: `mailto:?subject=${shareTitle}&body=${shareUrl}` },
+    ];
+    const followLinks: { name: SocialIconName; label: string; href: string }[] = [
+        { name: 'x', label: 'Protonest IoT on X', href: SOCIAL_LINKS.x },
+        { name: 'linkedin', label: 'Protonest IoT on LinkedIn', href: SOCIAL_LINKS.linkedin },
+        { name: 'facebook', label: 'Protonest IoT on Facebook', href: SOCIAL_LINKS.facebook },
+        { name: 'youtube', label: 'Protonest IoT on YouTube', href: SOCIAL_LINKS.youtube },
+        { name: 'instagram', label: 'Protonest IoT on Instagram', href: SOCIAL_LINKS.instagram },
+        { name: 'email', label: `Email ${CONTACT_DETAILS.email}`, href: `mailto:${CONTACT_DETAILS.email}` },
+    ];
+
     return (
         <div className="overflow-x-hidden" id="article-top">
             <Navbar />
 
-            <div className={`${articleFont.variable} mx-auto w-full max-w-[1360px] px-4 sm:px-6 py-12 lg:py-16`}>
-                <button
-                    onClick={() => router.back()}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[#5530fa] bg-white px-3 py-2 text-sm font-medium uppercase tracking-wider text-[#5530fa] transition-colors hover:bg-[#5530fa] hover:text-white cursor-pointer"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
-                    Back
-                </button>
-
-                <h1 className="article-title mt-10 max-w-4xl text-4xl sm:text-5xl lg:text-[3.5rem] font-semibold leading-tight lg:leading-[1.08] tracking-tight text-[#0a0a0a] text-balance">
-                    {blog.title}
-                </h1>
-
-                <div className="mt-8 flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wider">
-                    {blog.categories?.[0] && (
-                        <span className="rounded-sm border border-[#d9ccff] bg-[#f1ecff] px-3 py-1 text-[#5530fa]">
-                            {blog.categories[0]}
-                        </span>
-                    )}
-                    <span className="rounded-sm border border-[#e5e5e5] bg-[#f7f7f8] px-3 py-1 text-[#404040]">
-                        {formatDate(publishDate)}
-                    </span>
-                    <span className="rounded-sm border border-[#e5e5e5] bg-[#f7f7f8] px-3 py-1 text-[#404040]">
-                        {readTime}
-                    </span>
-                </div>
-
-                {blog.cover_image && (
-                    <div className="relative mt-12 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5]">
-                        <Image
-                            src={blog.cover_image}
-                            unoptimized={isCmsImage(blog.cover_image)}
-                            alt={blog.title}
-                            fill
-                            sizes="(max-width: 1360px) 100vw, 1360px"
-                            className="object-cover"
-                            priority={true}
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                            }}
-                        />
+            <div className={`${articleFont.variable} article-page mx-auto w-full max-w-[1360px] px-4 sm:px-6 py-12 lg:py-16`}>
+                {/* The article sits in a centred column; the back link and table of contents use the left margin */}
+                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,780px)_minmax(0,1fr)] lg:gap-x-12">
+                    <div className="lg:col-start-1 lg:pt-1">
+                        <Link
+                            href="/blog"
+                            className="inline-flex items-center gap-2 text-base text-[#52525b] transition-colors hover:text-[#0a0a0a]"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M19 12H5M12 19l-7-7 7-7" />
+                            </svg>
+                            All posts
+                        </Link>
                     </div>
-                )}
 
-                <div className="mt-12 lg:hidden">
-                    <TableOfContents items={tocItems} isMobile={true} />
-                </div>
+                    <header className="mt-8 min-w-0 lg:col-start-2 lg:mt-0">
+                        <p className="text-base text-[#52525b]">
+                            Published {formatDate(publishDate)} by{' '}
+                            <span className="font-medium text-[#0a0a0a]">Protonest IoT</span>
+                            {blog.categories?.[0] && (
+                                <>
+                                    {' '}in{' '}
+                                    <Link href="/blog" className="text-[#0a0a0a] underline underline-offset-4 hover:text-[#5530fa]">
+                                        {blog.categories[0]}
+                                    </Link>
+                                </>
+                            )}
+                            <span className="mx-2 text-[#a1a1aa]">·</span>
+                            {readTime}
+                        </p>
 
-                <div className="mt-4 lg:mt-16 lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-14">
-                    <TableOfContents items={tocItems} isMobile={false} />
+                        <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.05] tracking-[-0.03em] text-[#0a0a0a] text-balance">
+                            {blog.title}
+                        </h1>
 
-                    <article
-                        className="blog-article min-w-0"
-                        dangerouslySetInnerHTML={{ __html: blog.content }}
-                    />
+                        <div className="mt-8 flex items-center gap-4">
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
+                                {blog.author_photo ? (
+                                    <Image
+                                        src={blog.author_photo}
+                                        unoptimized={isCmsImage(blog.author_photo)}
+                                        alt={blog.author}
+                                        fill
+                                        sizes="56px"
+                                        className="object-cover"
+                                    />
+                                ) : (
+                                    <Image src="/logo.webp" alt="Protonest IoT" fill sizes="56px" className="object-contain p-2" />
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-lg text-[#0a0a0a]">By {blog.author}</p>
+                                {blog.author_role && <p className="text-sm text-[#71717a]">{blog.author_role}</p>}
+                            </div>
+                        </div>
+
+                        <div className="mt-10">
+                            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#52525b]">Share this post</p>
+                            <div className="mt-4 flex items-center gap-6 text-[#27272a]">
+                                {shareLinks.map(({ name, label, href }) => (
+                                    <a
+                                        key={name}
+                                        href={href}
+                                        target={name === 'email' ? undefined : '_blank'}
+                                        rel="noopener noreferrer"
+                                        aria-label={label}
+                                        className="transition-colors hover:text-[#5530fa]"
+                                    >
+                                        <SocialIcon name={name} size={26} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+
+                        <hr className="mt-10 w-24 border-0 border-t-2 border-[#e4e4e7]" />
+                    </header>
+
+                    {blog.cover_image && (
+                        <>
+                            <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-2">
+                                <Image
+                                    src={blog.cover_image}
+                                    unoptimized={isCmsImage(blog.cover_image)}
+                                    alt={blog.title}
+                                    fill
+                                    sizes="(max-width: 780px) 100vw, 780px"
+                                    className="object-cover"
+                                    priority={true}
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div className="hidden lg:block lg:col-start-1 lg:mt-14">
+                        <TableOfContents items={tocItems} isMobile={false} />
+                    </div>
+
+                    <div className="min-w-0 mt-10 lg:col-start-2 lg:mt-14">
+                        <div className="lg:hidden">
+                            <TableOfContents items={tocItems} isMobile={true} />
+                        </div>
+
+                        <article
+                            className="blog-article"
+                            dangerouslySetInnerHTML={{ __html: blog.content }}
+                        />
+
+                        <section className="mt-16 flex flex-col gap-6 rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+                            <div>
+                                <p className="text-lg font-semibold text-[#0a0a0a]">Follow Protonest IoT</p>
+                                <p className="mt-1 text-sm text-[#52525b]">IoT product development insights, project updates and new articles.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                {followLinks.map(({ name, label, href }) => (
+                                    <a
+                                        key={name}
+                                        href={href}
+                                        target={name === 'email' ? undefined : '_blank'}
+                                        rel="noopener noreferrer"
+                                        aria-label={label}
+                                        className="flex h-11 w-11 items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[#27272a] transition-colors hover:border-[#5530fa] hover:text-[#5530fa]"
+                                    >
+                                        <SocialIcon name={name} size={20} />
+                                    </a>
+                                ))}
+                            </div>
+                        </section>
+                    </div>
                 </div>
                 {suggestedBlogs.length > 0 && (
                     <section className="mt-24 border-t border-[#e5e5e5] pt-12">
@@ -531,8 +650,7 @@ export default function BlogDetailPage() {
             <Footer />
 
             <style jsx global>{`
-        .article-title,
-        .blog-article {
+        .article-page {
           font-family: var(--font-article), 'Inter', sans-serif;
         }
 
@@ -629,9 +747,11 @@ export default function BlogDetailPage() {
 
         .blog-article img {
           display: block;
-          width: 100%;
+          /* Large images fill the column; small ones keep their real size so they stay sharp */
+          width: auto;
+          max-width: 100%;
           height: auto;
-          margin: 2rem 0;
+          margin: 2rem auto;
           border: 1px solid #e5e5e5;
           border-radius: 0.75rem;
         }

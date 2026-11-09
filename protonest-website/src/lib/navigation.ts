@@ -46,7 +46,8 @@ export const SOCIAL_LINKS = {
   youtube:
     "https://www.youtube.com/channel/UCe-RO03jOqiEAClVACUno2A/about",
   x: "https://x.com/ProtonestIoT",
-  facebook: "https://www.facebook.com/profile.php?id=61562590660146",
+  facebook: "https://www.facebook.com/protonestiot/",
+  instagram: "https://www.instagram.com/protonestiot/",
 } as const;
 
 export const DROPDOWN_ITEMS: Record<DropdownKey, readonly DropdownItem[]> = {
