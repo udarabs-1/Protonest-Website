@@ -1,15 +1,16 @@
 "use client";
 
 import DashboardLayout from '@/app/components/dashboard-layout';
+import ProfileImageCropper, { profileImageFileError } from '@/app/components/profile-image-cropper';
+import ProfilePhotoActions from '@/app/components/profile-photo-actions';
 import { Icon } from '@iconify/react';
 import {
-    Camera,
     Edit,
     Save,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface CVData {
     id?: string;
@@ -64,6 +65,8 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [removingImage, setRemovingImage] = useState(false);
+    const [cropFile, setCropFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -88,8 +91,6 @@ const ProfilePage = () => {
         cvData: undefined
     });
     const [editedData, setEditedData] = useState<ProfileData>({ ...profileData });
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const breadcrumbItems = [
         { label: 'User Dashboard', href: '/dashboard' },
@@ -266,21 +267,21 @@ const ProfilePage = () => {
         setError(null);
     };
 
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
+        event.target.value = '';
         if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be less than 5MB');
+        const fileError = profileImageFileError(file);
+        if (fileError) {
+            setError(fileError);
             return;
         }
+        setError(null);
+        setSuccess(null);
+        setCropFile(file);
+    };
 
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-            setError('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
-            return;
-        }
-
+    const uploadCroppedImage = async (file: File) => {
         try {
             setUploadingImage(true);
             setError(null);
@@ -298,15 +299,28 @@ const ProfilePage = () => {
                 setProfileData(prev => ({ ...prev, profileImage: newImageUrl }));
                 setEditedData(prev => ({ ...prev, profileImage: newImageUrl }));
                 setSuccess('Profile image updated successfully!');
+            } else {
+                throw new Error('Failed to upload image. Try again.');
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to upload image');
-            console.error('Error uploading image');
         } finally {
             setUploadingImage(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+        }
+    };
+
+    const handleRemoveImage = async () => {
+        setRemovingImage(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const response = await apiCall('/auth/user/profile/image', { method: 'DELETE' });
+            if (!response?.success) throw new Error('Failed to remove profile photo. Try again.');
+            setProfileData(previous => ({ ...previous, profileImage: '/profile-1.svg' }));
+            setEditedData(previous => ({ ...previous, profileImage: '/profile-1.svg' }));
+            setSuccess('Profile photo removed successfully.');
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Failed to remove profile photo.');
+        } finally {
+            setRemovingImage(false);
         }
     };
 
@@ -370,6 +384,7 @@ const ProfilePage = () => {
 
     return (
         <DashboardLayout breadcrumbItems={breadcrumbItems} profileImage={profileData.profileImage}>
+            {cropFile && <ProfileImageCropper file={cropFile} onClose={() => setCropFile(null)} onConfirm={uploadCroppedImage} />}
 
             {showPasswordSuccess && (
                 <div
@@ -477,7 +492,7 @@ const ProfilePage = () => {
                                 <>
                                     <button
                                         onClick={handleSaveProfile}
-                                        disabled={saving}
+                                        disabled={saving || uploadingImage || removingImage}
                                         className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-gradient-to-l from-[#5530fa] to-[#f51da5] text-white rounded-full font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 text-sm whitespace-nowrap"
                                     >
                                         <Save className="w-4 h-4" />
@@ -485,7 +500,7 @@ const ProfilePage = () => {
                                     </button>
                                     <button
                                         onClick={handleCancelEdit}
-                                        disabled={saving}
+                                        disabled={saving || uploadingImage || removingImage}
                                         className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-gray-200 text-gray-700 rounded-full font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 text-sm"
                                     >
                                         Cancel
@@ -507,7 +522,7 @@ const ProfilePage = () => {
                 <div className="bg-white/80 rounded-[25px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] backdrop-blur-[20px] p-4 sm:p-6 lg:p-8 mb-8">
                     <div className="flex flex-col sm:flex-row gap-6 mb-8 pb-8 border-b border-gray-100">
                         <div className="flex flex-col items-center sm:items-start">
-                            <div className="relative">
+                            <div>
                                 <div className="w-[92px] h-[88px] p-0.5 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full inline-flex justify-center items-center">
                                     <div className="w-[88px] h-[84px] p-px bg-white rounded-full flex justify-center items-center">
                                         <Image
@@ -519,27 +534,18 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                 </div>
-                                {isEditing && (
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={uploadingImage}
-                                        className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[#f51da5] to-[#5530fa] rounded-full p-2 text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-                                    >
-                                        {uploadingImage ? (
-                                            <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                        ) : (
-                                            <Camera className="w-4 h-4" />
-                                        )}
-                                    </button>
-                                )}
                             </div>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleImageUpload}
-                                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                                className="hidden"
-                            />
+                            {(isEditing || profileData.profileImage === '/profile-1.svg') && (
+                                <div className="mt-3">
+                                    <ProfilePhotoActions
+                                        hasPhoto={editedData.profileImage !== '/profile-1.svg'}
+                                        busy={uploadingImage || removingImage}
+                                        onSelect={handleImageSelect}
+                                        onRemove={handleRemoveImage}
+                                        status={uploadingImage ? 'Uploading photo...' : removingImage ? 'Removing photo...' : undefined}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex-1 min-w-0">
