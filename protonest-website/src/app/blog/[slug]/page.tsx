@@ -44,14 +44,9 @@ const calculateReadTime = (content: string): string => {
     return `${minutes} min read`;
 };
 
-const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-};
+// "October 20, 2026" for the article header
+const formatDate = (dateString: string): string =>
+    new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
 const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
     const textContent = htmlContent.replace(/<[^>]*>/g, '');
@@ -82,7 +77,9 @@ const extractTocItems = (htmlContent: string): TocItem[] => {
         items.push({ id: heading.id, text, level });
     });
 
-    return items;
+    // Only list the main sections (the highest heading level used), not their sub-headings
+    const topLevel = Math.min(...items.map((item) => item.level));
+    return items.filter((item) => item.level === topLevel);
 };
 
 const addIdsToHeadings = (htmlContent: string): string => {
@@ -170,6 +167,75 @@ const enhanceArticleHtml = (htmlContent: string): string => {
     });
 
     return doc.body.innerHTML;
+};
+
+// Row of share icons: Facebook, LinkedIn, WhatsApp, and "Other" for the device's own share sheet
+const ShareButtons = ({ url, title }: { url: string; title: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    const u = encodeURIComponent(url);
+    const links: { name: SocialIconName; label: string; href: string }[] = [
+        { name: 'facebook', label: 'Share on Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+        { name: 'linkedin', label: 'Share on LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
+        { name: 'whatsapp', label: 'Share on WhatsApp', href: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}` },
+    ];
+
+    // Opens the system share sheet where supported (phones, Safari, Chrome on Windows);
+    // otherwise copies the link so it can be pasted anywhere
+    const shareOther = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({ title, url });
+            } catch {
+                // Closing the share sheet rejects; nothing to do
+            }
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            window.prompt('Copy this link:', url);
+        }
+    };
+
+    return (
+        <div className="mt-4 flex items-center gap-6 text-[#27272a]">
+            {links.map(({ name, label, href }) => (
+                <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="transition-colors hover:text-[#5530fa]"
+                >
+                    <SocialIcon name={name} size={26} />
+                </a>
+            ))}
+            <button
+                type="button"
+                onClick={shareOther}
+                aria-label="Share another way"
+                title="Other"
+                className="relative transition-colors hover:text-[#5530fa]"
+            >
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+                </svg>
+                {copied && (
+                    <span role="status" className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-[#0a0a0a] px-2 py-1 text-xs text-white">
+                        Link copied
+                    </span>
+                )}
+            </button>
+        </div>
+    );
 };
 
 const TableOfContents = ({ items, isMobile = false }: { items: TocItem[], isMobile?: boolean }) => {
@@ -468,17 +534,9 @@ export default function BlogDetailPage() {
         );
     }
 
-    const readTime = calculateReadTime(blog.content);
     const publishDate = blog.published_at || blog.created_at;
 
-    const shareUrl = encodeURIComponent(`https://protonest.co/blog/${blog.slug}`);
-    const shareTitle = encodeURIComponent(blog.title);
-    const shareLinks: { name: SocialIconName; label: string; href: string }[] = [
-        { name: 'x', label: 'Share on X', href: `https://x.com/intent/post?url=${shareUrl}&text=${shareTitle}` },
-        { name: 'linkedin', label: 'Share on LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` },
-        { name: 'facebook', label: 'Share on Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}` },
-        { name: 'email', label: 'Share by email', href: `mailto:?subject=${shareTitle}&body=${shareUrl}` },
-    ];
+    const shareUrl = `https://protonest.co/blog/${blog.slug}`;
     const followLinks: { name: SocialIconName; label: string; href: string }[] = [
         { name: 'x', label: 'Protonest IoT on X', href: SOCIAL_LINKS.x },
         { name: 'linkedin', label: 'Protonest IoT on LinkedIn', href: SOCIAL_LINKS.linkedin },
@@ -493,7 +551,7 @@ export default function BlogDetailPage() {
             <Navbar />
 
             <div className={`${articleFont.variable} article-page mx-auto w-full max-w-[1360px] px-4 sm:px-6 py-12 lg:py-16`}>
-                {/* The article sits in a centred column; the back link and table of contents use the left margin */}
+                {/* The article sits in a centred column; the back link uses the left margin and the table of contents the right */}
                 <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,780px)_minmax(0,1fr)] lg:gap-x-12">
                     <div className="lg:col-start-1 lg:pt-1">
                         <Link
@@ -508,65 +566,49 @@ export default function BlogDetailPage() {
                     </div>
 
                     <header className="mt-8 min-w-0 lg:col-start-2 lg:mt-0">
-                        <p className="text-base text-[#52525b]">
-                            Published {formatDate(publishDate)} by{' '}
-                            <span className="font-medium text-[#0a0a0a]">Protonest IoT</span>
+                        <p className="text-lg text-[#52525b]">
+                            Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
                                     {' '}in{' '}
-                                    <Link href="/blog" className="text-[#0a0a0a] underline underline-offset-4 hover:text-[#5530fa]">
+                                    <Link href="/blog" className="underline underline-offset-4 hover:text-[#5530fa]">
                                         {blog.categories[0]}
                                     </Link>
                                 </>
                             )}
-                            <span className="mx-2 text-[#a1a1aa]">·</span>
-                            {readTime}
                         </p>
 
-                        <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.05] tracking-[-0.03em] text-[#0a0a0a] text-balance">
+                        <h1 className="mt-6 text-4xl sm:text-5xl lg:text-[4rem] font-normal leading-[1.08] tracking-[-0.025em] text-[#0a0a0a] text-balance">
                             {blog.title}
                         </h1>
 
-                        <div className="mt-8 flex items-center gap-4">
-                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
+                        <div className="mt-6 flex items-center gap-4">
+                            <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
                                 {blog.author_photo ? (
                                     <Image
                                         src={blog.author_photo}
                                         unoptimized={isCmsImage(blog.author_photo)}
                                         alt={blog.author}
                                         fill
-                                        sizes="56px"
+                                        sizes="72px"
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <Image src="/logo.webp" alt="Protonest IoT" fill sizes="56px" className="object-contain p-2" />
+                                    <Image src="/logo-mark.png" alt="Protonest IoT" fill sizes="72px" className="object-contain p-4" />
                                 )}
                             </div>
                             <div>
-                                <p className="text-lg text-[#0a0a0a]">By {blog.author}</p>
-                                {blog.author_role && <p className="text-sm text-[#71717a]">{blog.author_role}</p>}
+                                <p className="text-xl text-[#0a0a0a]">By {blog.author}</p>
+                                {blog.author_role && <p className="mt-0.5 text-base text-[#71717a]">{blog.author_role}</p>}
                             </div>
                         </div>
 
-                        <div className="mt-10">
-                            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#52525b]">Share this post</p>
-                            <div className="mt-4 flex items-center gap-6 text-[#27272a]">
-                                {shareLinks.map(({ name, label, href }) => (
-                                    <a
-                                        key={name}
-                                        href={href}
-                                        target={name === 'email' ? undefined : '_blank'}
-                                        rel="noopener noreferrer"
-                                        aria-label={label}
-                                        className="transition-colors hover:text-[#5530fa]"
-                                    >
-                                        <SocialIcon name={name} size={26} />
-                                    </a>
-                                ))}
-                            </div>
+                        <div className="mt-12">
+                            <p className="text-sm font-medium uppercase tracking-[0.08em] text-[#52525b]">Share this post</p>
+                            <ShareButtons url={shareUrl} title={blog.title} />
                         </div>
 
-                        <hr className="mt-10 w-24 border-0 border-t-2 border-[#e4e4e7]" />
+                        <hr className="mt-12 w-24 border-0 border-t-2 border-[#e4e4e7]" />
                     </header>
 
                     {blog.cover_image && (
@@ -588,10 +630,6 @@ export default function BlogDetailPage() {
                             </div>
                         </>
                     )}
-
-                    <div className="hidden lg:block lg:col-start-1 lg:mt-14">
-                        <TableOfContents items={tocItems} isMobile={false} />
-                    </div>
 
                     <div className="min-w-0 mt-10 lg:col-start-2 lg:mt-14">
                         <div className="lg:hidden">
@@ -623,6 +661,11 @@ export default function BlogDetailPage() {
                                 ))}
                             </div>
                         </section>
+                    </div>
+
+                    {/* After the article in the markup so the grid puts it in the right column of the same row */}
+                    <div className="hidden lg:block lg:col-start-3 lg:mt-14">
+                        <TableOfContents items={tocItems} isMobile={false} />
                     </div>
                 </div>
                 {suggestedBlogs.length > 0 && (
