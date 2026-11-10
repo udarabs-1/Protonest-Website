@@ -598,8 +598,8 @@ export default function BlogDetailPage() {
                                 )}
                             </div>
                             <div>
-                                <p className="text-xl text-[#0a0a0a]">By {blog.author}</p>
-                                {blog.author_role && <p className="mt-0.5 text-base text-[#71717a]">{blog.author_role}</p>}
+                                <p className="text-base text-[#0a0a0a]">By {blog.author}</p>
+                                {blog.author_role && <p className="mt-0.5 text-sm text-[#71717a]">{blog.author_role}</p>}
                             </div>
                         </div>
 
