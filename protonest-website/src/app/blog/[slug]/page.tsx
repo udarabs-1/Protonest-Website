@@ -552,7 +552,7 @@ export default function BlogDetailPage() {
 
             <div className={`${articleFont.variable} article-page mx-auto w-full max-w-[1360px] px-4 sm:px-6 py-12 lg:py-16`}>
                 {/* The article sits in a centred column; the back link uses the left margin and the table of contents the right */}
-                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,780px)_minmax(0,1fr)] lg:gap-x-12">
+                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[240px_minmax(0,780px)_240px] lg:justify-center lg:gap-x-10">
                     <div className="lg:col-start-1 lg:pt-1">
                         <Link
                             href="/blog"
