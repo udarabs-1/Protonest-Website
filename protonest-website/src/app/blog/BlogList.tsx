@@ -2,13 +2,12 @@
 
 import Footer from "@/app/components/footer";
 import Navbar from "@/app/components/navbar";
-import PageHero from "@/app/components/page-hero";
-import { useOnScreen } from "@/app/components/use-on-screen";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
 import { isCmsImage } from "@/lib/cms-blogs";
+import { articleFont } from "./[slug]/fonts";
 
 export interface Blog {
   id: string;
@@ -19,7 +18,10 @@ export interface Blog {
   cover_image?: string;
   categories: string[];
   author: string;
+  author_role?: string;
+  author_photo?: string;
   published: boolean;
+  published_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -110,135 +112,93 @@ const BlogJsonLd = () => (
   />
 );
 
-const extractExcerpt = (htmlContent: string, maxLength: number = 150): string => {
-  const textContent = htmlContent.replace(/<[^>]*>/g, '');
-  const trimmed = textContent.trim();
-  if (trimmed.length <= maxLength) return trimmed;
+const toText = (html: string) =>
+  html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
 
-  const truncated = trimmed.substring(0, maxLength);
+const extractExcerpt = (htmlContent: string, maxLength: number = 160): string => {
+  const text = toText(htmlContent);
+  if (text.length <= maxLength) return text;
+  const truncated = text.substring(0, maxLength);
   const lastSpaceIndex = truncated.lastIndexOf(' ');
-
-  return lastSpaceIndex > -1
-    ? truncated.substring(0, lastSpaceIndex) + '...'
-    : truncated + '...';
+  return (lastSpaceIndex > -1 ? truncated.substring(0, lastSpaceIndex) : truncated) + '…';
 };
 
 const calculateReadTime = (content: string): string => {
-  const textContent = content.replace(/<[^>]*>/g, '');
-  const wordCount = textContent.split(/\s+/).length;
-  const readingSpeed = 200;
-  const minutes = Math.ceil(wordCount / readingSpeed);
+  const minutes = Math.max(1, Math.ceil(toText(content).split(' ').length / 200));
   return `${minutes} min read`;
 };
 
-const CategoryCard = ({
-  category,
-  isSelected,
-  onClick
-}: {
-  category: string;
-  isSelected: boolean;
-  onClick: () => void;
-}) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`h-14 xl:h-[65.89px] min-w-[140px] px-3 sm:px-6 py-2 sm:py-4 rounded-full xl:rounded-[57px] border flex items-center justify-center gap-1 sm:gap-2 transition-colors cursor-pointer group ${isSelected
-        ? 'bg-gradient-to-r from-[rgba(245,29,165,1)] to-[rgba(85,48,250,1)] border-transparent'
-        : 'gradient-button-static-3 hover:bg-gradient-to-r hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)]'
-        }`}
-    >
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 min-w-0">
-        <div className={`text-xs sm:text-base font-medium font-['Montserrat'] whitespace-pre-line leading-tight overflow-hidden text-center ${isSelected
-          ? 'text-white'
-          : 'text-[#6c6c6c] group-hover:text-white'
-          }`}>
-          {category}
-        </div>
-      </div>
-    </button>
-  );
-};
+// Same time zone on the server and in the browser, so the date never changes after loading
+const formatDate = (date?: string) =>
+  date
+    ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Colombo' })
+    : '';
 
-const BlogCard = ({ blog }: { blog: Blog }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isVisible = useOnScreen(ref);
-  const [isMobile, setIsMobile] = useState(false);
+const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; priority?: boolean }) => (
+  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-[#ececeb] bg-[#f7f7f5]">
+    {blog.cover_image ? (
+      <Image
+        src={blog.cover_image}
+        unoptimized={isCmsImage(blog.cover_image)}
+        alt={blog.title}
+        fill
+        sizes={sizes}
+        priority={priority}
+        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+      />
+    ) : (
+      <Image src="/logo-mark.png" alt="" fill sizes="120px" className="object-contain p-12 opacity-40" />
+    )}
+  </div>
+);
 
-  useEffect(() => {
-    const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
-    checkIsMobile();
+const Byline = ({ blog }: { blog: Blog }) => (
+  <div className="mt-5 flex items-center gap-3 text-sm text-[#787774]">
+    <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-[#ececeb] bg-white">
+      {blog.author_photo ? (
+        <Image src={blog.author_photo} unoptimized={isCmsImage(blog.author_photo)} alt="" fill sizes="28px" className="object-cover" />
+      ) : (
+        <Image src="/logo-mark.png" alt="" fill sizes="28px" className="object-contain p-1" />
+      )}
+    </span>
+    <span className="truncate">
+      <span className="text-[#37352f]">{blog.author}</span>
+      {' · '}
+      {formatDate(blog.published_at || blog.created_at)}
+      {' · '}
+      {calculateReadTime(blog.content)}
+    </span>
+  </div>
+);
 
-    let timeoutId: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(checkIsMobile, 150);
-    };
+// The newest post, shown large above the grid
+const FeaturedCard = ({ blog }: { blog: Blog }) => (
+  <Link href={`/blog/${blog.slug}`} className="group grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] md:gap-12">
+    <Cover blog={blog} sizes="(max-width: 768px) 100vw, 700px" priority />
+    <div>
+      {blog.categories?.[0] && <p className="text-sm font-medium text-[#787774]">{blog.categories[0]}</p>}
+      <h2 className="mt-3 text-[1.75rem] sm:text-[2.25rem] font-bold leading-[1.12] tracking-[-0.03em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
+        {blog.title}
+      </h2>
+      <p className="mt-4 text-[1.05rem] leading-relaxed text-[#55534e] line-clamp-3">{blog.excerpt || extractExcerpt(blog.content, 220)}</p>
+      <Byline blog={blog} />
+    </div>
+  </Link>
+);
 
-    window.addEventListener('resize', debouncedResize);
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(timeoutId);
-    };
-  }, []);
-
-  const shouldShowEffects = isMobile ? isVisible : false;
-
-  const excerpt = blog.excerpt || extractExcerpt(blog.content);
-  const readTime = calculateReadTime(blog.content);
-
-  return (
-    <Link href={`/blog/${blog.slug}`} passHref>
-      <article
-        ref={ref}
-        className={`group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 md:hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] ${shouldShowEffects ? 'shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)]' : ''
-          }`}
-      >
-
-        <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
-          <Image
-            src={blog.cover_image || '/default-blog-image.jpg'}
-            unoptimized={isCmsImage(blog.cover_image)}
-            alt={blog.title}
-            width={472}
-            height={164}
-            className={`w-full h-full object-cover transition-all duration-300 md:group-hover:scale-105 md:group-hover:grayscale ${shouldShowEffects ? 'scale-105 grayscale' : ''
-              }`}
-            quality={90}
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/default-blog-image.jpg';
-            }}
-          />
-
-          <button className={`absolute bottom-2 left-2 right-2 w-[calc(100%-16px)] h-10 bg-[#A3A3A3] font-poppins text-sm transition-all duration-300 rounded-md md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 ${shouldShowEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]">
-              Read More
-            </span>
-          </button>
-        </div>
-
-
-        <div className="space-y-4">
-          <h3 className={`text-[16px] xl:text-[18px] font-medium font-poppins leading-[1.4] transition-all duration-300 md:text-[#6c6c6c] md:group-hover:text-transparent md:group-hover:bg-clip-text md:group-hover:bg-gradient-to-r md:from-[#5530FA] md:to-[#F51DA5] ${shouldShowEffects ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#5530FA] to-[#F51DA5]' : 'text-[#6c6c6c]'
-            }`}>
-            {blog.title}
-          </h3>
-
-          <p className="text-[#6c6c6c] text-xs font-medium font-poppins leading-[1.5] line-clamp-3">
-            {excerpt}
-          </p>
-
-          <div className="text-[#83848b] text-[10px] font-normal font-poppins">
-            {readTime}
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
-};
+const BlogCard = ({ blog }: { blog: Blog }) => (
+  <Link href={`/blog/${blog.slug}`} className="group flex h-full flex-col">
+    <Cover blog={blog} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" />
+    {blog.categories?.[0] && <p className="mt-5 text-sm font-medium text-[#787774]">{blog.categories[0]}</p>}
+    <h3 className="mt-2 text-xl font-bold leading-[1.25] tracking-[-0.02em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
+      {blog.title}
+    </h3>
+    <p className="mt-3 text-[0.95rem] leading-relaxed text-[#55534e] line-clamp-3">{blog.excerpt || extractExcerpt(blog.content)}</p>
+    <div className="mt-auto">
+      <Byline blog={blog} />
+    </div>
+  </Link>
+);
 
 // The blog list. The server page (page.tsx) loads the posts and categories from the CMS, so the
 // list is in the page HTML that search engines read; filtering and search happen here.
@@ -251,277 +211,156 @@ export default function BlogList({
 }) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [showAllBlogs, setShowAllBlogs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const blogs = useMemo(
-    () => (selectedCategory ? initialBlogs.filter((blog) => blog.categories.includes(selectedCategory)) : initialBlogs),
-    [initialBlogs, selectedCategory],
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Only categories that have posts, in the CMS order
+  const usedCategories = useMemo(
+    () => categories.filter((category) => initialBlogs.some((blog) => blog.categories.includes(category))),
+    [categories, initialBlogs],
   );
 
-  useEffect(() => {
-    setShowAllBlogs(false);
-    setSearchTerm('');
-  }, [selectedCategory]);
-
-  const checkScreenSize = useCallback(() => {
-    setIsMobile(window.innerWidth < 768);
-  }, []);
-
-  useEffect(() => {
-    checkScreenSize();
-
-    let timeoutId: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(checkScreenSize, 150);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(timeoutId);
-    };
-  }, [checkScreenSize]);
-
   const filteredBlogs = useMemo(() => {
-    if (!Array.isArray(blogs)) return [];
-    if (!searchTerm.trim()) return blogs;
-
-    return blogs.filter(blog =>
-      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      blog.content.toLowerCase().includes(searchTerm.toLowerCase())
+    const term = searchTerm.trim().toLowerCase();
+    return initialBlogs.filter(
+      (blog) =>
+        (!selectedCategory || blog.categories.includes(selectedCategory)) &&
+        (!term || blog.title.toLowerCase().includes(term) || toText(blog.content).toLowerCase().includes(term)),
     );
-  }, [blogs, searchTerm]);
+  }, [initialBlogs, selectedCategory, searchTerm]);
 
-  const { visibleBlogs, shouldShowLoadMoreButton } = useMemo(() => {
-    const list = Array.isArray(filteredBlogs) ? filteredBlogs : [];
-    const limit = isMobile ? 3 : 6;
-    const visibleCount = showAllBlogs ? list.length : limit;
-    const visibleBlogs = list.slice(0, visibleCount);
-    const shouldShowLoadMoreButton = list.length > limit;
+  // The newest post is featured on the main view; filtering or searching shows a plain grid
+  const featured = !selectedCategory && !searchTerm.trim() ? filteredBlogs[0] : undefined;
+  const gridBlogs = featured ? filteredBlogs.slice(1) : filteredBlogs;
+  const limit = isMobile ? 4 : 9;
+  const visibleBlogs = showAllBlogs ? gridBlogs : gridBlogs.slice(0, limit);
 
-    return { visibleBlogs, shouldShowLoadMoreButton };
-  }, [filteredBlogs, isMobile, showAllBlogs]);
-
-  const handleLoadMore = useCallback(() => {
-    setShowAllBlogs(prev => !prev);
-  }, []);
-
-  const handleCategoryClick = useCallback((category: string) => {
-    if (selectedCategory === category) {
-      setSelectedCategory(null);
-    } else {
-      setSelectedCategory(category);
-    }
-  }, [selectedCategory]);
-
-  const handleBackToCategories = useCallback(() => {
-    setSelectedCategory(null);
-  }, []);
-
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleSearchTermChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  const selectCategory = useCallback((category: string | null) => {
+    setSelectedCategory(category);
     setShowAllBlogs(false);
   }, []);
+
+  const tabClass = (active: boolean) =>
+    `-mb-px shrink-0 whitespace-nowrap border-b-2 pb-3 text-[0.95rem] transition-colors ${
+      active ? 'border-[#191919] font-semibold text-[#191919]' : 'border-transparent text-[#787774] hover:text-[#191919]'
+    }`;
 
   return (
-    <div>
-      <style jsx global>{`
-        .gradient-icon-default svg {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .gradient-icon-default svg path {
-            fill: url(#icon-gradient-default) !important;
-        }
-        
-        .gradient-icon-default svg circle {
-            fill: url(#icon-gradient-default) !important;
-        }
-        
-        .gradient-icon-default svg rect {
-            fill: url(#icon-gradient-default) !important;
-        }
-        
-        .gradient-icon-default svg polygon {
-            fill: url(#icon-gradient-default) !important;
-        }
-
-        .group:hover .gradient-icon-default svg path {
-            fill: white !important;
-        }
-        
-        .group:hover .gradient-icon-default svg circle {
-            fill: white !important;
-        }
-        
-        .group:hover .gradient-icon-default svg rect {
-            fill: white !important;
-        }
-        
-        .group:hover .gradient-icon-default svg polygon {
-            fill: white !important;
-        }
-      `}</style>
-
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <linearGradient id="icon-gradient-default" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#5530FA" />
-            <stop offset="100%" stopColor="#F51DA5" />
-          </linearGradient>
-        </defs>
-      </svg>
-
+    <div className="overflow-x-hidden bg-white">
       <BlogJsonLd />
       <Navbar />
-      <main className="mb-30">
+      <main className={`${articleFont.variable} mx-auto w-full max-w-[1240px] px-4 sm:px-6 pt-12 pb-20 lg:pt-16`} style={{ fontFamily: "var(--font-article), 'Inter', sans-serif" }}>
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <header className="max-w-[760px]">
+            <p className="text-base font-medium text-[#787774]">Protonest Blog</p>
+            <h1 className="mt-3 text-[2.5rem] sm:text-[3.5rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#191919]">
+              IoT insights and guides
+            </h1>
+            <p className="mt-4 text-lg sm:text-xl leading-relaxed text-[#55534e]">
+              Practical articles on choosing sensors, batteries, displays and cloud backends, and on building reliable IoT products.
+            </p>
+          </header>
 
-        <PageHero
-          backgroundImage="/blogs-1.webp"
-          heading={{
-            gradientText: "Blog"
-          }}
-          description="IoT Related Insights, and Innovations"
-        />
-
-        <section className="relative z-30 -mt-[100px] px-4 sm:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]">
-          <div className="py-4 w-full">
-            {selectedCategory ? (
-              <div className="flex items-center gap-4 mb-6">
-                <button
-                  onClick={handleBackToCategories}
-                  className="flex items-center gap-2 text-[#6c6c6c] hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-[#5530FA] hover:to-[#F51DA5] group cursor-pointer"
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="group-hover:stroke-[#5530FA]"
-                  >
-                    <path d="M19 12H5M12 19l-7-7 7-7" />
-                  </svg>
-                  <span className="font-poppins text-sm font-medium">All Categories</span>
-                </button>
-                <span className="text-[#6c6c6c] font-poppins text-sm">/</span>
-                <span className="text-[#6c6c6c] font-poppins text-sm font-semibold">
-                  {selectedCategory}
-                </span>
-              </div>
-            ) : categories.length > 0 ? (
-              <div className="mb-8">
-                <h2 className="text-[#6c6c6c] text-xl font-medium font-montserrat mb-6">Browse by Category</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 xl:gap-6 w-full">
-                  {categories.map((category) => (
-                    <CategoryCard
-                      key={category}
-                      category={category}
-                      isSelected={selectedCategory === category}
-                      onClick={() => handleCategoryClick(category)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="relative z-30 px-4 sm:px-8 lg:px-[60px] xl:px-[130px] 2xl:px-[180px]">
-
-          <form onSubmit={handleSearch} className="relative h-[50px] sm:h-[55px] w-full opacity-70 bg-white rounded-[20px] shadow-[5px_5px_20px_0px_rgba(0,0,0,0.10)] overflow-hidden mb-8 sm:mb-12">
+          <form role="search" onSubmit={(e) => e.preventDefault()} className="relative w-full shrink-0 md:w-[300px]">
+            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9b9a97]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
             <input
-              type="text"
+              type="search"
               value={searchTerm}
-              onChange={handleSearchTermChange}
-              className="w-full h-full pl-9 pr-12 bg-transparent text-[#6c6c6c] text-sm font-normal font-poppins leading-normal focus:outline-none"
-              placeholder="Search for what you are looking for"
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowAllBlogs(false);
+              }}
+              aria-label="Search the blog"
+              placeholder="Search articles"
+              className="h-11 w-full rounded-lg border border-[#e3e2e0] bg-white pl-9 pr-3 text-[0.95rem] text-[#37352f] placeholder:text-[#9b9a97] focus:border-[#191919] focus:outline-none"
             />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5">
-              <Image
-                src="/search.svg"
-                alt="Search"
-                width={24}
-                height={24}
-                className="w-full h-full text-[#6c6c6c]"
-              />
-            </div>
           </form>
+        </div>
 
-          {blogs.length === 0 && (
-            <div className="flex justify-center items-center py-20">
-              <div className="text-center">
-                <p className="text-[#6c6c6c] font-poppins text-lg">
-                  {selectedCategory
-                    ? `No blogs available in "${selectedCategory}" category.`
-                    : 'No blogs available at the moment.'
-                  }
-                </p>
-                <p className="text-[#6c6c6c] font-poppins text-sm mt-2">Check back later for new content!</p>
-                {selectedCategory && (
-                  <button
-                    onClick={handleBackToCategories}
-                    className="mt-4 px-6 py-2 gradient-button font-poppins transition-all"
-                  >
-                    View All Categories
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Category tabs; they scroll sideways when there are many */}
+        <nav aria-label="Blog categories" className="mt-12 flex gap-7 overflow-x-auto border-b border-[#ececeb] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button type="button" onClick={() => selectCategory(null)} className={tabClass(!selectedCategory)}>
+            All posts
+          </button>
+          {usedCategories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => selectCategory(selectedCategory === category ? null : category)}
+              className={tabClass(selectedCategory === category)}
+            >
+              {category}
+            </button>
+          ))}
+        </nav>
 
-          {blogs.length > 0 && filteredBlogs.length === 0 && (
-            <div className="flex justify-center items-center py-20">
-              <div className="text-center">
-                <p className="text-[#6c6c6c] font-poppins text-lg">No results found for your search.</p>
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="mt-4 px-6 py-2 bg-gradient-to-r from-[#5530FA] to-[#F51DA5] text-white rounded-[57px] font-poppins transition-all hover:shadow-[0_10px_20px_-10px_rgba(85,48,250,0.5)]"
-                >
-                  Clear Search
-                </button>
-              </div>
-            </div>
-          )}
-
-
-          {visibleBlogs.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mt-8 sm:mt-12">
-              {visibleBlogs.map((blog) => (
-                <BlogCard key={blog.id} blog={blog} />
-              ))}
-            </div>
-          )}
-
-
-          {shouldShowLoadMoreButton && (
-            <div className="flex justify-center mt-8 sm:mt-12">
+        {filteredBlogs.length === 0 && (
+          <div className="py-24 text-center">
+            <p className="text-lg text-[#37352f]">
+              {searchTerm.trim()
+                ? `No articles found for "${searchTerm.trim()}".`
+                : selectedCategory
+                  ? `No articles in "${selectedCategory}" yet.`
+                  : 'No articles yet. Check back soon.'}
+            </p>
+            {(searchTerm || selectedCategory) && (
               <button
-                onClick={handleLoadMore}
-                className="h-[50px] w-[160px] sm:w-[180px] font-medium xl:font-semibold text-[14px] sm:text-[16px] font-montserrat cursor-pointer text-white bg-gradient-to-r from-[rgba(85,48,250,1)] to-[rgba(245,29,165,1)] rounded-[57px] hover:from-[rgba(245,29,165,1)] hover:to-[rgba(85,48,250,1)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#5530fa] focus:ring-opacity-50"
-                aria-expanded={showAllBlogs}
-                aria-label={showAllBlogs ? "Show fewer blog posts" : "Show more blog posts"}
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  selectCategory(null);
+                }}
+                className="mt-5 rounded-lg border border-[#e3e2e0] px-5 py-2 text-[0.95rem] text-[#37352f] hover:bg-[#f7f7f5]"
               >
-                {showAllBlogs ? 'Show Less' : 'Load More'}
+                Show all posts
               </button>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
+        {featured && (
+          <section className="mt-12" aria-label="Latest post">
+            <FeaturedCard blog={featured} />
+          </section>
+        )}
 
+        {visibleBlogs.length > 0 && (
+          <section
+            aria-label={selectedCategory ? `${selectedCategory} posts` : 'All posts'}
+            className={`grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3 ${featured ? 'mt-16 border-t border-[#ececeb] pt-14' : 'mt-12'}`}
+          >
+            {visibleBlogs.map((blog) => (
+              <BlogCard key={blog.id} blog={blog} />
+            ))}
+          </section>
+        )}
 
+        {gridBlogs.length > limit && (
+          <div className="mt-14 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowAllBlogs((prev) => !prev)}
+              aria-expanded={showAllBlogs}
+              className="rounded-lg border border-[#e3e2e0] px-6 py-2.5 text-[0.95rem] font-medium text-[#37352f] transition-colors hover:bg-[#f7f7f5]"
+            >
+              {showAllBlogs ? 'Show fewer posts' : `Show all ${gridBlogs.length} posts`}
+            </button>
+          </div>
+        )}
+
+        <div className="mt-20">
           <NewsletterSubscription />
-        </section>
+        </div>
       </main>
 
       <Footer />

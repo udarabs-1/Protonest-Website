@@ -15,6 +15,12 @@ export interface CmsBlog {
   author: string;
   author_role?: string;
   author_photo?: string;
+  /** From the CMS SEO tab; empty when the writer left them blank */
+  seo_title?: string;
+  seo_description?: string;
+  seo_image?: string;
+  canonical_url?: string;
+  no_index?: boolean;
   published: boolean;
   published_at?: string;
   created_at: string;
@@ -38,7 +44,13 @@ type PayloadPost = {
   createdAt: string;
   updatedAt: string;
   _status?: string;
-  seo?: { description?: string | null; image?: Media } | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: Media;
+    canonicalURL?: string | null;
+    noIndex?: boolean | null;
+  } | null;
 };
 
 // Media URLs from the CMS are relative, e.g. /api/media/file/photo.jpg
@@ -69,6 +81,11 @@ const toBlog = (post: PayloadPost): CmsBlog => ({
   author: post.author && typeof post.author === 'object' && post.author.name ? post.author.name : 'Protonest IoT',
   author_role: post.author && typeof post.author === 'object' ? post.author.role || undefined : undefined,
   author_photo: post.author && typeof post.author === 'object' ? mediaUrl(post.author.photo) : undefined,
+  seo_title: post.seo?.title?.trim() || undefined,
+  seo_description: post.seo?.description?.trim() || undefined,
+  seo_image: mediaUrl(post.seo?.image),
+  canonical_url: post.seo?.canonicalURL?.trim() || undefined,
+  no_index: Boolean(post.seo?.noIndex),
   published: post._status !== 'draft',
   published_at: post.publishedAt ?? undefined,
   created_at: post.publishedAt ?? post.createdAt,

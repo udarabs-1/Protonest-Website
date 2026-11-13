@@ -1,8 +1,6 @@
 // Prepares CMS article HTML for the blog article page. Runs on the server (no DOM there), so it
 // works on the HTML string. The CMS (Payload Lexical) writes simple, predictable HTML, which
-// these patterns are written for.
-
-import { CMS_URL } from './cms-blogs';
+// these patterns are written for. It has no imports, so its tests run with plain Node.
 
 export interface TocItem {
     id: string;
@@ -80,10 +78,10 @@ const youTubeId = (href: string): string | null => {
 
 // CMS media URLs point at the CMS, a YouTube link on its own line becomes an embedded video,
 // and "Figure N: ..." lines are styled as captions
-export const enhanceArticleHtml = (html: string): string =>
+export const enhanceArticleHtml = (html: string, cmsUrl = ''): string =>
     html
-        .replace(/(<img\b[^>]*?\ssrc=")(\/[^"]*")/gi, `$1${CMS_URL}$2`)
-        .replace(/(<source\b[^>]*?\ssrcset=")(\/[^"]*")/gi, `$1${CMS_URL}$2`)
+        .replace(/(<img\b[^>]*?\ssrc=")(\/[^"]*")/gi, `$1${cmsUrl}$2`)
+        .replace(/(<source\b[^>]*?\ssrcset=")(\/[^"]*")/gi, `$1${cmsUrl}$2`)
         .replace(/<p(\s[^>]*)?>([\s\S]*?)<\/p>/gi, (all, attrs: string | undefined, inner: string) => {
             const content = inner.trim();
 
@@ -110,7 +108,7 @@ export const enhanceArticleHtml = (html: string): string =>
         });
 
 // Everything the article page needs from the CMS HTML
-export const prepareArticle = (html: string, title: string): { content: string; toc: TocItem[] } => {
-    const content = addIdsToHeadings(enhanceArticleHtml(removeTitleHeading(html, title)));
+export const prepareArticle = (html: string, title: string, cmsUrl = ''): { content: string; toc: TocItem[] } => {
+    const content = addIdsToHeadings(enhanceArticleHtml(removeTitleHeading(html, title), cmsUrl));
     return { content, toc: extractTocItems(content) };
 };

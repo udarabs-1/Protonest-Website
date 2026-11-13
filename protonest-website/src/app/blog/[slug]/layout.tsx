@@ -1,18 +1,25 @@
 import { Metadata } from 'next';
 import { getCmsBlog } from '@/lib/cms-blogs';
+import { htmlToText } from '@/lib/article-html';
 
 type Props = {
     params: Promise<{ slug: string }>;
 };
 
-const extractExcerpt = (html: string, maxLength = 160): string => {
-    const text = html.replace(/<[^>]*>/g, '').trim();
+const DEFAULT_IMAGE = 'https://protonest.co/images/og-home.jpg';
+
+// About 155 characters from the start of the article, ending on a word
+const extractExcerpt = (html: string, maxLength = 155): string => {
+    const text = htmlToText(html);
     if (text.length <= maxLength) return text;
     const truncated = text.substring(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
-    return lastSpace > -1 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+    return (lastSpace > -1 ? truncated.substring(0, lastSpace) : truncated) + '…';
 };
 
+// Uses the CMS SEO tab (SEO title, Description, Social image, Canonical URL, noindex) and
+// falls back to the post itself for anything left blank. The structured data (JSON-LD) is
+// in page.tsx, as a real script tag.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
 
@@ -20,24 +27,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const blog = await getCmsBlog(slug, { next: { revalidate: 60 } });
 
         if (blog) {
-
-            const title = `${blog.title} | Protonest Blog`;
-            const description = extractExcerpt(blog.content);
-            const canonical = `https://protonest.co/blog/${blog.slug}`;
-            const coverImage = blog.cover_image || 'https://protonest.co/images/og-home.jpg';
-
-            const keywords = [
-                ...(blog.categories || []),
-                ...(blog.keywords || []),
-            ].join(', ');
+            const title = blog.seo_title || `${blog.title} | Protonest Blog`;
+            const description = blog.seo_description || blog.excerpt || extractExcerpt(blog.content);
+            const canonical = blog.canonical_url || `https://protonest.co/blog/${blog.slug}`;
+            const image = blog.seo_image || blog.cover_image || DEFAULT_IMAGE;
+            const tags = [...(blog.categories || []), ...(blog.keywords || [])];
 
             return {
-                title,
+                title: { absolute: title },
                 description,
-                keywords,
-                alternates: {
-                    canonical,
-                },
+                keywords: tags.join(', '),
+                alternates: { canonical },
+                robots: blog.no_index ? { index: false, follow: true } : undefined,
+                authors: [{ name: blog.author || 'Protonest IoT' }],
                 openGraph: {
                     title,
                     description,
@@ -47,52 +49,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                     type: 'article',
                     publishedTime: blog.published_at || blog.created_at,
                     modifiedTime: blog.updated_at,
-                    authors: [blog.author || 'Protonest'],
-                    tags: [...(blog.categories || []), ...(blog.keywords || [])],
-                    images: [
-                        {
-                            url: coverImage,
-                            width: 1200,
-                            height: 630,
-                            alt: blog.title,
-                        },
-                    ],
+                    authors: [blog.author || 'Protonest IoT'],
+                    section: blog.categories?.[0],
+                    tags,
+                    images: [{ url: image, alt: blog.title }],
                 },
                 twitter: {
                     card: 'summary_large_image',
                     title,
                     description,
-                    images: [coverImage],
-                },
-                other: {
-                    'script:ld+json': JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'BlogPosting',
-                        headline: blog.title,
-                        description,
-                        image: coverImage,
-                        url: canonical,
-                        datePublished: blog.published_at || blog.created_at,
-                        dateModified: blog.updated_at,
-                        keywords: (blog.keywords || []).join(', '),
-                        articleSection: (blog.categories || []).join(', '),
-                        author: {
-                            '@type': 'Person',
-                            name: blog.author || 'Protonest',
-                        },
-                        publisher: {
-                            '@type': 'Organization',
-                            name: 'Protonest',
-                            logo: {
-                                '@type': 'ImageObject',
-                                url: 'https://protonest.co/logo.webp',
-                            },
-                        },
-                        mainEntityOfPage: {
-                            '@type': 'WebPage',
-                            '@id': canonical,
-                        },
-                    }),
+                    images: [image],
                 },
             };
         }
@@ -106,19 +72,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         alternates: {
             canonical: `https://protonest.co/blog/${slug}`,
         },
-        openGraph: {
-            title: 'Blog - Protonest',
-            description: 'Read insightful IoT articles and engineering updates from Protonest.',
-            type: 'article',
-            siteName: 'Protonest',
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: 'Blog - Protonest',
-            description: 'Read insightful IoT articles and engineering updates from Protonest.',
-        },
     };
 }
+
 export default function BlogPostLayout({
     children,
 }: {
