@@ -68,7 +68,8 @@ const NewsAndBlogs = ({
         );
       } catch (error) {
         if (error instanceof Error && error.name !== "AbortError") {
-          console.error("Error fetching latest blogs:", error);
+          // A warning, not an error: the section just stays empty when the CMS is unreachable
+          console.warn("Could not load the latest blogs from the CMS:", error.message);
         }
       }
     };
