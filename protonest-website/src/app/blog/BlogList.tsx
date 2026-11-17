@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
-import { isCmsImage } from "@/lib/cms-blogs";
+import { skipImageOptimization } from "@/lib/cms-blogs";
 import { articleFont } from "./[slug]/fonts";
 
 export interface Blog {
@@ -139,7 +139,7 @@ const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; p
     {blog.cover_image ? (
       <Image
         src={blog.cover_image}
-        unoptimized={isCmsImage(blog.cover_image)}
+        unoptimized={skipImageOptimization(blog.cover_image)}
         alt={blog.title}
         fill
         sizes={sizes}
@@ -156,7 +156,7 @@ const Byline = ({ blog }: { blog: Blog }) => (
   <div className="mt-5 flex items-center gap-3 text-sm text-[#787774]">
     <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-[#ececeb] bg-white">
       {blog.author_photo ? (
-        <Image src={blog.author_photo} unoptimized={isCmsImage(blog.author_photo)} alt="" fill sizes="28px" className="object-cover" />
+        <Image src={blog.author_photo} unoptimized={skipImageOptimization(blog.author_photo)} alt="" fill sizes="28px" className="object-cover" />
       ) : (
         <Image src="/logo-mark.png" alt="" fill sizes="28px" className="object-contain p-1" />
       )}

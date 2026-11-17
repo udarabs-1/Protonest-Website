@@ -81,6 +81,8 @@ const youTubeId = (href: string): string | null => {
 export const enhanceArticleHtml = (html: string, cmsUrl = ''): string =>
     html
         .replace(/(<img\b[^>]*?\ssrc=")(\/[^"]*")/gi, `$1${cmsUrl}$2`)
+        // Article pictures load as the reader scrolls to them, without blocking the page
+        .replace(/<img\b(?![^>]*\sloading=)/gi, '<img loading="lazy" decoding="async"')
         .replace(/(<source\b[^>]*?\ssrcset=")(\/[^"]*")/gi, `$1${cmsUrl}$2`)
         .replace(/<p(\s[^>]*)?>([\s\S]*?)<\/p>/gi, (all, attrs: string | undefined, inner: string) => {
             const content = inner.trim();

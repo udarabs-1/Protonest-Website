@@ -60,10 +60,12 @@ const mediaUrl = (media: Media): string | undefined => {
 };
 
 /**
- * CMS media is already resized by the CMS (400/768/1026 px), so it's loaded directly
- * instead of through Next.js image optimisation.
+ * CMS images go through Next.js image optimisation, which resizes them for each screen,
+ * converts them to WebP/AVIF and caches them on the CDN, so phones don't download the
+ * full-size original. Only images from a CMS running on this computer skip it.
  */
-export const isCmsImage = (src?: string | null): boolean => Boolean(src?.includes('/api/media/file/'));
+export const skipImageOptimization = (src?: string | null): boolean =>
+  Boolean(src && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(src));
 
 const names = (items?: Named[] | null): string[] =>
   (items ?? []).flatMap((item) => (item && typeof item === 'object' && item.name ? [item.name] : []));

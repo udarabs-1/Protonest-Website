@@ -33,10 +33,10 @@ test('extractTocItems lists only the top heading level', () => {
     assert.deepEqual(extractTocItems('<p>no headings</p>'), []);
 });
 
-test('enhanceArticleHtml points CMS media at the CMS', () => {
+test('enhanceArticleHtml points CMS media at the CMS and lazy-loads pictures', () => {
     assert.equal(
         enhanceArticleHtml('<img src="/api/media/file/a.png" alt=""><img src="https://x.com/b.png">', 'https://cms.test'),
-        '<img src="https://cms.test/api/media/file/a.png" alt=""><img src="https://x.com/b.png">',
+        '<img loading="lazy" decoding="async" src="https://cms.test/api/media/file/a.png" alt=""><img loading="lazy" decoding="async" src="https://x.com/b.png">',
     );
 });
 
@@ -58,4 +58,8 @@ test('prepareArticle does everything in order', () => {
     const { content, toc } = prepareArticle('<h1>T</h1><h2>Intro</h2><p>x</p>', 'T');
     assert.equal(content, '<h2 id="intro">Intro</h2><p>x</p>');
     assert.deepEqual(toc, [{ id: 'intro', text: 'Intro', level: 2 }]);
+});
+
+test('enhanceArticleHtml keeps an existing loading attribute', () => {
+    assert.equal(enhanceArticleHtml('<img loading="eager" src="https://x.com/a.png">'), '<img loading="eager" src="https://x.com/a.png">');
 });

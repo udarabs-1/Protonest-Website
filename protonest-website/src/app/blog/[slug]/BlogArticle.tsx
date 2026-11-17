@@ -5,7 +5,7 @@ import Navbar from "@/app/components/navbar";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { isCmsImage } from "@/lib/cms-blogs";
+import { skipImageOptimization } from "@/lib/cms-blogs";
 import type { TocItem } from "@/lib/article-html";
 import { articleFont } from "./fonts";
 import SocialIcon, { type SocialIconName } from "@/app/components/social-icon";
@@ -228,7 +228,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
                 <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
                     <Image
                         src={blog.cover_image || '/default-blog-image.jpg'}
-                        unoptimized={isCmsImage(blog.cover_image)}
+                        unoptimized={skipImageOptimization(blog.cover_image)}
                         alt={blog.title}
                         width={472}
                         height={164}
@@ -330,7 +330,7 @@ export default function BlogArticle({
                                 {blog.author_photo ? (
                                     <Image
                                         src={blog.author_photo}
-                                        unoptimized={isCmsImage(blog.author_photo)}
+                                        unoptimized={skipImageOptimization(blog.author_photo)}
                                         alt={blog.author}
                                         fill
                                         sizes="72px"
@@ -359,7 +359,7 @@ export default function BlogArticle({
                             <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-2">
                                 <Image
                                     src={blog.cover_image}
-                                    unoptimized={isCmsImage(blog.cover_image)}
+                                    unoptimized={skipImageOptimization(blog.cover_image)}
                                     alt={blog.title}
                                     fill
                                     sizes="(max-width: 780px) 100vw, 780px"
