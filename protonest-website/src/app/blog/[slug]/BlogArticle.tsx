@@ -283,7 +283,7 @@ export default function BlogArticle({
                     </div>
 
                     <header className="mt-8 min-w-0 lg:col-start-2 lg:row-start-1 lg:mt-0">
-                        <p className="text-[0.9375rem] leading-[22px] text-black/60">
+                        <p className="text-[0.8125rem] leading-[22px] text-black/60">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -295,11 +295,11 @@ export default function BlogArticle({
                             )}
                         </p>
 
-                        <h1 className="mt-3 text-[2.25rem] sm:text-[3rem] lg:text-[2.75rem] xl:text-[3.375rem] font-bold leading-[1.04] tracking-[-0.035em] text-black/90 text-balance">
+                        <h1 className="mt-[50px] text-[2.25rem] sm:text-[3rem] lg:text-[2.75rem] xl:text-[3.375rem] font-bold leading-[1.04] tracking-[-0.035em] text-black/90 text-balance">
                             {blog.title}
                         </h1>
 
-                        <div className="mt-3 flex items-center gap-2.5">
+                        <div className="mt-[46px] flex items-center gap-2.5">
                             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
                                 {blog.author_photo ? (
                                     <Image
@@ -320,7 +320,7 @@ export default function BlogArticle({
                             </div>
                         </div>
 
-                        <div className="mt-10">
+                        <div className="mt-12 sm:mt-[50px] xl:mt-[52px]">
                             <p className="text-[0.6875rem] font-medium uppercase tracking-[0.06em] text-black/55">Share this post</p>
                             <ShareButtons url={shareUrl} title={blog.title} />
                         </div>

@@ -151,7 +151,8 @@ export const getCmsBlogs = async (category?: string | null, init?: RequestInit):
   const tenant = await tenantQuery(init);
   if (!tenant) return [];
   const { docs } = await cmsFetch<{ docs: PayloadPost[] }>(
-    `blog-posts?${tenant}&depth=1&limit=100&sort=-publishedAt`,
+    // depth=2 so the author's photo comes back as an image, not just its ID
+    `blog-posts?${tenant}&depth=2&limit=100&sort=-publishedAt`,
     init,
   );
   const blogs = docs.map(toBlog);
