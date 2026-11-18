@@ -263,14 +263,12 @@ export default function BlogArticle({
                 {/* Same side space and width as the navbar on every screen: below 1024px the phone/tablet navbar
                     (16px, then 32px from 768px); from 1024px the desktop navbar's padding and container width */}
                 <div className="w-full lg:mx-auto lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px]">
-                {/* Notion-style article with "In this article" on the right.
-                    Phones and tablets: one column, the contents above the article.
-                    1024-1439px: "All posts" above the title; the article on the left (in line with the logo) and
-                    the contents on the right (in line with "Book a Call").
-                    1440px+: three columns - "All posts" | title, share and article | "In this article".
-                    The side columns are the same width, so the article sits in the centre.
+                {/* Three columns on laptops and desktops (1024px+), as in the sketch:
+                    "All posts" (in line with the logo) | title, share and article | "In this article" (in line with
+                    "Book a Call"). The side columns grow with the screen; from 1440px they are the same width,
+                    so the article sits in the centre. Phones and tablets: one column, contents above the article.
                     The side padding is the navbar's, so the edges match on every screen. */}
-                <div className="lg:grid lg:grid-cols-[minmax(0,780px)_220px] lg:justify-between lg:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,920px)_220px] min-[90rem]:gap-x-12">
+                <div className="lg:grid lg:grid-cols-[140px_minmax(0,1fr)_180px] lg:gap-x-8 xl:grid-cols-[170px_minmax(0,1fr)_210px] xl:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,920px)_220px] min-[90rem]:justify-between min-[90rem]:gap-x-12">
                     <div className="lg:col-start-1 lg:row-start-1 lg:pt-1">
                         <Link
                             href="/blog"
@@ -283,8 +281,8 @@ export default function BlogArticle({
                         </Link>
                     </div>
 
-                    <header className="mt-8 min-w-0 lg:col-start-1 lg:row-start-2 min-[90rem]:col-start-2 min-[90rem]:row-start-1 min-[90rem]:mt-0">
-                        <p className="text-lg sm:text-[1.375rem] text-[#55534e]">
+                    <header className="mt-8 min-w-0 lg:col-start-2 lg:row-start-1 lg:mt-0">
+                        <p className="text-base sm:text-lg text-[#55534e]">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -296,7 +294,7 @@ export default function BlogArticle({
                             )}
                         </p>
 
-                        <h1 className="mt-5 text-[2.25rem] sm:text-[3rem] lg:text-[3.25rem] 2xl:text-[4rem] font-bold leading-[1.1] tracking-[-0.025em] text-[#191919] text-balance">
+                        <h1 className="mt-5 text-[2.25rem] sm:text-[3rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[4rem] font-bold leading-[1.1] tracking-[-0.025em] text-[#191919] text-balance">
                             {blog.title}
                         </h1>
 
@@ -331,7 +329,7 @@ export default function BlogArticle({
 
                     {blog.cover_image && (
                         <>
-                            <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-1 min-[90rem]:col-start-2">
+                            <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-2">
                                 <Image
                                     src={blog.cover_image}
                                     unoptimized={skipImageOptimization(blog.cover_image)}
@@ -351,7 +349,7 @@ export default function BlogArticle({
                         </>
                     )}
 
-                    <div className="min-w-0 mt-10 lg:col-start-1 lg:mt-14 min-[90rem]:col-start-2">
+                    <div className="min-w-0 mt-10 lg:col-start-2 lg:mt-14">
                         <div className="lg:hidden">
                             <TableOfContents items={tocItems} isMobile={true} />
                         </div>
@@ -384,7 +382,7 @@ export default function BlogArticle({
                     </div>
 
                     {/* Right column, from the top of the title down to the end of the article; it follows the reader */}
-                    <div className="hidden lg:block lg:col-start-2 lg:row-start-2 lg:row-span-3 lg:pt-1 min-[90rem]:col-start-3 min-[90rem]:row-start-1">
+                    <div className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 lg:pt-1">
                         <TableOfContents items={tocItems} isMobile={false} />
                     </div>
                 </div>
