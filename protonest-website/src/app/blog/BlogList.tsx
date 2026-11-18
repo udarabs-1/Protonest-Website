@@ -163,8 +163,9 @@ const Cover = ({ blog, sizes, priority = false, eager = false }: { blog: Blog; s
   );
 };
 
+// Same sizes as the article page: author 15px, date 13px
 const Byline = ({ blog }: { blog: Blog }) => (
-  <div className="mt-5 flex items-center gap-3 text-sm text-[#787774]">
+  <div className="mt-5 flex items-center gap-3 text-[0.8125rem] text-[#787774]">
     <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-[#ececeb] bg-white">
       {blog.author_photo ? (
         <Image src={blog.author_photo} unoptimized={skipImageOptimization(blog.author_photo)} alt="" fill sizes="28px" className="object-cover" />
@@ -173,7 +174,7 @@ const Byline = ({ blog }: { blog: Blog }) => (
       )}
     </span>
     <span className="truncate">
-      <span className="text-[#37352f]">{blog.author}</span>
+      <span className="text-[0.9375rem] text-[#37352f]">{blog.author}</span>
       {' · '}
       {formatDate(blog.published_at || blog.created_at)}
       {' · '}

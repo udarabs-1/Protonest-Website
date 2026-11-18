@@ -273,7 +273,7 @@ export default function BlogArticle({
                     <div className="lg:col-start-1 lg:row-start-1">
                         <Link
                             href="/blog"
-                            className="inline-flex h-[22px] items-center gap-1 text-[0.8125rem] leading-[22px] text-black/60 transition-colors hover:text-[#0a0a0a]"
+                            className="inline-flex h-[22px] items-center gap-1 text-[0.95rem] leading-[22px] text-black/60 transition-colors hover:text-[#0a0a0a]"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -283,7 +283,7 @@ export default function BlogArticle({
                     </div>
 
                     <header className="mt-8 min-w-0 lg:col-start-2 lg:row-start-1 lg:mt-0">
-                        <p className="text-[0.8125rem] leading-[22px] text-black/60">
+                        <p className="text-[0.95rem] leading-[22px] text-black/60">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -315,13 +315,13 @@ export default function BlogArticle({
                                 )}
                             </div>
                             <div>
-                                <p className="text-[0.9375rem] leading-5 text-black/90">By {blog.author}</p>
-                                {blog.author_role && <p className="text-xs leading-4 tracking-[0.01em] text-[#a39e98]">{blog.author_role}</p>}
+                                <p className="text-[0.95rem] leading-5 text-black/90">By {blog.author}</p>
+                                {blog.author_role && <p className="text-[0.95rem] leading-5 tracking-[0.01em] text-[#a39e98]">{blog.author_role}</p>}
                             </div>
                         </div>
 
                         <div className="mt-12 sm:mt-[50px] xl:mt-[52px]">
-                            <p className="text-[0.6875rem] font-medium uppercase tracking-[0.06em] text-black/55">Share this post</p>
+                            <p className="text-[0.95rem] font-medium uppercase tracking-[0.06em] text-black/55">Share this post</p>
                             <ShareButtons url={shareUrl} title={blog.title} />
                         </div>
 
