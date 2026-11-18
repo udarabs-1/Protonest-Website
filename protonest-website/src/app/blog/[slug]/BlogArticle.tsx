@@ -381,8 +381,9 @@ export default function BlogArticle({
                         </section>
                     </div>
 
-                    {/* Right column, from the top of the title down to the end of the article; it follows the reader */}
-                    <div className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 lg:pt-1">
+                    {/* Right column, starting level with the first paragraph (under the cover image); placed after
+                        the article in the markup so the grid puts it in the same row. It follows the reader down. */}
+                    <div className="hidden lg:block lg:col-start-3 lg:mt-14">
                         <TableOfContents items={tocItems} isMobile={false} />
                     </div>
                 </div>
