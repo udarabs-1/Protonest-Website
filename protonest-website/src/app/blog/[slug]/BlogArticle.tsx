@@ -282,7 +282,7 @@ export default function BlogArticle({
                     </div>
 
                     <header className="mt-8 min-w-0 lg:col-start-2 lg:row-start-1 lg:mt-0">
-                        <p className="text-base sm:text-lg text-[#55534e]">
+                        <p className="text-xs text-[#55534e]">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -314,13 +314,13 @@ export default function BlogArticle({
                                 )}
                             </div>
                             <div>
-                                <p className="text-lg sm:text-[1.375rem] text-[#191919]">By {blog.author}</p>
-                                {blog.author_role && <p className="mt-0.5 text-base sm:text-lg text-[#a3a3a3]">{blog.author_role}</p>}
+                                <p className="text-sm text-[#191919]">By {blog.author}</p>
+                                {blog.author_role && <p className="mt-0.5 text-xs text-[#a3a3a3]">{blog.author_role}</p>}
                             </div>
                         </div>
 
                         <div className="mt-14">
-                            <p className="text-base uppercase tracking-[0.06em] text-[#55534e]">Share this post</p>
+                            <p className="text-[0.6875rem] uppercase tracking-[0.08em] text-[#55534e]">Share this post</p>
                             <ShareButtons url={shareUrl} title={blog.title} />
                         </div>
 
