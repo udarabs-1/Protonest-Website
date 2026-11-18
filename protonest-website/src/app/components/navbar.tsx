@@ -4,6 +4,7 @@ import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { BLOG_EDGE_PADDING, BLOG_EDGE_WIDTH } from "@/lib/blog-layout";
 import { useEffect, useRef, useState } from "react";
 import {
   DROPDOWN_ITEMS,
@@ -22,6 +23,8 @@ export default function Navbar() {
   const [isUserSignedIn, setIsUserSignedIn] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const pathname = usePathname();
+  // The blog uses wider page edges (logo further left, Book a Call further right); see lib/blog-layout
+  const isBlog = pathname === '/blog' || pathname?.startsWith('/blog/');
   const showCareersAuth = pathname === SITE_LINKS.careers;
   const router = useRouter();
   const desktopDropdownRef = useRef<HTMLDivElement>(null);
@@ -179,8 +182,8 @@ export default function Navbar() {
     <div>
       <div className="hidden lg:block">
         <div className="relative">
-          <nav className="fixed top-0 left-0 w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-4 md:py-[35px] lg:py-[25px] xl:py-[28px] 2xl:py-[30px] z-50 bg-white/80 backdrop-blur-[20px]">
-            <div className="container mx-auto">
+          <nav className={`fixed top-0 left-0 w-full ${isBlog ? BLOG_EDGE_PADDING : 'px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px]'} py-4 md:py-[35px] lg:py-[25px] xl:py-[28px] 2xl:py-[30px] z-50 bg-white/80 backdrop-blur-[20px]`}>
+            <div className={isBlog ? BLOG_EDGE_WIDTH : 'container mx-auto'}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <Link href={SITE_LINKS.home} onClick={handleNavigation}>

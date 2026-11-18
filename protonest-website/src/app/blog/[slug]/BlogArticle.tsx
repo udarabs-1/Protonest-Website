@@ -12,6 +12,7 @@ import "./article.css";
 import SocialIcon, { type SocialIconName } from "@/app/components/social-icon";
 import { SOCIAL_LINKS } from "@/lib/navigation";
 import { CONTACT_DETAILS } from "@/lib/contact-details";
+import { BLOG_EDGE_PADDING, BLOG_EDGE_WIDTH } from "@/lib/blog-layout";
 
 
 export interface Blog {
@@ -70,7 +71,7 @@ const ShareButtons = ({ url, title }: { url: string; title: string }) => {
     ];
 
     return (
-        <div className="mt-5 flex items-center gap-7 text-[#37352f]">
+        <div className="mt-2 -ml-2 flex items-center gap-1 text-[#37352f]">
             {links.map(({ name, label, href }) => (
                 <a
                     key={name}
@@ -79,9 +80,9 @@ const ShareButtons = ({ url, title }: { url: string; title: string }) => {
                     rel="noopener noreferrer"
                     aria-label={label}
                     title={label}
-                    className="transition-colors hover:text-[#5530fa]"
+                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-black/5 hover:text-[#5530fa]"
                 >
-                    <SocialIcon name={name} size={30} />
+                    <SocialIcon name={name} size={17} />
                 </a>
             ))}
         </div>
@@ -259,22 +260,22 @@ export default function BlogArticle({
         <div className="overflow-x-hidden" id="article-top">
             <Navbar />
 
-            <div className={`${articleFont.variable} article-page w-full px-4 md:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-12 lg:py-16`}>
+            <div className={`${articleFont.variable} article-page w-full ${BLOG_EDGE_PADDING} py-12 lg:py-16`}>
                 {/* Same side space and width as the navbar on every screen: below 1024px the phone/tablet navbar
                     (16px, then 32px from 768px); from 1024px the desktop navbar's padding and container width */}
-                <div className="w-full lg:mx-auto lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px]">
+                <div className={BLOG_EDGE_WIDTH}>
                 {/* Three columns on laptops and desktops (1024px+), as in the sketch:
                     "All posts" (in line with the logo) | title, share and article | "In this article" (in line with
                     "Book a Call"). The side columns grow with the screen; from 1440px they are the same width,
                     so the article sits in the centre. Phones and tablets: one column, contents above the article.
                     The side padding is the navbar's, so the edges match on every screen. */}
                 <div className="lg:grid lg:grid-cols-[140px_minmax(0,1fr)_180px] lg:gap-x-8 xl:grid-cols-[170px_minmax(0,1fr)_210px] xl:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,920px)_220px] min-[90rem]:justify-between min-[90rem]:gap-x-12">
-                    <div className="lg:col-start-1 lg:row-start-1 lg:pt-1">
+                    <div className="lg:col-start-1 lg:row-start-1">
                         <Link
                             href="/blog"
-                            className="inline-flex items-center gap-2 text-base text-[#52525b] transition-colors hover:text-[#0a0a0a]"
+                            className="inline-flex h-[22px] items-center gap-1 text-[0.8125rem] leading-[22px] text-black/60 transition-colors hover:text-[#0a0a0a]"
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
                             All posts
@@ -282,7 +283,7 @@ export default function BlogArticle({
                     </div>
 
                     <header className="mt-8 min-w-0 lg:col-start-2 lg:row-start-1 lg:mt-0">
-                        <p className="text-xs text-[#55534e]">
+                        <p className="text-[0.9375rem] leading-[22px] text-black/60">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -294,37 +295,37 @@ export default function BlogArticle({
                             )}
                         </p>
 
-                        <h1 className="mt-5 text-[2.25rem] sm:text-[3rem] lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[4rem] font-bold leading-[1.1] tracking-[-0.025em] text-[#191919] text-balance">
+                        <h1 className="mt-3 text-[2.25rem] sm:text-[3rem] lg:text-[2.75rem] xl:text-[3.375rem] font-bold leading-[1.04] tracking-[-0.035em] text-black/90 text-balance">
                             {blog.title}
                         </h1>
 
-                        <div className="mt-6 flex items-center gap-4">
-                            <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
+                        <div className="mt-3 flex items-center gap-2.5">
+                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
                                 {blog.author_photo ? (
                                     <Image
                                         src={blog.author_photo}
                                         unoptimized={skipImageOptimization(blog.author_photo)}
                                         alt={blog.author}
                                         fill
-                                        sizes="72px"
+                                        sizes="48px"
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <Image src="/logo-mark.png" alt="Protonest IoT" fill sizes="72px" className="object-contain p-4" />
+                                    <Image src="/logo-mark.png" alt="Protonest IoT" fill sizes="48px" className="object-contain p-2.5" />
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm text-[#191919]">By {blog.author}</p>
-                                {blog.author_role && <p className="mt-0.5 text-xs text-[#a3a3a3]">{blog.author_role}</p>}
+                                <p className="text-[0.9375rem] leading-5 text-black/90">By {blog.author}</p>
+                                {blog.author_role && <p className="text-xs leading-4 tracking-[0.01em] text-[#a39e98]">{blog.author_role}</p>}
                             </div>
                         </div>
 
-                        <div className="mt-14">
-                            <p className="text-[0.6875rem] uppercase tracking-[0.08em] text-[#55534e]">Share this post</p>
+                        <div className="mt-10">
+                            <p className="text-[0.6875rem] font-medium uppercase tracking-[0.06em] text-black/55">Share this post</p>
                             <ShareButtons url={shareUrl} title={blog.title} />
                         </div>
 
-                        <hr className="mt-14 w-[90px] border-0 border-t border-[#e9e9e7]" />
+                        <hr className="mt-8 w-[90px] border-0 border-t border-[#e9e9e7]" />
                     </header>
 
                     {blog.cover_image && (

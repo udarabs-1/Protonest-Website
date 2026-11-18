@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
 import { skipImageOptimization } from "@/lib/cms-blogs";
+import { BLOG_EDGE_PADDING, BLOG_EDGE_WIDTH } from "@/lib/blog-layout";
 
 export interface Blog {
   id: string;
@@ -266,9 +267,9 @@ export default function BlogList({
     <div className="overflow-x-hidden bg-white">
       <BlogJsonLd />
       <Navbar />
-      <main className="w-full px-4 md:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-12 pb-20 lg:pt-16 font-montserrat">
+      <main className={`w-full ${BLOG_EDGE_PADDING} pt-12 pb-20 lg:pt-16 font-montserrat`}>
         {/* Same side space and width as the navbar: phone/tablet navbar below 1024px, desktop navbar above */}
-        <div className="w-full lg:mx-auto lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px]">
+        <div className={BLOG_EDGE_WIDTH}>
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <header className="max-w-[760px]">
             <p className="text-base font-medium text-[#787774]">Protonest Blog</p>

@@ -264,7 +264,7 @@
 @media (min-width: 768px) {
   .blog-article {
     font-size: 1.25rem;
-    line-height: 1.8;
+    line-height: 1.55; /* 31px, as on Notion's blog */
   }
 }
 
