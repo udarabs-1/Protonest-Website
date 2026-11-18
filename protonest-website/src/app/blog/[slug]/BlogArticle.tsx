@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { skipImageOptimization } from "@/lib/cms-blogs";
 import type { TocItem } from "@/lib/article-html";
 import { articleFont } from "./fonts";
+import "./article.css";
 import SocialIcon, { type SocialIconName } from "@/app/components/social-icon";
 import { SOCIAL_LINKS } from "@/lib/navigation";
 import { CONTACT_DETAILS } from "@/lib/contact-details";
@@ -59,34 +60,14 @@ const extractExcerpt = (htmlContent: string, maxLength: number = 150): string =>
 
 // Row of share icons: Facebook, LinkedIn, WhatsApp, and "Other" for the device's own share sheet
 const ShareButtons = ({ url, title }: { url: string; title: string }) => {
-    const [copied, setCopied] = useState(false);
-
     const u = encodeURIComponent(url);
+    // Same set as Notion's blog: X, LinkedIn, Facebook, Email
     const links: { name: SocialIconName; label: string; href: string }[] = [
-        { name: 'facebook', label: 'Share on Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+        { name: 'x', label: 'Share on X', href: `https://x.com/intent/post?url=${u}&text=${encodeURIComponent(title)}` },
         { name: 'linkedin', label: 'Share on LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
-        { name: 'whatsapp', label: 'Share on WhatsApp', href: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}` },
+        { name: 'facebook', label: 'Share on Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+        { name: 'email', label: 'Share by email', href: `mailto:?subject=${encodeURIComponent(title)}&body=${u}` },
     ];
-
-    // Opens the system share sheet where supported (phones, Safari, Chrome on Windows);
-    // otherwise copies the link so it can be pasted anywhere
-    const shareOther = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title, url });
-            } catch {
-                // Closing the share sheet rejects; nothing to do
-            }
-            return;
-        }
-        try {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch {
-            window.prompt('Copy this link:', url);
-        }
-    };
 
     return (
         <div className="mt-5 flex items-center gap-7 text-[#37352f]">
@@ -94,34 +75,15 @@ const ShareButtons = ({ url, title }: { url: string; title: string }) => {
                 <a
                     key={name}
                     href={href}
-                    target="_blank"
+                    target={name === 'email' ? undefined : '_blank'}
                     rel="noopener noreferrer"
                     aria-label={label}
                     title={label}
                     className="transition-colors hover:text-[#5530fa]"
                 >
-                    <SocialIcon name={name} size={28} />
+                    <SocialIcon name={name} size={30} />
                 </a>
             ))}
-            <button
-                type="button"
-                onClick={shareOther}
-                aria-label="Share another way"
-                title="Other"
-                className="relative transition-colors hover:text-[#5530fa]"
-            >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="18" cy="5" r="3" />
-                    <circle cx="6" cy="12" r="3" />
-                    <circle cx="18" cy="19" r="3" />
-                    <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
-                </svg>
-                {copied && (
-                    <span role="status" className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-[#0a0a0a] px-2 py-1 text-xs text-white">
-                        Link copied
-                    </span>
-                )}
-            </button>
         </div>
     );
 };
@@ -297,15 +259,19 @@ export default function BlogArticle({
         <div className="overflow-x-hidden" id="article-top">
             <Navbar />
 
-            <div className={`${articleFont.variable} article-page w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-12 lg:py-16`}>
-                {/* Same width as the navbar's content (Tailwind container), so edges line up on every screen */}
-                <div className="container mx-auto">
-                {/* Phones and tablets: one column. Laptops (1024px+): article and table of contents side by side.
-                    Wide screens (1440px+): "All posts" lines up with the logo, the contents with "Book a Call",
-                    and the article is centred between them (both side columns are the same width).
+            <div className={`${articleFont.variable} article-page w-full px-4 md:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-12 lg:py-16`}>
+                {/* Same side space and width as the navbar on every screen: below 1024px the phone/tablet navbar
+                    (16px, then 32px from 768px); from 1024px the desktop navbar's padding and container width */}
+                <div className="w-full lg:mx-auto lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px]">
+                {/* Notion-style article with "In this article" on the right.
+                    Phones and tablets: one column, the contents above the article.
+                    1024-1439px: "All posts" above the title; the article on the left (in line with the logo) and
+                    the contents on the right (in line with "Book a Call").
+                    1440px+: three columns - "All posts" | title, share and article | "In this article".
+                    The side columns are the same width, so the article sits in the centre.
                     The side padding is the navbar's, so the edges match on every screen. */}
-                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,780px)_220px] lg:justify-between lg:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,780px)_220px]">
-                    <div className="lg:col-start-1 lg:pt-1">
+                <div className="lg:grid lg:grid-cols-[minmax(0,780px)_220px] lg:justify-between lg:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,920px)_220px] min-[90rem]:gap-x-12">
+                    <div className="lg:col-start-1 lg:row-start-1 lg:pt-1">
                         <Link
                             href="/blog"
                             className="inline-flex items-center gap-2 text-base text-[#52525b] transition-colors hover:text-[#0a0a0a]"
@@ -317,8 +283,8 @@ export default function BlogArticle({
                         </Link>
                     </div>
 
-                    <header className="mt-8 min-w-0 lg:col-start-1 min-[90rem]:col-start-2 min-[90rem]:mt-0">
-                        <p className="text-lg sm:text-xl text-[#55534e]">
+                    <header className="mt-8 min-w-0 lg:col-start-1 lg:row-start-2 min-[90rem]:col-start-2 min-[90rem]:row-start-1 min-[90rem]:mt-0">
+                        <p className="text-lg sm:text-[1.375rem] text-[#55534e]">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
                                 <>
@@ -330,11 +296,11 @@ export default function BlogArticle({
                             )}
                         </p>
 
-                        <h1 className="mt-6 text-[2.25rem] sm:text-[2.75rem] lg:text-[3.5rem] font-bold leading-[1.1] tracking-[-0.035em] text-[#191919] text-balance">
+                        <h1 className="mt-5 text-[2.25rem] sm:text-[3rem] lg:text-[3.25rem] 2xl:text-[4rem] font-bold leading-[1.1] tracking-[-0.025em] text-[#191919] text-balance">
                             {blog.title}
                         </h1>
 
-                        <div className="mt-7 flex items-center gap-4">
+                        <div className="mt-6 flex items-center gap-4">
                             <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full border border-[#e5e5e5] bg-white">
                                 {blog.author_photo ? (
                                     <Image
@@ -350,8 +316,8 @@ export default function BlogArticle({
                                 )}
                             </div>
                             <div>
-                                <p className="text-lg sm:text-xl text-[#191919]">By {blog.author}</p>
-                                {blog.author_role && <p className="mt-0.5 text-base text-[#9b9a97]">{blog.author_role}</p>}
+                                <p className="text-lg sm:text-[1.375rem] text-[#191919]">By {blog.author}</p>
+                                {blog.author_role && <p className="mt-0.5 text-base sm:text-lg text-[#a3a3a3]">{blog.author_role}</p>}
                             </div>
                         </div>
 
@@ -417,8 +383,8 @@ export default function BlogArticle({
                         </section>
                     </div>
 
-                    {/* After the article in the markup so the grid puts it in the right column of the same row */}
-                    <div className="hidden lg:block lg:col-start-2 lg:mt-14 min-[90rem]:col-start-3">
+                    {/* Right column, from the top of the title down to the end of the article; it follows the reader */}
+                    <div className="hidden lg:block lg:col-start-2 lg:row-start-2 lg:row-span-3 lg:pt-1 min-[90rem]:col-start-3 min-[90rem]:row-start-1">
                         <TableOfContents items={tocItems} isMobile={false} />
                     </div>
                 </div>
@@ -447,253 +413,6 @@ export default function BlogArticle({
 
             <Footer />
 
-            <style jsx global>{`
-        .article-page {
-          font-family: var(--font-article), 'Inter', sans-serif;
-        }
-
-        .blog-article {
-          color: #3f3f46;
-          font-size: 1.125rem;
-          line-height: 2rem;
-        }
-
-        .blog-article > .payload-richtext > :first-child,
-        .blog-article > :first-child {
-          margin-top: 0;
-        }
-
-        .blog-article h1,
-        .blog-article h2,
-        .blog-article h3,
-        .blog-article h4 {
-          color: #18181b;
-          font-weight: 600;
-          scroll-margin-top: 7rem;
-        }
-
-        .blog-article h1 {
-          font-size: 2.25rem;
-          line-height: 2.75rem;
-          letter-spacing: -0.025em;
-          margin: 3.5rem 0 2rem;
-        }
-
-        .blog-article h2 {
-          font-size: 1.875rem;
-          line-height: 2.5rem;
-          letter-spacing: -0.025em;
-          margin: 3.5rem 0 2rem;
-        }
-
-        .blog-article h3 {
-          font-size: 1.5rem;
-          line-height: 2.25rem;
-          letter-spacing: -0.025em;
-          margin: 2.5rem 0 1rem;
-        }
-
-        .blog-article h4 {
-          font-size: 1.25rem;
-          line-height: 1.75rem;
-          margin: 2rem 0 0.75rem;
-        }
-
-        .blog-article p {
-          margin: 0 0 1.5rem;
-        }
-
-        .blog-article ul,
-        .blog-article ol {
-          margin: 1.5rem 0;
-          padding-left: 1.25rem;
-        }
-
-        .blog-article ul {
-          list-style-type: disc;
-        }
-
-        .blog-article ol {
-          list-style-type: decimal;
-        }
-
-        .blog-article li {
-          margin: 0.75rem 0;
-          padding-left: 0.25rem;
-        }
-
-        .blog-article li::marker {
-          color: #71717a;
-        }
-
-        .blog-article strong {
-          color: #18181b;
-          font-weight: 600;
-        }
-
-        .blog-article a {
-          color: #5530fa;
-          font-weight: 500;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          transition: color 0.2s ease;
-        }
-
-        .blog-article a:hover {
-          color: #f51da5;
-        }
-
-        .blog-article img {
-          display: block;
-          /* Large images fill the column; small ones keep their real size so they stay sharp */
-          width: auto;
-          max-width: 100%;
-          height: auto;
-          margin: 2rem auto;
-          border: 1px solid #e5e5e5;
-          border-radius: 0.75rem;
-        }
-
-        .blog-article picture {
-          display: block;
-        }
-
-        .blog-article figure {
-          margin: 2rem 0;
-        }
-
-        .blog-article p.figure-caption {
-          margin-top: -1rem;
-          font-size: 1rem;
-          line-height: 1.5rem;
-          color: #52525b;
-        }
-
-        .blog-article .video-embed iframe {
-          display: block;
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          border: 1px solid #e5e5e5;
-          border-radius: 0.75rem;
-        }
-
-        .blog-article figcaption {
-          margin-top: 0.75rem;
-          font-size: 1rem;
-          font-style: italic;
-          color: #52525b;
-        }
-
-        /* Quotes in the CMS show as a callout box with a light bulb, like Notion's blog */
-        .blog-article blockquote {
-          position: relative;
-          margin: 2.5rem 0;
-          padding: 1.5rem 1.75rem 1.5rem 5.25rem;
-          border: 0;
-          background: #f2f8fe;
-          border-radius: 1rem;
-          color: #37352f;
-          font-style: italic;
-        }
-
-        .blog-article blockquote::before {
-          content: '';
-          position: absolute;
-          left: 1.75rem;
-          top: 1.4rem;
-          width: 2.5rem;
-          height: 2.75rem;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 44' fill='none' stroke='%232f5f8f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 31c0-4-6-8-6-15a13 13 0 0 1 26 0c0 7-6 11-6 15z'/%3E%3Cpath d='M14 35h12M15 39h10M17 43h6'/%3E%3Cpath d='M17 31V20l-3-4M23 31V20l3-4M17 20h6'/%3E%3C/svg%3E") no-repeat center / contain;
-        }
-
-        .blog-article blockquote p {
-          margin: 0;
-        }
-
-        @media (max-width: 640px) {
-          .blog-article blockquote {
-            padding: 4.25rem 1.25rem 1.25rem;
-          }
-
-          .blog-article blockquote::before {
-            left: 1.25rem;
-            top: 1.25rem;
-          }
-        }
-
-        .blog-article hr {
-          margin: 3rem 0;
-          border: 0;
-          border-top: 1px solid #e5e5e5;
-        }
-
-        .blog-article code {
-          background: #f4f4f5;
-          padding: 0.15rem 0.4rem;
-          border-radius: 0.25rem;
-          font-size: 0.9em;
-          color: #18181b;
-        }
-
-        .blog-article pre {
-          background: #18181b;
-          color: #e4e4e7;
-          padding: 1.5rem;
-          border-radius: 0.75rem;
-          overflow-x: auto;
-          margin: 2rem 0;
-          font-size: 0.95rem;
-          line-height: 1.6;
-        }
-
-        .blog-article pre code {
-          background: transparent;
-          color: inherit;
-          padding: 0;
-        }
-
-        /* Tables from the CMS editor */
-        .blog-article .lexical-table-container {
-          margin: 2rem 0;
-          overflow-x: auto;
-        }
-
-        .blog-article table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 2rem 0;
-          font-size: 1rem;
-          line-height: 1.6;
-        }
-
-        .blog-article .lexical-table-container table {
-          margin: 0;
-        }
-
-        .blog-article th,
-        .blog-article td {
-          border: 1px solid #e5e5e5 !important;
-          padding: 0.75rem 1rem !important;
-          text-align: left;
-          vertical-align: top;
-        }
-
-        .blog-article th {
-          background: #f7f7f8;
-          color: #18181b;
-          font-weight: 600;
-        }
-
-        .blog-article th p,
-        .blog-article td p {
-          margin: 0;
-        }
-
-        .blog-article td ol,
-        .blog-article td ul {
-          margin: 0;
-        }
-      `}</style>
         </div>
     );
 }

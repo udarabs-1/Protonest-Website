@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import NewsletterSubscription from "../components/newsletter-subscription";
 import { skipImageOptimization } from "@/lib/cms-blogs";
-import { articleFont } from "./[slug]/fonts";
 
 export interface Blog {
   id: string;
@@ -184,11 +183,11 @@ const Byline = ({ blog }: { blog: Blog }) => (
 
 // The newest post, shown large above the grid
 const FeaturedCard = ({ blog }: { blog: Blog }) => (
-  <Link href={`/blog/${blog.slug}`} className="group grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] md:gap-12">
+  <Link href={`/blog/${blog.slug}`} className="group grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-12">
     <Cover blog={blog} sizes="(max-width: 768px) 100vw, 700px" priority />
     <div>
       {blog.categories?.[0] && <p className="text-sm font-medium text-[#787774]">{blog.categories[0]}</p>}
-      <h2 className="mt-3 text-[1.75rem] sm:text-[2.25rem] font-bold leading-[1.12] tracking-[-0.03em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
+      <h2 className="mt-3 text-[1.75rem] sm:text-[2.25rem] font-bold leading-[1.15] tracking-[-0.015em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
         {blog.title}
       </h2>
       <p className="mt-4 text-[1.05rem] leading-relaxed text-[#55534e] line-clamp-3">{blog.excerpt || extractExcerpt(blog.content, 220)}</p>
@@ -201,7 +200,7 @@ const BlogCard = ({ blog, eager = false }: { blog: Blog; eager?: boolean }) => (
   <Link href={`/blog/${blog.slug}`} className="group flex h-full flex-col">
     <Cover blog={blog} eager={eager} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" />
     {blog.categories?.[0] && <p className="mt-5 text-sm font-medium text-[#787774]">{blog.categories[0]}</p>}
-    <h3 className="mt-2 text-xl font-bold leading-[1.25] tracking-[-0.02em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
+    <h3 className="mt-2 text-xl font-bold leading-[1.3] tracking-[-0.01em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
       {blog.title}
     </h3>
     <p className="mt-3 text-[0.95rem] leading-relaxed text-[#55534e] line-clamp-3">{blog.excerpt || extractExcerpt(blog.content)}</p>
@@ -267,13 +266,13 @@ export default function BlogList({
     <div className="overflow-x-hidden bg-white">
       <BlogJsonLd />
       <Navbar />
-      <main className={`${articleFont.variable} w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-12 pb-20 lg:pt-16`} style={{ fontFamily: "var(--font-article), 'Inter', sans-serif" }}>
-        {/* Same width as the navbar's content, so edges line up on every screen */}
-        <div className="container mx-auto">
-        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+      <main className="w-full px-4 md:px-8 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-12 pb-20 lg:pt-16 font-montserrat">
+        {/* Same side space and width as the navbar: phone/tablet navbar below 1024px, desktop navbar above */}
+        <div className="w-full lg:mx-auto lg:max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1536px]">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <header className="max-w-[760px]">
             <p className="text-base font-medium text-[#787774]">Protonest Blog</p>
-            <h1 className="mt-3 text-[2.5rem] sm:text-[3.5rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#191919]">
+            <h1 className="mt-3 text-[2.5rem] sm:text-[3.5rem] font-bold leading-[1.1] tracking-[-0.02em] text-[#191919]">
               IoT insights and guides
             </h1>
             <p className="mt-4 text-lg sm:text-xl leading-relaxed text-[#55534e]">
@@ -281,7 +280,7 @@ export default function BlogList({
             </p>
           </header>
 
-          <form role="search" onSubmit={(e) => e.preventDefault()} className="relative w-full shrink-0 md:w-[300px]">
+          <form role="search" onSubmit={(e) => e.preventDefault()} className="relative w-full shrink-0 md:max-w-[420px] lg:w-[300px] lg:max-w-none">
             <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9b9a97]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3.5-3.5" />
