@@ -297,9 +297,14 @@ export default function BlogArticle({
         <div className="overflow-x-hidden" id="article-top">
             <Navbar />
 
-            <div className={`${articleFont.variable} article-page mx-auto w-full max-w-[1360px] px-4 sm:px-6 py-12 lg:py-16`}>
-                {/* The article sits in a centred column; the back link uses the left margin and the table of contents the right */}
-                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[240px_minmax(0,780px)_240px] lg:justify-center lg:gap-x-10">
+            <div className={`${articleFont.variable} article-page w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] py-12 lg:py-16`}>
+                {/* Same width as the navbar's content (Tailwind container), so edges line up on every screen */}
+                <div className="container mx-auto">
+                {/* Phones and tablets: one column. Laptops (1024px+): article and table of contents side by side.
+                    Wide screens (1440px+): "All posts" lines up with the logo, the contents with "Book a Call",
+                    and the article is centred between them (both side columns are the same width).
+                    The side padding is the navbar's, so the edges match on every screen. */}
+                <div className="mx-auto max-w-[780px] lg:mx-0 lg:max-w-none lg:grid lg:grid-cols-[minmax(0,780px)_220px] lg:justify-between lg:gap-x-10 min-[90rem]:grid-cols-[220px_minmax(0,780px)_220px]">
                     <div className="lg:col-start-1 lg:pt-1">
                         <Link
                             href="/blog"
@@ -312,7 +317,7 @@ export default function BlogArticle({
                         </Link>
                     </div>
 
-                    <header className="mt-8 min-w-0 lg:col-start-2 lg:mt-0">
+                    <header className="mt-8 min-w-0 lg:col-start-1 min-[90rem]:col-start-2 min-[90rem]:mt-0">
                         <p className="text-lg sm:text-xl text-[#55534e]">
                             Published <time dateTime={publishDate}>{formatDate(publishDate)}</time>
                             {blog.categories?.[0] && (
@@ -325,7 +330,7 @@ export default function BlogArticle({
                             )}
                         </p>
 
-                        <h1 className="mt-6 text-[2.5rem] sm:text-[3.25rem] lg:text-[4.25rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#191919] text-balance">
+                        <h1 className="mt-6 text-[2.25rem] sm:text-[2.75rem] lg:text-[3.5rem] font-bold leading-[1.1] tracking-[-0.035em] text-[#191919] text-balance">
                             {blog.title}
                         </h1>
 
@@ -360,7 +365,7 @@ export default function BlogArticle({
 
                     {blog.cover_image && (
                         <>
-                            <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-2">
+                            <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:col-start-1 min-[90rem]:col-start-2">
                                 <Image
                                     src={blog.cover_image}
                                     unoptimized={skipImageOptimization(blog.cover_image)}
@@ -380,7 +385,7 @@ export default function BlogArticle({
                         </>
                     )}
 
-                    <div className="min-w-0 mt-10 lg:col-start-2 lg:mt-14">
+                    <div className="min-w-0 mt-10 lg:col-start-1 lg:mt-14 min-[90rem]:col-start-2">
                         <div className="lg:hidden">
                             <TableOfContents items={tocItems} isMobile={true} />
                         </div>
@@ -413,7 +418,7 @@ export default function BlogArticle({
                     </div>
 
                     {/* After the article in the markup so the grid puts it in the right column of the same row */}
-                    <div className="hidden lg:block lg:col-start-3 lg:mt-14">
+                    <div className="hidden lg:block lg:col-start-2 lg:mt-14 min-[90rem]:col-start-3">
                         <TableOfContents items={tocItems} isMobile={false} />
                     </div>
                 </div>
@@ -437,6 +442,7 @@ export default function BlogArticle({
                     </section>
                 )}
 
+                </div>
             </div>
 
             <Footer />

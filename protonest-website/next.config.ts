@@ -62,8 +62,10 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31536000,
     remotePatterns: [
       {
+        // Azure Blob Storage: old blog images, and CMS images when they are served straight
+        // from Azure (AZURE_STORAGE_PUBLIC_READ in the CMS)
         protocol: 'https',
-        hostname: 'protonestwebsite.blob.core.windows.net',
+        hostname: '**.blob.core.windows.net',
         port: '',
         pathname: '/**',
       },

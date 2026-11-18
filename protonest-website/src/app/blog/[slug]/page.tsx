@@ -7,6 +7,10 @@ import BlogArticle from './BlogArticle';
 // A published edit shows up within a minute.
 export const revalidate = 60;
 
+// Article pictures from these addresses are resized per screen (see optimizeArticleImages);
+// they must match images.remotePatterns in next.config.ts
+const ARTICLE_IMAGE_PREFIXES = [`${CMS_URL}/api/media/`, /^https:\/\/[a-z0-9-]+\.blob\.core\.windows\.net\//];
+
 type Props = {
     params: Promise<{ slug: string }>;
 };
@@ -93,7 +97,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
     if (!blog || !blog.published) notFound();
 
-    const { content, toc } = prepareArticle(blog.content, blog.title, CMS_URL, [`${CMS_URL}/api/media/`]);
+    const { content, toc } = prepareArticle(blog.content, blog.title, CMS_URL, ARTICLE_IMAGE_PREFIXES);
 
     // Two other posts to read next: those sharing a category first, then the newest
     const others = allBlogs.filter((b) => b.id !== blog.id);

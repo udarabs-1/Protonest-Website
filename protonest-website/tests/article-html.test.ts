@@ -83,3 +83,8 @@ test('optimizeArticleImages leaves other pictures alone', () => {
     }
     assert.equal(optimizeArticleImages('<img src="https://cms.test/api/media/file/a.png">', []), '<img src="https://cms.test/api/media/file/a.png">');
 });
+
+test('optimizeArticleImages accepts a pattern for pictures served straight from Azure', () => {
+    const html = optimizeArticleImages('<img src="https://acct.blob.core.windows.net/media/a.jpg">', [/^https:\/\/[a-z0-9-]+\.blob\.core\.windows\.net\//]);
+    assert.match(html, /^<img src="\/_next\/image\?url=https%3A%2F%2Facct.blob.core.windows.net%2Fmedia%2Fa.jpg&amp;w=1200&amp;q=75"/);
+});

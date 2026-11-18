@@ -115,12 +115,12 @@ const ARTICLE_IMAGE_WIDTHS = [640, 828, 1080, 1200];
 // screen downloads a resized WebP/AVIF copy (cached on the CDN) instead of the full original.
 // Only addresses starting with one of `prefixes` are changed (they must be allowed in
 // next.config.ts images.remotePatterns); SVGs and pictures with their own srcset are left alone.
-export const optimizeArticleImages = (html: string, prefixes: string[]): string =>
+export const optimizeArticleImages = (html: string, prefixes: (string | RegExp)[]): string =>
     prefixes.length
         ? html.replace(/<img\b[^>]*>/gi, (tag) => {
               const src = /\ssrc="([^"]+)"/i.exec(tag)?.[1]?.replace(/&amp;/g, '&');
               if (!src || /\ssrcset=/i.test(tag) || /\.svg(\?|$)/i.test(src)) return tag;
-              if (!prefixes.some((prefix) => src.startsWith(prefix))) return tag;
+              if (!prefixes.some((prefix) => (typeof prefix === 'string' ? src.startsWith(prefix) : prefix.test(src)))) return tag;
               const at = (w: number) => `/_next/image?url=${encodeURIComponent(src)}&amp;w=${w}&amp;q=75`;
               const srcset = ARTICLE_IMAGE_WIDTHS.map((w) => `${at(w)} ${w}w`).join(', ');
               return tag.replace(
@@ -135,7 +135,7 @@ export const prepareArticle = (
     html: string,
     title: string,
     cmsUrl = '',
-    optimizePrefixes: string[] = [],
+    optimizePrefixes: (string | RegExp)[] = [],
 ): { content: string; toc: TocItem[] } => {
     const content = addIdsToHeadings(
         optimizeArticleImages(enhanceArticleHtml(removeTitleHeading(html, title), cmsUrl), optimizePrefixes),

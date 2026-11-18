@@ -138,7 +138,7 @@ const formatDate = (date?: string) =>
 
 // Grid cards start from the CMS's smaller "card" copy (768 px), so the first load is quick;
 // the featured post uses the original. A blurred preview shows until the picture arrives.
-const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; priority?: boolean }) => {
+const Cover = ({ blog, sizes, priority = false, eager = false }: { blog: Blog; sizes: string; priority?: boolean; eager?: boolean }) => {
   const src = priority ? blog.cover_image : blog.cover_card || blog.cover_image;
   return (
   <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-[#ececeb] bg-[#f7f7f5]">
@@ -150,6 +150,8 @@ const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; p
         fill
         sizes={sizes}
         priority={priority}
+        // The first row starts loading with the page instead of waiting until it is scrolled to
+        loading={priority ? undefined : eager ? 'eager' : 'lazy'}
         placeholder={blog.cover_blur ? 'blur' : 'empty'}
         blurDataURL={blog.cover_blur}
         className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -195,9 +197,9 @@ const FeaturedCard = ({ blog }: { blog: Blog }) => (
   </Link>
 );
 
-const BlogCard = ({ blog }: { blog: Blog }) => (
+const BlogCard = ({ blog, eager = false }: { blog: Blog; eager?: boolean }) => (
   <Link href={`/blog/${blog.slug}`} className="group flex h-full flex-col">
-    <Cover blog={blog} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" />
+    <Cover blog={blog} eager={eager} sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px" />
     {blog.categories?.[0] && <p className="mt-5 text-sm font-medium text-[#787774]">{blog.categories[0]}</p>}
     <h3 className="mt-2 text-xl font-bold leading-[1.25] tracking-[-0.02em] text-[#191919] group-hover:underline decoration-2 underline-offset-4">
       {blog.title}
@@ -265,7 +267,9 @@ export default function BlogList({
     <div className="overflow-x-hidden bg-white">
       <BlogJsonLd />
       <Navbar />
-      <main className={`${articleFont.variable} mx-auto w-full max-w-[1240px] px-4 sm:px-6 pt-12 pb-20 lg:pt-16`} style={{ fontFamily: "var(--font-article), 'Inter', sans-serif" }}>
+      <main className={`${articleFont.variable} w-full px-4 sm:px-8 md:px-16 lg:px-[60px] xl:px-[133px] 2xl:px-[180px] pt-12 pb-20 lg:pt-16`} style={{ fontFamily: "var(--font-article), 'Inter', sans-serif" }}>
+        {/* Same width as the navbar's content, so edges line up on every screen */}
+        <div className="container mx-auto">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <header className="max-w-[760px]">
             <p className="text-base font-medium text-[#787774]">Protonest Blog</p>
@@ -348,8 +352,8 @@ export default function BlogList({
             aria-label={selectedCategory ? `${selectedCategory} posts` : 'All posts'}
             className={`grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3 ${featured ? 'mt-16 border-t border-[#ececeb] pt-14' : 'mt-12'}`}
           >
-            {visibleBlogs.map((blog) => (
-              <BlogCard key={blog.id} blog={blog} />
+            {visibleBlogs.map((blog, i) => (
+              <BlogCard key={blog.id} blog={blog} eager={i < 3} />
             ))}
           </section>
         )}
@@ -369,6 +373,7 @@ export default function BlogList({
 
         <div className="mt-20">
           <NewsletterSubscription />
+        </div>
         </div>
       </main>
 
