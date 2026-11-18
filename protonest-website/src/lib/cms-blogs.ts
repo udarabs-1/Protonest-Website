@@ -10,6 +10,10 @@ export interface CmsBlog {
   content: string;
   excerpt?: string;
   cover_image?: string;
+  /** The CMS "card" size (768 px wide) of the cover, for cards and lists */
+  cover_card?: string;
+  /** Tiny blurred copy of the cover, shown while the picture loads */
+  cover_blur?: string;
   categories: string[];
   keywords: string[];
   author: string;
@@ -28,7 +32,12 @@ export interface CmsBlog {
 }
 
 type Named = { name?: string } | string | null | undefined;
-type Media = { url?: string | null } | string | null | undefined;
+type MediaSize = { url?: string | null } | null | undefined;
+type Media =
+  | { url?: string | null; blurDataURL?: string | null; sizes?: { thumbnail?: MediaSize; card?: MediaSize } | null }
+  | string
+  | null
+  | undefined;
 type Author = { name?: string; role?: string | null; photo?: Media } | string | null | undefined;
 
 type PayloadPost = {
@@ -54,10 +63,18 @@ type PayloadPost = {
 };
 
 // Media URLs from the CMS are relative, e.g. /api/media/file/photo.jpg
-const mediaUrl = (media: Media): string | undefined => {
-  if (!media || typeof media !== 'object' || !media.url) return undefined;
-  return media.url.startsWith('http') ? media.url : `${CMS_URL}${media.url}`;
-};
+const absolute = (url?: string | null): string | undefined =>
+  url ? (url.startsWith('http') ? url : `${CMS_URL}${url}`) : undefined;
+
+const mediaUrl = (media: Media): string | undefined =>
+  media && typeof media === 'object' ? absolute(media.url) : undefined;
+
+// A smaller copy made by the CMS when the image was uploaded, or the original if there is none
+const mediaSizeUrl = (media: Media, size: 'thumbnail' | 'card'): string | undefined =>
+  media && typeof media === 'object' ? absolute(media.sizes?.[size]?.url) ?? mediaUrl(media) : undefined;
+
+const mediaBlur = (media: Media): string | undefined =>
+  media && typeof media === 'object' && media.blurDataURL?.startsWith('data:image/') ? media.blurDataURL : undefined;
 
 /**
  * CMS images go through Next.js image optimisation, which resizes them for each screen,
@@ -77,12 +94,14 @@ const toBlog = (post: PayloadPost): CmsBlog => ({
   content: post.content_html ?? '',
   excerpt: post.seo?.description || undefined,
   cover_image: mediaUrl(post.featuredImage) ?? mediaUrl(post.seo?.image),
+  cover_card: mediaSizeUrl(post.featuredImage, 'card') ?? mediaSizeUrl(post.seo?.image, 'card'),
+  cover_blur: mediaBlur(post.featuredImage) ?? mediaBlur(post.seo?.image),
   categories: names(post.categories),
   keywords: names(post.tags),
   // Articles without an author are credited to the company
   author: post.author && typeof post.author === 'object' && post.author.name ? post.author.name : 'Protonest IoT',
   author_role: post.author && typeof post.author === 'object' ? post.author.role || undefined : undefined,
-  author_photo: post.author && typeof post.author === 'object' ? mediaUrl(post.author.photo) : undefined,
+  author_photo: post.author && typeof post.author === 'object' ? mediaSizeUrl(post.author.photo, 'thumbnail') : undefined,
   seo_title: post.seo?.title?.trim() || undefined,
   seo_description: post.seo?.description?.trim() || undefined,
   seo_image: mediaUrl(post.seo?.image),

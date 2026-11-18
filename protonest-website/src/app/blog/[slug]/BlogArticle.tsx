@@ -19,6 +19,8 @@ export interface Blog {
     slug: string;
     content: string;
     cover_image?: string;
+    cover_card?: string;
+    cover_blur?: string;
     categories: string[];
     keywords?: string[];
     author: string;
@@ -227,8 +229,10 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
             <article className="group w-full h-full relative bg-white/5 rounded-tl-[35px] rounded-bl-[35px] rounded-br-[35px] shadow-[10px_10px_30px_0px_rgba(0,0,0,0.10)] border border-white/10 backdrop-blur-[20px] overflow-hidden p-6 lg:p-8 transition-all duration-300 hover:shadow-[15px_15px_40px_0px_rgba(0,0,0,0.15)] cursor-pointer">
                 <div className="relative w-full aspect-video rounded-[11px] overflow-hidden mb-6">
                     <Image
-                        src={blog.cover_image || '/default-blog-image.jpg'}
-                        unoptimized={skipImageOptimization(blog.cover_image)}
+                        src={blog.cover_card || blog.cover_image || '/logo-mark.png'}
+                        unoptimized={skipImageOptimization(blog.cover_card || blog.cover_image)}
+                        placeholder={blog.cover_blur ? 'blur' : 'empty'}
+                        blurDataURL={blog.cover_blur}
                         alt={blog.title}
                         width={472}
                         height={164}
@@ -237,7 +241,7 @@ const BlogCard = ({ blog }: { blog: Blog }) => {
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 472px"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = '/default-blog-image.jpg';
+                            target.src = '/logo-mark.png';
                         }}
                     />
 
@@ -363,6 +367,8 @@ export default function BlogArticle({
                                     alt={blog.title}
                                     fill
                                     sizes="(max-width: 780px) 100vw, 780px"
+                                    placeholder={blog.cover_blur ? 'blur' : 'empty'}
+                                    blurDataURL={blog.cover_blur}
                                     className="object-cover"
                                     priority={true}
                                     onError={(e) => {

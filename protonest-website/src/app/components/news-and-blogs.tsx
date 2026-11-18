@@ -21,6 +21,8 @@ type Blog = {
   content: string;
   excerpt?: string;
   cover_image?: string;
+  cover_card?: string;
+  cover_blur?: string;
   published_at?: string;
   created_at: string;
   updated_at: string;
@@ -148,8 +150,10 @@ const BlogCard = ({
       >
         <div className="relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden">
           <Image
-            src={blog.cover_image || "/logo.webp"}
-            unoptimized={skipImageOptimization(blog.cover_image)}
+            src={blog.cover_card || blog.cover_image || "/logo.webp"}
+            unoptimized={skipImageOptimization(blog.cover_card || blog.cover_image)}
+            placeholder={blog.cover_blur ? "blur" : "empty"}
+            blurDataURL={blog.cover_blur}
             alt={`${blog.title} blog post image`}
             fill
             priority={index === 0}

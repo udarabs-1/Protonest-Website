@@ -16,6 +16,8 @@ export interface Blog {
   content: string;
   excerpt?: string;
   cover_image?: string;
+  cover_card?: string;
+  cover_blur?: string;
   categories: string[];
   author: string;
   author_role?: string;
@@ -134,23 +136,30 @@ const formatDate = (date?: string) =>
     ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Colombo' })
     : '';
 
-const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; priority?: boolean }) => (
+// Grid cards start from the CMS's smaller "card" copy (768 px), so the first load is quick;
+// the featured post uses the original. A blurred preview shows until the picture arrives.
+const Cover = ({ blog, sizes, priority = false }: { blog: Blog; sizes: string; priority?: boolean }) => {
+  const src = priority ? blog.cover_image : blog.cover_card || blog.cover_image;
+  return (
   <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-[#ececeb] bg-[#f7f7f5]">
-    {blog.cover_image ? (
+    {src ? (
       <Image
-        src={blog.cover_image}
-        unoptimized={skipImageOptimization(blog.cover_image)}
+        src={src}
+        unoptimized={skipImageOptimization(src)}
         alt={blog.title}
         fill
         sizes={sizes}
         priority={priority}
+        placeholder={blog.cover_blur ? 'blur' : 'empty'}
+        blurDataURL={blog.cover_blur}
         className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
       />
     ) : (
       <Image src="/logo-mark.png" alt="" fill sizes="120px" className="object-contain p-12 opacity-40" />
     )}
   </div>
-);
+  );
+};
 
 const Byline = ({ blog }: { blog: Blog }) => (
   <div className="mt-5 flex items-center gap-3 text-sm text-[#787774]">

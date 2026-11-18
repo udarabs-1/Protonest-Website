@@ -6,6 +6,7 @@ import {
     enhanceArticleHtml,
     extractTocItems,
     htmlToText,
+    optimizeArticleImages,
     prepareArticle,
     removeTitleHeading,
 } from '../src/lib/article-html.ts';
@@ -62,4 +63,23 @@ test('prepareArticle does everything in order', () => {
 
 test('enhanceArticleHtml keeps an existing loading attribute', () => {
     assert.equal(enhanceArticleHtml('<img loading="eager" src="https://x.com/a.png">'), '<img loading="eager" src="https://x.com/a.png">');
+});
+
+test('optimizeArticleImages sends CMS pictures through Next.js image optimisation', () => {
+    const html = optimizeArticleImages('<img loading="lazy" src="https://cms.test/api/media/file/a b.png" alt="x">', ['https://cms.test/api/media/']);
+    assert.match(html, /^<img loading="lazy" src="\/_next\/image\?url=https%3A%2F%2Fcms.test%2Fapi%2Fmedia%2Ffile%2Fa%20b.png&amp;w=1200&amp;q=75" srcset="/);
+    assert.match(html, /&amp;w=640&amp;q=75 640w, /);
+    assert.match(html, /sizes="\(max-width: 780px\) 100vw, 780px" alt="x">$/);
+});
+
+test('optimizeArticleImages leaves other pictures alone', () => {
+    const prefixes = ['https://cms.test/api/media/'];
+    for (const tag of [
+        '<img src="https://other.com/a.png">',
+        '<img src="https://cms.test/api/media/file/logo.svg">',
+        '<img src="https://cms.test/api/media/file/a.png" srcset="a.png 1x">',
+    ]) {
+        assert.equal(optimizeArticleImages(tag, prefixes), tag);
+    }
+    assert.equal(optimizeArticleImages('<img src="https://cms.test/api/media/file/a.png">', []), '<img src="https://cms.test/api/media/file/a.png">');
 });

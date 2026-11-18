@@ -57,6 +57,19 @@ const articleJsonLd = (blog: CmsBlog, description: string) => {
 const cleanSlug = (slug: string): string =>
     slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+// Every published post is built ahead of time, so opening an article is instant (no wait for
+// the CMS). Posts published later are built on their first visit, then kept the same way.
+export async function generateStaticParams() {
+    try {
+        const blogs = await getCmsBlogs(null, { next: { revalidate: 60 } });
+        return blogs.filter((blog) => blog.slug).map((blog) => ({ slug: blog.slug }));
+    } catch (err) {
+        // If the CMS can't be reached during the build, articles are built on their first visit
+        console.error('Could not list blog posts to pre-build:', err);
+        return [];
+    }
+}
+
 export default async function BlogDetailPage({ params }: Props) {
     const { slug: rawSlug } = await params;
     let slug = rawSlug;
@@ -80,7 +93,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
     if (!blog || !blog.published) notFound();
 
-    const { content, toc } = prepareArticle(blog.content, blog.title, CMS_URL);
+    const { content, toc } = prepareArticle(blog.content, blog.title, CMS_URL, [`${CMS_URL}/api/media/`]);
 
     // Two other posts to read next: those sharing a category first, then the newest
     const others = allBlogs.filter((b) => b.id !== blog.id);
