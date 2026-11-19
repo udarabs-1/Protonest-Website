@@ -25,6 +25,8 @@ module.exports = {
         },
     ],
     robotsTxtOptions: {
+        // Blog posts from the CMS (src/app/server-sitemap.xml/route.ts)
+        additionalSitemaps: ['https://protonest.co/server-sitemap.xml'],
         policies: [
             { userAgent: '*', allow: '/' },
             { userAgent: '*', disallow: '/private/' },
