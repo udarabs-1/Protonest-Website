@@ -1,0 +1,90 @@
+// Run with: npm test
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import {
+    addIdsToHeadings,
+    enhanceArticleHtml,
+    extractTocItems,
+    htmlToText,
+    optimizeArticleImages,
+    prepareArticle,
+    removeTitleHeading,
+} from '../src/lib/article-html.ts';
+
+test('htmlToText strips tags and decodes entities', () => {
+    assert.equal(htmlToText('<p>Load &amp; <b>Speed</b> &#39;x&#x27;</p>'), "Load & Speed 'x'");
+});
+
+test('removeTitleHeading removes an H1 that repeats the title only', () => {
+    assert.equal(removeTitleHeading('<h1>My  Title</h1><p>a</p>', 'my title'), '<p>a</p>');
+    assert.equal(removeTitleHeading('<h1>Other</h1><p>a</p>', 'My Title'), '<h1>Other</h1><p>a</p>');
+});
+
+test('addIdsToHeadings gives unique ids and replaces existing ones', () => {
+    const html = addIdsToHeadings('<h2 id="old">Load &amp; Speed</h2><h2>Load &amp; Speed</h2><h3 class="x">Sub</h3>');
+    assert.equal(html, '<h2 id="load-speed">Load &amp; Speed</h2><h2 id="load-speed-2">Load &amp; Speed</h2><h3 id="sub" class="x">Sub</h3>');
+});
+
+test('extractTocItems lists only the top heading level', () => {
+    const toc = extractTocItems('<h2 id="a">A</h2><h3 id="b">B</h3><h2 id="c">C &amp; D</h2>');
+    assert.deepEqual(toc, [
+        { id: 'a', text: 'A', level: 2 },
+        { id: 'c', text: 'C & D', level: 2 },
+    ]);
+    assert.deepEqual(extractTocItems('<p>no headings</p>'), []);
+});
+
+test('enhanceArticleHtml points CMS media at the CMS and lazy-loads pictures', () => {
+    assert.equal(
+        enhanceArticleHtml('<img src="/api/media/file/a.png" alt=""><img src="https://x.com/b.png">', 'https://cms.test'),
+        '<img loading="lazy" decoding="async" src="https://cms.test/api/media/file/a.png" alt=""><img loading="lazy" decoding="async" src="https://x.com/b.png">',
+    );
+});
+
+test('enhanceArticleHtml embeds a YouTube link on its own line', () => {
+    const html = enhanceArticleHtml('<p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&amp;t=3">Demo</a></p>');
+    assert.match(html, /^<figure class="video-embed"><iframe src="https:\/\/www.youtube-nocookie.com\/embed\/dQw4w9WgXcQ"/);
+    assert.match(html, /<figcaption>Demo<\/figcaption><\/figure>$/);
+    // A YouTube link inside a sentence stays a link
+    const inline = '<p>Watch <a href="https://youtu.be/dQw4w9WgXcQ">this</a> now</p>';
+    assert.equal(enhanceArticleHtml(inline), inline);
+});
+
+test('enhanceArticleHtml styles "Figure N" lines as captions', () => {
+    assert.equal(enhanceArticleHtml('<p><em>Figure 1: Diagram</em></p>'), '<p class="figure-caption"><em>Figure 1: Diagram</em></p>');
+    assert.equal(enhanceArticleHtml('<p>Text <em>Figure 2</em></p>'), '<p>Text <em>Figure 2</em></p>');
+});
+
+test('prepareArticle does everything in order', () => {
+    const { content, toc } = prepareArticle('<h1>T</h1><h2>Intro</h2><p>x</p>', 'T');
+    assert.equal(content, '<h2 id="intro">Intro</h2><p>x</p>');
+    assert.deepEqual(toc, [{ id: 'intro', text: 'Intro', level: 2 }]);
+});
+
+test('enhanceArticleHtml keeps an existing loading attribute', () => {
+    assert.equal(enhanceArticleHtml('<img loading="eager" src="https://x.com/a.png">'), '<img loading="eager" src="https://x.com/a.png">');
+});
+
+test('optimizeArticleImages sends CMS pictures through Next.js image optimisation', () => {
+    const html = optimizeArticleImages('<img loading="lazy" src="https://cms.test/api/media/file/a b.png" alt="x">', ['https://cms.test/api/media/']);
+    assert.match(html, /^<img loading="lazy" src="\/_next\/image\?url=https%3A%2F%2Fcms.test%2Fapi%2Fmedia%2Ffile%2Fa%20b.png&amp;w=1200&amp;q=75" srcset="/);
+    assert.match(html, /&amp;w=640&amp;q=75 640w, /);
+    assert.match(html, /sizes="\(max-width: 780px\) 100vw, 780px" alt="x">$/);
+});
+
+test('optimizeArticleImages leaves other pictures alone', () => {
+    const prefixes = ['https://cms.test/api/media/'];
+    for (const tag of [
+        '<img src="https://other.com/a.png">',
+        '<img src="https://cms.test/api/media/file/logo.svg">',
+        '<img src="https://cms.test/api/media/file/a.png" srcset="a.png 1x">',
+    ]) {
+        assert.equal(optimizeArticleImages(tag, prefixes), tag);
+    }
+    assert.equal(optimizeArticleImages('<img src="https://cms.test/api/media/file/a.png">', []), '<img src="https://cms.test/api/media/file/a.png">');
+});
+
+test('optimizeArticleImages accepts a pattern for pictures served straight from Azure', () => {
+    const html = optimizeArticleImages('<img src="https://acct.blob.core.windows.net/media/a.jpg">', [/^https:\/\/[a-z0-9-]+\.blob\.core\.windows\.net\//]);
+    assert.match(html, /^<img src="\/_next\/image\?url=https%3A%2F%2Facct.blob.core.windows.net%2Fmedia%2Fa.jpg&amp;w=1200&amp;q=75"/);
+});

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import SectionHeader from "./section-header";
 import { useOnScreen } from "./use-on-screen";
 import { ArrowUpRight } from "lucide-react";
+import { getCmsBlogs, skipImageOptimization } from "@/lib/cms-blogs";
 
 type NewsAndBlogsProps = {
   prefix?: string;
@@ -20,6 +21,8 @@ type Blog = {
   content: string;
   excerpt?: string;
   cover_image?: string;
+  cover_card?: string;
+  cover_blur?: string;
   published_at?: string;
   created_at: string;
   updated_at: string;
@@ -59,32 +62,16 @@ const NewsAndBlogs = ({
 
     const fetchLatestBlogs = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/public/blogs?published=true&limit=100`,
-          { signal: controller.signal },
+        const data = await getCmsBlogs(null, { signal: controller.signal });
+        setBlogs(
+          [...data]
+            .sort((a: Blog, b: Blog) => getTimestamp(b) - getTimestamp(a))
+            .slice(0, 3),
         );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch blogs");
-        }
-
-        const result = await response.json();
-        const data = Array.isArray(result.data?.blogs)
-          ? result.data.blogs
-          : Array.isArray(result.data)
-            ? result.data
-            : [];
-
-        if (result.status === "success") {
-          setBlogs(
-            [...data]
-              .sort((a: Blog, b: Blog) => getTimestamp(b) - getTimestamp(a))
-              .slice(0, 3),
-          );
-        }
       } catch (error) {
         if (error instanceof Error && error.name !== "AbortError") {
-          console.error("Error fetching latest blogs:", error);
+          // A warning, not an error: the section just stays empty when the CMS is unreachable
+          console.warn("Could not load the latest blogs from the CMS:", error.message);
         }
       }
     };
@@ -163,7 +150,10 @@ const BlogCard = ({
       >
         <div className="relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden">
           <Image
-            src={blog.cover_image || "/logo.webp"}
+            src={blog.cover_card || blog.cover_image || "/logo.webp"}
+            unoptimized={skipImageOptimization(blog.cover_card || blog.cover_image)}
+            placeholder={blog.cover_blur ? "blur" : "empty"}
+            blurDataURL={blog.cover_blur}
             alt={`${blog.title} blog post image`}
             fill
             priority={index === 0}

@@ -7,7 +7,8 @@
     "build": "next build && next-sitemap",
     "postbuild": "next-sitemap",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test --experimental-strip-types --no-warnings \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
