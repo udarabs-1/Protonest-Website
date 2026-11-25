@@ -364,3 +364,19 @@
   line-height: 1.6;
 }
 
+
+/* Article placeholder (loading.tsx): invisible for its first 400ms, then fades in. A refresh
+   replaces it with the real article before it shows, so nothing flickers; a slow
+   click-through from the blog list still gets the placeholder. */
+.article-loading {
+  animation: article-loading-in 200ms ease-out 400ms both;
+}
+
+@keyframes article-loading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
