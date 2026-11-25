@@ -43,6 +43,12 @@ const ClientMarquee = () => {
             logo: "/protonest-client-executive-risk-services.svg",
             alt: "Executive Risk Services logo",
         },
+        {
+            // Their site only has a white logo, so this copy is recoloured in their teal (#054953)
+            name: "Smarty Plants",
+            logo: "/protonest-client-smarty-plants.png",
+            alt: "Smarty Plants logo",
+        },
     ];
 
     return (
